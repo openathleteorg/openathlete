@@ -2,6 +2,7 @@ import { useGetEventQuery } from '@/api/event';
 
 import { EVENT_TYPE, Event } from '@openathlete/shared';
 
+import { QuestionnaireEventDetails } from '../questionnaires/questionnaire-event-details';
 import { ActivityDetails } from './activity-details';
 import { clubSessionIdOf } from './club-session-id';
 import { ClubSessionPanel } from './club-session-panel';
@@ -38,6 +39,9 @@ export function EventDetails({ eventId }: P) {
   }
   if (event?.type === EVENT_TYPE.COMPETITION) {
     return <TrainingCompetitionDetails event={event} />;
+  }
+  if (event?.type === EVENT_TYPE.QUESTIONNAIRE) {
+    return <QuestionnaireEventDetails event={event} />;
   }
   if (event?.type === EVENT_TYPE.NOTE) {
     return (

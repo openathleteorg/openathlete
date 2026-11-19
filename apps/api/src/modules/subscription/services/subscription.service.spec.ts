@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 import { Prisma } from '@openathlete/database';
-import { BillingInterval } from '@openathlete/shared';
+import { Offer } from '@openathlete/shared';
 
 import {
   appleRenewalInfo,
@@ -11,17 +11,14 @@ import { StripeService } from './stripe.service';
 import {
   SubscriptionService,
   appleSubscriptionFields,
+  keepsFounder,
 } from './subscription.service';
-
-const PRICES: Record<string, BillingInterval> = {
-  price_month: BillingInterval.MONTH,
-  price_year: BillingInterval.YEAR,
-};
 
 function stripeSubscription(
   overrides: Partial<Stripe.Subscription> = {},
   priceId = 'price_year',
   recurring: 'month' | 'year' = 'year',
+  unitAmount = 8000,
 ): Stripe.Subscription {
   return {
     id: 'sub_1',
@@ -35,7 +32,12 @@ function stripeSubscription(
           id: 'si_1',
           current_period_start: 1_790_000_000,
           current_period_end: 1_821_536_000,
-          price: { id: priceId, recurring: { interval: recurring } },
+          price: {
+            id: priceId,
+            unit_amount: unitAmount,
+            currency: 'eur',
+            recurring: { interval: recurring },
+          },
         },
       ],
     },
@@ -63,7 +65,6 @@ function setup({
   };
   const stripe = {
     billingEnabled,
-    intervalOfPrice: (priceId?: string) => (priceId && PRICES[priceId]) ?? null,
     getSubscription: jest.fn().mockResolvedValue(stripeSubscription()),
     getCustomer: jest
       .fn()
@@ -104,6 +105,19 @@ describe('SubscriptionService', () => {
       });
 
       await expect(service.getMaxAthletesForUser(7)).resolves.toBe(5);
+    });
+
+    it('keeps unlimited athletes for founders', async () => {
+      const { service } = setup({
+        stored: { plan: 'SUPPORTER', status: 'active', isFounder: true },
+        coachedAthletes: 8,
+      });
+
+      await expect(service.getMaxAthletesForUser(7)).resolves.toBeNull();
+      await expect(service.offerForUser(7)).resolves.toEqual({
+        offer: Offer.SUPPORTER,
+        isFounder: true,
+      });
     });
 
     it('limits nobody on an instance without billing', async () => {
@@ -179,6 +193,9 @@ describe('SubscriptionService', () => {
           status: 'active',
           stripeCustomerId: 'cus_1',
           stripeSubscriptionId: 'sub_1',
+          amountCents: 8000,
+          currency: 'eur',
+          isFounder: false,
           currentPeriodStart: new Date(1_790_000_000 * 1000),
           currentPeriodEnd: new Date(1_821_536_000 * 1000),
         }),
@@ -204,22 +221,53 @@ describe('SubscriptionService', () => {
         data: expect.objectContaining({
           billingInterval: 'month',
           cancelAtPeriodEnd: true,
+          amountCents: 8000,
         }),
       });
     });
 
-    it('reads the interval from Stripe for a price it does not know', async () => {
+    it("keeps a founder's old price and status through renewals", async () => {
       const { prisma, service } = setup({
-        stored: { subscriptionId: 3, plan: 'SUPPORTER' },
+        stored: {
+          subscriptionId: 3,
+          plan: 'SUPPORTER',
+          isFounder: true,
+          stripeSubscriptionId: 'sub_1',
+        },
       });
 
       await service.updateSubscriptionFromWebhook(
-        stripeSubscription({}, 'price_promo', 'month'),
+        stripeSubscription({}, 'price_founder', 'month', 599),
       );
 
       expect(prisma.subscription.update).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ billingInterval: 'month' }),
+          data: expect.objectContaining({
+            billingInterval: 'month',
+            amountCents: 599,
+            isFounder: true,
+          }),
+        }),
+      );
+    });
+
+    it('ends founder status with the subscription', async () => {
+      const { prisma, service } = setup({
+        stored: {
+          subscriptionId: 3,
+          plan: 'SUPPORTER',
+          isFounder: true,
+          stripeSubscriptionId: 'sub_1',
+        },
+      });
+
+      await service.updateSubscriptionFromWebhook(
+        stripeSubscription({ status: 'canceled' }),
+      );
+
+      expect(prisma.subscription.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ isFounder: false }),
         }),
       );
     });
@@ -236,6 +284,54 @@ describe('SubscriptionService', () => {
         }),
       );
     });
+  });
+});
+
+describe('keepsFounder', () => {
+  const founder = {
+    isFounder: true,
+    stripeSubscriptionId: 'sub_1',
+    appleOriginalTransactionId: null,
+  };
+
+  it('keeps it while the same subscription runs, past due included', () => {
+    expect(
+      keepsFounder(founder, {
+        status: 'active',
+        stripeSubscriptionId: 'sub_1',
+      }),
+    ).toBe(true);
+    expect(keepsFounder(founder, { status: 'past_due' })).toBe(true);
+  });
+
+  it('loses it on a new subscription, at the new prices', () => {
+    expect(
+      keepsFounder(founder, {
+        status: 'active',
+        stripeSubscriptionId: 'sub_2',
+      }),
+    ).toBe(false);
+    expect(
+      keepsFounder(
+        {
+          ...founder,
+          stripeSubscriptionId: null,
+          appleOriginalTransactionId: '1',
+        },
+        { status: 'active', appleOriginalTransactionId: '2' },
+      ),
+    ).toBe(false);
+  });
+
+  it('loses it once the subscription ended', () => {
+    expect(keepsFounder(founder, { status: 'canceled' })).toBe(false);
+  });
+
+  it('never makes anyone a founder', () => {
+    expect(keepsFounder(null, { status: 'active' })).toBe(false);
+    expect(
+      keepsFounder({ ...founder, isFounder: false }, { status: 'active' }),
+    ).toBe(false);
   });
 });
 
@@ -261,13 +357,29 @@ describe('appleSubscriptionFields', () => {
     });
   });
 
-  it('reads the yearly product', () => {
+  it('reads the yearly product as the lowest tier', () => {
     const fields = appleSubscriptionFields(
       transaction({ productId: 'org.openathlete.supporter.yearly' }),
       null,
       now,
     );
-    expect(fields.billingInterval).toBe('year');
+    expect(fields).toMatchObject({
+      billingInterval: 'year',
+      amountCents: 5000,
+    });
+  });
+
+  it('reads the tier of a tiered product', () => {
+    const fields = appleSubscriptionFields(
+      transaction({ productId: 'org.openathlete.supporter.monthly.800' }),
+      null,
+      now,
+    );
+    expect(fields).toMatchObject({
+      billingInterval: 'month',
+      amountCents: 800,
+      currency: 'eur',
+    });
   });
 
   it('ends access once the period is over', () => {

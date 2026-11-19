@@ -142,6 +142,14 @@ export class EventAPI {
     return mapEvent(res.data);
   }
 
+  /** The GPS track of an activity, as a GPX file */
+  static async getEventGpx(eventId: Event['eventId']): Promise<Blob> {
+    const res = await client.get(routes.event.getEventGpx(eventId), {
+      responseType: 'blob',
+    });
+    return res.data;
+  }
+
   static async getEventStream(
     eventId: Event['eventId'],
     resolution: number,

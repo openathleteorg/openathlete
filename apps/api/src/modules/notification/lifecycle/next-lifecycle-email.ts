@@ -30,13 +30,19 @@ export interface LifecycleState {
   /** The user's local hour and day of month */
   localHour: number;
   localDay: number;
+  /** 0 for Sunday to 6 for Saturday, the user's time */
+  localWeekday: number;
   createdAt: Date;
   emailTips: boolean;
   emailRecap: boolean;
+  /** Gets the Monday email (WEEKLY_RECAP) */
+  emailWeekly: boolean;
   newsConsent: boolean;
   /** The instance sells Supporter subscriptions */
   billingEnabled: boolean;
   isSupporter: boolean;
+  /** Subscribed before the Supporter tiers, and still subscribed */
+  isFounder: boolean;
   providers: {
     providerAccountId: number;
     status: 'active' | 'revoked';
@@ -106,6 +112,16 @@ export function nextLifecycleEmail(state: LifecycleState): NextEmail | null {
     };
   }
 
+  // Customers are told about a change of their offer, whatever the lists
+  if (
+    state.billingEnabled &&
+    state.isFounder &&
+    state.isSupporter &&
+    !wasSent('FOUNDER_ANNOUNCEMENT')
+  ) {
+    return { kind: 'FOUNDER_ANNOUNCEMENT', ref: '' };
+  }
+
   const lastSent = Math.max(0, ...state.sent.map((e) => e.sentAt.getTime()));
   if (now - lastSent < MIN_SPACING) return null;
 
@@ -157,8 +173,12 @@ export function nextLifecycleEmail(state: LifecycleState): NextEmail | null {
     }
   }
 
+  // Never on the day of the Monday email; the spacing then puts it two
+  // days after it, still within the first week
+  const weeklyDay = state.emailWeekly && state.localWeekday === 1;
   if (
     state.emailRecap &&
+    !weeklyDay &&
     state.localDay <= RECAP_LAST_DAY &&
     state.previousMonthActivityCount >= RECAP_MIN_ACTIVITIES &&
     !wasSent('MONTHLY_RECAP', state.previousMonth)

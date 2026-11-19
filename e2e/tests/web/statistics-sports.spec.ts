@@ -204,6 +204,18 @@ for (const profile of PROFILES) {
     await open(page, `${scope}&view=load`);
     await expect(page.locator('[data-intensity]')).toBeVisible();
     await expect(page.locator('[data-default-zones]')).toBeVisible();
+    // The same chart in hours: how much easy work the weeks hold
+    await page
+      .getByRole('tablist', { name: 'Intensity' })
+      .getByRole('tab', { name: 'Duration' })
+      .click();
+    await expect(page.locator('[data-intensity]')).toHaveAttribute(
+      'data-intensity-unit',
+      'hours',
+    );
+    await expect(
+      page.locator('[data-intensity] .recharts-yAxis'),
+    ).toContainText(' h');
     await expect(page.locator('[data-tsb-chart]')).toBeVisible();
     await expect(page.getByText('Load comes from heart rate')).toHaveCount(0);
     await expect(page.locator('[data-steady="efficiency"]')).toHaveCount(

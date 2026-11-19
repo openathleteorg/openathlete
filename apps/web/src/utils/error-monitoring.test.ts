@@ -57,4 +57,55 @@ describe('error monitoring', () => {
     const config = init.mock.calls[0][1];
     expect(config.before_send({ event: '$exception' })).toBeNull();
   });
+
+  it('drops browser and extension noise', async () => {
+    vi.stubEnv('VITE_PUBLIC_POSTHOG_PROJECT_TOKEN', 'phc_test');
+
+    (await load()).initErrorMonitoring();
+
+    const config = init.mock.calls[0][1];
+    const exception = (...values: string[]) => ({
+      event: '$exception',
+      properties: { $exception_list: values.map((value) => ({ value })) },
+    });
+    expect(
+      config.before_send(
+        exception(
+          'ResizeObserver loop completed with undelivered notifications.',
+        ),
+      ),
+    ).toBeNull();
+    expect(config.before_send(exception('Script error.'))).toBeNull();
+    const ours = exception('Script error.', "Cannot read 'x' of undefined");
+    expect(config.before_send(ours)).toBe(ours);
+  });
+
+  it("drops the stack overflow of Chrome iOS's injected scripts only", async () => {
+    vi.stubEnv('VITE_PUBLIC_POSTHOG_PROJECT_TOKEN', 'phc_test');
+
+    (await load()).initErrorMonitoring();
+
+    const config = init.mock.calls[0][1];
+    const overflow = (browser: string, filename: string) => ({
+      event: '$exception',
+      properties: {
+        $browser: browser,
+        $exception_list: [
+          {
+            value: 'Maximum call stack size exceeded.',
+            stacktrace: { frames: [{ filename }] },
+          },
+        ],
+      },
+    });
+    const page = 'https://app.openathlete.org/auth/create-account';
+    expect(config.before_send(overflow('Chrome iOS', page))).toBeNull();
+    const ours = overflow(
+      'Chrome iOS',
+      'https://app.openathlete.org/assets/index-abc.js',
+    );
+    expect(config.before_send(ours)).toBe(ours);
+    const safari = overflow('Mobile Safari', page);
+    expect(config.before_send(safari)).toBe(safari);
+  });
 });

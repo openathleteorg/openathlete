@@ -67,6 +67,16 @@ export const paths: Paths = {
       root: `${ROOTS.DASHBOARD}/metrics`,
       athleteId: `${ROOTS.DASHBOARD}/metrics/:athleteId`,
     },
+    // A coach's questionnaires, and the answers of one athlete
+    questionnaires: {
+      root: `${ROOTS.DASHBOARD}/questionnaires`,
+      create: `${ROOTS.DASHBOARD}/questionnaires/new`,
+      athleteId: `${ROOTS.DASHBOARD}/questionnaires/:athleteId`,
+      answers: `${ROOTS.DASHBOARD}/questionnaires/q/:questionnaireId`,
+      edit: `${ROOTS.DASHBOARD}/questionnaires/q/:questionnaireId/edit`,
+    },
+    // What an athlete answered to their coaches' questionnaires
+    'my-questionnaires': `${ROOTS.DASHBOARD}/my-questionnaires`,
     // A coach's private notes: all of them, or one athlete's
     notes: {
       root: `${ROOTS.DASHBOARD}/notes`,
@@ -147,3 +157,11 @@ export const getPathEnd = (path: string) =>
  */
 export const getLastNPaths = (path: string, N: number) =>
   path.split('/').slice(-N).join('/');
+
+/** The answers to one of the coach's questionnaires, across athletes */
+export const questionnaireAnswersPath = (questionnaireId: number): string =>
+  `${ROOTS.DASHBOARD}/questionnaires/q/${questionnaireId}`;
+
+/** The editor of one of the coach's questionnaires */
+export const questionnaireEditPath = (questionnaireId: number): string =>
+  `${ROOTS.DASHBOARD}/questionnaires/q/${questionnaireId}/edit`;

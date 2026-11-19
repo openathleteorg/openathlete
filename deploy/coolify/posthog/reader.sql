@@ -50,7 +50,10 @@ insert into posthog_tables values
   ('training_week'), ('training_zone'), ('training_zone_value'),
   ('workout'), ('workout_repeat'), ('workout_step'), ('workout_step_target'),
   ('message_thread'), ('message_thread_participant'), ('message'),
-  ('message_read_receipt');
+  ('message_read_receipt'),
+  ('club'), ('club_member'), ('club_invitation'), ('club_session'),
+  ('club_session_attendance'), ('athlete_group'), ('athlete_group_member'),
+  ('athlete_group_staff');
 
 -- Credentials, other people's emails, and heavy columns.
 create temp table posthog_hidden (tbl text, col text, primary key (tbl, col)) on commit drop;
@@ -67,6 +70,11 @@ insert into posthog_hidden values
   ('athlete_invitation', 'email'),
   ('coach_invitation', 'token'),
   ('coach_invitation', 'email'),
+  ('club', 'athlete_join_token'),
+  ('club', 'staff_join_token'),
+  ('club', 'athlete_join_code'),
+  ('club_invitation', 'token'),
+  ('club_invitation', 'email'),
   ('event_activity', 'stream'),
   ('event_activity', 'original_stream'),
   ('event_activity_weather', 'samples'),

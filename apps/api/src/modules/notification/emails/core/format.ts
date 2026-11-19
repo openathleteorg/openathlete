@@ -42,6 +42,15 @@ export function formatDay(language: EmailLanguage, date: Date) {
   }).format(date);
 }
 
+/** Short weekday and day of a local date (YYYY-MM-DD): "lun. 24" */
+export function formatWeekday(language: EmailLanguage, date: string) {
+  return new Intl.DateTimeFormat(locales[language], {
+    weekday: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${date}T12:00:00Z`));
+}
+
 /** March 2025 */
 export function formatMonthYear(language: EmailLanguage, date: Date) {
   return new Intl.DateTimeFormat(locales[language], {

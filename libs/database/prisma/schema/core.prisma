@@ -69,6 +69,9 @@ model User {
   /// When the app last showed a Supporter mention in context (race, year
   /// review, AI preview), so they stay rare
   supporterNudgeSeenAt DateTime?     @map("supporter_nudge_seen_at")
+  /// When the user opened or put off the year review: the dashboard stops
+  /// announcing that year's review, on every device
+  yearReviewSeenAt     DateTime?     @map("year_review_seen_at")
   /// When the user allowed their data to be sent to third-party AI
   /// providers; no AI runs on their data while unset (App Store 5.1.2(i), GDPR)
   aiDataSharingConsentAt DateTime? @map("ai_data_sharing_consent_at")
@@ -79,9 +82,18 @@ model User {
   emailTips           Boolean      @default(true) @map("email_tips")
   /// Monthly email recap of the training
   emailRecap          Boolean      @default(true) @map("email_recap")
+  /// Monday email: the past week, the form, the week to come
+  emailWeekly         Boolean      @default(true) @map("email_weekly")
+  /// Monday email to coaches: the athletes to look at
+  emailCoachWeekly    Boolean      @default(true) @map("email_coach_weekly")
+  /// Emails telling an athlete a questionnaire from their coach is waiting
+  emailQuestionnaires Boolean      @default(true) @map("email_questionnaires")
   /// When the user asked for news about the project, Supporter included:
   /// commercial emails need this consent (CNIL), unset by default
   emailNewsConsentAt  DateTime?    @map("email_news_consent_at")
+
+  /// Units the app shows values in
+  unitSystem          UnitSystem   @default(METRIC) @map("unit_system")
 
   // relationships
   athlete                   Athlete?
@@ -104,6 +116,7 @@ model User {
   activityChatNotices        ActivityChatNotice[]
   coachNotes                CoachNote[]
   coachNotebook             CoachNotebook?
+  questionnaires            Questionnaire[]
   storedFiles               StoredFile[]
   subscription              Subscription?
   mcpGrants                 McpGrant[]
@@ -270,7 +283,8 @@ model LifecycleEmail {
   // fields
   kind   LifecycleEmailKind
   /// What the email was about, when one kind can be sent more than once:
-  /// the month of a recap, the provider account of a lost connection
+  /// the month of a recap, the provider account of a lost connection, the
+  /// Monday of a weekly email
   ref    String             @default("")
   sentAt DateTime           @default(now()) @map("sent_at")
 

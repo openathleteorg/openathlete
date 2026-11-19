@@ -54,6 +54,7 @@ interface Ids {
   memberAthleteId: number;
   activity: Record<string, number>;
   training: Record<string, number>;
+  hooperId: number;
 }
 
 async function login(email: string): Promise<Tokens> {
@@ -81,6 +82,7 @@ interface EventRow {
 
 async function findIds(athlete: Tokens, coach: Tokens, member: Tokens): Promise<Ids> {
   const clubs = await api<{ clubId: number; name: string }[]>(coach, '/club');
+  const questionnaires = await api<{ questionnaireId: number; title: string }[]>(coach, '/questionnaires');
   const memberMe = await api<{ athleteId: number }>(member, '/athlete/me');
   const day = (offset: number) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
   const events = await api<EventRow[]>(athlete, `/event?startDate=${day(-120)}&endDate=${day(35)}`);
@@ -109,6 +111,7 @@ async function findIds(athlete: Tokens, coach: Tokens, member: Tokens): Promise<
       longRun: doneAs('Long run'),
     },
     training: { nextStrength: nextStrength?.eventId ?? 0 },
+    hooperId: questionnaires.find((q) => q.title === 'Hooper index')?.questionnaireId ?? 0,
   };
 }
 
@@ -665,6 +668,32 @@ export const SHOTS: Shot[] = [
     path: (ids) => `/dashboard/calendar/${ids.camilleAthleteId}`,
     prepare: steps(calendarView('Week'), async (p) => p.getByRole('button', { name: /Template Library/i }).click()),
   },
+  // Questionnaires
+  { name: 'desktop-questionnaire-answers', who: 'coach', path: (ids) => `/dashboard/questionnaires/q/${ids.hooperId}` },
+  {
+    name: 'desktop-questionnaire-answers-charts',
+    who: 'coach',
+    path: (ids) => `/dashboard/questionnaires/q/${ids.hooperId}`,
+    prepare: scrollToSelector('[data-question-widget]', 120),
+  },
+  { name: 'desktop-coach-athlete-questionnaires', who: 'coach', path: (ids) => `/dashboard/questionnaires/${ids.camilleAthleteId}` },
+  {
+    name: 'desktop-coach-athlete-questionnaire-charts',
+    who: 'coach',
+    path: (ids) => `/dashboard/questionnaires/${ids.camilleAthleteId}`,
+    prepare: async (p) => p.getByRole('tab', { name: 'By questionnaire' }).click(),
+  },
+  {
+    name: 'mobile-questionnaire-answer',
+    who: 'athlete',
+    device: 'mobile',
+    path: '/dashboard/today',
+    prepare: async (p) => {
+      await p.locator('[data-pending-questionnaire]').first().click();
+      await p.getByRole('dialog').getByText('Fatigue').first().waitFor();
+    },
+  },
+  { name: 'mobile-my-questionnaires', who: 'athlete', device: 'mobile', path: '/dashboard/my-questionnaires' },
   // Garmin's production review: every place its data and brand appear
   { name: 'garmin-01-connectors', who: 'athlete', path: '/dashboard/settings?tab=connectors' },
   { name: 'garmin-02-activity', who: 'athlete', path: (ids) => `/dashboard/activity/${ids.activity.longTrail}` },

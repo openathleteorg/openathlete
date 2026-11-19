@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { PostHog } from 'posthog-node';
+import { type EventMessage, PostHog } from 'posthog-node';
 
 import {
   Injectable,
@@ -37,6 +37,20 @@ export function stableUuid(key: string): string {
 }
 
 /**
+ * A deploy stops the old containers: Redis commands still in flight reject
+ * with this as their connection closes, which says nothing about the code.
+ */
+export function isShutdownNoise(
+  event: EventMessage,
+  shuttingDown: boolean,
+): boolean {
+  if (!shuttingDown || event.event !== '$exception') return false;
+  const list = event.properties?.$exception_list as
+    { value?: string }[] | undefined;
+  return !!list?.some(({ value }) => value === 'Connection is closed.');
+}
+
+/**
  * Product analytics and error reports, sent to PostHog when POSTHOG_PROJECT_TOKEN
  * is set: every method is a no-op without it, so self-hosted instances send
  * nothing. Reporting must never break the work it observes: nothing here throws.
@@ -46,6 +60,7 @@ export class AnalyticsService implements OnApplicationShutdown {
   private readonly logger = new Logger(AnalyticsService.name);
   private readonly client: PostHog | null;
   private flushLogs?: () => Promise<void>;
+  private shuttingDown = false;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -58,8 +73,21 @@ export class AnalyticsService implements OnApplicationShutdown {
           enableExceptionAutocapture: true,
           flushAt: 20,
           flushInterval: 10_000,
+          before_send: (event) =>
+            isShutdownNoise(event, this.shuttingDown) ? null : event,
         })
       : null;
+    // Before Nest closes anything, which is when the noise starts
+    if (this.client) {
+      process.once('SIGTERM', () => {
+        this.shuttingDown = true;
+        // A listener cancels Node's default exit: without Nest's shutdown
+        // hooks (the CLI), restore it
+        if (process.listenerCount('SIGTERM') === 0) {
+          process.kill(process.pid, 'SIGTERM');
+        }
+      });
+    }
   }
 
   get enabled(): boolean {

@@ -22,6 +22,8 @@ function setup(appleStore = new TestAppleStoreService()) {
       provider: 'apple',
     }),
     getMaxAthletesForUser: jest.fn().mockResolvedValue(null),
+    getCurrentSubscription: jest.fn().mockResolvedValue(null),
+    isEntitled: () => true,
   };
   return {
     subscriptionService,
@@ -34,7 +36,9 @@ function setup(appleStore = new TestAppleStoreService()) {
       { billingEnabled: true } as never,
       {} as never,
       appleStore,
-      {} as never,
+      { get: () => 'https://app.test' } as never,
+      { user: { findUnique: jest.fn().mockResolvedValue(null) } } as never,
+      { emit: jest.fn() } as never,
     ),
   };
 }
@@ -117,6 +121,8 @@ describe('SubscriptionController.getSupporterCount', () => {
       {} as never,
       new TestAppleStoreService(),
       {} as never,
+      {} as never,
+      { emit: jest.fn() } as never,
     );
 
   it('gives the count of Supporters and the goal', async () => {

@@ -1,4 +1,4 @@
-import { AiFeatureTask, AiTask } from '@openathlete/shared';
+import { AiFeatureTask, AiTask, Offer } from '@openathlete/shared';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -13,14 +13,22 @@ if (!databaseUrl) {
   );
 }
 
-const OCTOBER = new Date('2026-10-15T12:00:00Z');
-const NOVEMBER = new Date('2026-11-01T00:30:00Z');
+// Monday 16 to Sunday 22 November 2026
+const WEDNESDAY = new Date('2026-11-18T12:00:00Z');
+const NEXT_WEDNESDAY = new Date('2026-11-25T12:00:00Z');
 
 describe('AiUsageService (PostgreSQL)', () => {
   let prisma: PrismaService;
-  const policy: { hostedMonthlyBudgetUsd: number | undefined } = {
-    hostedMonthlyBudgetUsd: undefined,
+  // Arbitrary allowance in US dollars a week; undefined: no limit
+  const policy: { weeklyAllowanceUsd: () => number | undefined } = {
+    weeklyAllowanceUsd: () => undefined,
   };
+  const subscriptions = {
+    offerForUser: jest
+      .fn()
+      .mockResolvedValue({ offer: Offer.SUPPORTER, isFounder: false }),
+  };
+  const analytics = { enabled: true, send: jest.fn() };
   let service: AiUsageService;
   let userId: number;
   let otherUserId: number;
@@ -42,11 +50,19 @@ describe('AiUsageService (PostgreSQL)', () => {
     provider: 'anthropic',
     modelId: 'claude-sonnet-4-5',
   });
+  const allow = (usd: number | undefined) => {
+    policy.weeklyAllowanceUsd = () => usd;
+  };
 
   beforeAll(async () => {
     prisma = new PrismaService({ datasourceUrl: databaseUrl });
     await prisma.$connect();
-    service = new AiUsageService(prisma, policy as AiPolicyService);
+    service = new AiUsageService(
+      prisma,
+      policy as unknown as AiPolicyService,
+      subscriptions as never,
+      analytics as never,
+    );
   });
 
   afterAll(async () => {
@@ -57,42 +73,52 @@ describe('AiUsageService (PostgreSQL)', () => {
     await prisma.$executeRawUnsafe(
       'TRUNCATE "user", ai_usage RESTART IDENTITY CASCADE',
     );
-    policy.hostedMonthlyBudgetUsd = undefined;
-    const user = (email: string) =>
+    allow(undefined);
+    analytics.send.mockClear();
+    const user = (email: string, timeZone: string) =>
       prisma.user.create({
-        data: { email, password: 'x', firstName: 'A', lastName: 'B' },
+        data: {
+          email,
+          password: 'x',
+          firstName: 'A',
+          lastName: 'B',
+          timeZone,
+        },
       });
-    userId = (await user('athlete@example.com')).userId;
-    otherUserId = (await user('other@example.com')).userId;
+    userId = (await user('athlete@example.com', 'Europe/Paris')).userId;
+    otherUserId = (await user('other@example.com', 'America/New_York')).userId;
   });
 
-  it('adds up the tokens of a month, per key source', async () => {
+  it('counts each day, and tells only the tokens of own keys', async () => {
     await service.record(
       hosted(),
       { inputTokens: 100, outputTokens: 20 },
-      OCTOBER,
+      WEDNESDAY,
     );
     await service.record(
       hosted(),
       { inputTokens: 50, outputTokens: 5 },
-      OCTOBER,
+      WEDNESDAY,
     );
     await service.record(
       ownKey(AiTask.FEEDBACK_EXTRACTION),
       { inputTokens: 7, outputTokens: 3 },
-      OCTOBER,
+      WEDNESDAY,
     );
 
-    await expect(service.describe(userId, OCTOBER)).resolves.toEqual({
-      hostedTokens: 175,
+    const usage = await service.describe(userId, WEDNESDAY);
+    expect(usage).toEqual({
       ownKeyTokens: 10,
       hostedBudgetUsed: null,
-      resetsAt: '2026-11-01T00:00:00.000Z',
+      // Monday 23 November, midnight in Paris
+      resetsAt: '2026-11-22T23:00:00.000Z',
     });
+    expect(usage).not.toHaveProperty('hostedTokens');
     const rows = await prisma.aiUsage.findMany({ orderBy: { task: 'asc' } });
     expect(rows).toEqual([
       // 150 input tokens at $0.20/M and 25 output tokens at $1.20/M
       expect.objectContaining({
+        day: new Date('2026-11-18T00:00:00Z'),
         source: 'HOSTED',
         calls: 2,
         inputTokens: 150,
@@ -105,7 +131,11 @@ describe('AiUsageService (PostgreSQL)', () => {
   it('counts concurrent calls without losing any', async () => {
     await Promise.all(
       Array.from({ length: 10 }, () =>
-        service.record(hosted(), { inputTokens: 10, outputTokens: 1 }, OCTOBER),
+        service.record(
+          hosted(),
+          { inputTokens: 10, outputTokens: 1 },
+          WEDNESDAY,
+        ),
       ),
     );
 
@@ -117,58 +147,132 @@ describe('AiUsageService (PostgreSQL)', () => {
     });
   });
 
-  it('starts again each month, in UTC', async () => {
+  it('refills on Monday at midnight in the user’s time zone', async () => {
+    allow(1);
+    // $0.50, on Sunday 23:30 in Paris
     await service.record(
       hosted(),
-      { inputTokens: 900, outputTokens: 100 },
-      OCTOBER,
+      { inputTokens: 2_500_000 },
+      new Date('2026-11-22T22:30:00Z'),
     );
 
-    await expect(service.describe(userId, NOVEMBER)).resolves.toMatchObject({
-      hostedTokens: 0,
-      resetsAt: '2026-12-01T00:00:00.000Z',
+    await expect(
+      service.describe(userId, new Date('2026-11-22T22:50:00Z')),
+    ).resolves.toMatchObject({ hostedBudgetUsed: 0.5 });
+    // Monday 00:10 in Paris, Sunday 23:10 in UTC
+    await expect(
+      service.describe(userId, new Date('2026-11-22T23:10:00Z')),
+    ).resolves.toEqual({
+      ownKeyTokens: 0,
+      hostedBudgetUsed: 0,
+      resetsAt: '2026-11-29T23:00:00.000Z',
     });
   });
 
-  it('enforces the monthly budget on the instance keys only', async () => {
-    policy.hostedMonthlyBudgetUsd = 3;
+  it('keeps the week of a user west of UTC until their own Monday', async () => {
+    allow(1);
+    const sundayEveningInNewYork = new Date('2026-11-23T03:00:00Z');
+    await service.record(
+      { ...hosted(), userId: otherUserId },
+      { inputTokens: 2_500_000 },
+      sundayEveningInNewYork,
+    );
+
+    await expect(
+      service.describe(otherUserId, sundayEveningInNewYork),
+    ).resolves.toEqual({
+      ownKeyTokens: 0,
+      hostedBudgetUsed: 0.5,
+      // Monday midnight in New York
+      resetsAt: '2026-11-23T05:00:00.000Z',
+    });
+    await expect(
+      prisma.aiUsage.findFirstOrThrow({ where: { userId: otherUserId } }),
+    ).resolves.toMatchObject({ day: new Date('2026-11-22T00:00:00Z') });
+  });
+
+  it('enforces the weekly allowance on the instance keys only', async () => {
+    allow(3);
     await service.record(
       ownKey(),
       { inputTokens: 50_000_000, outputTokens: 0 },
-      OCTOBER,
+      WEDNESDAY,
     );
-    await expect(service.hasHostedAllowanceLeft(userId, OCTOBER)).resolves.toBe(
-      true,
-    );
+    await expect(
+      service.hasHostedAllowanceLeft(userId, WEDNESDAY),
+    ).resolves.toBe(true);
 
-    // $2.00 of input and $1.20 of output: over the $3 budget
+    // $2.00 of input and $1.20 of output: over the allowance by one call
     await service.record(
       hosted(),
       { inputTokens: 10_000_000, outputTokens: 1_000_000 },
-      OCTOBER,
+      WEDNESDAY,
     );
 
-    await expect(service.hasHostedAllowanceLeft(userId, OCTOBER)).resolves.toBe(
-      false,
-    );
-    await expect(service.describe(userId, OCTOBER)).resolves.toMatchObject({
+    await expect(
+      service.hasHostedAllowanceLeft(userId, WEDNESDAY),
+    ).resolves.toBe(false);
+    await expect(service.describe(userId, WEDNESDAY)).resolves.toMatchObject({
       hostedBudgetUsed: 1,
     });
     await expect(
-      service.hasHostedAllowanceLeft(otherUserId, OCTOBER),
+      service.hasHostedAllowanceLeft(otherUserId, WEDNESDAY),
     ).resolves.toBe(true);
     await expect(
-      service.hasHostedAllowanceLeft(userId, NOVEMBER),
+      service.hasHostedAllowanceLeft(userId, NEXT_WEDNESDAY),
     ).resolves.toBe(true);
   });
 
-  it('reports the share of the budget used', async () => {
-    policy.hostedMonthlyBudgetUsd = 2;
-    // $0.50
-    await service.record(hosted(), { inputTokens: 2_500_000 }, OCTOBER);
+  it('gives nothing when the allowance is zero', async () => {
+    allow(0);
 
-    await expect(service.describe(userId, OCTOBER)).resolves.toMatchObject({
-      hostedBudgetUsed: 0.25,
+    await expect(
+      service.hasHostedAllowanceLeft(userId, WEDNESDAY),
+    ).resolves.toBe(false);
+    await expect(service.describe(userId, WEDNESDAY)).resolves.toMatchObject({
+      hostedBudgetUsed: 1,
+    });
+  });
+
+  it('tells analytics when the allowance runs low, then runs out, once each', async () => {
+    allow(1);
+    // $0.50, $0.40 (90%), $0.04 (94%), $0.10 (over)
+    for (const inputTokens of [2_500_000, 2_000_000, 200_000, 500_000]) {
+      await service.record(hosted(), { inputTokens }, WEDNESDAY);
+    }
+
+    expect(analytics.send.mock.calls).toEqual([
+      [
+        userId,
+        'ai_allowance_warning',
+        { offer: Offer.SUPPORTER, founder: false, week: '2026-11-16' },
+      ],
+      [
+        userId,
+        'ai_allowance_exhausted',
+        { offer: Offer.SUPPORTER, founder: false, week: '2026-11-16' },
+      ],
+    ]);
+    // Nothing tells what the allowance or the calls cost
+    expect(JSON.stringify(analytics.send.mock.calls)).not.toMatch(
+      /cost|usd|token/i,
+    );
+  });
+
+  it('counts voice notes on the allowance, without blocking them', async () => {
+    allow(1);
+
+    // 60 seconds of Whisper: $0.006
+    await service.recordTranscription(userId, 60, WEDNESDAY);
+
+    await expect(prisma.aiUsage.findFirstOrThrow()).resolves.toMatchObject({
+      task: 'VOICE_TRANSCRIPTION',
+      source: 'HOSTED',
+      costMicroUsd: 6000,
+      calls: 1,
+    });
+    await expect(service.describe(userId, WEDNESDAY)).resolves.toMatchObject({
+      hostedBudgetUsed: 0.006,
     });
   });
 
@@ -176,7 +280,7 @@ describe('AiUsageService (PostgreSQL)', () => {
     await service.record(
       { ...hosted(), modelId: 'gpt-unknown' },
       { inputTokens: 1000, outputTokens: 1000 },
-      OCTOBER,
+      WEDNESDAY,
     );
 
     // $5/M input and $30/M output
@@ -186,7 +290,7 @@ describe('AiUsageService (PostgreSQL)', () => {
   });
 
   it('counts a call whose provider reported no tokens', async () => {
-    await service.record(hosted(), undefined, OCTOBER);
+    await service.record(hosted(), undefined, WEDNESDAY);
 
     await expect(prisma.aiUsage.findFirstOrThrow()).resolves.toMatchObject({
       calls: 1,
@@ -199,7 +303,7 @@ describe('AiUsageService (PostgreSQL)', () => {
     await service.record(
       hosted(),
       { inputTokens: 1, outputTokens: 1 },
-      OCTOBER,
+      WEDNESDAY,
     );
 
     await prisma.user.delete({ where: { userId } });

@@ -345,7 +345,7 @@ export function RelatedFeatures({
             {m.features_related_all()}
           </ArrowLink>
         </div>
-        <RevealGroup className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <RevealGroup className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {pages.map(({ slug, id, icon: Icon }) => (
             <RevealItem key={slug}>
               <Link

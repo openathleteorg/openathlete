@@ -4,16 +4,50 @@ import { getLocale } from '@/paraglide/runtime';
 import {
   BillingInterval,
   CurrentSubscriptionDto,
-  PLAN_CONFIGS,
+  OFFERS,
+  Offer,
   SubscriptionPlan,
   SubscriptionStatus,
+  featuredPrice,
+  tierPrices,
 } from '@openathlete/shared';
 
-const SUPPORTER_PRICES = PLAN_CONFIGS[SubscriptionPlan.SUPPORTER].prices!;
+/** The Supporter tiers of an interval, in cents, lowest first. */
+export function supporterTiers(interval: BillingInterval): readonly number[] {
+  return tierPrices(Offer.SUPPORTER, interval);
+}
 
-/** A Supporter price, e.g. "€5/month" or "50 €/an". */
-export function supporterPriceLabel(interval: BillingInterval): string {
-  const price = SUPPORTER_PRICES[interval];
+/** The preselected Supporter tier of an interval, in cents. */
+export function featuredSupporterTier(interval: BillingInterval): number {
+  return featuredPrice(Offer.SUPPORTER, interval)!;
+}
+
+/** Index of the preselected tier, the same for both intervals. */
+export const FEATURED_SUPPORTER_TIER = OFFERS[Offer.SUPPORTER].featuredTier;
+
+/** The same tier position in the other interval (8 €/month ↔ 80 €/year) */
+export function sameTierIn(
+  amountCents: number,
+  from: BillingInterval,
+  to: BillingInterval,
+): number {
+  const index = supporterTiers(from).indexOf(amountCents);
+  return supporterTiers(to)[index] ?? featuredSupporterTier(to);
+}
+
+/** Euros from cents, without decimals when there are none: 8, 7.99 */
+function euros(amountCents: number): string {
+  return Number.isInteger(amountCents / 100)
+    ? String(amountCents / 100)
+    : (amountCents / 100).toFixed(2);
+}
+
+/** A Supporter price, e.g. "€8/month" or "80 €/an". */
+export function supporterPriceLabel(
+  interval: BillingInterval,
+  amountCents: number,
+): string {
+  const price = euros(amountCents);
   return interval === BillingInterval.YEAR
     ? m.supporter_price_year({ price })
     : m.supporter_price_month({ price });

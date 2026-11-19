@@ -1,4 +1,4 @@
-import { Job } from 'bullmq';
+import { DelayedError, Job } from 'bullmq';
 
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
@@ -10,6 +10,10 @@ import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
+import {
+  activityToTakeOver,
+  moveActivityToAthlete,
+} from '../../core/helpers/activity-owner';
 import { ActivityDuplicateService } from '../../core/services/activity-duplicate.service';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import {
@@ -20,6 +24,7 @@ import {
   ImportResult,
   ImportedActivity,
 } from '../../providers-sync/base/provider-import.interface';
+import { ProviderRateLimitError } from '../../providers-sync/errors/provider-rate-limit.error';
 import {
   CorosProviderService,
   GarminProviderService,
@@ -113,7 +118,7 @@ export class ActivityImportProcessor extends WorkerHost {
     });
   }
 
-  async process(job: Job<ActivityImportJobData>) {
+  async process(job: Job<ActivityImportJobData>, token?: string) {
     const { providerAccountId, activity, bulkImport } = job.data;
 
     try {
@@ -140,6 +145,20 @@ export class ActivityImportProcessor extends WorkerHost {
           `Skipping import for provider account ${providerAccountId}: import disabled`,
         );
         return;
+      }
+
+      // The provider user connected another of our accounts before: their
+      // activities follow them, and the import below finds this one theirs
+      const takenOver = await activityToTakeOver(
+        this.prisma,
+        account,
+        activity.externalId,
+      );
+      if (takenOver) {
+        await moveActivityToAthlete(this.prisma, takenOver, account.athleteId);
+        this.logger.log(
+          `Moved ${account.provider} activity ${activity.externalId} to athlete ${account.athleteId}, who connected the same ${account.provider} account`,
+        );
       }
 
       // Skipped rather than saved twice: a later sync or webhook of the same
@@ -256,6 +275,12 @@ export class ActivityImportProcessor extends WorkerHost {
         eventId: savedActivity.eventId,
       };
     } catch (error) {
+      // Out of quota: wait for it without spending an attempt, or the
+      // activity would be lost after three refusals in a few minutes
+      if (error instanceof ProviderRateLimitError && token) {
+        await job.moveToDelayed(Date.now() + error.retryAfterMs, token);
+        throw new DelayedError();
+      }
       this.logger.error(
         `Job ${job.id} failed: ${error instanceof Error ? error.message : String(error)}`,
         error instanceof Error ? error.stack : undefined,

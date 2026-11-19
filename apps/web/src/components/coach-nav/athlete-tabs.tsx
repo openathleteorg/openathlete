@@ -20,6 +20,8 @@ const label = (page: AthletePage) => {
       return m.records();
     case 'metrics':
       return m.metrics();
+    case 'questionnaires':
+      return m.questionnaires();
     case 'notes':
       return m.coach_notes();
     case 'settings':

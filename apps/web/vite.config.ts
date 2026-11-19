@@ -9,9 +9,60 @@ import { APP_LOCALE_COOKIE } from './src/utils/locale-cookie';
 // Only the hosted builds have the key: the others ship no source map
 const posthogApiKey = process.env.POSTHOG_API_KEY;
 
+type ModuleInfoGetter = (
+  id: string,
+) => { isEntry: boolean; importers: readonly string[] } | null;
+
+// Whether a module loads with the entry, as opposed to only behind a lazy
+// import: the vendor chunk must not turn lazy libraries (recharts...) eager
+function isStaticallyReachable(
+  id: string,
+  getModuleInfo: ModuleInfoGetter,
+  cache: Map<string, boolean>,
+  visiting = new Set<string>(),
+): boolean {
+  const cached = cache.get(id);
+  if (cached !== undefined) return cached;
+  if (visiting.has(id)) return false;
+  visiting.add(id);
+  const info = getModuleInfo(id);
+  const reachable =
+    !!info &&
+    (info.isEntry ||
+      info.importers.some((importer) =>
+        isStaticallyReachable(importer, getModuleInfo, cache, visiting),
+      ));
+  visiting.delete(id);
+  // A false found inside a cycle may be partial: only trust it at the top
+  if (reachable || visiting.size === 0) cache.set(id, reachable);
+  return reachable;
+}
+
+const staticReachability = new Map<string, boolean>();
+
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  build: { sourcemap: posthogApiKey ? ('hidden' as const) : false },
+  build: {
+    sourcemap: posthogApiKey ? ('hidden' as const) : false,
+    rollupOptions: {
+      output: {
+        // The libraries the app needs at start get their own chunk: its hash
+        // changes only with dependencies, so browsers keep it across deploys
+        // instead of downloading the whole 1 MB entry again
+        manualChunks(
+          id: string,
+          { getModuleInfo }: { getModuleInfo: ModuleInfoGetter },
+        ) {
+          if (
+            id.includes('/node_modules/') &&
+            isStaticallyReachable(id, getModuleInfo, staticReachability)
+          ) {
+            return 'vendor';
+          }
+        },
+      },
+    },
+  },
   plugins: [
     paraglideVitePlugin({
       project: './project.inlang',

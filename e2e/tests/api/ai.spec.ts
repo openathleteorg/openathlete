@@ -127,12 +127,13 @@ test('generates a workout on the user’s own AI key', async ({ request }) => {
   const { usage } = (await after.json()) as {
     usage: {
       ownKeyTokens: number;
-      hostedTokens: number;
       hostedBudgetUsed: null;
     };
   };
   expect(usage.ownKeyTokens).toBeGreaterThanOrEqual(20);
-  expect(usage).toMatchObject({ hostedTokens: 0, hostedBudgetUsed: null });
+  // No limit without Stripe; what the instance keys cost is never told
+  expect(usage).toMatchObject({ hostedBudgetUsed: null });
+  expect(usage).not.toHaveProperty('hostedTokens');
 });
 
 test('never returns stored keys', async ({ request }) => {

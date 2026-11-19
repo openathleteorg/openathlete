@@ -39,6 +39,7 @@ function Button({
   variant,
   size,
   asChild = false,
+  isLoading,
   ...props
 }: React.ComponentProps<'button'> & {
   isLoading?: boolean;
@@ -53,13 +54,13 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
       children={
-        props.isLoading ? (
+        isLoading ? (
           <Loader className="animate-spin" size={16} />
         ) : (
           props.children
         )
       }
-      disabled={props.isLoading || props.disabled}
+      disabled={isLoading || props.disabled}
     />
   );
 }

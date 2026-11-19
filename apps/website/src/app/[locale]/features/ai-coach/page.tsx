@@ -26,6 +26,7 @@ import { AiExchange } from '@/components/site/visuals/ai-exchange';
 import { Screenshot } from '@/components/site/visuals/screenshot';
 import { initLocale } from '@/i18n/server';
 import { supporterUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { localePath } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
@@ -75,7 +76,8 @@ const JOB_ICONS = [Wand2, PenLine, MessageCircleQuestion, ScanText, Calculator];
 
 export default async function AiCoachPage({ params }: Props) {
   const locale = initLocale((await params).locale);
-  const faqs = faqEntries('features_ai_faq', 6);
+  const prices = supporterPriceVars(locale);
+  const faqs = faqEntries('features_ai_faq', 6, prices);
 
   return (
     <>
@@ -269,7 +271,7 @@ export default async function AiCoachPage({ params }: Props) {
                   {msg(`features_ai_pay_${step}_title`)}
                 </h3>
                 <p className="mt-2 text-[0.92rem] leading-relaxed text-white/65">
-                  {msg(`features_ai_pay_${step}_body`)}
+                  {msg(`features_ai_pay_${step}_body`, prices)}
                 </p>
                 {step === 2 && (
                   <TrackedLink

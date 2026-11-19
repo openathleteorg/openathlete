@@ -64,6 +64,8 @@ export function columnLabel(column: CoachDashboardColumn): string {
       return m.coach_column_rpe();
     case 'lastActivity':
       return m.last_activity();
+    case 'questionnaires':
+      return m.questionnaires();
     default:
       return metricTypeLabelMap[column as METRIC_TYPE] ?? column;
   }

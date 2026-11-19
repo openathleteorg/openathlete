@@ -117,7 +117,7 @@ export function ContentDe() {
         Auf unseren Servern ist jede Funktion kostenlos: Kalender,
         Workout-Builder, geplante Workouts an Garmin, Suunto und COROS,
         Trainingsbelastung und Coaching für bis zu fünf Athleten. Der optionale
-        Supporter-Tarif ({q('oaMonth')} im Monat oder {q('oaYear')} im Jahr)
+        Supporter-Tarif (ab {q('oaMonth')} im Monat oder {q('oaYear')} im Jahr)
         bringt KI über unsere Schlüssel und unbegrenzt viele betreute Athleten,
         sonst nichts. Der Code steht unter AGPL-3.0, du kannst ihn also auch
         kostenlos und ohne Einschränkungen auf deinem eigenen Server betreiben.
@@ -137,12 +137,11 @@ export function ContentDe() {
         können über den MCP-Server auch direkt in den Kalender planen.
       </p>
       <p>
-        Was es noch nicht kann: Die Apps für iOS und Android sind in der
-        Testphase (bis dahin lässt sich die Web-App auf dem Handy installieren),
-        es gibt keinen Marktplatz für Pläne, keine Indoor-Trainings-App, keine
-        Vereinsabrechnung, und die Leistungsanalyse ist weniger tief als bei
-        intervals.icu. Workouts können nicht an Polar-Uhren gehen, weil die API
-        von Polar nur Lesezugriff erlaubt. Einheiten gibt es nur metrisch.
+        Was es noch nicht kann: Es gibt keinen Marktplatz für Pläne, keine
+        Indoor-Trainings-App, keine Vereinsabrechnung, und die Leistungsanalyse
+        ist weniger tief als bei intervals.icu. Workouts können nicht an
+        Polar-Uhren gehen, weil die API von Polar nur Lesezugriff erlaubt.
+        Einheiten gibt es nur metrisch.
       </p>
 
       <h2>Die Zahlen im Überblick</h2>
@@ -194,7 +193,7 @@ export function ContentDe() {
         ganzes Coaching auf TSS aufbaut und du die Zahlen nicht neu lernen
         willst. Nimm intervals.icu für die tiefste kostenlose Analyse, besonders
         mit Powermeter. Nimm Nolio, wenn du einen französischen Verein betreust
-        und schon heute Vereinspreise und native Apps willst. Nimm Final Surge
+        und Vereinspreise und ausgereifte native Apps willst. Nimm Final Surge
         für ein US-Schul- oder Vereinsteam mit einfachen Pauschalpreisen. Nimm
         OpenAthlete, wenn du Workouts auf Garmin, Suunto oder COROS willst, ohne
         zu bezahlen, einen pauschalen Coach-Preis, KI mit deinem eigenen

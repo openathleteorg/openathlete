@@ -245,6 +245,29 @@ export class StatisticsController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get('efficiency')
+  @ApiOperation({
+    summary: 'Efficiency of each run',
+    description:
+      'Per run of the period, oldest first: the efficiency factor of grade-adjusted pace and of power, and the decoupling (Friel), running effectiveness on the flat stretches with the weight of the day (Coggan), and whether the run was steady and aerobic, the runs these figures compare best on. Runs only; power figures need a running power meter, running effectiveness a weight.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType })
+  @ApiResponse({ status: 400, description: 'Invalid period or sport' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getEfficiency(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
+    query: GetStatisticsTrendsQueryDto,
+  ) {
+    return this.statisticsService.getEfficiency(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('durability')
   @ApiOperation({
     summary: 'How efforts hold over time',

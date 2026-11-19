@@ -22,6 +22,7 @@ import {
 import { RevealGroup, RevealItem } from '@/components/site/reveal';
 import { Screenshot } from '@/components/site/visuals/screenshot';
 import { initLocale } from '@/i18n/server';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { localePath } from '@/utils/locales';
 import {
@@ -66,7 +67,7 @@ const TOOL_ICONS = [
 
 export default async function TrainingCalendarPage({ params }: Props) {
   const locale = initLocale((await params).locale);
-  const faqs = faqEntries('features_cal_faq', 6);
+  const faqs = faqEntries('features_cal_faq', 6, supporterPriceVars(locale));
 
   return (
     <>

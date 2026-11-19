@@ -10,6 +10,7 @@ export const COACH_DASHBOARD_COLUMNS = [
   'form',
   'rpe',
   'lastActivity',
+  'questionnaires',
   ...DASHBOARD_METRIC_TYPES,
 ] as const;
 export type CoachDashboardColumn = (typeof COACH_DASHBOARD_COLUMNS)[number];

@@ -3,8 +3,9 @@
 import {
   BUY_ME_A_COFFEE_URL,
   SELF_HOSTING_DOCS_URL,
-  SUPPORTER_MONTHLY_EUR,
-  SUPPORTER_YEARLY_EUR,
+  SUPPORTER_FEATURED_TIER,
+  SUPPORTER_MONTHLY_TIERS_EUR,
+  SUPPORTER_YEARLY_TIERS_EUR,
 } from '@/config';
 import { formatPrice } from '@/content/pricing';
 import { useLocale, useMessageLocale } from '@/i18n/client';
@@ -63,16 +64,28 @@ export function PricingPlans({
   const locale = useLocale();
   const intl = DATE_LOCALES[locale];
   const [period, setPeriod] = useState<Period>('yearly');
+  // Tiers have the same content: the one picked only sets the amount shown
+  const [tier, setTier] = useState(SUPPORTER_FEATURED_TIER);
 
   const choose = (next: Period) => {
     setPeriod(next);
     track('pricing_period_changed', { period: next, placement });
   };
 
-  const supporterAmount =
+  const tiers =
     period === 'yearly'
-      ? formatPrice(SUPPORTER_YEARLY_EUR, 'EUR', intl)
-      : formatPrice(SUPPORTER_MONTHLY_EUR, 'EUR', intl);
+      ? SUPPORTER_YEARLY_TIERS_EUR
+      : SUPPORTER_MONTHLY_TIERS_EUR;
+  const supporterAmount = formatPrice(tiers[tier] ?? tiers[0], 'EUR', intl);
+
+  const chooseTier = (next: number) => {
+    setTier(next);
+    track('pricing_tier_changed', {
+      period,
+      amount: tiers[next],
+      placement,
+    });
+  };
 
   return (
     <div>
@@ -180,7 +193,45 @@ export function PricingPlans({
                 : m.plans_per_month({}, { locale: ml })
             }
           />
-          <ul className="relative mt-7 grid gap-3 [&_svg]:text-mint">
+          <div
+            role="radiogroup"
+            aria-label={m.plans_supporter_amount({}, { locale: ml })}
+            className="relative mt-5 grid grid-cols-3 gap-2"
+          >
+            {tiers.map((amount, index) => (
+              <button
+                key={index}
+                type="button"
+                role="radio"
+                aria-checked={tier === index}
+                onClick={() => chooseTier(index)}
+                className={cn(
+                  'relative flex h-11 flex-col items-center justify-center rounded-xl border text-sm font-semibold tabular-nums transition-colors',
+                  tier === index
+                    ? 'border-white bg-white text-ink'
+                    : 'border-white/15 bg-white/5 text-white/80 hover:border-white/40 hover:text-white',
+                )}
+              >
+                {formatPrice(amount, 'EUR', intl)}
+                {index === SUPPORTER_FEATURED_TIER && (
+                  <span
+                    className={cn(
+                      'absolute -top-2 rounded-full px-1.5 py-px text-[0.62rem] leading-tight font-medium',
+                      tier === index
+                        ? 'bg-mint text-ink'
+                        : 'bg-ink text-mint ring-1 ring-mint/40',
+                    )}
+                  >
+                    {m.plans_supporter_suggested({}, { locale: ml })}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          <p className="relative mt-7 text-[0.8rem] font-medium tracking-wide text-white/55 uppercase">
+            {m.plans_supporter_unlocks({}, { locale: ml })}
+          </p>
+          <ul className="relative mt-3 grid gap-3 [&_svg]:text-mint">
             <Feature>{m.plans_supporter_1({}, { locale: ml })}</Feature>
             <Feature>{m.plans_supporter_2({}, { locale: ml })}</Feature>
             <Feature>{m.plans_supporter_3({}, { locale: ml })}</Feature>
@@ -190,7 +241,7 @@ export function PricingPlans({
           <TrackedLink
             href={supporterUrl(`${placement}_plan_supporter`)}
             event="supporter_clicked"
-            properties={{ placement, period }}
+            properties={{ placement, period, amount: tiers[tier] }}
             className={buttonStyles({
               variant: 'light',
               className: 'relative mt-8 w-full',

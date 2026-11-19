@@ -112,6 +112,29 @@ const MessagesPage = lazy(() =>
   })),
 );
 
+const questionnairePage = (
+  name:
+    | 'QuestionnairesPage'
+    | 'QuestionnaireCreatePage'
+    | 'QuestionnaireEditPage'
+    | 'QuestionnaireAnswersPage'
+    | 'AthleteQuestionnairesPage'
+    | 'MyQuestionnairesPage',
+) =>
+  lazy(() =>
+    import('@/pages/dashboard/questionnaires').then((module) => ({
+      default: module[name],
+    })),
+  );
+const QuestionnairesPage = questionnairePage('QuestionnairesPage');
+const QuestionnaireCreatePage = questionnairePage('QuestionnaireCreatePage');
+const QuestionnaireEditPage = questionnairePage('QuestionnaireEditPage');
+const QuestionnaireAnswersPage = questionnairePage('QuestionnaireAnswersPage');
+const AthleteQuestionnairesPage = questionnairePage(
+  'AthleteQuestionnairesPage',
+);
+const MyQuestionnairesPage = questionnairePage('MyQuestionnairesPage');
+
 const ProfilePage = lazy(() =>
   import('@/pages/dashboard/profile').then((module) => ({
     default: module.ProfilePage,
@@ -223,6 +246,30 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'plans']),
         element: <TrainingPlansPage />,
+      },
+      {
+        path: getPath(['dashboard', 'questionnaires']),
+        element: <QuestionnairesPage />,
+      },
+      {
+        path: getPath(['dashboard', 'questionnaires', 'create']),
+        element: <QuestionnaireCreatePage />,
+      },
+      {
+        path: getPath(['dashboard', 'questionnaires', 'edit']),
+        element: <QuestionnaireEditPage />,
+      },
+      {
+        path: getPath(['dashboard', 'questionnaires', 'answers']),
+        element: <QuestionnaireAnswersPage />,
+      },
+      {
+        path: getPath(['dashboard', 'questionnaires', 'athleteId']),
+        element: <AthleteQuestionnairesPage />,
+      },
+      {
+        path: getPath(['dashboard', 'my-questionnaires']),
+        element: <MyQuestionnairesPage />,
       },
       {
         path: getPath(['dashboard', 'settings']),

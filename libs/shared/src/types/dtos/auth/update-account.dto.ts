@@ -4,6 +4,7 @@ import { isTimeZone } from '../../../utils/date';
 import { calendarDisplaySchema } from '../core/calendar-display.dto';
 import { coachDashboardSettingsSchema } from '../core/coach-dashboard-settings.dto';
 import { hiddenActivityTracksSchema } from '../core/hidden-activity-tracks.dto';
+import { unitSystemSchema } from '../core/unit-system.dto';
 import { personNameSchema } from './person-name';
 import { trainingProfileSchema } from './training-profile.dto';
 
@@ -24,12 +25,22 @@ export const updateAccountDtoSchema = trainingProfileSchema.extend({
   emailTips: z.boolean().optional(),
   /** Monthly recap by email */
   emailRecap: z.boolean().optional(),
+  /** Questionnaires from the coach, by email (the push still comes) */
+  emailQuestionnaires: z.boolean().optional(),
+  /** Monday email: the past week, the form and the week to come */
+  emailWeekly: z.boolean().optional(),
+  /** Monday email to coaches: the athletes to look at */
+  emailCoachWeekly: z.boolean().optional(),
   /** News about the project, Supporter included: the server dates the consent */
   emailNews: z.boolean().optional(),
   /** The server dates and counts the dismissal: there is no way back from it */
   supportReminderDismissed: z.literal(true).optional(),
   /** The app just showed a Supporter mention in context: the server dates it */
   supporterNudgeSeen: z.literal(true).optional(),
+  /** The athlete just opened their year review: the server dates it */
+  yearReviewSeen: z.literal(true).optional(),
+  /** Units the app shows distances, weights and speeds in */
+  unitSystem: unitSystemSchema.optional(),
 });
 
 export type UpdateAccountDto = z.infer<typeof updateAccountDtoSchema>;

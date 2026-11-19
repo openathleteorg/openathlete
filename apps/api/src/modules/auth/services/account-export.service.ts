@@ -46,7 +46,11 @@ export class AccountExportService {
         trainingReminders: true,
         emailTips: true,
         emailRecap: true,
+        emailQuestionnaires: true,
+        emailWeekly: true,
+        emailCoachWeekly: true,
         emailNewsConsentAt: true,
+        unitSystem: true,
         roles: true,
         onboardingCompleted: true,
         acquisitionSource: true,
@@ -134,6 +138,36 @@ export class AccountExportService {
           updatedAt: true,
         },
         orderBy: { coachNoteId: 'asc' },
+      }),
+    );
+    // The questionnaires the user wrote as a coach
+    write(
+      'questionnaires',
+      await this.prisma.questionnaire.findMany({
+        where: { coachUserId: userId },
+        select: {
+          title: true,
+          description: true,
+          scoreKind: true,
+          scoreMetricType: true,
+          archivedAt: true,
+          createdAt: true,
+          questions: {
+            select: {
+              position: true,
+              type: true,
+              label: true,
+              help: true,
+              required: true,
+              config: true,
+              inScore: true,
+              metricType: true,
+              archivedAt: true,
+            },
+            orderBy: { position: 'asc' },
+          },
+        },
+        orderBy: { questionnaireId: 'asc' },
       }),
     );
     write(
@@ -386,17 +420,22 @@ export class AccountExportService {
       this.prisma.aiUsage.findMany({
         where: { userId },
         select: {
-          month: true,
+          day: true,
           task: true,
           source: true,
           inputTokens: true,
           outputTokens: true,
           calls: true,
         },
-        orderBy: [{ month: 'asc' }, { task: 'asc' }],
+        orderBy: [{ day: 'asc' }, { task: 'asc' }],
       }),
     ]);
-    return { keys: credentials, models, instructions, usage };
+    return {
+      keys: credentials,
+      models,
+      instructions,
+      usage: monthlyAiUsage(usage),
+    };
   }
 
   private async writeEvents(
@@ -414,6 +453,25 @@ export class AccountExportService {
         ...(cursor ? { skip: 1, cursor: { eventId: cursor } } : {}),
         include: {
           ...EVENT_INCLUDES,
+          // The athlete's answers, with the questions they answer
+          questionnaire: {
+            select: {
+              questionnaireId: true,
+              answeredAt: true,
+              score: true,
+              answers: {
+                select: {
+                  valueNumber: true,
+                  valueText: true,
+                  valueOptions: true,
+                  question: {
+                    select: { label: true, type: true, config: true },
+                  },
+                },
+                orderBy: { question: { position: 'asc' } },
+              },
+            },
+          },
           activity: {
             include: {
               feedbackQuestions: true,
@@ -440,4 +498,46 @@ export class AccountExportService {
       cursor = events[events.length - 1].eventId;
     }
   }
+}
+
+/**
+ * AI usage is counted per day; the export keeps its monthly totals, the
+ * shape it always had.
+ */
+export function monthlyAiUsage(
+  rows: {
+    day: Date;
+    task: string;
+    source: string;
+    inputTokens: number;
+    outputTokens: number;
+    calls: number;
+  }[],
+) {
+  const months = new Map<
+    string,
+    {
+      month: Date;
+      task: string;
+      source: string;
+      inputTokens: number;
+      outputTokens: number;
+      calls: number;
+    }
+  >();
+  for (const { day, ...row } of rows) {
+    const month = new Date(
+      Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), 1),
+    );
+    const key = `${month.toISOString()}|${row.task}|${row.source}`;
+    const total = months.get(key);
+    if (total) {
+      total.inputTokens += row.inputTokens;
+      total.outputTokens += row.outputTokens;
+      total.calls += row.calls;
+    } else {
+      months.set(key, { month, ...row });
+    }
+  }
+  return [...months.values()];
 }

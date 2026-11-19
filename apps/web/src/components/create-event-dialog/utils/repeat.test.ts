@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { countRepeats } from './repeat';
+import { countRepeats, countRepeatsEveryDays } from './repeat';
 
 // Tuesday 6 October 2026, 18:00 local
 const START = new Date(2026, 9, 6, 18);
@@ -19,5 +19,18 @@ describe('countRepeats', () => {
   it('counts nothing without a repetition or before the next one', () => {
     expect(countRepeats(START, 0, new Date(2026, 10, 3))).toBe(0);
     expect(countRepeats(START, 1, new Date(2026, 9, 12, 23))).toBe(0);
+  });
+});
+
+describe('countRepeatsEveryDays', () => {
+  it('counts daily occurrences until the end of the chosen day', () => {
+    // 7 to 12 October
+    expect(countRepeatsEveryDays(START, 1, new Date(2026, 9, 12, 23, 59))).toBe(
+      6,
+    );
+  });
+
+  it('stops at 90 days', () => {
+    expect(countRepeatsEveryDays(START, 1, new Date(2027, 5, 1))).toBe(90);
   });
 });

@@ -12,6 +12,11 @@ import { ActivityEvent } from '@openathlete/shared';
 import { ActivityFeedbackOverlay } from '../activity-feedback/activity-feedback-overlay';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { ActivityNormalizationCard } from './activity-normalization-card';
+import {
+  ACTIVITY_STREAM_KEYS,
+  ACTIVITY_STREAM_RESOLUTION,
+} from './activity-stream-keys';
+import { GpxDownloadButton } from './gpx-download-button';
 import { ActivityDetailsOverviewTab } from './tabs/activity-details-overview-tab';
 import { ActivityDetailsWeatherTab } from './tabs/activity-details-weather-tab';
 
@@ -26,17 +31,11 @@ export function ActivityDetails({ event }: P) {
     null,
   );
   const isMyActivity = athlete?.athleteId === event.athleteId;
-  const { data: stream } = useGetEventStreamQuery(event.eventId, 3000, [
-    'altitude',
-    'latlng',
-    'heartrate',
-    'distance',
-    'time',
-    'watts',
-    'gap',
-    'temp',
-    'cadence',
-  ]);
+  const { data: stream } = useGetEventStreamQuery(
+    event.eventId,
+    ACTIVITY_STREAM_RESOLUTION,
+    ACTIVITY_STREAM_KEYS,
+  );
   const { data: weather } = useGetEventWeatherQuery(event.eventId, {
     retry: 1,
   });
@@ -57,14 +56,19 @@ export function ActivityDetails({ event }: P) {
 
       {!(isMyActivity && feedbackMode) && (
         <Tabs defaultValue="overview" className="flex flex-col gap-4">
-          {hasConditions && (
-            <TabsList>
-              <TabsTrigger value="overview">{m.overview()}</TabsTrigger>
-              <TabsTrigger value="conditions">
-                {m.activity_conditions()}
-              </TabsTrigger>
-            </TabsList>
-          )}
+          {/* The track's download sits here, not in the title: both the
+            calendar dialog and the activity page show these details */}
+          <div className="flex items-center justify-between gap-2 empty:hidden">
+            {hasConditions && (
+              <TabsList>
+                <TabsTrigger value="overview">{m.overview()}</TabsTrigger>
+                <TabsTrigger value="conditions">
+                  {m.activity_conditions()}
+                </TabsTrigger>
+              </TabsList>
+            )}
+            <GpxDownloadButton event={event} className="ml-auto shrink-0" />
+          </div>
           <TabsContent value="overview">
             <ActivityDetailsOverviewTab
               event={event}

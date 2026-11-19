@@ -53,6 +53,7 @@ export type ProviderIdentity = {
   coachInvitationToken?: string;
   clubJoinToken?: string;
   language?: CreateAccountDto['language'];
+  unitSystem?: CreateAccountDto['unitSystem'];
 };
 
 @Injectable()
@@ -140,6 +141,7 @@ export class AuthService {
       coachInvitationToken: body.coachInvitationToken,
       clubJoinToken: body.clubJoinToken,
       language: body.language,
+      unitSystem: body.unitSystem,
     });
     return this.sessionFor(user);
   }
@@ -177,6 +179,7 @@ export class AuthService {
             coachInvitationToken: identity.coachInvitationToken,
             clubJoinToken: identity.clubJoinToken,
             language: identity.language,
+            unitSystem: identity.unitSystem,
           },
           { emailFromProvider: true },
         );
@@ -232,12 +235,10 @@ export class AuthService {
         },
       });
 
-      if (!user) {
-        throw new Error(`User not found for email ${payload.email}`);
-      }
-
-      if (user.userId !== payload.userId) {
-        throw new Error(`Invalid id for email ${user.email}`);
+      // A token outliving its account (deleted, email changed): the client
+      // signs in again, nothing is broken
+      if (!user || user.userId !== payload.userId) {
+        throw new UnauthorizedException();
       }
 
       return {
@@ -249,7 +250,9 @@ export class AuthService {
         clubMemberships: user.clubMemberships,
       };
     } catch (error) {
-      this.logger.error('Error in validateUser', error);
+      if (!(error instanceof UnauthorizedException)) {
+        this.logger.error('Error in validateUser', error);
+      }
       throw error;
     }
   }

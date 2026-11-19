@@ -74,6 +74,27 @@ export const accountFixtureSql = [
   `INSERT INTO event_competition (event_id, sport, related_activity_id) VALUES (3003, 'RUNNING', 3501)`,
   `INSERT INTO event_note (event_id) VALUES (3004)`,
 
+  // Questionnaires. The coach's, answered by the athlete: the answers go
+  // with the athlete. The athlete's own, as a coach of the other account:
+  // the answered occurrence stays theirs, the unanswered one and the
+  // questionnaire never placed go.
+  `INSERT INTO questionnaire (questionnaire_id, title, coach_user_id, updated_at) VALUES (9101, 'Hooper', 1002, ${now}), (9102, 'Check-in', 1001, ${now}), (9103, 'Draft', 1001, ${now})`,
+  `INSERT INTO questionnaire_question (question_id, position, type, label, config, questionnaire_id, updated_at) VALUES
+    (9201, 0, 'SCALE', 'Fatigue', '{"min":1,"max":7}', 9101, ${now}),
+    (9202, 0, 'LONG_TEXT', 'How was the week?', '{}', 9102, ${now}),
+    (9203, 0, 'YES_NO', 'Pain?', '{}', 9103, ${now})`,
+  `INSERT INTO event (event_id, start_date, end_date, name, type, athlete_id, updated_at) VALUES
+    (3006, '2026-01-08', '2026-01-08', 'Hooper', 'QUESTIONNAIRE', 2001, ${now}),
+    (3007, '2026-01-08', '2026-01-08', 'Check-in', 'QUESTIONNAIRE', 2002, ${now}),
+    (3008, '2026-01-15', '2026-01-15', 'Check-in', 'QUESTIONNAIRE', 2002, ${now})`,
+  `INSERT INTO event_questionnaire (event_questionnaire_id, event_id, questionnaire_id, answered_at, updated_at) VALUES
+    (9301, 3006, 9101, ${now}, ${now}),
+    (9302, 3007, 9102, ${now}, ${now}),
+    (9303, 3008, 9102, NULL, ${now})`,
+  `INSERT INTO questionnaire_answer (event_questionnaire_id, question_id, value_number, value_text, updated_at) VALUES
+    (9301, 9201, 4, NULL, ${now}),
+    (9302, 9202, NULL, 'Good week', ${now})`,
+
   // Templates: a template is a copy of an event with no athlete
   `INSERT INTO event_template_folder (event_template_folder_id, name, user_id, updated_at) VALUES (4001, 'Folder', 1001, ${now})`,
   `INSERT INTO event (event_id, start_date, end_date, name, type, updated_at) VALUES (3005, '2026-01-06', '2026-01-06', 'Template', 'TRAINING', ${now})`,

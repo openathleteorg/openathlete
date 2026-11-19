@@ -8,6 +8,7 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 import { AiModule } from '../ai/ai.module';
 import { CalendarModule } from '../calendar/calendar.module';
 import { CoreModule } from '../core';
+import { NotificationModule } from '../notification/notification.module';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { ActivityImportProcessor } from './processors/activity-import.processor';
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
@@ -20,11 +21,14 @@ import { StravaDescriptionProcessor } from './processors/strava-description.proc
 import { SuuntoNotificationProcessor } from './processors/suunto-notification.processor';
 import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
 import { TrainingPlanApplyProcessor } from './processors/training-plan-apply.processor';
+import { TrainingLoadRecalcProcessor } from './processors/training-load-recalc.processor';
+import { WeeklyEmailProcessor } from './processors/weekly-email.processor';
 import { QueueService } from './queue.service';
 import { GapBackfillService } from './services/gap-backfill.service';
 import { IntensityBackfillService } from './services/intensity-backfill.service';
 import { RecordsBackfillService } from './services/records-backfill.service';
 import { TrainingLoadEstimationService } from './services/training-load-estimation.service';
+import { WeeklyEmailScheduler } from './services/weekly-email.scheduler';
 
 function parseRedisUrl(redisUrl: string): {
   host: string;
@@ -139,6 +143,7 @@ function parseRedisUrl(redisUrl: string): {
     forwardRef(() => CoreModule),
     forwardRef(() => ProvidersSyncModule),
     forwardRef(() => CalendarModule),
+    NotificationModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -416,6 +421,25 @@ function parseRedisUrl(redisUrl: string): {
         removeOnFail: { age: 7 * 24 * 3600 },
       },
     }),
+    BullModule.registerQueue({
+      name: 'training-load-recalc',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: { age: 24 * 3600, count: 1000 },
+        removeOnFail: { age: 7 * 24 * 3600 },
+      },
+    }),
+    BullModule.registerQueue({
+      name: 'weekly-email',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 60_000 },
+        // Kept a week: its id stops the same email being queued again
+        removeOnComplete: { age: 7 * 24 * 3600 },
+        removeOnFail: { age: 7 * 24 * 3600 },
+      },
+    }),
   ],
   providers: [
     QueueService,
@@ -438,6 +462,11 @@ function parseRedisUrl(redisUrl: string): {
           ActivityProcessingProcessor,
           DuplicateActivitiesProcessor,
           TrainingPlanApplyProcessor,
+          TrainingLoadRecalcProcessor,
+          // The Monday emails: queued and sent where jobs are processed,
+          // so one process runs the schedule
+          WeeklyEmailScheduler,
+          WeeklyEmailProcessor,
           RecordsBackfillService,
           GapBackfillService,
           IntensityBackfillService,

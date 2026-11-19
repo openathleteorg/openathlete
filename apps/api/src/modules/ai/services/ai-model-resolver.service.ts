@@ -67,8 +67,8 @@ const NO_API_KEY = 'not-needed';
  * Decides which model and key run an AI feature:
  * 1. the model the user chose for the task (or their default), on their key;
  * 2. otherwise the instance keys, when their plan or the instance policy
- *    allows it (AI_HOSTED_ACCESS) and their monthly budget is not used up
- *    (AI_HOSTED_MONTHLY_BUDGET_USD);
+ *    allows it (AI_HOSTED_ACCESS) and their weekly allowance is not used up
+ *    (AiPolicyService.weeklyAllowanceUsd);
  * 3. for work done on an athlete's behalf (feedback questions, analysis,
  *    load estimation), the same for each of the athlete's coaches.
  *
@@ -89,12 +89,22 @@ export class AiModelResolverService {
     @Inject(AI_ENV) private readonly env: Record<string, string | undefined>,
   ) {}
 
-  /** For a feature the user triggers. Throws when no model is available. */
+  /**
+   * For a feature the user triggers. Throws when no model is available.
+   * Work on an athlete's data (a coach planning their session) runs on the
+   * user's key or allowance first, then on the athlete's Supporter
+   * allowance.
+   */
   async resolveForUser(
     task: AiFeatureTask,
     userId: number,
+    { athleteId }: { athleteId?: number } = {},
   ): Promise<ResolvedAiModel> {
-    const resolved = await this.tryResolveForUser(task, userId);
+    const resolved =
+      (await this.tryResolveForUser(task, userId)) ??
+      (athleteId !== undefined
+        ? await this.tryAthleteAllowance(task, userId, athleteId)
+        : null);
     if (resolved) {
       if (!(await this.hasDataSharingConsent(userId))) {
         throw new AiConsentRequiredException();
@@ -141,6 +151,22 @@ export class AiModelResolverService {
       if (resolved) return resolved;
     }
     return null;
+  }
+
+  /** The instance keys on the allowance of the athlete the user works for. */
+  private async tryAthleteAllowance(
+    task: AiFeatureTask,
+    userId: number,
+    athleteId: number,
+  ): Promise<ResolvedAiModel | null> {
+    const [athleteUserId] = await this.usersForAthlete(athleteId);
+    if (athleteUserId === undefined || athleteUserId === userId) return null;
+    if (!(await this.hasHostedAccess(athleteUserId))) return null;
+    const hosted = this.resolveHosted(task, athleteUserId);
+    if (!hosted || !(await this.usage.hasHostedAllowanceLeft(athleteUserId))) {
+      return null;
+    }
+    return hosted;
   }
 
   async hasDataSharingConsent(userId: number): Promise<boolean> {

@@ -3,13 +3,14 @@ import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 
-import { AiAccessDto } from '@openathlete/shared';
+import { AI_ALLOWANCE_WARNING_SHARE, AiAccessDto } from '@openathlete/shared';
 
 import { SettingsPanel, SettingsSection } from '../settings-section';
 
 /**
- * This month's AI usage: the included allowance on the instance keys, and
- * what ran on the user's own keys (billed to them by their provider).
+ * This week's AI usage: the share of the included allowance used on the
+ * instance keys, which refills on Monday, and what ran on the user's own
+ * keys (billed to them by their provider).
  */
 export function AiUsageSection({ access }: { access: AiAccessDto }) {
   const { usage, hostedAccess, hostedQuotaExhausted } = access;
@@ -19,12 +20,16 @@ export function AiUsageSection({ access }: { access: AiAccessDto }) {
   const locale = getDateLocale(getLocale());
   const tokens = (value: number) =>
     new Intl.NumberFormat(locale, { notation: 'compact' }).format(value);
+  // Monday midnight in the user's time zone, shown in the device's
   const resetsOn = new Date(usage.resetsAt).toLocaleDateString(locale, {
+    weekday: 'long',
     day: 'numeric',
     month: 'long',
-    timeZone: 'UTC',
   });
   const percent = Math.round((usage.hostedBudgetUsed ?? 0) * 100);
+  const runningLow =
+    !hostedQuotaExhausted &&
+    (usage.hostedBudgetUsed ?? 0) >= AI_ALLOWANCE_WARNING_SHARE;
 
   return (
     <SettingsSection title={m.ai_usage_title()}>
@@ -63,7 +68,9 @@ export function AiUsageSection({ access }: { access: AiAccessDto }) {
             >
               {hostedQuotaExhausted
                 ? m.ai_usage_exhausted({ date: resetsOn })
-                : m.ai_usage_resets({ date: resetsOn })}
+                : runningLow
+                  ? m.ai_usage_warning({ date: resetsOn })
+                  : m.ai_usage_resets({ date: resetsOn })}
             </p>
           </div>
         )}

@@ -8,7 +8,7 @@ import {
 import { buttonStyles } from '@/components/site/button';
 import { CtaBand } from '@/components/site/cta-band';
 import { Faq } from '@/components/site/faq';
-import { AndroidIcon, AppleIcon, GithubIcon } from '@/components/site/icons';
+import { AndroidIcon, AppleIcon } from '@/components/site/icons';
 import {
   Container,
   Section,
@@ -17,9 +17,10 @@ import {
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
 import { TrackedLink } from '@/components/site/tracked-link';
 import { PhoneShot } from '@/components/site/visuals/screenshot';
-import { GITHUB_URL, GOOGLE_PLAY_URL } from '@/config';
+import { APP_STORE_URL, GOOGLE_PLAY_URL } from '@/config';
 import { initLocale } from '@/i18n/server';
 import { signupUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { localePath, localizedUrl } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
@@ -41,7 +42,6 @@ import { generateMetadata as pageMetadata } from '../../metadata';
 type Props = { params: Promise<{ locale: string }> };
 
 const PATH = '/mobile';
-const RELEASES_URL = `${GITHUB_URL}/releases`;
 
 // eslint-disable-next-line react-refresh/only-export-components
 export async function generateMetadata({ params }: Props) {
@@ -131,7 +131,7 @@ function Steps({
 
 export default async function MobilePage({ params }: Props) {
   const locale = initLocale((await params).locale);
-  const faqs = faqEntries('mobile_faq', 5);
+  const faqs = faqEntries('mobile_faq', 5, supporterPriceVars(locale));
 
   const features = [
     { shot: shots.mobileHome, alt: m.mobile_shot_alt_home(), n: 1 },
@@ -195,6 +195,19 @@ export default async function MobilePage({ params }: Props) {
                   <ArrowRight className="transition-transform group-hover/btn:translate-x-0.5" />
                 </TrackedLink>
                 <TrackedLink
+                  href={APP_STORE_URL}
+                  event="cta_clicked"
+                  properties={{ placement: 'mobile_hero', cta: 'app_store' }}
+                  className={buttonStyles({
+                    variant: 'secondary',
+                    size: 'lg',
+                    className: 'w-full sm:w-auto',
+                  })}
+                >
+                  <AppleIcon className="size-4" />
+                  {m.mobile_cta_app_store()}
+                </TrackedLink>
+                <TrackedLink
                   href={GOOGLE_PLAY_URL}
                   event="cta_clicked"
                   properties={{ placement: 'mobile_hero', cta: 'google_play' }}
@@ -248,10 +261,25 @@ export default async function MobilePage({ params }: Props) {
             </RevealItem>
             <RevealItem>
               <StatusCard
+                live
                 icon={<AppleIcon className="size-5" />}
                 name={m.mobile_status_ios()}
-                state={m.mobile_status_soon()}
+                state={m.mobile_status_ios_state()}
                 body={m.mobile_status_ios_body()}
+                action={
+                  <TrackedLink
+                    href={APP_STORE_URL}
+                    event="cta_clicked"
+                    properties={{
+                      placement: 'mobile_status',
+                      cta: 'app_store',
+                    }}
+                    className="mt-3 inline-flex items-center gap-1 text-[0.9rem] font-medium text-mint-strong hover:underline"
+                  >
+                    {m.mobile_cta_app_store()}
+                    <ArrowRight className="size-3.5" />
+                  </TrackedLink>
+                }
               />
             </RevealItem>
             <RevealItem>
@@ -278,28 +306,6 @@ export default async function MobilePage({ params }: Props) {
               />
             </RevealItem>
           </RevealGroup>
-          <Reveal className="mt-6 flex flex-col gap-5 rounded-3xl border border-border bg-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-            <div className="max-w-2xl">
-              <h2 className="text-xl font-semibold">
-                {m.mobile_watch_title()}
-              </h2>
-              <p className="mt-2 leading-relaxed text-muted-foreground">
-                {m.mobile_watch_body()}
-              </p>
-            </div>
-            <TrackedLink
-              href={RELEASES_URL}
-              event="mobile_waitlist_clicked"
-              properties={{
-                placement: 'mobile_status',
-                cta: 'github_releases',
-              }}
-              className={buttonStyles({ variant: 'primary' })}
-            >
-              <GithubIcon />
-              {m.mobile_watch_cta()}
-            </TrackedLink>
-          </Reveal>
         </Container>
       </Section>
 

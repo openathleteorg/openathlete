@@ -121,9 +121,9 @@ export function ContentPtBr() {
         os recursos: calendário, editor de treinos, envio para relógios Garmin,
         Suunto e COROS, importação de atividades dessas marcas e também de Polar
         e Strava, e carga de treino pela frequência cardíaca com o RPE da sessão
-        ao lado. Acima de cinco atletas, o Supporter custa € 50 por ano para uma
-        assessoria de qualquer tamanho. Dá para usar ao lado da sua planilha com
-        um ou dois atletas por um mês antes de decidir. A{' '}
+        ao lado. Acima de cinco atletas, o Supporter, a partir de € 50 por ano,
+        tira o limite. Dá para usar ao lado da sua planilha com um ou dois
+        atletas por um mês antes de decidir. A{' '}
         <Link href="/pt-br/coaches">página para treinadores</Link> mostra como é
         o lado do treinador.
       </p>

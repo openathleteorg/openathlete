@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserLanguage } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
+import { VoiceTranscribedEvent } from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -11,7 +12,10 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { ActivityFeedbackService } from './activity-feedback.service';
 
 function setup(language: UserLanguage) {
-  const create = jest.fn().mockResolvedValue({ text: 'Bonne séance' });
+  const create = jest
+    .fn()
+    .mockResolvedValue({ text: 'Bonne séance', duration: 12.5 });
+  const emit = jest.fn();
   const prisma = {
     user: {
       findUniqueOrThrow: jest.fn().mockResolvedValue({
@@ -23,14 +27,14 @@ function setup(language: UserLanguage) {
   const service = new ActivityFeedbackService(
     prisma as unknown as PrismaService,
     {} as CaslAbilityFactory,
-    {} as EventEmitter2,
+    { emit } as unknown as EventEmitter2,
     { get: jest.fn() } as unknown as ConfigService<ApiEnvSchemaType, true>,
   );
   // The OpenAI client is created lazily: hand it a fake one
   (service as unknown as { openaiClient: unknown }).openaiClient = {
     audio: { transcriptions: { create } },
   };
-  return { service, create };
+  return { service, create, emit };
 }
 
 const audio = {
@@ -54,6 +58,22 @@ describe('voice note transcription', () => {
 
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({ model: 'whisper-1', language: code }),
+    );
+  });
+
+  it('counts the length of the recording, which the instance pays for', async () => {
+    const { service, create, emit } = setup(UserLanguage.FR);
+
+    await expect(
+      service.transcribeAudio({ userId: 7 } as AuthUser, audio),
+    ).resolves.toEqual({ text: 'Bonne séance' });
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ response_format: 'verbose_json' }),
+    );
+    expect(emit).toHaveBeenCalledWith(
+      VoiceTranscribedEvent.SLUG,
+      new VoiceTranscribedEvent({ userId: 7, seconds: 12.5 }),
     );
   });
 });

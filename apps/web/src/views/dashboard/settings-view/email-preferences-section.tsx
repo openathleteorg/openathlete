@@ -17,7 +17,7 @@ import {
 
 /**
  * Which of the emails sent on their own the user wants: onboarding tips and
- * alerts, the monthly recap, news. Only on instances that send them.
+ * alerts, the weekly and monthly recaps, news. Only on instances that send them.
  */
 export function EmailPreferencesSection() {
   const queryClient = useQueryClient();
@@ -45,11 +45,37 @@ export function EmailPreferencesSection() {
       update: (emailTips) => ({ emailTips }),
     },
     {
+      id: 'email-weekly',
+      title: m.email_weekly(),
+      description: m.email_weekly_description(),
+      checked: me?.emailWeekly ?? true,
+      update: (emailWeekly) => ({ emailWeekly }),
+    },
+    // Coaches only: the athletes to look at on Mondays
+    ...(me?.roles.includes('COACH')
+      ? [
+          {
+            id: 'email-coach-weekly',
+            title: m.email_coach_weekly(),
+            description: m.email_coach_weekly_description(),
+            checked: me.emailCoachWeekly,
+            update: (emailCoachWeekly: boolean) => ({ emailCoachWeekly }),
+          },
+        ]
+      : []),
+    {
       id: 'email-recap',
       title: m.email_recap(),
       description: m.email_recap_description(),
       checked: me?.emailRecap ?? true,
       update: (emailRecap) => ({ emailRecap }),
+    },
+    {
+      id: 'email-questionnaires',
+      title: m.email_questionnaires(),
+      description: m.email_questionnaires_description(),
+      checked: me?.emailQuestionnaires ?? true,
+      update: (emailQuestionnaires) => ({ emailQuestionnaires }),
     },
     {
       id: 'email-news',

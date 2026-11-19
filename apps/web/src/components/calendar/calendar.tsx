@@ -43,6 +43,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import {
   Activity,
   Award,
+  ClipboardList,
   Copy,
   Plus,
   Sparkles,
@@ -67,11 +68,17 @@ import {
 import { AIGenerateEventDialog } from '../ai-generate-event-dialog/ai-generate-event.dialog';
 import { AiSetupDialog } from '../ai-settings';
 import { CreateCycleDialog } from '../create-cycle-dialog';
-import { CreateEventDialog } from '../create-event-dialog';
+import {
+  CreateEventDialog,
+  type DialogEventType,
+  isDialogEvent,
+} from '../create-event-dialog';
 import { CreateEventFromTemplateDialog } from '../create-event-from-template-dialog/create-event-from-template.dialog';
 import { GarminAttributionText } from '../garmin-attribution/garmin-attribution';
 import { garminActivityLabel } from '../garmin-attribution/garmin-source';
 import { ImportFitDialog } from '../import-fit-dialog/import-fit-dialog';
+import { PendingQuestionnaires } from '../questionnaires/pending-questionnaires';
+import { PlaceQuestionnaireDialog } from '../questionnaires/place-questionnaire-dialog';
 import { CalendarBody } from './calendar-body';
 import { CalendarBulkDelete } from './calendar-bulk-delete';
 import { CalendarEventDetailsDialog } from './calendar-event-details.dialog';
@@ -92,6 +99,7 @@ import { UnavailableSessionsDialog } from './unavailable-sessions-dialog';
 import { isPlannedEvent } from './utils/compliance';
 import { isUnavailableKind } from './utils/cycle-kind';
 import { parseLinkDropId } from './utils/link-drop';
+import { createRefreshBatcher } from './utils/refresh-batcher';
 import {
   COPY_KEY,
   isKeyHeld,
@@ -229,16 +237,13 @@ export function Calendar({
   );
 
   const queryClient = useQueryClient();
-  const {
-    data: weeklyLoadSummary,
-    isPending: weeklyLoadSummaryLoading,
-    refetch: refetchWeeklyLoadSummary,
-  } = useWeeklyLoadSummaryQuery(
-    loadRange.start,
-    loadRange.end,
-    athleteId,
-    Boolean(loadRange.start && loadRange.end),
-  );
+  const { data: weeklyLoadSummary, isPending: weeklyLoadSummaryLoading } =
+    useWeeklyLoadSummaryQuery(
+      loadRange.start,
+      loadRange.end,
+      athleteId,
+      Boolean(loadRange.start && loadRange.end),
+    );
 
   // Track events with ongoing load estimations
   const [estimatingEvents, setEstimatingEvents] = useState<Set<number>>(
@@ -331,6 +336,10 @@ export function Calendar({
       isSubscribed = true;
     }
 
+    const refresh = createRefreshBatcher((queryKey) =>
+      queryClient.invalidateQueries({ queryKey }),
+    );
+
     // Set up event listeners
     const cleanup = CalendarAPI.onEvent((event) => {
       switch (event.type) {
@@ -348,11 +357,7 @@ export function Calendar({
             next.delete(event.payload.eventId);
             return next;
           });
-          // Invalidate and refetch weekly load summary
-          queryClient.invalidateQueries({
-            queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
-          });
-          refetchWeeklyLoadSummary();
+          refresh.add([trainingLoadKeys.getWeeklyLoadSummary]);
           break;
         }
         case 'training_load_estimation_failed': {
@@ -364,33 +369,21 @@ export function Calendar({
           break;
         }
         case 'activity_processed': {
-          // Invalidate events query to refresh the calendar
-          queryClient.invalidateQueries({
-            queryKey: [eventKeys.getMyEvents],
-          });
-          // Invalidate the specific event query to update event details if open
-          queryClient.invalidateQueries({
-            queryKey: [eventKeys.getEvent, event.payload.eventId],
-          });
-          // Also invalidate weekly load summary
-          queryClient.invalidateQueries({
-            queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
-          });
-          refetchWeeklyLoadSummary();
+          refresh.add(
+            [eventKeys.getMyEvents],
+            // The event's details, if open
+            [eventKeys.getEvent, event.payload.eventId],
+            [trainingLoadKeys.getWeeklyLoadSummary],
+          );
           break;
         }
         case 'weekly_load_updated': {
           // Deleted elsewhere: another device, or the removal of duplicate
           // activities, which runs in the background
           if (event.payload.reason === 'event_deleted') {
-            queryClient.invalidateQueries({
-              queryKey: [eventKeys.getMyEvents],
-            });
+            refresh.add([eventKeys.getMyEvents]);
           }
-          queryClient.invalidateQueries({
-            queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
-          });
-          refetchWeeklyLoadSummary();
+          refresh.add([trainingLoadKeys.getWeeklyLoadSummary]);
           break;
         }
       }
@@ -398,6 +391,7 @@ export function Calendar({
 
     return () => {
       cleanup();
+      refresh.cancel();
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
       socket.off('reconnect_error', handleReconnectError);
@@ -408,7 +402,7 @@ export function Calendar({
         CalendarAPI.unsubscribe(athleteId);
       }
     };
-  }, [athleteId, queryClient, refetchWeeklyLoadSummary]);
+  }, [athleteId, queryClient]);
 
   // ?event= opens a session from another screen, such as Today
   const [eventDetailsOpened, setEventDetailsOpened] = useState<
@@ -432,9 +426,13 @@ export function Calendar({
   );
   const [createEventDialog, setCreateEventDialog] = useState<{
     date: Date;
-    type: EVENT_TYPE;
+    type: DialogEventType;
     prefilledData?: CreateEventDto;
   } | null>(null);
+  const [placeQuestionnaireDialog, setPlaceQuestionnaireDialog] =
+    useState<Date | null>(null);
+  const canPlaceQuestionnaire =
+    allowCreate && Boolean(athleteId) && !ownCalendar;
   const [createEventFromTemplateDialog, setCreateEventFromTemplateDialog] =
     useState<Date | null>(null);
   const [aiGenerateEventDialog, setAIGenerateEventDialog] =
@@ -581,13 +579,27 @@ export function Calendar({
       events: calendarData.events.filter(filter),
       cycles: cycles || [],
       createEvent: (date, type) => {
-        setCreateEventDialog({ date, type });
+        if (type === EVENT_TYPE.QUESTIONNAIRE) {
+          setPlaceQuestionnaireDialog(date);
+        } else {
+          setCreateEventDialog({ date, type });
+        }
       },
       createEventFromTemplate: setCreateEventFromTemplateDialog,
       createEventWithAI: setAIGenerateEventDialog,
       openEventDetails,
       eventDetailsOpened,
-      editEvent: (eventId) => setEditEventDialog(eventId),
+      editEvent: (eventId) => {
+        // A questionnaire has no form here: it opens to be read or answered
+        const edited = calendarData.events.find(
+          (event) => event.eventId === eventId,
+        );
+        if (edited?.type === EVENT_TYPE.QUESTIONNAIRE) {
+          openEventDetails(eventId);
+        } else {
+          setEditEventDialog(eventId);
+        }
+      },
       showShortcuts: () => setShortcutsOpen(true),
       createCycle: (startDate, endDate) => {
         setCreateCycleDialog({ startDate, endDate });
@@ -601,6 +613,7 @@ export function Calendar({
       setCycleResize,
       athleteId,
       allowCreate,
+      canPlaceQuestionnaire,
       filter,
       setFilter,
       coloredBy,
@@ -811,6 +824,15 @@ export function Calendar({
           setCreateEventDialog({ date: planningDate, type: EVENT_TYPE.NOTE });
         },
       },
+      ...(canPlaceQuestionnaire
+        ? [
+            {
+              label: m.plan_a_questionnaire(),
+              icon: ClipboardList,
+              onClick: () => setPlaceQuestionnaireDialog(planningDate),
+            },
+          ]
+        : []),
     ];
 
     // Shown without AI too: it leads to the AI settings
@@ -824,7 +846,7 @@ export function Calendar({
     });
 
     return actions;
-  }, [isMobile, allowCreate, hasAIAccess, planningDate]);
+  }, [isMobile, allowCreate, hasAIAccess, planningDate, canPlaceQuestionnaire]);
 
   // Handle global mouse up to end drag selection and cycle resize
   useEffect(() => {
@@ -880,6 +902,10 @@ export function Calendar({
       <EventClipboardProvider>
         <EventContextMenuProvider>
           <CalendarContext.Provider value={memoizedValue}>
+            {/* On a phone, the Today tab lists them */}
+            {!isMobile && ownCalendar && (
+              <PendingQuestionnaires onOpen={openEventDetails} />
+            )}
             <CalendarBulkDelete
               header={
                 <CalendarHeader
@@ -952,7 +978,18 @@ export function Calendar({
                 }}
                 date={createEventDialog?.date}
                 type={createEventDialog?.type}
-                prefilledData={createEventDialog?.prefilledData}
+                prefilledData={
+                  createEventDialog?.prefilledData?.type !==
+                  EVENT_TYPE.QUESTIONNAIRE
+                    ? createEventDialog?.prefilledData
+                    : undefined
+                }
+              />
+              <PlaceQuestionnaireDialog
+                open={placeQuestionnaireDialog !== null}
+                onClose={() => setPlaceQuestionnaireDialog(null)}
+                date={placeQuestionnaireDialog ?? undefined}
+                athleteId={athleteId}
               />
               <AiSetupDialog
                 open={aiSetupOpen}
@@ -972,6 +1009,8 @@ export function Calendar({
                 athleteId={athleteId}
                 onEventGenerated={(event) => {
                   setAIGenerateEventDialog(null);
+                  // The AI writes sessions, never questionnaires
+                  if (event.type === EVENT_TYPE.QUESTIONNAIRE) return;
                   setCreateEventDialog({
                     date: event.startDate,
                     type: event.type,
@@ -983,9 +1022,9 @@ export function Calendar({
                 key={editEventDialog}
                 open={editEventDialog !== null}
                 onClose={() => setEditEventDialog(null)}
-                event={events?.find(
-                  (event) => event.eventId === editEventDialog,
-                )}
+                event={events
+                  ?.filter(isDialogEvent)
+                  .find((event) => event.eventId === editEventDialog)}
                 onDeleted={() => setEventDetailsOpened(null)}
               />
               <CalendarEventDetailsDialog

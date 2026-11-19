@@ -286,6 +286,16 @@ export function mapSuuntoSleep(
       push(metrics, MetricType.SLEEP_SCORE, day, main.SleepQualityScore);
     }
 
+    // The night's lowest heart rate is the resting HR, as Garmin, Polar and
+    // Coros send it: TRIMP needs one, and Suunto has no resting HR of its own
+    const hrMin = sleeps
+      .map((d) => d.HRMin)
+      .filter(finite)
+      .filter((v) => v > 0);
+    if (hrMin.length > 0) {
+      push(metrics, MetricType.HR_REST, day, Math.min(...hrMin));
+    }
+
     // Night HRV, weighted by how many samples each segment averaged
     const hrv = sleeps.filter((d) => finite(d.AvgHRV) && d.AvgHRV! > 0);
     if (hrv.length > 0) {

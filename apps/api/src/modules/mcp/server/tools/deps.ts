@@ -72,6 +72,8 @@ export function registerTool<Shape extends z.ZodRawShape>(
 /** Tools that only read the user's data */
 export const READ_ONLY = {
   readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
   openWorldHint: false,
 } as const;
 

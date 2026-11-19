@@ -52,7 +52,7 @@ export class EventSeriesService {
   async repeat(
     user: AuthUser,
     eventId: number,
-    { everyWeeks, until }: RepeatEventDto,
+    { everyWeeks, everyDays, until }: RepeatEventDto,
   ) {
     const ability = await this.abilities.getFor({ user });
     const source = await this.prisma.event.findFirst({
@@ -74,8 +74,9 @@ export class EventSeriesService {
       until.getTime(),
       source.startDate.getTime() + REPEAT_MAX_DAYS * DAY_MS,
     );
+    const step = everyDays ?? 7 * (everyWeeks ?? 1);
     const offsets: number[] = [];
-    for (let days = 7 * everyWeeks; ; days += 7 * everyWeeks) {
+    for (let days = step; ; days += step) {
       const start = addZonedDays(source.startDate, days, timeZone);
       if (start.getTime() > last) break;
       offsets.push(days);
@@ -159,7 +160,8 @@ export class EventSeriesService {
 
   /**
    * The occurrence and the following ones of its series the user may change,
-   * by date. Done sessions stay: their activity is linked to them.
+   * by date. Done sessions stay: their activity is linked to them. So do
+   * answered questionnaires: the answers are the athlete's.
    */
   private async loadFollowing(
     user: AuthUser,
@@ -191,6 +193,7 @@ export class EventSeriesService {
       include: {
         training: { select: { relatedActivityId: true } },
         competition: { select: { relatedActivityId: true } },
+        questionnaire: { select: { answeredAt: true } },
       },
       orderBy: { startDate: 'asc' },
     });
@@ -199,7 +202,8 @@ export class EventSeriesService {
       (occurrence) =>
         occurrence.eventId === eventId ||
         (!occurrence.training?.relatedActivityId &&
-          !occurrence.competition?.relatedActivityId),
+          !occurrence.competition?.relatedActivityId &&
+          !occurrence.questionnaire?.answeredAt),
     );
     return { event, following };
   }

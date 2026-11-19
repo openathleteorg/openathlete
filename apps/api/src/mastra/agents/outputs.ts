@@ -12,7 +12,9 @@ export const feedbackQuestionsOutputSchema = z.object({
     .array(
       z.object({
         text: z.string().min(1),
-        qcmOptions: z.array(z.object({ label: z.string().min(1) })).optional(),
+        // Null for an open question, not left out: Groq's strict JSON
+        // schema refuses a property missing from `required`
+        qcmOptions: z.array(z.object({ label: z.string().min(1) })).nullable(),
       }),
     )
     .max(6),

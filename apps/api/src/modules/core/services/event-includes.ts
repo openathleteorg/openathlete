@@ -48,6 +48,15 @@ export const EVENT_INCLUDES = {
     },
   },
   note: true,
+  // What the calendar card shows; the questions and answers are read apart
+  questionnaire: {
+    select: {
+      questionnaireId: true,
+      clubId: true,
+      answeredAt: true,
+      score: true,
+    },
+  },
   activity: {
     // select all fields except stream
     select: {

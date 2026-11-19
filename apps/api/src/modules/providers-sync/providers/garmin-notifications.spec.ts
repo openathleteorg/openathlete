@@ -6,6 +6,7 @@ import { GarminActivityNotSavedError } from '../errors/garmin-activity-not-saved
 import {
   GarminProviderService,
   garminDeviceName,
+  garminSharesHistory,
   parseGarminNotifications,
   toImportedGarminActivity,
 } from './garmin.provider.service';
@@ -449,5 +450,24 @@ describe('GarminProviderService.processNotification', () => {
       ]),
     );
     expect(byBulk).toEqual({ false: ['1'], true: ['2'] });
+  });
+});
+
+describe('garminSharesHistory', () => {
+  it('is false when the user did not allow the history', () => {
+    expect(
+      garminSharesHistory('permissions:ACTIVITY_EXPORT HEALTH_EXPORT'),
+    ).toBe(false);
+  });
+
+  it('is true when they did', () => {
+    expect(
+      garminSharesHistory('permissions:ACTIVITY_EXPORT HISTORICAL_DATA_EXPORT'),
+    ).toBe(true);
+  });
+
+  it('leaves it to Garmin while the permissions are unknown', () => {
+    expect(garminSharesHistory(null)).toBe(true);
+    expect(garminSharesHistory('PARTNER_READ CONNECT_READ')).toBe(true);
   });
 });

@@ -120,6 +120,7 @@ export class AccountDeletionService {
         if (athleteId) {
           await this.deleteAthleteData(tx, athleteId);
         }
+        await this.deleteQuestionnaires(tx, userId);
         await this.deleteUserData(tx, userId);
 
         if (athleteId) {
@@ -178,8 +179,31 @@ export class AccountDeletionService {
     await tx.eventTraining.deleteMany({ where: inEvents });
     await tx.eventCompetition.deleteMany({ where: inEvents });
     await tx.eventNote.deleteMany({ where: inEvents });
+    // Answers cascade
+    await tx.eventQuestionnaire.deleteMany({ where: inEvents });
 
     await tx.event.deleteMany({ where: { eventId: { in: eventIds } } });
+  }
+
+  /**
+   * A coach's questionnaires. What their athletes answered stays theirs:
+   * those questionnaires survive without a coach (the foreign key clears).
+   * Occurrences still unanswered go, as no one would read them.
+   */
+  private async deleteQuestionnaires(tx: Tx, userId: number) {
+    const ofCoach = { questionnaire: { coachUserId: userId } };
+    const unanswered = await tx.event.findMany({
+      where: { questionnaire: { ...ofCoach, answeredAt: null } },
+      select: { eventId: true },
+    });
+    await this.deleteEvents(
+      tx,
+      unanswered.map((event) => event.eventId),
+    );
+    // Questions cascade
+    await tx.questionnaire.deleteMany({
+      where: { coachUserId: userId, events: { none: {} } },
+    });
   }
 
   private async deleteAthleteData(tx: Tx, athleteId: number) {

@@ -27,7 +27,9 @@ import {
   RecordEffortDto,
   RecordExclusionDto,
   RecordHistoryDto,
+  YEAR_REVIEW_RECORD_SPORTS,
   YearBestRecordDto,
+  YearReviewRecordDto,
   modelFtp,
 } from '@openathlete/shared';
 
@@ -181,6 +183,56 @@ export class RecordService {
       ORDER BY r.type, r.distance, r.duration, ${bestFirst}`;
 
     return rows.map(toBestRecord);
+  }
+
+  /**
+   * For each pace (runs, swims) and power (rides) record kind set between
+   * `from` and `to`: the best of the period, its date, and the best before
+   * it, null when the period holds the first one.
+   */
+  async getPeriodBests(
+    user: AuthUser,
+    athleteId: Athlete['athleteId'],
+    from: Date,
+    to: Date,
+  ): Promise<YearReviewRecordDto[]> {
+    const targetAthleteId = await this.targetAthleteId(user, athleteId);
+    const family = Prisma.sql`CASE
+      WHEN a.sport::text IN (${Prisma.join([...YEAR_REVIEW_RECORD_SPORTS.RUN])}) THEN 'RUN'
+      WHEN a.sport::text IN (${Prisma.join([...YEAR_REVIEW_RECORD_SPORTS.RIDE])}) THEN 'RIDE'
+      WHEN a.sport::text IN (${Prisma.join([...YEAR_REVIEW_RECORD_SPORTS.SWIM])}) THEN 'SWIM'
+    END`;
+    const rows = await this.prisma.$queryRaw<
+      {
+        family: YearReviewRecordDto['family'];
+        type: YearReviewRecordDto['type'];
+        distance: number | null;
+        duration: number | null;
+        value: number;
+        previous: number | null;
+        date: Date;
+      }[]
+    >`
+      WITH efforts AS (
+        SELECT ${family} AS family, r.type::text AS type, r.distance,
+          r.duration, r.value, r.date, ${bestFirst} AS rank
+        FROM record r
+        JOIN event_activity a ON a.event_activity_id = r.event_activity_id
+        WHERE r.athlete_id = ${targetAthleteId}
+          AND r.date < ${to}
+          AND r.type IN ('SPEED', 'POWER')
+          AND ${notExcluded}
+      )
+      SELECT family, type, distance, duration,
+        (array_agg(value ORDER BY rank) FILTER (WHERE date >= ${from}))[1] AS value,
+        (array_agg(date ORDER BY rank) FILTER (WHERE date >= ${from}))[1] AS date,
+        (array_agg(value ORDER BY rank) FILTER (WHERE date < ${from}))[1] AS previous
+      FROM efforts
+      WHERE (type = 'SPEED' AND family IN ('RUN', 'SWIM'))
+        OR (type = 'POWER' AND family = 'RIDE')
+      GROUP BY family, type, distance, duration
+      HAVING bool_or(date >= ${from})`;
+    return rows;
   }
 
   /**

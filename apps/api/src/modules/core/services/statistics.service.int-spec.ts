@@ -326,6 +326,95 @@ describe('StatisticsService (PostgreSQL)', () => {
     });
   }
 
+  it('lists the efficiency of each run, oldest first', async () => {
+    const later = await activity('later', '2026-03-20T08:00:00Z');
+    const earlier = await activity('earlier', '2026-03-05T08:00:00Z');
+    await activity('no figures', '2026-03-10T08:00:00Z');
+    await activity('ride', '2026-03-12T08:00:00Z', { sport: 'CYCLING' });
+    await prisma.eventActivity.update({
+      where: { eventId: later.eventId },
+      data: {
+        flatSpeedPerWatt: 0.0135,
+        powerEfficiencyFactor: 2.1,
+        efficiencyFactor: 1.4,
+        decouplingPercent: 3.2,
+        // 50 minutes, 85 % below the first threshold
+        intensitySeconds: [2550, 300, 150],
+      },
+    });
+    await prisma.eventActivity.update({
+      where: { eventId: earlier.eventId },
+      data: {
+        flatSpeedPerWatt: 0.013,
+        efficiencyFactor: 1.35,
+        intensitySeconds: [1500, 1000, 500],
+      },
+    });
+    await prisma.athleteMetric.deleteMany({
+      where: { athleteId: DELETED_ATHLETE_ID },
+    });
+    // The weight of the day: 72 kg after the first run, 70 kg before it is
+    // logged for the second
+    await prisma.athleteMetric.createMany({
+      data: [
+        {
+          athleteId: DELETED_ATHLETE_ID,
+          type: 'WEIGHT',
+          date: new Date('2026-03-10'),
+          value: 72,
+        },
+        {
+          athleteId: DELETED_ATHLETE_ID,
+          type: 'WEIGHT',
+          date: new Date('2026-03-18'),
+          value: 70,
+        },
+      ],
+    });
+
+    const result = await service.getEfficiency(athlete, {
+      ...period,
+      sport: 'RUNNING' as SPORT_TYPE,
+    });
+    expect(result.hasWeight).toBe(true);
+    expect(result.runs).toEqual([
+      expect.objectContaining({
+        name: 'earlier',
+        steady: false,
+        factor: 1.35,
+        powerFactor: null,
+        // Before any weight: the first one logged
+        effectiveness: expect.closeTo(0.013 * 72, 9),
+        decoupling: null,
+      }),
+      expect.objectContaining({
+        name: 'later',
+        steady: true,
+        factor: 1.4,
+        powerFactor: 2.1,
+        effectiveness: expect.closeTo(0.0135 * 70, 9),
+        decoupling: 3.2,
+      }),
+    ]);
+
+    await prisma.athleteMetric.deleteMany({
+      where: { athleteId: DELETED_ATHLETE_ID },
+    });
+    const noWeight = await service.getEfficiency(athlete, {
+      ...period,
+      sport: 'RUNNING' as SPORT_TYPE,
+    });
+    expect(noWeight.hasWeight).toBe(false);
+    expect(noWeight.runs.map((run) => run.effectiveness)).toEqual([null, null]);
+
+    await expect(
+      service.getEfficiency(stranger, {
+        ...period,
+        sport: 'RUNNING' as SPORT_TYPE,
+      }),
+    ).rejects.toThrow();
+  });
+
   it('reads the median vertical speed of a slope across activities', async () => {
     for (const [index, value] of [600, 700, 800].entries()) {
       const session = await activity(

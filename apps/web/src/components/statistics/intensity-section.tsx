@@ -2,25 +2,31 @@ import { useStatisticsIntensityQuery } from '@/api/statistics';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateFnsLocale } from '@/utils/locales';
+import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts';
 
 import {
   SPORT_TYPE,
   SportGroup,
   StatisticsIntensityDto,
+  formatDuration,
 } from '@openathlete/shared';
 
 import { cadenceFactor } from '../activity-analysis/tracks';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 import { SkeletonChart } from '../ui/skeleton';
+import {
+  IntensityUnit,
+  intensityRows,
+  intensityShares,
+} from './intensity-data';
 import { MetricInfo } from './metric-info';
 import { StatChart } from './stat-chart';
 import { bucketLabel, bucketTick } from './stat-chart-format';
 import { StatSection } from './stat-section';
 import { Period } from './statistics-period';
-
-type Bucket = StatisticsIntensityDto['buckets'][number];
+import { SegmentTabs } from './statistics-tabs';
 
 interface P {
   athleteId: number;
@@ -40,24 +46,18 @@ const DOMAINS = [
   { key: 'high', color: 'var(--chart-1)', label: m.statistics_intensity_high },
 ] as const;
 
-/** Shares of the bucket's time, in percent, to compare weeks of any volume */
-function intensityShares(bucket: Bucket) {
-  const total = bucket.low + bucket.middle + bucket.high;
-  const share = (value: number) => (total ? (value / total) * 100 : 0);
-  return {
-    period: bucket.period,
-    partial: bucket.partial,
-    low: share(bucket.low),
-    middle: share(bucket.middle),
-    high: share(bucket.high),
-  };
-}
-
-function Distribution({ data }: { data: StatisticsIntensityDto }) {
+function Distribution({
+  data,
+  unit,
+}: {
+  data: StatisticsIntensityDto;
+  unit: IntensityUnit;
+}) {
   const locale = getDateFnsLocale(getLocale());
-  const rows = data.buckets.map(intensityShares);
+  const rows = intensityRows(data.buckets, unit);
+  const hours = unit === 'hours';
   return (
-    <Card className="gap-0 py-0" data-intensity>
+    <Card className="gap-0 py-0" data-intensity data-intensity-unit={unit}>
       <CardContent className="space-y-3 p-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           {DOMAINS.map(({ key, color, label }) => (
@@ -92,9 +92,13 @@ function Distribution({ data }: { data: StatisticsIntensityDto }) {
             />
             <YAxis
               width={48}
-              domain={[0, 100]}
+              domain={hours ? [0, 'auto'] : [0, 100]}
               tick={{ fontSize: 11 }}
-              tickFormatter={(value: number) => `${value}${m.percent_symbol()}`}
+              tickFormatter={(value: number) =>
+                hours
+                  ? `${Math.round(value * 10) / 10} h`
+                  : `${value}${m.percent_symbol()}`
+              }
             />
             <ChartTooltip
               content={
@@ -110,8 +114,9 @@ function Distribution({ data }: { data: StatisticsIntensityDto }) {
                     <div className="flex w-full items-center gap-2 text-xs text-muted-foreground">
                       {DOMAINS.find(({ key }) => key === name)?.label()}
                       <span className="ml-auto font-medium tabular-nums text-foreground">
-                        {Math.round(Number(value))}
-                        {m.percent_symbol()}
+                        {hours
+                          ? formatDuration(Math.round(Number(value) * 3600))
+                          : `${Math.round(Number(value))}${m.percent_symbol()}`}
                       </span>
                     </div>
                   )}
@@ -262,8 +267,9 @@ function Intensity({
   compared,
   sport,
   group,
+  unit,
   visible,
-}: P & { visible: boolean }) {
+}: P & { unit: IntensityUnit; visible: boolean }) {
   const { data } = useStatisticsIntensityQuery(
     {
       athleteId,
@@ -302,7 +308,7 @@ function Intensity({
           {m.statistics_intensity_default_zones()}
         </p>
       )}
-      <Distribution data={data} />
+      <Distribution data={data} unit={unit} />
       {compared && before && <Comparison data={data} before={before} />}
       {steady && <SteadyTrends data={data} sport={sport} />}
     </div>
@@ -310,9 +316,25 @@ function Intensity({
 }
 
 export function IntensitySection(props: P) {
+  const [unit, setUnit] = useState<IntensityUnit>('share');
   return (
-    <StatSection id="intensity" title={m.statistics_section_intensity()}>
-      {(visible) => <Intensity {...props} visible={visible} />}
+    <StatSection
+      id="intensity"
+      title={m.statistics_section_intensity()}
+      actions={
+        <SegmentTabs
+          secondary
+          label={m.statistics_section_intensity()}
+          value={unit}
+          onChange={setUnit}
+          items={[
+            { id: 'share', label: m.percent_symbol },
+            { id: 'hours', label: m.duration },
+          ]}
+        />
+      }
+    >
+      {(visible) => <Intensity {...props} unit={unit} visible={visible} />}
     </StatSection>
   );
 }

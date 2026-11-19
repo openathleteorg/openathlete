@@ -29,6 +29,7 @@ import {
   registerPlanReadTools,
   registerPlanWriteTools,
 } from './tools/plan.tools';
+import { registerQuestionnaireTools } from './tools/questionnaire.tools';
 
 /**
  * Builds the MCP server of one request. Tools are registered per request
@@ -90,6 +91,7 @@ export class McpServerFactory {
       registerCalendarReadTools(server, ctx, this.deps);
       registerLoadTools(server, ctx, this.deps);
       registerPlanReadTools(server, ctx, this.deps);
+      registerQuestionnaireTools(server, ctx, this.deps);
     }
     if (ctx.can('write')) {
       registerCalendarWriteTools(server, ctx, this.deps);

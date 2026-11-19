@@ -33,7 +33,7 @@ export enum AiErrorCode {
   CREDENTIAL_REJECTED = 'AI_CREDENTIAL_REJECTED',
   /** Quota exhausted or rate limited at the provider */
   QUOTA_EXCEEDED = 'AI_QUOTA_EXCEEDED',
-  /** The monthly allowance on the instance keys is used up */
+  /** The weekly allowance on the instance keys is used up */
   HOSTED_QUOTA_EXCEEDED = 'AI_HOSTED_QUOTA_EXCEEDED',
   /** Any other provider failure */
   PROVIDER_ERROR = 'AI_PROVIDER_ERROR',
@@ -274,17 +274,21 @@ export interface AiTaskAccessDto {
   modelId: string | null;
 }
 
-/** Tokens the user's AI calls used this month. */
+/**
+ * The user's AI use this week. What the instance keys cost, in tokens or
+ * money, stays on the server: only the share of the allowance is told.
+ */
 export interface AiUsageDto {
-  /** On the instance keys, counted against the allowance */
-  hostedTokens: number;
   /** On the user's own keys, billed to them by their provider */
   ownKeyTokens: number;
-  /** Share of the monthly AI budget used, from 0 to 1; null when unlimited */
+  /** Share of the weekly allowance used, from 0 to 1; null when unlimited */
   hostedBudgetUsed: number | null;
-  /** Start of next month (UTC), when the count starts again */
+  /** Next Monday 00:00 in the user's time zone, when the allowance refills */
   resetsAt: string;
 }
+
+/** Share of the allowance from which the app warns that it runs low. */
+export const AI_ALLOWANCE_WARNING_SHARE = 0.8;
 
 export interface AiAccessDto {
   tasks: Record<AiFeatureTask, AiTaskAccessDto>;
@@ -294,7 +298,7 @@ export interface AiAccessDto {
   upgradeUnlocksHosted: boolean;
   /** Custom OpenAI-compatible endpoints can be added on this instance */
   customEndpointsAllowed: boolean;
-  /** The monthly allowance on the instance keys is used up */
+  /** The weekly allowance on the instance keys is used up */
   hostedQuotaExhausted: boolean;
   usage: AiUsageDto;
   /**

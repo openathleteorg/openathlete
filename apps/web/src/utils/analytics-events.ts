@@ -8,10 +8,13 @@
  * The API sends what the browser cannot see, for users who consented:
  * account_created, activity_imported, provider_connection_lost,
  * athlete_invited, coach_invited, athlete_linked, coach_linked, checkout_started,
- * subscription_started, subscription_renewed, subscription_payment_failed,
- * subscription_cancel_scheduled, subscription_ended, subscription_refunded,
  * account_deleted, workout_sent_to_device, mcp_connected, ai_key_added,
- * ai_key_removed, lifecycle_email_sent. The funnels are in PostHog ("Churn
+ * ai_key_removed, lifecycle_email_sent. Billing facts go whatever the consent,
+ * under the user id only: subscription_started, subscription_changed,
+ * subscription_renewed, subscription_payment_failed,
+ * subscription_cancel_scheduled, subscription_cancel_reverted,
+ * subscription_canceled, subscription_refunded, ai_allowance_warning and
+ * ai_allowance_exhausted. The funnels are in PostHog ("Churn
  * funnels" dashboard).
  *
  * Every event carries `platform` (web, ios, android), and `app_version` in the

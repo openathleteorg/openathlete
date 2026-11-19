@@ -24,6 +24,7 @@ import { TrackedLink } from '@/components/site/tracked-link';
 import { MCP_URL } from '@/config';
 import { initLocale } from '@/i18n/server';
 import { signupUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import {
   type SupportedLocale,
@@ -558,7 +559,10 @@ export default async function AiBrandPage({ params }: Props) {
       question: brandMessage(brand.slug, `faq_${i}_q`),
       answer: brandMessage(brand.slug, `faq_${i}_a`),
     })),
-    { question: m.aib_faq_cost_q(), answer: m.aib_faq_cost_a() },
+    {
+      question: m.aib_faq_cost_q(),
+      answer: m.aib_faq_cost_a(supporterPriceVars(locale)),
+    },
   ];
 
   return (

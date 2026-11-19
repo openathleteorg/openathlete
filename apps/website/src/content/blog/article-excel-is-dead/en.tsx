@@ -118,10 +118,10 @@ export function ContentEn() {
         feature: calendar, workout builder, sessions sent to Garmin, Suunto and
         COROS watches, activities imported from those brands plus Polar and
         Strava, and training load from heart rate with session RPE alongside.
-        Above five athletes, Supporter costs €50 a year for an unlimited roster.
-        You can run it next to your spreadsheet with one or two athletes for a
-        month before deciding. The <Link href="/coaches">coaches page</Link>{' '}
-        shows what the coach side looks like.
+        Above five athletes, Supporter, from €50 a year, removes the limit. You
+        can run it next to your spreadsheet with one or two athletes for a month
+        before deciding. The <Link href="/coaches">coaches page</Link> shows
+        what the coach side looks like.
       </p>
 
       <h2>Source</h2>

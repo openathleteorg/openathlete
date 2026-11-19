@@ -12,7 +12,10 @@ import {
 import { ConnectorProvider, ProviderAccount } from '@openathlete/database';
 
 import { AnalyticsService } from 'src/modules/analytics/analytics.service';
-import { reportJobFailure } from 'src/modules/analytics/job-failure';
+import {
+  RefusedJobError,
+  reportJobFailure,
+} from 'src/modules/analytics/job-failure';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
 import {
@@ -84,9 +87,10 @@ export class ProviderFullImportProcessor extends WorkerHost {
         await this.worker.rateLimit(error.retryAfterMs);
         throw Worker.RateLimitError();
       }
-      // A refused request (missing permission...) won't succeed on retry
+      // A refused request (missing permission...) won't succeed on retry,
+      // and is the user's choice rather than a bug
       if (error instanceof HttpException && error.getStatus() < 500) {
-        throw new UnrecoverableError(error.message);
+        throw new RefusedJobError(error.message);
       }
       throw error;
     }

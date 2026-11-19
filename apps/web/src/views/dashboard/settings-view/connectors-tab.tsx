@@ -408,8 +408,10 @@ export function ConnectorsTab() {
                             ` ${m.full_import_garmin_hint()}`}
                           {fullImportCompleted
                             ? ` ${m.full_import_completed()}`
-                            : !providerDetails.importActivitiesEnabled &&
-                              ` ${m.full_import_disabled()}`}
+                            : !providerDetails.historyShared
+                              ? ` ${m.full_import_garmin_history_not_shared()}`
+                              : !providerDetails.importActivitiesEnabled &&
+                                ` ${m.full_import_disabled()}`}
                         </>
                       }
                     >
@@ -420,7 +422,8 @@ export function ConnectorsTab() {
                           disabled={
                             fullImportInProgress ||
                             isImportingThisProvider ||
-                            !providerDetails.importActivitiesEnabled
+                            !providerDetails.importActivitiesEnabled ||
+                            !providerDetails.historyShared
                           }
                           onClick={() =>
                             importAllActivitiesMutation.mutate(provider)

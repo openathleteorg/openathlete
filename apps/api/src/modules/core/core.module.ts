@@ -25,6 +25,7 @@ import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingLoadController } from './controllers/training-load.controller';
 import { TrainingPlanController } from './controllers/training-plan.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
+import { YearReviewController } from './controllers/year-review.controller';
 import { ActivityFileParserService } from './helpers/activity-file-parser.service';
 import {
   CycleService,
@@ -72,6 +73,7 @@ import { TrainingPlanLibraryService } from './services/training-plan-library.ser
 import { TrainingZoneService } from './services/training-zone.service';
 import { OpenMeteoWeatherProvider } from './services/weather/providers/openmeteo.provider';
 import { WeatherService } from './services/weather/weather.service';
+import { YearReviewService } from './services/year-review.service';
 
 @Module({
   imports: [
@@ -92,6 +94,7 @@ import { WeatherService } from './services/weather/weather.service';
     AthleteController,
     CoachController,
     StatisticsController,
+    YearReviewController,
     RecordController,
     EquipmentController,
     CoachNoteController,
@@ -116,6 +119,7 @@ import { WeatherService } from './services/weather/weather.service';
     AthleteSettingsService,
     CoachService,
     StatisticsService,
+    YearReviewService,
     RecordService,
     EquipmentService,
     CoachNoteService,

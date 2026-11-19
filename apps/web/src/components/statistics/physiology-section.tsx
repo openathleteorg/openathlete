@@ -6,12 +6,19 @@ import { SPORT_TYPE, StatisticsCardiacCostDto } from '@openathlete/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { SkeletonChart } from '../ui/skeleton';
 import { referenceOutput } from './capacity-data';
+import { EfficiencyCard } from './efficiency-card';
 import { ExportButton } from './export-button';
 import { MetricInfo } from './metric-info';
 import { QuantileChart } from './quantile-chart';
 import { QuickRead, QuickReadLine } from './quick-read';
 import { StatSection } from './stat-section';
 import { Period } from './statistics-period';
+
+const RUNNING = new Set<SPORT_TYPE>([
+  SPORT_TYPE.RUNNING,
+  SPORT_TYPE.TRAIL_RUNNING,
+  SPORT_TYPE.VIRTUAL_RUN,
+]);
 
 interface P {
   athleteId: number;
@@ -147,7 +154,20 @@ export function PhysiologySection(props: P) {
       id="physiology"
       title={m.statistics_capacity_physiology()}
     >
-      {(visible) => <CostData {...props} visible={visible} />}
+      {(visible) => (
+        <div className="space-y-4">
+          <CostData {...props} visible={visible} />
+          {/* Its figures are for runs: the climbing factors are a runner's */}
+          {RUNNING.has(props.sport) && (
+            <EfficiencyCard
+              athleteId={props.athleteId}
+              period={props.period}
+              sport={props.sport}
+              visible={visible}
+            />
+          )}
+        </div>
+      )}
     </StatSection>
   );
 }

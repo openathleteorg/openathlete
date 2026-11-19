@@ -22,6 +22,7 @@ import {
 } from '@/config';
 import { initLocale } from '@/i18n/server';
 import { supporterUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { localePath, localizedUrl } from '@/utils/locales';
 import {
@@ -93,6 +94,7 @@ function TrimpCode() {
 
 export default async function OpenSourcePage({ params }: Props) {
   const locale = initLocale((await params).locale);
+  const prices = supporterPriceVars(locale);
 
   const formulas = [
     {
@@ -604,7 +606,7 @@ export default async function OpenSourcePage({ params }: Props) {
             </p>
             <h2 className="display-2 mt-4">{m.opensource_funding_title()}</h2>
             <p className="lead mx-auto mt-5 max-w-2xl">
-              {m.opensource_funding_body()}
+              {m.opensource_funding_body(prices)}
             </p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <TrackedLink

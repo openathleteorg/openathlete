@@ -29,6 +29,7 @@ import {
   extractGarminFitRpe,
   mapGarminActivityType,
 } from '../../core/helpers/garmin';
+import { savingCompletesHeartRateProfile } from '../../core/helpers/heart-rate-profile';
 import {
   roundCadence,
   roundDistance,
@@ -179,6 +180,16 @@ export function parseGarminPermissions(
 ): string[] | null {
   if (!scopes?.startsWith(PERMISSIONS_PREFIX)) return null;
   return scopes.slice(PERMISSIONS_PREFIX.length).split(' ').filter(Boolean);
+}
+
+/**
+ * Whether the user lets Garmin send us their history: without it, a backfill
+ * is refused (412). Permissions not stored yet (older connections) leave the
+ * answer to Garmin.
+ */
+export function garminSharesHistory(scopes?: string | null): boolean {
+  const permissions = parseGarminPermissions(scopes);
+  return !permissions || permissions.includes('HISTORICAL_DATA_EXPORT');
 }
 
 export function formatGarminPermissions(permissions: string[]): string {
@@ -1298,29 +1309,36 @@ export class GarminProviderService
     );
     if (valid.length === 0) return;
 
-    await this.prisma.$transaction(
-      valid.map((metric) =>
-        this.prisma.athleteMetric.upsert({
-          where: {
-            athleteId_type_date: {
-              athleteId,
-              type: metric.type,
-              date: metric.date,
-            },
-          },
-          create: {
-            athleteId,
-            type: metric.type,
-            date: metric.date,
-            value: roundMetricValue(metric.value),
-            source: ConnectorProvider.GARMIN,
-          },
-          update: {
-            value: roundMetricValue(metric.value),
-            source: ConnectorProvider.GARMIN,
-          },
-        }),
-      ),
+    const completed = await savingCompletesHeartRateProfile(
+      this.prisma,
+      athleteId,
+      valid.map((metric) => metric.type),
+      () =>
+        this.prisma.$transaction(
+          valid.map((metric) =>
+            this.prisma.athleteMetric.upsert({
+              where: {
+                athleteId_type_date: {
+                  athleteId,
+                  type: metric.type,
+                  date: metric.date,
+                },
+              },
+              create: {
+                athleteId,
+                type: metric.type,
+                date: metric.date,
+                value: roundMetricValue(metric.value),
+                source: ConnectorProvider.GARMIN,
+              },
+              update: {
+                value: roundMetricValue(metric.value),
+                source: ConnectorProvider.GARMIN,
+              },
+            }),
+          ),
+        ),
     );
+    if (completed) await this.queueService.addTrainingLoadRecalcJob(athleteId);
   }
 }

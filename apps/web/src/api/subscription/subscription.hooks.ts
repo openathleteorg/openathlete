@@ -1,7 +1,7 @@
 import { activeSupporterTransactions, buySupporter } from '@/utils/app-store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { BillingInterval, CreateCheckoutSessionDto } from '@openathlete/shared';
+import { CreateCheckoutSessionDto } from '@openathlete/shared';
 
 import { SubscriptionAPI } from './subscription.api';
 import { subscriptionKeys } from './subscription.keys';
@@ -80,9 +80,9 @@ export function useAppStorePurchase() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (interval: BillingInterval) => {
+    mutationFn: async (productId: string) => {
       const appAccountToken = await SubscriptionAPI.getAppleAccountToken();
-      const signedTransaction = await buySupporter(interval, appAccountToken);
+      const signedTransaction = await buySupporter(productId, appAccountToken);
       return SubscriptionAPI.recordAppleTransaction(signedTransaction);
     },
     onSuccess: (subscription) => {

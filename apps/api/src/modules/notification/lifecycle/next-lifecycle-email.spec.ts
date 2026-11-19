@@ -10,12 +10,16 @@ function state(overrides: Partial<LifecycleState> = {}): LifecycleState {
     now: NOW,
     localHour: 10,
     localDay: 10,
+    // NOW is a Tuesday
+    localWeekday: 2,
     createdAt: ago(2 * DAY),
     emailTips: true,
     emailRecap: true,
+    emailWeekly: true,
     newsConsent: false,
     billingEnabled: true,
     isSupporter: false,
+    isFounder: false,
     providers: [],
     activityCount: 0,
     plannedCount: 0,
@@ -209,6 +213,39 @@ describe('nextLifecycleEmail', () => {
       expect(nextLifecycleEmail(state({ ...regular, localDay: 8 }))).toBeNull();
     });
 
+    it('never falls on the day of the Monday email, nor the day after', () => {
+      const monday = { ...regular, localDay: 2, localWeekday: 1 };
+      expect(nextLifecycleEmail(state(monday))).toBeNull();
+      // Without the Monday email, Monday is as good a day as any
+      expect(
+        nextLifecycleEmail(state({ ...monday, emailWeekly: false })),
+      ).toEqual({ kind: 'MONTHLY_RECAP', ref: '2026-10' });
+
+      const weekly = {
+        kind: 'WEEKLY_RECAP' as const,
+        ref: '2026-11-09',
+        sentAt: ago(DAY + 3 * HOUR),
+      };
+      // Tuesday: the spacing holds it back
+      expect(
+        nextLifecycleEmail(
+          state({ ...regular, localDay: 3, localWeekday: 2, sent: [weekly] }),
+        ),
+      ).toBeNull();
+      // Wednesday, still in the first week: it goes
+      expect(
+        nextLifecycleEmail(
+          state({
+            ...regular,
+            now: new Date(NOW.getTime() + DAY),
+            localDay: 4,
+            localWeekday: 3,
+            sent: [weekly],
+          }),
+        ),
+      ).toEqual({ kind: 'MONTHLY_RECAP', ref: '2026-10' });
+    });
+
     it('skips quiet months, months already recapped, and those who opted out', () => {
       expect(
         nextLifecycleEmail(
@@ -295,6 +332,57 @@ describe('nextLifecycleEmail', () => {
               { kind: 'SUPPORTER_CANCELLED', ref: '9', sentAt: ago(HOUR) },
             ],
           }),
+        ),
+      ).toBeNull();
+    });
+  });
+
+  describe('founder announcement', () => {
+    it('tells each running founder once, without asking for news consent', () => {
+      const founder = state({
+        isSupporter: true,
+        isFounder: true,
+        sent: [{ kind: 'IMPORT_DONE', ref: '', sentAt: ago(HOUR) }],
+      });
+
+      expect(nextLifecycleEmail(founder)).toEqual({
+        kind: 'FOUNDER_ANNOUNCEMENT',
+        ref: '',
+      });
+      expect(
+        nextLifecycleEmail({
+          ...founder,
+          sent: [
+            ...founder.sent,
+            { kind: 'FOUNDER_ANNOUNCEMENT', ref: '', sentAt: ago(HOUR) },
+          ],
+        }),
+      ).toBeNull();
+    });
+
+    it('skips founders on their way out, and instances that sell nothing', () => {
+      const quiet = { emailTips: false, emailRecap: false };
+      expect(
+        nextLifecycleEmail(
+          state({ ...quiet, isSupporter: false, isFounder: true }),
+        ),
+      ).toBeNull();
+      expect(
+        nextLifecycleEmail(
+          state({
+            ...quiet,
+            isSupporter: true,
+            isFounder: true,
+            billingEnabled: false,
+          }),
+        ),
+      ).toBeNull();
+    });
+
+    it('waits for daytime like the others', () => {
+      expect(
+        nextLifecycleEmail(
+          state({ isSupporter: true, isFounder: true, localHour: 23 }),
         ),
       ).toBeNull();
     });

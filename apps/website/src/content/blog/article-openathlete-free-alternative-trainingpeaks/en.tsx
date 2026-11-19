@@ -111,8 +111,8 @@ export function ContentEn() {
       <p>
         Every feature is free on our servers: calendar, workout builder, planned
         workouts sent to Garmin, Suunto and COROS, training load and coaching up
-        to five athletes. The optional Supporter plan ({q('oaMonth')}a month or{' '}
-        {q('oaYear')} a year) adds AI on our keys and unlimited coached
+        to five athletes. The optional Supporter plan (from {q('oaMonth')} a
+        month or {q('oaYear')} a year) adds AI on our keys and unlimited coached
         athletes, and nothing else. The code is AGPL-3.0, so you can also run it
         on your own server for free, without limits. Clubs get a free club space
         too, with no athlete limit: groups with their own coaches, a shared
@@ -128,11 +128,10 @@ export function ContentEn() {
         calendar through the MCP server.
       </p>
       <p>
-        What it doesn't do yet: the iOS and Android apps are in testing (the web
-        app installs on a phone in the meantime), there is no plan marketplace,
-        no indoor training app, no club billing, and power analysis is shallower
-        than on intervals.icu. Workouts can't go to Polar watches, because
-        Polar's API is read-only. Units are metric only.
+        What it doesn't do yet: there is no plan marketplace, no indoor training
+        app, no club billing, and power analysis is shallower than on
+        intervals.icu. Workouts can't go to Polar watches, because Polar's API
+        is read-only. Units are metric only.
       </p>
 
       <h2>The numbers side by side</h2>
@@ -184,7 +183,7 @@ export function ContentEn() {
         is built on TSS and you don't want to relearn the numbers. Pick
         intervals.icu for the deepest free analysis, especially with a power
         meter. Pick Nolio if you coach a French club and want association
-        pricing and native apps today. Pick Final Surge for a US school or club
+        pricing and mature native apps. Pick Final Surge for a US school or club
         team on simple flat pricing. Pick OpenAthlete if you want workouts on
         Garmin, Suunto or COROS without paying, a flat coach price, AI on your
         own key, a free club space, or code you can host yourself.

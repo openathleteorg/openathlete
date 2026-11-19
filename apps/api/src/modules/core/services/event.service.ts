@@ -59,6 +59,11 @@ import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.
 import { ProviderExportService } from '../../providers-sync/export.service';
 import { TrainingLoadEstimationService } from '../../queue/services/training-load-estimation.service';
 import {
+  activityToGpx,
+  garminSourceLabel,
+  gpxFileName,
+} from '../helpers/activity-gpx';
+import {
   reductActivityStreamToResolution,
   uncompressActivityStream,
 } from '../helpers/activity-stream';
@@ -132,6 +137,12 @@ export class EventService {
       competition: EventCompetition | null;
       training: EventTraining | null;
       note: EventNote | null;
+      questionnaire?: {
+        questionnaireId: number;
+        clubId: number | null;
+        answeredAt: Date | null;
+        score: number | null;
+      } | null;
       activity:
         | (Omit<
             EventActivity,
@@ -142,6 +153,8 @@ export class EventService {
             | 'intensitySeconds'
             | 'efficiencyFactor'
             | 'decouplingPercent'
+            | 'flatSpeedPerWatt'
+            | 'powerEfficiencyFactor'
             | 'originalStream'
             | 'originalSummary'
           > & {
@@ -159,7 +172,8 @@ export class EventService {
         | null;
     },
   ) {
-    const { competition, training, note, activity, ...rest } = event;
+    const { competition, training, note, questionnaire, activity, ...rest } =
+      event;
     const { trainingLoadEntries, ...activityFields } = activity ?? {};
 
     return {
@@ -167,6 +181,13 @@ export class EventService {
       ...(training ? { ...training } : {}),
       ...(competition ? { ...competition } : {}),
       ...(note ? { ...note } : {}),
+      ...(questionnaire
+        ? {
+            questionnaireId: questionnaire.questionnaireId,
+            answeredAt: questionnaire.answeredAt,
+            score: questionnaire.score,
+          }
+        : {}),
       ...(activity
         ? {
             ...activityFields,
@@ -381,6 +402,55 @@ export class EventService {
   }
 
   /**
+   * The GPS track of an activity as a GPX file, for whoever may read the
+   * activity. Any activity with GPS has one, whatever it was imported from.
+   */
+  async getEventGpx(user: AuthUser, eventId: Event['eventId']) {
+    const ability = await this.abilities.getFor({ user });
+    const event = await this.prisma.event.findFirst({
+      where: {
+        AND: [{ eventId }, accessibleBy(ability, 'read').Event],
+      },
+      select: {
+        name: true,
+        startDate: true,
+        activity: {
+          select: {
+            sport: true,
+            stream: true,
+            provider: true,
+            deviceName: true,
+          },
+        },
+      },
+    });
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+    const compressed = event.activity
+      ?.stream as CompressedActivityStream | null;
+    const gpx =
+      event.activity && compressed
+        ? activityToGpx(
+            {
+              ...event,
+              sport: event.activity.sport,
+              // Garmin's brand guidelines: its data names it as its source
+              source:
+                event.activity.provider === 'GARMIN'
+                  ? garminSourceLabel(event.activity.deviceName)
+                  : null,
+            },
+            uncompressActivityStream(compressed),
+          )
+        : null;
+    if (!gpx) {
+      throw new NotFoundException('No GPS track for this activity');
+    }
+    return { content: gpx, fileName: gpxFileName(event) };
+  }
+
+  /**
    * The training or race an activity was linked to, with its workout, so
    * the activity can show how it went against the plan. Only read for one
    * activity: calendar lists don't carry workouts for every activity.
@@ -511,7 +581,14 @@ export class EventService {
         name,
         type,
         [type.toLocaleLowerCase()]: {
-          create: rest,
+          create:
+            data.type === EVENT_TYPE.QUESTIONNAIRE
+              ? await this.questionnairePlacement(
+                  user,
+                  data.questionnaireId,
+                  finalAthleteId,
+                )
+              : rest,
         },
       },
       include: EVENT_INCLUDES,
@@ -585,6 +662,35 @@ export class EventService {
         }),
       );
     return this.getEventById(user, created.eventId);
+  }
+
+  /**
+   * What a questionnaire placed in a calendar links to. Only its author
+   * places it; placed for a club's athlete, the club's coaches of that
+   * athlete read the answers too.
+   */
+  private async questionnairePlacement(
+    user: AuthUser,
+    questionnaireId: number,
+    athleteId: number,
+  ): Promise<Prisma.EventQuestionnaireUncheckedCreateWithoutEventInput> {
+    const questionnaire = await this.prisma.questionnaire.findFirst({
+      where: { questionnaireId, coachUserId: user.userId, archivedAt: null },
+      select: { questionnaireId: true },
+    });
+    if (!questionnaire) {
+      throw new NotFoundException('Questionnaire not found');
+    }
+    const links = await this.prisma.coachAthlete.findMany({
+      where: { userId: user.userId, athleteId },
+      select: { clubId: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    // The coach's own athlete, even when also in one of their clubs
+    const clubId = links.some((link) => link.clubId === null)
+      ? null
+      : (links[0]?.clubId ?? null);
+    return { questionnaireId, clubId };
   }
 
   /**
@@ -1229,11 +1335,22 @@ export class EventService {
       where: {
         AND: [{ eventId: eventId }, accessibleBy(ability, 'delete').Event],
       },
-      select: { eventId: true },
+      select: {
+        eventId: true,
+        athleteId: true,
+        questionnaire: { select: { answeredAt: true } },
+      },
     });
 
     if (!event) {
       throw new NotFoundException('Event not found');
+    }
+    // Answers are the athlete's: only they delete them
+    if (
+      event.questionnaire?.answeredAt &&
+      event.athleteId !== user.athlete?.athleteId
+    ) {
+      throw new ForbiddenException('QUESTIONNAIRE_ANSWERED');
     }
 
     return this.removeEvent(eventId);
@@ -1273,6 +1390,10 @@ export class EventService {
       where: { eventId: eventId },
     });
     await this.prisma.eventNote.deleteMany({
+      where: { eventId: eventId },
+    });
+    // Answers cascade
+    await this.prisma.eventQuestionnaire.deleteMany({
       where: { eventId: eventId },
     });
     await this.prisma.eventActivityWeather.deleteMany({
@@ -1358,7 +1479,11 @@ export class EventService {
         continue;
       }
 
-      const reduced = reductActivityStreamToResolution(streamValue, resolution);
+      const reduced = reductActivityStreamToResolution(
+        streamValue,
+        resolution,
+        key === 'timerPaused',
+      );
       (compressedStreams as Record<string, unknown>)[key] = reduced;
     }
 
@@ -1572,6 +1697,9 @@ export class EventService {
     delete subEntityData.eventCompetitionId;
     delete subEntityData.eventNoteId;
     delete subEntityData.eventActivityId;
+    // A copy of a questionnaire is still to answer
+    delete subEntityData.answeredAt;
+    delete subEntityData.score;
     delete subEntityData.eventId;
     delete subEntityData.relatedActivityId;
     delete subEntityData.relatedActivity;
@@ -1758,6 +1886,8 @@ export class EventService {
         | 'intensitySeconds'
         | 'efficiencyFactor'
         | 'decouplingPercent'
+        | 'flatSpeedPerWatt'
+        | 'powerEfficiencyFactor'
         | 'originalStream'
         | 'originalSummary'
       > | null;

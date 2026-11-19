@@ -59,7 +59,7 @@ const ATHLETE_TABS: AppTab[] = [
     label: m.nav_tab_progress,
     icon: TrendingUp,
     path: getPath(['dashboard', 'statistics']),
-    sections: ['statistics', 'records', 'metrics'],
+    sections: ['statistics', 'records', 'metrics', 'my-questionnaires'],
   },
   conversations,
   me,
@@ -71,7 +71,7 @@ const COACH_TABS: AppTab[] = [
     label: m.athletes,
     icon: Users,
     path: getPath(['dashboard', 'coach']),
-    sections: ['coach', 'summary', 'notes'],
+    sections: ['coach', 'summary', 'notes', 'questionnaires'],
   },
   calendar,
   conversations,
@@ -93,7 +93,7 @@ export function findTab(tabs: AppTab[], pathname: string) {
 
 /** An athlete a coach is looking at: /dashboard/<section>/<athleteId> */
 export function coachedAthleteId(pathname: string): string | undefined {
-  return /^\/dashboard\/(?:calendar|statistics|records|metrics|settings|summary|notes)\/(\d+)$/.exec(
+  return /^\/dashboard\/(?:calendar|statistics|records|metrics|settings|summary|notes|questionnaires)\/(\d+)$/.exec(
     pathname,
   )?.[1];
 }
@@ -125,6 +125,8 @@ export function screenTitle(pathname: string): string {
     summary: m.dashboard,
     notes: m.coach_notes,
     plans: m.training_plans,
+    questionnaires: m.questionnaires,
+    'my-questionnaires': m.nav_tab_progress,
   };
   return titles[sectionOf(pathname) ?? '']?.() ?? 'OpenAthlete';
 }

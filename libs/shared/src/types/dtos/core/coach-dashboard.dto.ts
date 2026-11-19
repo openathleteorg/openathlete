@@ -83,6 +83,15 @@ export const coachDashboardAthleteRowSchema = z.object({
   ),
   /** The same figures over the period before, when asked for */
   previous: periodTotalsSchema.nullable(),
+  /**
+   * The coach's questionnaires due over the period (opened by now), how
+   * many were answered, and the day of the latest one answered
+   */
+  questionnaires: z.object({
+    due: z.number(),
+    answered: z.number(),
+    lastAnsweredAt: z.string().nullable(),
+  }),
 });
 
 export const coachDashboardResponseSchema = z.object({

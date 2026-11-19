@@ -14,6 +14,9 @@ const listLabels: Record<EmailList, () => string> = {
   tips: m.unsubscribe_list_tips,
   recap: m.unsubscribe_list_recap,
   news: m.unsubscribe_list_news,
+  questionnaires: m.unsubscribe_list_questionnaires,
+  weekly: m.unsubscribe_list_weekly,
+  coach_weekly: m.unsubscribe_list_coach_weekly,
 };
 
 /**

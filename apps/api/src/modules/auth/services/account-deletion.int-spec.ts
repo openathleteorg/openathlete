@@ -51,6 +51,8 @@ const HANDLED_RESTRICT_KEYS = [
   'event_activity_weather.event_activity_id -> event_activity',
   'event_competition.event_id -> event',
   'event_note.event_id -> event',
+  'event_questionnaire.event_id -> event',
+  'event_questionnaire.questionnaire_id -> questionnaire',
   'event_template.event_id -> event',
   'event_template.user_id -> user',
   'event_template_folder.user_id -> user',
@@ -58,6 +60,7 @@ const HANDLED_RESTRICT_KEYS = [
   'provider_account.athlete_id -> athlete',
   'provider_workout_export.athlete_id -> athlete',
   'provider_workout_export.workout_id -> workout',
+  'questionnaire_answer.question_id -> questionnaire_question',
   'record.athlete_id -> athlete',
   'subscription.user_id -> user',
   'token.user_id -> user',
@@ -150,6 +153,12 @@ describe('AccountDeletionService (PostgreSQL)', () => {
       coach_note: 1,
       coach_notebook: 1,
       stored_file: 1,
+      // The coach's questionnaire, and the one the coach answered
+      questionnaire: 2,
+      questionnaire_question: 2,
+      event: 1,
+      event_questionnaire: 1,
+      questionnaire_answer: 1,
     });
 
     const coach = await prisma.user.findUnique({
@@ -175,6 +184,37 @@ describe('AccountDeletionService (PostgreSQL)', () => {
         count: 0,
       });
     }
+  });
+
+  it('leaves the answers of their athletes to them, without a coach', async () => {
+    await service.deleteAccount(DELETED_USER_ID);
+
+    const left = await prisma.questionnaire.findMany({
+      select: {
+        questionnaireId: true,
+        coachUserId: true,
+        events: {
+          select: {
+            event: { select: { eventId: true, athleteId: true } },
+            answers: { select: { valueText: true } },
+          },
+        },
+      },
+      orderBy: { questionnaireId: 'asc' },
+    });
+    expect(left).toEqual([
+      { questionnaireId: 9101, coachUserId: COACH_USER_ID, events: [] },
+      {
+        questionnaireId: 9102,
+        coachUserId: null,
+        events: [
+          {
+            event: { eventId: 3007, athleteId: COACH_ATHLETE_ID },
+            answers: [{ valueText: 'Good week' }],
+          },
+        ],
+      },
+    ]);
   });
 
   it("deletes the user's images from the bucket before the rows", async () => {

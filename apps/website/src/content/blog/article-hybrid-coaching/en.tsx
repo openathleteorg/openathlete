@@ -170,8 +170,8 @@ export function ContentEn() {
         after each activity, and Claude or ChatGPT can draft a whole block into
         an athlete's calendar through the{' '}
         <Link href="/features/mcp-server">MCP server</Link>, for you to review.
-        It is free for up to five athletes; Supporter (€5 a month or €50 a year)
-        removes the limit, and a self-hosted instance has none. Details on the{' '}
+        It is free for up to five athletes; Supporter, from €50 a year, removes
+        the limit, and a self-hosted instance has none. Details on the{' '}
         <Link href="/coaches">coaches page</Link> and{' '}
         <Link href="/pricing">pricing</Link>.
       </p>

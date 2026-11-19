@@ -2,8 +2,13 @@ type Cell = string | number | null | undefined;
 
 const cell = (value: Cell) => {
   if (value === null || value === undefined) return '';
-  const text = String(value);
-  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+  // A text a spreadsheet would run as a formula (typed by a user, say)
+  // stays a text
+  const text =
+    typeof value === 'string' && /^[=+\-@\t\r]/.test(value)
+      ? `'${value}`
+      : String(value);
+  return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 };
 
 export function toCsv(header: string[], rows: Cell[][]): string {

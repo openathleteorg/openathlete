@@ -61,8 +61,30 @@ enum EventType {
   COMPETITION
   NOTE
   ACTIVITY
+  QUESTIONNAIRE
 
   @@map("event_type")
+}
+
+enum QuestionType {
+  SHORT_TEXT
+  LONG_TEXT
+  /// Notes on a scale (1-5, 1-10, 1-20...), as a slider or buttons
+  SCALE
+  NUMBER
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  YES_NO
+
+  @@map("question_type")
+}
+
+enum QuestionnaireScore {
+  NONE
+  SUM
+  AVERAGE
+
+  @@map("questionnaire_score")
 }
 
 enum ConnectorProvider {
@@ -541,6 +563,12 @@ enum LifecycleEmailKind {
   SUPPORTER_ASK
   /// A Supporter cancelled: why?
   SUPPORTER_CANCELLED
+  /// Once, to founders of the Supporter tiers: nothing changes for them
+  FOUNDER_ANNOUNCEMENT
+  /// Monday: the past week, the form and the week to come (ref: the Monday)
+  WEEKLY_RECAP
+  /// Monday, to coaches: the athletes to look at (ref: the Monday)
+  COACH_WEEKLY
 
   @@map("lifecycle_email_kind")
 }
@@ -563,4 +591,13 @@ enum WorkoutRepeatKind {
   TABATA
 
   @@map("workout_repeat_kind")
+}
+
+/// Units a user sees distances, weights and speeds in. Values are always
+/// stored in metric
+enum UnitSystem {
+  METRIC
+  IMPERIAL
+
+  @@map("unit_system")
 }

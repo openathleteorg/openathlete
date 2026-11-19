@@ -12,7 +12,12 @@ import { hapticTap } from '@/utils/haptics';
 import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import { addDays, format, isSameDay, isToday, startOfWeek } from 'date-fns';
-import { BookOpen, SlidersHorizontal } from 'lucide-react';
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  SlidersHorizontal,
+} from 'lucide-react';
 import { type ReactNode, useMemo, useRef, useState } from 'react';
 
 import { EVENT_TYPE } from '@openathlete/shared';
@@ -23,6 +28,7 @@ import { CalendarViewToggle } from './calendar-view-toggle';
 import { ComplianceLegend } from './compliance-badge';
 import { useTemplateLibrarySidebar } from './contexts/template-library-sidebar-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
+import { SWIPE_DISTANCE } from './utils/swipe';
 
 interface P {
   selectedDay: Date;
@@ -30,8 +36,6 @@ interface P {
   /** Filters and display choices, shared with the desktop toolbar */
   options: ReactNode;
 }
-
-const SWIPE_DISTANCE = 48;
 
 /** The week around the selected day: a tap jumps to a day, a swipe a week. */
 function WeekStrip({
@@ -46,7 +50,11 @@ function WeekStrip({
   const counts = useMemo(() => {
     const byDay: Record<string, number> = {};
     for (const event of events) {
-      if (event.type === EVENT_TYPE.NOTE) continue;
+      if (
+        event.type === EVENT_TYPE.NOTE ||
+        event.type === EVENT_TYPE.QUESTIONNAIRE
+      )
+        continue;
       const key = event.startDate.toDateString();
       byDay[key] = (byDay[key] ?? 0) + 1;
     }
@@ -119,14 +127,71 @@ function WeekStrip({
   );
 }
 
+/**
+ * The week on screen, with arrows to step a week back or forward. A swipe on
+ * the days does the same (CalendarWeekView).
+ */
+function WeekNav() {
+  const { weekStart, nextWeek, prevWeek } = useCalendarContext();
+  const locale = getDateFnsLocale(getLocale());
+  const pattern = localizeDatePattern('d MMM', getLocale());
+  const step = (move: () => void) => () => {
+    hapticTap();
+    move();
+  };
+
+  return (
+    <div
+      data-calendar-week-nav
+      className="flex items-center justify-between px-2 pb-1"
+    >
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-11 rounded-full"
+        aria-label={m.calendar_previous_week()}
+        onClick={step(prevWeek)}
+      >
+        <ChevronLeft className="size-5" />
+      </Button>
+      <span
+        className="text-sm font-medium tabular-nums"
+        aria-live="polite"
+        data-calendar-week-range
+      >
+        {format(weekStart, pattern, { locale })}
+        {' – '}
+        {format(addDays(weekStart, 6), pattern, { locale })}
+      </span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-11 rounded-full"
+        aria-label={m.calendar_next_week()}
+        onClick={step(nextWeek)}
+      >
+        <ChevronRight className="size-5" />
+      </Button>
+    </div>
+  );
+}
+
 /** The calendar's title, week strip and everything that adjusts the view. */
 export function CalendarMobileHeader({ selectedDay, onSelectDay, options }: P) {
-  const { view, goToCurrentMonth, goToDate, displayedMonth, weekStart } =
-    useCalendarContext();
+  const {
+    view,
+    goToCurrentMonth,
+    goToCurrentWeek,
+    goToDate,
+    displayedMonth,
+    weekStart,
+  } = useCalendarContext();
   const [optionsOpen, setOptionsOpen] = useState(false);
   const { setOpen: setTemplatesOpen } = useTemplateLibrarySidebar();
   const locale = getDateFnsLocale(getLocale());
   const onToday = isToday(selectedDay);
+  const now = new Date();
+  const onCurrentWeek = now >= weekStart && now < addDays(weekStart, 7);
   const titleDate = view === 'month' ? selectedDay : displayedMonth;
   const title = format(titleDate, 'LLLL yyyy', { locale });
 
@@ -139,13 +204,16 @@ export function CalendarMobileHeader({ selectedDay, onSelectDay, options }: P) {
       ),
       trailing: (
         <>
-          {!onToday && view === 'month' && (
+          {(view === 'month'
+            ? !onToday
+            : view === 'week' && !onCurrentWeek) && (
             <Button
               variant="ghost"
               className="h-11 rounded-full px-3 text-sm"
               data-calendar-today
               onClick={() => {
-                goToCurrentMonth();
+                if (view === 'week') goToCurrentWeek();
+                else goToCurrentMonth();
                 onSelectDay(new Date());
               }}
             >
@@ -180,8 +248,10 @@ export function CalendarMobileHeader({ selectedDay, onSelectDay, options }: P) {
       titleDate,
       weekStart,
       onToday,
+      onCurrentWeek,
       view,
       goToCurrentMonth,
+      goToCurrentWeek,
       goToDate,
       onSelectDay,
     ],
@@ -196,6 +266,7 @@ export function CalendarMobileHeader({ selectedDay, onSelectDay, options }: P) {
       {view === 'month' && (
         <WeekStrip selectedDay={selectedDay} onSelectDay={onSelectDay} />
       )}
+      {view === 'week' && <WeekNav />}
       <Dialog open={optionsOpen} onOpenChange={setOptionsOpen}>
         <DialogContent aria-describedby={undefined}>
           <DialogHeader>

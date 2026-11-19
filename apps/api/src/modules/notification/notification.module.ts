@@ -9,6 +9,7 @@ import {
   TrainingReminderScheduler,
 } from './services';
 import { MetricThresholdScheduler } from './services/metric-threshold.scheduler';
+import { WeeklyEmailService } from './weekly/weekly-email.service';
 
 @Module({
   providers: [
@@ -18,12 +19,15 @@ import { MetricThresholdScheduler } from './services/metric-threshold.scheduler'
     TrainingReminderScheduler,
     LifecycleEmailScheduler,
     MetricThresholdScheduler,
+    WeeklyEmailService,
   ],
   controllers: [EmailPreferencesController],
   exports: [
     EmailTransportService,
     NotificationService,
     PushNotificationService,
+    // Sent from the queue module, which spreads the sending
+    WeeklyEmailService,
   ],
 })
 export class NotificationModule {}

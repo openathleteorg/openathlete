@@ -233,6 +233,8 @@ export function OnboardingView() {
       const eligible =
         getProviderSyncCapabilities(account.provider).supportsFullImport &&
         account.importActivitiesEnabled &&
+        // Garmin would refuse it; the settings explain how to allow it
+        account.historyShared &&
         !account.fullImportRequestedAt &&
         !account.fullImportCompletedAt;
       if (!eligible || requested.includes(account.provider)) continue;

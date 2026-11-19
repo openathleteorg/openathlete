@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,12 +14,13 @@ import { useState } from 'react';
 
 import { InstallChannel } from './install-channel';
 
+const APP_STORE_URL = 'https://apps.apple.com/app/id6756783342';
 const GOOGLE_PLAY_URL =
   'https://play.google.com/store/apps/details?id=org.openathlete';
 
 /**
- * "Install app" action for the account menus: the Android app on Google Play,
- * the iPhone app to come, and the web app, through the browser's own dialog
+ * "Install app" action for the account menus: the iPhone app on the App Store,
+ * the Android app on Google Play, and the web app, through the browser's own dialog
  * where available, otherwise (iPhone/iPad) the Add to Home Screen steps.
  * Render `dialog` next to the trigger. Not available once installed.
  */
@@ -43,7 +43,16 @@ export function useInstallApp() {
               name={m.pwa_channel_ios()}
               description="App Store"
             >
-              <Badge variant="secondary">{m.pwa_coming_soon()}</Badge>
+              <Button size="sm" asChild>
+                <a
+                  href={APP_STORE_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setOpen(false)}
+                >
+                  {m.pwa_install_action()}
+                </a>
+              </Button>
             </InstallChannel>
             <InstallChannel
               icon={Smartphone}

@@ -107,7 +107,11 @@ describe('AiService', () => {
     expect(generate).toHaveBeenCalledWith(
       'Count',
       expect.objectContaining({
-        structuredOutput: { schema, jsonPromptInjection: 'auto' },
+        structuredOutput: {
+          schema,
+          jsonPromptInjection: 'auto',
+          errorStrategy: 'warn',
+        },
         providerOptions: { openai: { strictJsonSchema: false } },
         abortSignal: expect.any(AbortSignal),
       }),
@@ -123,17 +127,65 @@ describe('AiService', () => {
     expect(generate).toHaveBeenCalledWith(
       'Count',
       expect.objectContaining({
-        structuredOutput: { schema, jsonPromptInjection: true },
+        structuredOutput: expect.objectContaining({
+          schema,
+          jsonPromptInjection: true,
+        }),
       }),
     );
   });
 
   it('fails clearly when the model returns no valid object', async () => {
     const { service } = setup();
-    generate.mockResolvedValue({ object: undefined });
+    generate.mockResolvedValue({ object: undefined, text: '' });
 
     await expect(
       service.generateObject(agent, ownKeyModel, 'x', z.object({})),
+    ).rejects.toMatchObject({ code: AiErrorCode.PROVIDER_ERROR });
+  });
+
+  it('keeps an answer that only runs over the lengths, cut to fit', async () => {
+    const { service, usage } = setup();
+    const schema = z.object({
+      headline: z.string().max(20),
+      points: z.array(z.string()).max(2),
+    });
+    generate.mockResolvedValue({
+      object: undefined,
+      text: '```json\n{"headline": "A very long headline over the limit", "points": ["a", "b", "c"]}\n```',
+      totalUsage: { inputTokens: 100, outputTokens: 40 },
+    });
+
+    const result = await service.generateObject(
+      agent,
+      ownKeyModel,
+      'x',
+      schema,
+    );
+
+    expect(result.headline.length).toBeLessThanOrEqual(20);
+    expect(result.points).toEqual(['a', 'b']);
+    // The tokens were spent: they count even though Mastra refused the answer
+    expect(usage.record).toHaveBeenCalledWith(ownKeyModel, {
+      inputTokens: 100,
+      outputTokens: 40,
+    });
+  });
+
+  it('still refuses an answer of the wrong shape', async () => {
+    const { service } = setup();
+    generate.mockResolvedValue({
+      object: undefined,
+      text: '{"headline": 3}',
+    });
+
+    await expect(
+      service.generateObject(
+        agent,
+        ownKeyModel,
+        'x',
+        z.object({ headline: z.string() }),
+      ),
     ).rejects.toMatchObject({ code: AiErrorCode.PROVIDER_ERROR });
   });
 

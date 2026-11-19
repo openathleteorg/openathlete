@@ -115,12 +115,13 @@ export function ContentIt() {
         Tutte le funzioni sono gratuite sui nostri server: calendario, editor di
         allenamenti, invio degli allenamenti a Garmin, Suunto e COROS, carico di
         allenamento e coaching fino a cinque atleti. Il piano Supporter
-        facoltativo ({q('oaMonth')} al mese o {q('oaYear')} all'anno) aggiunge
-        l'IA sulle nostre chiavi e atleti illimitati, e nient'altro. Il codice è
-        AGPL-3.0, quindi puoi anche installarlo sul tuo server, gratis e senza
-        limiti. Anche i club hanno uno spazio gratuito, senza limiti di atleti:
-        gruppi con i loro allenatori, una libreria di allenamenti condivisa,
-        sedute settimanali del club e piani copiati a tutto un gruppo.
+        facoltativo (a partire da {q('oaMonth')} al mese o {q('oaYear')}{' '}
+        all'anno) aggiunge l'IA sulle nostre chiavi e atleti illimitati, e
+        nient'altro. Il codice è AGPL-3.0, quindi puoi anche installarlo sul tuo
+        server, gratis e senza limiti. Anche i club hanno uno spazio gratuito,
+        senza limiti di atleti: gruppi con i loro allenatori, una libreria di
+        allenamenti condivisa, sedute settimanali del club e piani copiati a
+        tutto un gruppo.
       </p>
       <p>
         Il carico di allenamento è il TRIMP di Banister dalla frequenza
@@ -133,12 +134,11 @@ export function ContentIt() {
         tramite il server MCP.
       </p>
       <p>
-        Cosa non fa ancora: le app iOS e Android sono in test (nel frattempo
-        l'app web si installa sul telefono), non ci sono negozio di piani, app
-        per l'allenamento indoor né fatturazione per i club, e l'analisi della
-        potenza è meno approfondita che su intervals.icu. Gli allenamenti non
-        possono andare sugli orologi Polar, perché la loro API è in sola
-        lettura. Le unità sono solo metriche.
+        Cosa non fa ancora: non ci sono negozio di piani, app per l'allenamento
+        indoor né fatturazione per i club, e l'analisi della potenza è meno
+        approfondita che su intervals.icu. Gli allenamenti non possono andare
+        sugli orologi Polar, perché la loro API è in sola lettura. Le unità sono
+        solo metriche.
       </p>
 
       <h2>I numeri a confronto</h2>
@@ -190,7 +190,7 @@ export function ContentIt() {
         non vuoi reimparare i numeri. Scegli intervals.icu per l'analisi
         gratuita più profonda, soprattutto con un misuratore di potenza. Scegli
         Nolio se alleni in un club francese e vuoi prezzi per associazioni e app
-        native subito. Scegli Final Surge per una squadra scolastica o un club
+        native mature. Scegli Final Surge per una squadra scolastica o un club
         americano con tariffa fissa. Scegli OpenAthlete se vuoi gli allenamenti
         sul tuo Garmin, Suunto o COROS senza pagare, un prezzo fisso da
         allenatore, l'IA con la tua chiave, uno spazio club gratuito o un codice

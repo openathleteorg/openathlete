@@ -9,6 +9,7 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import {
   type TrainingEventSchema,
   buildMetricsContext,
+  buildQuestionnaireContext,
   buildTrainingProfileContext,
   buildWorkoutTargetsInstructions,
   buildZonesContext,
@@ -19,6 +20,7 @@ import {
   formatZonesByType,
   getLatestMetrics,
   normalizeGoalDuration,
+  questionnairePromptSection,
   repsAsPoolLengths,
   validateNoNestedRepeatBlocks,
   validateWorkoutZoneTargets,
@@ -44,6 +46,11 @@ export class EventGenerationService {
     const zonesByType = formatZonesByType(zones);
     const zonesContext = buildZonesContext(zonesByType);
     const metricsContext = buildMetricsContext(latestMetrics);
+    const questionnaireContext = await buildQuestionnaireContext(
+      this.prismaService,
+      userId,
+      athleteId,
+    );
     const athlete = await this.prismaService.athlete.findUnique({
       where: { athleteId },
       select: {
@@ -67,7 +74,7 @@ Generate a training event based on this request: ${prompt}
 ATHLETE CONTEXT:
 ${zonesContext ? `TRAINING ZONES:\n${zonesContext}` : 'No training zones configured'}
 ${metricsContext ? `\nLATEST METRICS:\n${metricsContext}` : '\nNo metrics available'}
-${profileContext ? `\nTRAINING PROFILE (told by the athlete):\n${profileContext}` : ''}
+${profileContext ? `\nTRAINING PROFILE (told by the athlete):\n${profileContext}` : ''}${questionnairePromptSection(questionnaireContext)}
 
 CRITICAL REQUIREMENTS:
 - Return a complete training event with workout structure
@@ -83,6 +90,7 @@ ${buildWorkoutTargetsInstructions()}`;
     const model = await this.aiModelResolver.resolveForUser(
       AiTask.EVENT_GENERATION,
       userId,
+      { athleteId },
     );
 
     return withRetry(async () => {

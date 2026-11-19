@@ -12,4 +12,10 @@ describe('toCsv', () => {
       'name\n"Trail, ""long"""',
     );
   });
+
+  it('keeps a text that a spreadsheet would run as a formula a text', () => {
+    expect(toCsv(['note'], [['=HYPERLINK("x")'], ['@SUM(A1)'], [-3]])).toBe(
+      'note\n"\'=HYPERLINK(""x"")"\n\'@SUM(A1)\n-3',
+    );
+  });
 });

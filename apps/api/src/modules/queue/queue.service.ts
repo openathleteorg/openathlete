@@ -94,6 +94,11 @@ export interface TrainingPlanApplyJobData {
   failures?: TrainingPlanApplyFailure[];
 }
 
+/** TRIMP of all an athlete's activities, after HR max or resting HR changed */
+export interface TrainingLoadRecalcJobData {
+  athleteId: number;
+}
+
 export interface ActivityProcessingJobData {
   eventActivityId: number;
   eventId: number;
@@ -125,6 +130,8 @@ export class QueueService {
     private readonly stravaDescriptionQueue: Queue<StravaDescriptionJobData>,
     @InjectQueue('training-plan-apply')
     private readonly trainingPlanApplyQueue: Queue<TrainingPlanApplyJobData>,
+    @InjectQueue('training-load-recalc')
+    private readonly trainingLoadRecalcQueue: Queue<TrainingLoadRecalcJobData>,
   ) {}
 
   async addTrainingPlanApplyJob(
@@ -159,6 +166,49 @@ export class QueueService {
       failures: job.data.failures ?? [],
       error: job.failedReason ?? null,
     };
+  }
+
+  /**
+   * Waits a minute so that HR max and resting HR typed one after the other
+   * make one run, not two: a job still waiting absorbs the next request.
+   *
+   * Never throws: callers have already saved the metrics, and a provider
+   * sync failing here would be retried with a profile already complete, so
+   * the recalculation would never be queued. The loads stay as they are.
+   */
+  async addTrainingLoadRecalcJob(athleteId: number): Promise<void> {
+    try {
+      await this.queueTrainingLoadRecalc(athleteId);
+    } catch (error) {
+      this.logger.error(
+        `Could not queue the training load recalculation for athlete ${athleteId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  private async queueTrainingLoadRecalc(athleteId: number): Promise<void> {
+    // Two ids, so that requests during a run collapse into one follow-up
+    const ids = [
+      `training-load-recalc-${athleteId}`,
+      `training-load-recalc-${athleteId}-next`,
+    ];
+    const jobs = await Promise.all(
+      ids.map((id) => this.trainingLoadRecalcQueue.getJob(id)),
+    );
+    const states = await Promise.all(jobs.map((job) => job?.getState()));
+    if (states.some((state) => state === 'delayed' || state === 'waiting')) {
+      return;
+    }
+    // A run under way reads the values it started with: the other id queues
+    // the next one. A finished run only holds its id, which is taken over
+    const free = states.findIndex((state) => state !== 'active');
+    if (free === -1) return;
+    await jobs[free]?.remove();
+    await this.trainingLoadRecalcQueue.add(
+      'recalc',
+      { athleteId },
+      { jobId: ids[free], delay: 60_000 },
+    );
   }
 
   /**

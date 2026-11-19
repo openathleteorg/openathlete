@@ -36,7 +36,7 @@ import {
 import { Language } from 'src/common/constants/languages.constant';
 import { maskEmail } from 'src/common/utils/mask-email';
 import { zonedInstant } from 'src/common/utils/time-zone';
-import { SendEmailEvent } from 'src/events';
+import { HeartRateProfileChangedEvent, SendEmailEvent } from 'src/events';
 import {
   AnalyticsService,
   stableUuid,
@@ -162,8 +162,12 @@ export class UserService {
         supportReminderDismissedAt: true,
         supportReminderDismissCount: true,
         supporterNudgeSeenAt: true,
+        yearReviewSeenAt: true,
         emailTips: true,
         emailRecap: true,
+        emailQuestionnaires: true,
+        emailWeekly: true,
+        emailCoachWeekly: true,
         emailNewsConsentAt: true,
         acquisitionSource: true,
         practicedSports: true,
@@ -171,6 +175,7 @@ export class UserService {
         weeklyTrainingHours: true,
         coachTeamSize: true,
         createdAt: true,
+        unitSystem: true,
       },
     });
   };
@@ -276,6 +281,7 @@ export class UserService {
       clubJoinToken,
       language,
       emailNews,
+      unitSystem,
     }: CreateAccountDto,
     { emailFromProvider = false }: { emailFromProvider?: boolean } = {},
   ) => {
@@ -355,6 +361,7 @@ export class UserService {
           language,
           // Ticked by the person on the form, never by default
           emailNewsConsentAt: emailNews ? new Date() : null,
+          unitSystem,
           roles: [UserRole.ATHLETE, UserRole.COACH],
           athlete: {
             create: {
@@ -446,7 +453,14 @@ export class UserService {
   };
 
   public updateAccount = async (user: AuthUser, data: UpdateAccountDto) => {
-    return await this.prisma.user.update({
+    const before =
+      data.emailWeekly === false
+        ? await this.prisma.user.findUnique({
+            where: { userId: user.userId },
+            select: { emailWeekly: true },
+          })
+        : null;
+    const updated = await this.prisma.user.update({
       where: { userId: user.userId },
       data: {
         firstName: data.firstName,
@@ -464,8 +478,12 @@ export class UserService {
           ? { increment: 1 }
           : undefined,
         supporterNudgeSeenAt: data.supporterNudgeSeen ? new Date() : undefined,
+        yearReviewSeenAt: data.yearReviewSeen ? new Date() : undefined,
         emailTips: data.emailTips,
         emailRecap: data.emailRecap,
+        emailQuestionnaires: data.emailQuestionnaires,
+        emailWeekly: data.emailWeekly,
+        emailCoachWeekly: data.emailCoachWeekly,
         practicedSports: data.practicedSports as SportType[] | undefined,
         trainingGoal: data.trainingGoal,
         weeklyTrainingHours: data.weeklyTrainingHours,
@@ -476,6 +494,7 @@ export class UserService {
             : data.emailNews
               ? new Date()
               : null,
+        unitSystem: data.unitSystem,
       },
       select: {
         firstName: true,
@@ -489,15 +508,26 @@ export class UserService {
         supportReminderDismissedAt: true,
         supportReminderDismissCount: true,
         supporterNudgeSeenAt: true,
+        yearReviewSeenAt: true,
         emailTips: true,
         emailRecap: true,
+        emailQuestionnaires: true,
+        emailWeekly: true,
+        emailCoachWeekly: true,
         emailNewsConsentAt: true,
         practicedSports: true,
         trainingGoal: true,
         weeklyTrainingHours: true,
         coachTeamSize: true,
+        unitSystem: true,
       },
     });
+    if (before?.emailWeekly) {
+      await this.analytics?.capture(user.userId, 'weekly_email_unsubscribed', {
+        from: 'settings',
+      });
+    }
+    return updated;
   };
 
   async comparePasswords(
@@ -676,6 +706,13 @@ export class UserService {
           source: null,
         },
       });
+    }
+    // A watch connected before onboarding may already have brought activities
+    if (data.hrMax || data.hrRest) {
+      this.eventEmitter.emit(
+        HeartRateProfileChangedEvent.SLUG,
+        new HeartRateProfileChangedEvent({ athleteId: athlete.athleteId }),
+      );
     }
 
     if (data.targetRace && data.roles.includes('ATHLETE')) {

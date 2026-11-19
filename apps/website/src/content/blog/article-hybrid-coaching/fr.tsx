@@ -195,8 +195,8 @@ export function ContentFr() {
         activité, et Claude ou ChatGPT peut rédiger un bloc entier dans le
         calendrier d'un athlète via le{' '}
         <Link href="/fr/features/mcp-server">serveur MCP</Link>, que vous
-        relisez ensuite. C'est gratuit jusqu'à cinq athlètes&nbsp;; Supporter
-        (5&nbsp;€ par mois ou 50&nbsp;€ par an) lève la limite, et une instance
+        relisez ensuite. C'est gratuit jusqu'à cinq athlètes&nbsp;; Supporter, à
+        partir de 50&nbsp;€ par an, lève la limite, et une instance
         auto-hébergée n'en a aucune. Plus de détails sur la{' '}
         <Link href="/fr/coaches">page coachs</Link> et les{' '}
         <Link href="/fr/pricing">tarifs</Link>.

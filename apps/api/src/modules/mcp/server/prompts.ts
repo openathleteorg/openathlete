@@ -7,7 +7,7 @@ export const SERVER_INSTRUCTIONS = `OpenAthlete holds an endurance athlete's tra
 How to work:
 - Call get_athlete_context first. It gives today's date in the athlete's time zone, zones (with the ids workout targets use), metrics, form, coming races and periods.
 - Dates and times are local to the athlete: YYYY-MM-DD and HH:mm, never UTC.
-- Read before you write: get_calendar for the weeks concerned, get_training_load for load and form, get_training_volume and get_activities for history.
+- Read before you write: get_calendar for the weeks concerned, get_training_load for load and form, get_training_volume and get_activities for history, get_questionnaire_answers for what the athlete told their coach (fatigue, sleep, stress, how the week went).
 - Plan whole blocks at once with plan_sessions (up to 60 sessions). Give key sessions a structured workout (workoutSteps) with targets from the athlete's zones, paces or percentages of VMA, FTP or HR max.
 - Plans saved in the user's library (list_plans) go on the calendar whole with apply_plan, by start date or race day; shift_plan and remove_plan then act on the whole plan.
 - Every change shows in the athlete's calendar at once and reaches their watch: say what you are about to change before large edits, and prefer move_sessions and update_session over deleting and recreating.
@@ -102,7 +102,7 @@ ${apply} Answer in my language.`),
 Situation: ${situation}${from ? `\nSince: ${from}` : ''}${until ? `\nUntil: ${until}` : ''}
 
 Method:
-1. get_athlete_context (injuries, races, periods), get_calendar for the next 3 weeks, get_training_load, and the latest resting HR and HRV with get_metrics.
+1. get_athlete_context (injuries, races, periods), get_calendar for the next 3 weeks, get_training_load, the latest resting HR and HRV with get_metrics, and my recent questionnaire answers with get_questionnaire_answers.
 2. Illness: symptoms above the neck allow easy sessions; fever, chest symptoms or aches mean rest until 24-48 h without them. Injury: no sessions that load the painful area, cross-train if pain allows, and suggest seeing a professional. Travel: short sessions or rest. Fatigue or a missed week: never squeeze the missed sessions into the next days.
 3. Record the period with create_period (illness, injury or travel), then for the sessions it returns, and those just after it, decide: rest, shorter and easier, or moved.
 4. Come back progressively: about two easy days per day off, key sessions only once easy ones feel normal. Re-check the next A race: is the goal still realistic?
@@ -135,7 +135,7 @@ ${
 
 1. get_athlete_context, then get_calendar for that week and the next one.
 2. For each planned session: done, partly done or missed? For key sessions and races, read get_activity (laps, heart rate, and my feedback answers).
-3. get_training_load: weekly load against the recommended range, fatigue and form trend; get_metrics for resting HR, HRV and sleep if recorded.
+3. get_training_load: weekly load against the recommended range, fatigue and form trend; get_metrics for resting HR, HRV and sleep if recorded; get_questionnaire_answers for how I said I felt.
 4. Tell me what went well, what to watch (fatigue, pain mentioned in feedback, too much intensity), and what to change in the coming week.
 
 ${canWrite ? 'Suggest the changes and ask before applying them.' : ''} Answer in my language.`),
