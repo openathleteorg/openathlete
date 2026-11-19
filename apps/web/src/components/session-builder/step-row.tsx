@@ -26,6 +26,7 @@ import {
   Pencil,
   Repeat,
   Trash2,
+  Type,
   Zap,
 } from 'lucide-react';
 import {
@@ -398,6 +399,9 @@ interface StepRowProps {
   handleProps?: HTMLAttributes<HTMLButtonElement>;
   editing: boolean;
   onEditingChange: (editing: boolean) => void;
+  /** The step panel is open under the row */
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
 }
 
 export function StepRow({
@@ -409,6 +413,8 @@ export function StepRow({
   handleProps,
   editing,
   onEditingChange,
+  expanded,
+  onExpandedChange,
 }: StepRowProps) {
   const labels = (step.targets ?? [])
     .map((target) =>
@@ -427,11 +433,12 @@ export function StepRow({
         selected
           ? 'border-ring ring-2 ring-ring/30'
           : 'hover:border-foreground/20',
+        expanded && 'rounded-b-none',
       )}
       data-step-row={step.uid}
       data-selected={selected || undefined}
       onClick={() => dispatch({ type: 'select', uid: step.uid })}
-      onDoubleClick={() => onEditingChange(true)}
+      onDoubleClick={() => !editing && onExpandedChange(!expanded)}
     >
       <button
         type="button"
@@ -513,14 +520,17 @@ export function StepRow({
         >
           <Button
             type="button"
-            variant="ghost"
+            variant={expanded ? 'secondary' : 'ghost'}
             size="icon"
-            className="hidden size-8 sm:inline-flex"
-            aria-label={m.builder_edit_line()}
+            className="size-8"
+            aria-label={m.builder_edit_step()}
+            aria-expanded={expanded}
             onClick={(event) => {
               event.stopPropagation();
-              onEditingChange(true);
+              dispatch({ type: 'select', uid: step.uid });
+              onExpandedChange(!expanded);
             }}
+            data-step-edit
           >
             <Pencil />
           </Button>
@@ -551,8 +561,11 @@ export function StepRow({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => onExpandedChange(true)}>
+                <Pencil /> {m.builder_edit_step()}
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => onEditingChange(true)}>
-                <Pencil /> {m.builder_edit_line()}
+                <Type /> {m.builder_edit_line()}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => dispatch({ type: 'duplicate', uid: step.uid })}

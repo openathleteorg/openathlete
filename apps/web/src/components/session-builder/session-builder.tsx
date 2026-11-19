@@ -61,11 +61,13 @@ import {
 
 import type { CreateWorkoutStepDto, SPORT_TYPE } from '@openathlete/shared';
 import {
+  WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
   calculateWorkoutDistance,
   calculateWorkoutDuration,
 } from '@openathlete/shared';
 
+import { AddBar } from './add-bar';
 import {
   type BuilderAction,
   type BuilderStep,
@@ -80,6 +82,8 @@ import { parseLines } from './line-parse';
 import { ProfileChart } from './profile-chart';
 import { QuickAdd } from './quick-add';
 import { describeSteps } from './quick-add-text';
+import { type AddableType, defaultStep } from './step-defaults';
+import { StepPanel } from './step-panel';
 import { StepRow } from './step-row';
 import { formatKm, formatTotal } from './step-summary';
 import { quickTemplates } from './templates';
@@ -305,6 +309,18 @@ function RepeatHeader({
   );
 }
 
+type Mode = 'blocks' | 'text';
+const MODE_KEY = 'openathlete.builder.mode';
+
+/** Each coach keeps the way they build: clicking or typing */
+function savedMode(): Mode {
+  try {
+    return localStorage.getItem(MODE_KEY) === 'text' ? 'text' : 'blocks';
+  } catch {
+    return 'blocks';
+  }
+}
+
 const SHORTCUTS: [string, () => string][] = [
   ['/', () => m.builder_key_quick()],
   ['↑ ↓', () => m.builder_key_select()],
@@ -331,8 +347,19 @@ export function SessionBuilder({
 }: SessionBuilderProps) {
   const env = useBuilderEnv(sport, athleteId);
   const [state, dispatch] = useReducer(builderReducer, steps, initialState);
-  const [mode, setMode] = useState<'blocks' | 'text'>('blocks');
+  const [mode, setModeState] = useState<Mode>(savedMode);
+  const setMode = (next: Mode) => {
+    setModeState(next);
+    try {
+      localStorage.setItem(MODE_KEY, next);
+    } catch {
+      // Private browsing: the choice lasts for this session only
+    }
+  };
   const [editing, setEditing] = useState<string | null>(null);
+  // The step whose panel is open; a step added from the bar opens its own
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const expandAdded = useRef(false);
   const quickAdd = useRef<HTMLInputElement>(null);
   const root = useRef<HTMLDivElement>(null);
 
@@ -363,6 +390,28 @@ export function SessionBuilder({
     },
     [state.selected],
   );
+
+  const addFromBar = (type: AddableType) => {
+    expandAdded.current = true;
+    // Efforts and recoveries join the repeat a selected step is in; a
+    // warm-up or a cool-down goes after the repeat
+    const where = state.selected ? locate(state.steps, state.selected) : null;
+    const joinsRepeat =
+      type === WORKOUT_STEP_TYPE.INTERVAL_ACTIVE ||
+      type === WORKOUT_STEP_TYPE.INTERVAL_REST;
+    dispatch({
+      type: 'insert',
+      steps: [defaultStep(type, env)],
+      after: where?.parent && !joinsRepeat ? where.parent : state.selected,
+      explicit: true,
+    });
+  };
+  useEffect(() => {
+    if (!expandAdded.current) return;
+    expandAdded.current = false;
+    const added = state.selected ? locate(state.steps, state.selected) : null;
+    setExpanded(added && !isRepeat(added.step) ? added.step.uid : null);
+  }, [state.selected, state.steps]);
 
   const totals = useMemo(() => {
     const plain = withoutUids(state.steps);
@@ -692,11 +741,12 @@ export function SessionBuilder({
           )}
 
           {state.steps.length === 0 ? (
-            <div className="rounded-xl border border-dashed px-4 py-8 text-center">
+            <div className="rounded-xl border border-dashed px-4 py-6 text-center">
               <p className="text-sm font-medium">{m.builder_empty_title()}</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {m.builder_empty_hint()}
               </p>
+              <AddBar onAdd={addFromBar} className="mt-4 justify-center" />
             </div>
           ) : (
             <DndContext
@@ -778,9 +828,30 @@ export function SessionBuilder({
                               editing={editing === row.id}
                               onEditingChange={(on) => {
                                 setEditing(on ? row.id : null);
-                                if (!on) root.current?.focus();
+                                if (on) setExpanded(null);
+                                else root.current?.focus();
+                              }}
+                              expanded={expanded === row.id}
+                              onExpandedChange={(on) => {
+                                setExpanded(on ? row.id : null);
+                                if (on) setEditing(null);
                               }}
                             />
+                            {expanded === row.id && (
+                              <StepPanel
+                                step={row.step}
+                                env={env}
+                                dispatch={dispatch}
+                                onClose={() => {
+                                  setExpanded(null);
+                                  root.current?.focus();
+                                }}
+                                onEditAsText={() => {
+                                  setExpanded(null);
+                                  setEditing(row.id);
+                                }}
+                              />
+                            )}
                           </div>
                         )}
                       </Sortable>
@@ -790,6 +861,7 @@ export function SessionBuilder({
               </SortableContext>
             </DndContext>
           )}
+          {state.steps.length > 0 && <AddBar onAdd={addFromBar} />}
         </>
       )}
     </div>

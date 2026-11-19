@@ -96,6 +96,104 @@ test('a structured run is typed in a few seconds and saved as written', async ({
   expect(problems).toEqual([]);
 });
 
+test('a session is built with clicks alone, the way the old builder did', async ({
+  page,
+  request,
+}) => {
+  const athlete = await createAthlete(request);
+  await signIn(page, athlete);
+  const problems = trackPageProblems(page);
+  const form = await planTraining(page);
+
+  // One tap adds a step and opens its panel: fields and presets, no syntax
+  await form.locator('[data-add-step="WARMUP"]').click();
+  const panel = form.locator('[data-step-panel]');
+  await expect(panel).toHaveCount(1);
+  await panel.locator('[data-panel-minutes]').fill('15');
+  await panel.locator('[data-panel-done]').click();
+  await expect(panel).toHaveCount(0);
+
+  // A repeat comes with an effort and its recovery
+  await form.locator('[data-add-step="REPEAT"]').click();
+  await expect(form.locator('[data-repeat-count]')).toHaveValue('4');
+  await form.getByRole('button', { name: 'One more' }).click();
+
+  // The effort becomes 1 km, with a cue for the athlete
+  const effort = form.locator('[data-step-row]').nth(1);
+  await effort.locator('[data-step-edit]').click();
+  await panel.locator('[data-panel-length-kind="distance"]').click();
+  await panel.getByRole('button', { name: '1 km', exact: true }).click();
+  await panel.locator('[data-panel-notes]').fill('Relaxed shoulders');
+  await panel.locator('[data-panel-done]').click();
+  await expect(effort.locator('[data-step-length]')).toHaveText('1 km');
+
+  await form.locator('[data-add-step="COOLDOWN"]').click();
+  await form.locator('[data-panel-done]').click();
+  await expect(form.locator('[data-step-row]')).toHaveCount(4);
+  await expect(form.locator('[data-session-name]')).toHaveValue('5 × 1 km');
+
+  const saved = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      new URL(response.url()).pathname.endsWith('/event'),
+  );
+  await form.getByRole('button', { name: 'Create', exact: true }).click();
+  expect((await saved).ok()).toBe(true);
+
+  const events = (await (
+    await request.get(`${API_URL}/event`, {
+      headers: apiHeaders(undefined, athlete.accessToken),
+    })
+  ).json()) as { eventId: number }[];
+  const stored = (await (
+    await request.get(`${API_URL}/event/${events[0].eventId}`, {
+      headers: apiHeaders(undefined, athlete.accessToken),
+    })
+  ).json()) as { workout: { steps: (StoredStep & { orderIndex: number })[] } };
+  const steps = [...stored.workout.steps].sort(
+    (a, b) => a.orderIndex - b.orderIndex,
+  );
+  expect(
+    steps.map((step) => [step.stepType, step.durationType, step.durationValue]),
+  ).toEqual([
+    ['WARMUP', 'TIME', 900],
+    ['REPEAT', expect.anything(), null],
+    ['COOLDOWN', 'TIME', 600],
+  ]);
+  expect(steps[1].repeatBlock?.repetitions).toBe(5);
+  const [stored1km] = [...(steps[1].repeatBlock?.childSteps ?? [])].sort(
+    (a, b) =>
+      (a as never as { orderIndex: number }).orderIndex -
+      (b as never as { orderIndex: number }).orderIndex,
+  );
+  expect(stored1km).toMatchObject({
+    stepType: 'INTERVAL_ACTIVE',
+    durationType: 'DISTANCE',
+    durationValue: 1000,
+    notes: 'Relaxed shoulders',
+  });
+  expect(problems).toEqual([]);
+});
+
+test('the builder opens in the mode the coach last chose', async ({
+  page,
+  request,
+}) => {
+  const athlete = await createAthlete(request);
+  await signIn(page, athlete);
+  let form = await planTraining(page);
+  await expect(form.locator('[data-builder-mode="blocks"]')).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await form.locator('[data-builder-mode="text"]').click();
+  await page.keyboard.press('Escape');
+  await expect(form).toHaveCount(0);
+
+  form = await planTraining(page);
+  await expect(form.getByLabel('Session as text')).toBeVisible();
+});
+
 test('a session written as text comes back as blocks', async ({
   page,
   request,
