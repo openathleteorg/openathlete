@@ -99,8 +99,7 @@ function smoothRuns(values: (number | null)[]): (number | null)[] {
 }
 
 /**
- * Speed between consecutive samples, in m/s: from the distance stream when
- * it moves, as the summary does, else from the GPS points.
+ * Recorded speed in m/s, with distance or GPS as a fallback.
  */
 function speedSeries(
   stream: ActivityStream,
@@ -110,23 +109,31 @@ function speedSeries(
   if (!time?.length) return undefined;
   const distance = stream.distance;
   const moves = !!distance?.length && distance.some((d) => d !== distance[0]);
-  if (!moves && !stream.latlng?.length) return undefined;
+  if (!stream.speed?.length && !moves && !stream.latlng?.length)
+    return undefined;
 
-  // Each sample's speed is the one until the next sample, the stretch
-  // time-weighted sums count it for
-  const raw = time.map((t, i): number | null => {
+  const raw = time.map((_, index): number | null => {
+    if (stream.timerPaused?.[index]) return null;
+    const recorded = stream.speed?.[index];
+    if (
+      typeof recorded === 'number' &&
+      Number.isFinite(recorded) &&
+      recorded >= 0
+    )
+      return recorded;
+
+    // Derived speed uses the next sample, or the previous interval at the end.
+    const i = Math.min(index, time.length - 2);
+    if (i < 0 || stream.timerPaused?.[i]) return null;
     const next = i + 1;
-    if (next >= time.length) return null;
-    const dt = time[next] - t;
+    const dt = time[next] - time[i];
     if (!(dt > 0)) return null;
     if (moves) return Math.max(0, (distance![next] - distance![i]) / dt);
-    const point = stream.latlng![i];
-    const following = stream.latlng![next];
+    const point = stream.latlng?.[i];
+    const following = stream.latlng?.[next];
     if (!isValidGpsPoint(point) || !isValidGpsPoint(following)) return null;
     return haversine(point, following) / dt;
   });
-  // The last sample has no next one: it keeps the speed it arrived at
-  if (raw.length > 1) raw[raw.length - 1] = raw[raw.length - 2];
   return smooth ? smoothRuns(raw) : raw;
 }
 

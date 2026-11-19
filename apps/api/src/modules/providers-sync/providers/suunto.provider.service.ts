@@ -30,6 +30,7 @@ import {
   toSegmentColumns,
 } from '../../core/helpers/activity-segment';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
+import { savingCompletesHeartRateProfile } from '../../core/helpers/heart-rate-profile';
 import {
   roundCadence,
   roundDistance,
@@ -67,6 +68,7 @@ import {
 } from '../base/provider-import.interface';
 import { providerRedirectUri } from '../base/provider-urls';
 import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
+import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
 import {
   SuuntoMetricRecord,
   mapSuuntoActivitySamples,
@@ -76,6 +78,36 @@ import {
 } from '../mapping/suunto-health.mapper';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const SUUNTO_RATE_LIMIT_RETRY_MS = 60_000;
+
+/** Suunto error bodies come as JSON, text, or bytes for file downloads */
+function suuntoErrorBody(data: unknown): string {
+  if (data === undefined || data === null) return '';
+  if (Buffer.isBuffer(data)) return data.toString('utf8');
+  if (data instanceof ArrayBuffer) return Buffer.from(data).toString('utf8');
+  if (typeof data === 'string') return data;
+  return JSON.stringify(data);
+}
+
+/**
+ * How long to wait when Suunto refused a request for quota, or null. Its
+ * gateway answers a spent quota with 401 "General auth Error" and a
+ * "Rate limit is exceeded" body as often as with a 429: refreshing the token
+ * cannot help, and doing it for every activity of an import makes it worse.
+ */
+export function suuntoRateLimitDelayMs(error: unknown): number | null {
+  if (!isAxiosError(error) || !error.response) return null;
+  const { status, headers, data } = error.response;
+  const body = suuntoErrorBody(data);
+  if (status !== 429 && !/rate ?limit/i.test(body)) return null;
+  const retryAfter = Number.parseInt(
+    String(headers?.['retry-after'] ?? ''),
+    10,
+  );
+  if (Number.isFinite(retryAfter) && retryAfter > 0) return retryAfter * 1000;
+  const inBody = /try again in (\d+) seconds?/i.exec(body);
+  return inBody ? Number(inBody[1]) * 1000 : SUUNTO_RATE_LIMIT_RETRY_MS;
+}
 
 @Injectable()
 export class SuuntoProviderService
@@ -461,6 +493,11 @@ export class SuuntoProviderService
         throw error;
       }
 
+      const rateLimitDelay = suuntoRateLimitDelayMs(error);
+      if (rateLimitDelay !== null) {
+        throw new ProviderRateLimitError('Suunto', rateLimitDelay);
+      }
+
       if (
         isAxiosError(error) &&
         error.response?.status === 401 &&
@@ -552,12 +589,13 @@ export class SuuntoProviderService
           );
           return result;
         } catch (retryError) {
+          const retryDelay = suuntoRateLimitDelayMs(retryError);
+          if (retryDelay !== null) {
+            throw new ProviderRateLimitError('Suunto', retryDelay);
+          }
           if (isAxiosError(retryError)) {
             this.logger.error(
-              `Suunto request failed after token refresh: ${retryError.response?.status} ${retryError.response?.statusText} - ${JSON.stringify(retryError.response?.data)}`,
-            );
-            this.logger.error(
-              `Token used: length=${tokenResponse.access_token.length}, starts with: ${tokenResponse.access_token.substring(0, 30)}...`,
+              `Suunto request failed after token refresh: ${retryError.response?.status} ${retryError.response?.statusText} - ${suuntoErrorBody(retryError.response?.data).slice(0, 300)}`,
             );
           }
           throw retryError;
@@ -567,7 +605,7 @@ export class SuuntoProviderService
       // Log error details for debugging
       if (isAxiosError(error)) {
         this.logger.error(
-          `Suunto API request failed: ${error.response?.status} ${error.response?.statusText} - ${JSON.stringify(error.response?.data)}`,
+          `Suunto API request failed: ${error.response?.status} ${error.response?.statusText} - ${suuntoErrorBody(error.response?.data).slice(0, 300)}`,
         );
       }
 
@@ -704,6 +742,9 @@ export class SuuntoProviderService
         workout.workoutKey,
       );
     } catch (error) {
+      // Out of quota: the job waits and tries the file again, since a saved
+      // activity without streams is retried by its next import
+      if (error instanceof ProviderRateLimitError) throw error;
       // The summary is saved: the activity shows without its streams
       this.logger.warn(
         `Failed to import the FIT file of Suunto workout ${workout.workoutKey}: ${error instanceof Error ? error.message : String(error)}`,
@@ -1325,30 +1366,39 @@ export class SuuntoProviderService
       return;
     }
 
-    await this.prisma.$transaction(
-      validMetrics.map((metric) =>
-        this.prisma.athleteMetric.upsert({
-          where: {
-            athleteId_type_date: {
-              athleteId: athleteId,
-              type: metric.type as unknown as MetricType,
-              date: metric.date,
-            },
-          },
-          create: {
-            athleteId: athleteId,
-            type: metric.type as unknown as MetricType,
-            date: metric.date,
-            value: roundMetricValue(metric.value),
-            source: 'SUUNTO',
-          },
-          update: {
-            value: roundMetricValue(metric.value),
-            source: 'SUUNTO',
-          },
-        }),
-      ),
+    // The resting HR now comes from sleep: once it joins an HR max, the
+    // loads are computed again, as for the other providers
+    const completed = await savingCompletesHeartRateProfile(
+      this.prisma,
+      athleteId,
+      validMetrics.map((metric) => metric.type),
+      () =>
+        this.prisma.$transaction(
+          validMetrics.map((metric) =>
+            this.prisma.athleteMetric.upsert({
+              where: {
+                athleteId_type_date: {
+                  athleteId: athleteId,
+                  type: metric.type as unknown as MetricType,
+                  date: metric.date,
+                },
+              },
+              create: {
+                athleteId: athleteId,
+                type: metric.type as unknown as MetricType,
+                date: metric.date,
+                value: roundMetricValue(metric.value),
+                source: 'SUUNTO',
+              },
+              update: {
+                value: roundMetricValue(metric.value),
+                source: 'SUUNTO',
+              },
+            }),
+          ),
+        ),
     );
+    if (completed) await this.queueService.addTrainingLoadRecalcJob(athleteId);
   }
 
   /** Sync an account's 24/7 data from a day up to now */

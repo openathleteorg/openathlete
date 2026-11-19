@@ -111,7 +111,11 @@ export function prepareManualFit(parsed: ActivityParseResult) {
       )
         delete parsed.stream.latlng;
     } else if (
-      values?.some((v: unknown) => typeof v !== 'number' || !Number.isFinite(v))
+      values?.some(
+        (v: unknown) =>
+          !(key === 'speed' && v === null) &&
+          (typeof v !== 'number' || !Number.isFinite(v)),
+      )
     ) {
       throw new BadRequestException('FIT_INVALID');
     }

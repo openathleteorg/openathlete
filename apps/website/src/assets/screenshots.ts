@@ -12,12 +12,14 @@ import calendarWeek from './screenshots/desktop-calendar-week.webp';
 import clubDashboard from './screenshots/desktop-club-dashboard.webp';
 import clubSessions from './screenshots/desktop-club-sessions.webp';
 import coachAthleteCalendar from './screenshots/desktop-coach-athlete-calendar.webp';
+import questionnaireWeeks from './screenshots/desktop-coach-athlete-questionnaires.webp';
 import coachRoster from './screenshots/desktop-coach-athletes.webp';
 import coachDashboard from './screenshots/desktop-coach-dashboard.webp';
 import chat from './screenshots/desktop-messages.webp';
 import metrics from './screenshots/desktop-metrics.webp';
 import planForGroup from './screenshots/desktop-plan-for-group.webp';
 import player from './screenshots/desktop-player-exercise.webp';
+import questionnaireAnswers from './screenshots/desktop-questionnaire-answers.webp';
 import records from './screenshots/desktop-records.webp';
 import sessionDetail from './screenshots/desktop-session-detail.webp';
 import aiSettings from './screenshots/desktop-settings-ai-keys.webp';
@@ -34,14 +36,20 @@ import mobileBroadcast from './screenshots/mobile-broadcast.webp';
 import mobileCalendar from './screenshots/mobile-calendar.webp';
 import mobileClubSession from './screenshots/mobile-club-session-athlete.webp';
 import mobileChat from './screenshots/mobile-messages.webp';
+import mobileMyQuestionnaires from './screenshots/mobile-my-questionnaires.webp';
 import mobilePlanForGroup from './screenshots/mobile-plan-for-group.webp';
 import mobilePlayer from './screenshots/mobile-player-exercise.webp';
 import mobilePlayerRest from './screenshots/mobile-player-rest.webp';
+import mobileQuestionnaire from './screenshots/mobile-questionnaire-answer.webp';
 import mobileStrength from './screenshots/mobile-strength-editor.webp';
 import mobileHome from './screenshots/mobile-today.webp';
 import mobileWorkout from './screenshots/mobile-workout-detail.webp';
 
 export const shots = {
+  questionnaireAnswers,
+  questionnaireWeeks,
+  mobileQuestionnaire,
+  mobileMyQuestionnaires,
   clubSessions,
   planForGroup,
   clubDashboard,

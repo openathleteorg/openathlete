@@ -34,7 +34,7 @@ import { toast } from 'sonner';
 import { EventTemplate, EventTemplateFolder } from '@openathlete/shared';
 
 import { useCalendarContext } from '../calendar/hooks/use-calendar-context';
-import { CreateEventDialog } from '../create-event-dialog';
+import { CreateEventDialog, isDialogEvent } from '../create-event-dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { CustomModal } from './custom-modal';
@@ -451,7 +451,12 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
             setEditingTemplate(null);
             refetchTemplates();
           }}
-          event={editingTemplate.event}
+          // Questionnaires are never templates
+          event={
+            isDialogEvent(editingTemplate.event)
+              ? editingTemplate.event
+              : undefined
+          }
           isTemplate={true}
         />
       )}

@@ -7,7 +7,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { EventTemplate, Event as PrismaEvent } from '@openathlete/database';
+import {
+  EventTemplate,
+  EventType,
+  Event as PrismaEvent,
+} from '@openathlete/database';
 import { CreateEventTemplateDto, Event, startOfDay } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -85,6 +89,14 @@ export class EventTemplateService {
     const clubId = body.clubId ?? null;
     await requireLibrary(this.prisma, user.userId, clubId, 'edit');
     await this.assertFolderIn(body.folderId, user.userId, clubId);
+    const source = await this.prisma.event.findUnique({
+      where: { eventId: body.eventId },
+      select: { type: true },
+    });
+    // The library holds sessions; questionnaires have their own
+    if (source?.type === EventType.QUESTIONNAIRE) {
+      throw new BadRequestException('Questionnaires are not templates');
+    }
     const event = await this.eventService.duplicateEvent(user, body.eventId);
 
     await this.prisma.event.update({

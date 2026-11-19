@@ -54,6 +54,7 @@ const EXPORTED_TABLES = [
   'lifecycle_email',
   'message',
   'provider_account',
+  'questionnaire',
   'record',
   'scheduled_message',
   'subscription',
@@ -96,6 +97,7 @@ interface ExportDocument {
   templates: { event: { name: string } }[];
   aiAssistant: { messages: { blocks: { content: string }[] }[] }[];
   coachNotes: { title: string }[];
+  questionnaires: { title: string; questions: { label: string }[] }[];
   customExercises: { name: string }[];
   aiSettings: { keys: unknown[]; instructions: unknown[] };
   messages: unknown[];
@@ -103,6 +105,9 @@ interface ExportDocument {
     eventId: number;
     training?: { workout: { steps: unknown[] } };
     activity?: { feedbackQuestions: unknown[]; stream?: unknown };
+    questionnaire?: {
+      answers: { valueNumber: number | null; question: { label: string } }[];
+    };
   }[];
 }
 
@@ -180,6 +185,10 @@ describe('AccountExportService (PostgreSQL)', () => {
       'Coach',
       'Mine',
     ]);
+    // The questionnaires the user wrote as a coach
+    expect(
+      data.questionnaires.map((questionnaire) => questionnaire.title),
+    ).toEqual(['Check-in', 'Draft']);
     expect(data.aiSettings.keys).toEqual([
       expect.objectContaining({ provider: 'openai', apiKeyHint: '••••1234' }),
     ]);
@@ -195,7 +204,14 @@ describe('AccountExportService (PostgreSQL)', () => {
     const { data } = await exportOf(USER_ID);
 
     expect(data.events.map((event) => event.eventId)).toEqual([
-      3001, 3002, 3003, 3004,
+      3001, 3002, 3003, 3004, 3006,
+    ]);
+    // The athlete's answers, with the question each one answers
+    expect(data.events[4].questionnaire?.answers).toEqual([
+      expect.objectContaining({
+        valueNumber: 4,
+        question: expect.objectContaining({ label: 'Fatigue' }),
+      }),
     ]);
     const training = data.events[0].training;
     expect(training?.workout.steps.length).toBeGreaterThan(0);
@@ -239,7 +255,10 @@ describe('AccountExportService (PostgreSQL)', () => {
     const coach = await exportOf(COACH_USER_ID);
 
     expect(text).not.toContain('coach@example.com');
-    expect(coach.data.events).toEqual([]);
+    // As an athlete, the coach has only the questionnaires sent to them
+    expect(coach.data.events.map((event) => event.eventId)).toEqual([
+      3007, 3008,
+    ]);
   });
 
   it('decides, for every table holding user data, whether it is exported', async () => {

@@ -57,14 +57,18 @@ export function CalendarEventDetailsDialog({
                   </Link>
                 </Button>
               )}
-              <Button
-                onClick={onEditEvent}
-                variant="outline"
-                size="sm"
-                className="w-full md:w-auto text-xs md:text-sm"
-              >
-                {m.edit()}
-              </Button>
+              {/* A questionnaire moves in the calendar; its questions are
+                  edited in the coach's library */}
+              {event?.type !== EVENT_TYPE.QUESTIONNAIRE && (
+                <Button
+                  onClick={onEditEvent}
+                  variant="outline"
+                  size="sm"
+                  className="w-full md:w-auto text-xs md:text-sm"
+                >
+                  {m.edit()}
+                </Button>
+              )}
             </div>
           </DialogTitle>
         </DialogHeader>

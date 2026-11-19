@@ -223,9 +223,11 @@ describe('mapWorkoutDtoToSuuntoGuide', () => {
     expect(first.notification?.text?.length).toBeLessThanOrEqual(54);
   });
 
-  it('only lists activities the Guides API accepts', () => {
+  it('offers a run in every running mode, its own sport first', () => {
     const guide = guideOf([step({})], SportType.TRAIL_RUNNING);
 
-    expect(guide.activities).toEqual([22]);
+    // Trail, then running, treadmill, track and orienteering; vertical and
+    // track running are left out, the Guides API refuses them
+    expect(guide.activities).toEqual([22, 1, 53, 59, 60]);
   });
 });

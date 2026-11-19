@@ -441,7 +441,14 @@ export const registerCalendarWriteTools: ToolRegistrar = (
           : {};
 
         let dto: UpdateEventDto;
-        if (event.type === 'NOTE') {
+        if (event.type === 'QUESTIONNAIRE') {
+          if (Object.values(fields).some((value) => value !== undefined)) {
+            throw new ToolError(
+              'A questionnaire is written in the app: here it only moves, with a new date or time.',
+            );
+          }
+          dto = { ...dates };
+        } else if (event.type === 'NOTE') {
           if (fields.sport || fields.workoutSteps || fields.priority) {
             throw new ToolError(
               'A note only has a name, a date and a description.',

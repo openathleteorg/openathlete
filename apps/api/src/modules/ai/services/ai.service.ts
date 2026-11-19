@@ -14,6 +14,7 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { AiProviderException, toAiProviderException } from '../ai.errors';
 import { withCustomInstructions } from '../custom-instructions';
+import { clampToSchema, parseJsonAnswer } from '../structured-output';
 import { AiModelConfig, ResolvedAiModel } from './ai-model-resolver.service';
 import { AiUsageService, TokenUsage } from './ai-usage.service';
 
@@ -100,6 +101,9 @@ export class AiService {
           // repeat blocks): the schema goes in the prompt and the answer is
           // validated against it here
           jsonPromptInjection: model.provider === 'anthropic' ? true : 'auto',
+          // An answer that fails validation still returns, with its text and
+          // usage: it is repaired below, and its tokens are counted either way
+          errorStrategy: 'warn',
         },
         providerOptions: {
           openai: { strictJsonSchema: false },
@@ -107,13 +111,47 @@ export class AiService {
         },
       }),
     );
-    if (result.object === undefined || result.object === null) {
-      throw new AiProviderException(
-        AiErrorCode.PROVIDER_ERROR,
-        'The AI model did not return a valid result',
-      );
+    if (result.object !== undefined && result.object !== null) {
+      return result.object as z.output<S>;
     }
-    return result.object as z.output<S>;
+    return this.repairObject(model, result.text, result.finishReason, schema);
+  }
+
+  /**
+   * Second chance for an answer Mastra refused: read its JSON ourselves and
+   * cut what exceeds the schema's lengths. Still invalid, it fails like a
+   * provider error, which callers may retry.
+   */
+  private repairObject<S extends z.ZodTypeAny>(
+    model: ResolvedAiModel,
+    text: string | undefined,
+    finishReason: string | undefined,
+    schema: S,
+  ): z.output<S> {
+    const parsed = text ? parseJsonAnswer(text) : undefined;
+    const checked =
+      parsed === undefined
+        ? undefined
+        : schema.safeParse(clampToSchema(parsed, schema));
+    if (checked?.success) {
+      this.logger.debug(
+        `${model.task} answer from ${model.provider}/${model.modelId} repaired to fit its schema`,
+      );
+      return checked.data as z.output<S>;
+    }
+    const reason = checked
+      ? checked.error.issues
+          .map((issue) => `${issue.path.join('.') || 'root'}: ${issue.message}`)
+          .join('; ')
+      : // What came back, to tell an empty answer from prose or cut JSON
+        `unreadable answer (${text?.length ?? 0} chars, finish: ${finishReason ?? 'unknown'}): ${JSON.stringify((text ?? '').slice(0, 300))}`;
+    this.logger.warn(
+      `${model.task} failed on ${model.provider}/${model.modelId} (${model.source}): invalid structured output: ${reason}`,
+    );
+    throw new AiProviderException(
+      AiErrorCode.PROVIDER_ERROR,
+      'The AI model did not return a valid result',
+    );
   }
 
   /** A minimal call checking that a key and model work together. */

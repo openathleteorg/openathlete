@@ -60,6 +60,10 @@ function fixture(
     partial?: boolean;
     gps?: boolean;
     missingGps?: number[];
+    samples?: Record<string, unknown>[];
+    /** Seconds from the start of each of the three records */
+    seconds?: number[];
+    timerEvents?: { seconds: number; type: string }[];
     session?: Record<string, unknown>;
   } = {},
 ) {
@@ -75,7 +79,7 @@ function fixture(
   if (options.records !== false) {
     for (let i = 0; i < 3; i++)
       encoder.onMesg(20, {
-        timestamp: start + i,
+        timestamp: start + (options.seconds?.[i] ?? i),
         distance: i * 3,
         altitude: 100 + i,
         power: 200 + i,
@@ -83,12 +87,20 @@ function fixture(
         ...(options.gps && !options.missingGps?.includes(i)
           ? { positionLat: 1000000 + i * 100, positionLong: 2000000 + i * 100 }
           : {}),
+        ...options.samples?.[i],
       });
     encoder.onMesg(19, {
       startTime: start,
       timestamp: start + 2,
       totalElapsedTime: 2,
       totalTimerTime: 2,
+    });
+  }
+  for (const { seconds, type } of options.timerEvents ?? []) {
+    encoder.onMesg(21, {
+      timestamp: start + seconds,
+      event: 'timer',
+      eventType: type,
     });
   }
   for (let i = 0; i < (options.sessions ?? 1); i++)
@@ -241,12 +253,49 @@ describe('Manual FIT parsing', () => {
     const withoutRpe = await parse(fixture());
     expect(withoutRpe.activity.rpe).toBeNull();
   });
-  test('omits incomplete channels rather than shifting their timestamps', async () => {
+  test('bridges a sensor missing from some records, as sparse recorders write them', async () => {
+    // Gadgetbridge and smart bands leave heart rate out of some records:
+    // the channel stays, so its graph and training load do too (#176)
     const result = await parse(fixture({ partial: true }));
+    const stream = uncompressActivityStream(result.details.stream);
+    expect(stream.heartrate).toEqual([120, 121, 122]);
+    expect(stream.watts).toEqual([200, 201, 202]);
+    expect(result.warnings).not.toContain('FIT_INCOMPLETE_CHANNELS');
+  });
+  test('omits a channel with a real dropout rather than shifting its timestamps', async () => {
+    const result = await parse(
+      fixture({ partial: true, seconds: [0, 60, 200] }),
+    );
     const stream = uncompressActivityStream(result.details.stream);
     expect(stream.heartrate).toBeUndefined();
     expect(stream.watts).toEqual([200, 201, 202]);
     expect(result.warnings).toContain('FIT_INCOMPLETE_CHANNELS');
+  });
+  test('stores aligned FIT speed, distance and timer pauses through GPS dropouts', async () => {
+    const { details, warnings } = await parse(
+      fixture({
+        gps: true,
+        missingGps: [1],
+        samples: [
+          { distance: undefined },
+          { enhancedSpeed: 2.5 },
+          { speed: 0 },
+        ],
+        timerEvents: [
+          { seconds: 0, type: 'start' },
+          { seconds: 1, type: 'stopAll' },
+          { seconds: 2, type: 'start' },
+        ],
+      }),
+    );
+    const stream = uncompressActivityStream(
+      JSON.parse(JSON.stringify(details.stream)),
+    );
+    expect(stream.latlng?.[1]).toEqual([]);
+    expect(stream.speed).toEqual([null, 2.5, 0]);
+    expect(stream.distance).toEqual([3, 3, 6]);
+    expect(stream.timerPaused).toEqual([0, 1, 0]);
+    expect(warnings).not.toContain('FIT_INCOMPLETE_CHANNELS');
   });
   test('rejects corrupted files, planned workouts and multisession files', async () => {
     const broken = fixture();

@@ -45,6 +45,32 @@ export class MetricService {
   }
 
   /**
+   * A value an athlete gave in a questionnaire, for one day. A device's
+   * value of that day wins: it was measured, the answer is an estimate.
+   * Returns whether the metric took the value.
+   */
+  async recordAnswer(
+    athleteId: number,
+    type: MetricType,
+    date: Date,
+    value: number,
+  ): Promise<boolean> {
+    const existing = await this.prisma.athleteMetric.findUnique({
+      where: { athleteId_type_date: { athleteId, type, date } },
+      select: { source: true },
+    });
+    if (existing?.source) return false;
+    this.afterChange(
+      await this.prisma.athleteMetric.upsert({
+        where: { athleteId_type_date: { athleteId, type, date } },
+        create: { athleteId, type, date, value },
+        update: { value },
+      }),
+    );
+    return true;
+  }
+
+  /**
    * Create a new metric for the authenticated user or a specific athlete (if coach)
    */
   async createMetric(

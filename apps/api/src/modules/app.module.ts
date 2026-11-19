@@ -34,6 +34,7 @@ import { MessagesModule } from './messages/messages.module';
 import { NotificationModule } from './notification';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProvidersSyncModule } from './providers-sync/providers-sync.module';
+import { QuestionnaireModule } from './questionnaire/questionnaire.module';
 import { QueueModule } from './queue';
 import { SeoPlanModule } from './seo/seo-plan.module';
 import { FilesModule } from './stored-files/files.module';
@@ -64,6 +65,7 @@ import { SubscriptionModule } from './subscription';
     MessagesModule,
     CalendarModule,
     ClubModule,
+    QuestionnaireModule,
     EventEmitterModule.forRoot(),
     NotificationModule,
     ProvidersSyncModule,

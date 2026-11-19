@@ -12,6 +12,7 @@ export * from './sport-config';
 export * from './time-in-zones';
 export * from './cycle-colors';
 export * from './provider-import';
+export * from './year-review';
 export {
   calculateWorkoutDuration,
   calculateWorkoutDistance,
@@ -53,3 +54,4 @@ export * from './image-refs';
 export * from './signup-attribution';
 export * from './workout-text';
 export * from './strength';
+export * from './questionnaire';

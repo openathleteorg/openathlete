@@ -292,6 +292,36 @@ export class CoachService {
       now,
     );
 
+    // The coach's own questionnaires: due over the period, and answered
+    const ofCoach = {
+      athleteId: { in: athleteIds },
+      questionnaire: { questionnaire: { coachUserId: user.userId } },
+    };
+    const [dueQuestionnaires, lastAnswers] = await Promise.all([
+      this.prisma.event.findMany({
+        where: {
+          ...ofCoach,
+          startDate: { gte: start, lt: end < now ? end : now },
+        },
+        select: {
+          athleteId: true,
+          questionnaire: { select: { answeredAt: true } },
+        },
+      }),
+      // The day of the latest questionnaire answered, per athlete
+      this.prisma.event.groupBy({
+        by: ['athleteId'],
+        where: {
+          athleteId: { in: athleteIds },
+          questionnaire: {
+            questionnaire: { coachUserId: user.userId },
+            answeredAt: { not: null },
+          },
+        },
+        _max: { startDate: true },
+      }),
+    ]);
+
     // Build rows
     const rows: CoachDashboardAthleteRowDto[] = coachedAthletes.map(
       (a, index) => {
@@ -358,6 +388,20 @@ export class CoachService {
           previous: previousTotals
             ? pickTotals(previousTotals.get(a.athleteId) ?? EMPTY_TOTALS)
             : null,
+          questionnaires: (() => {
+            const due = dueQuestionnaires.filter(
+              (event) => event.athleteId === a.athleteId,
+            );
+            const last = lastAnswers.find(
+              (group) => group.athleteId === a.athleteId,
+            )?._max.startDate;
+            return {
+              due: due.length,
+              answered: due.filter((event) => event.questionnaire?.answeredAt)
+                .length,
+              lastAnsweredAt: last?.toISOString() ?? null,
+            };
+          })(),
         };
       },
     );

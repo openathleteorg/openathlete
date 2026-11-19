@@ -43,6 +43,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import {
   Activity,
   Award,
+  ClipboardList,
   Copy,
   Plus,
   Sparkles,
@@ -67,11 +68,17 @@ import {
 import { AIGenerateEventDialog } from '../ai-generate-event-dialog/ai-generate-event.dialog';
 import { AiSetupDialog } from '../ai-settings';
 import { CreateCycleDialog } from '../create-cycle-dialog';
-import { CreateEventDialog } from '../create-event-dialog';
+import {
+  CreateEventDialog,
+  type DialogEventType,
+  isDialogEvent,
+} from '../create-event-dialog';
 import { CreateEventFromTemplateDialog } from '../create-event-from-template-dialog/create-event-from-template.dialog';
 import { GarminAttributionText } from '../garmin-attribution/garmin-attribution';
 import { garminActivityLabel } from '../garmin-attribution/garmin-source';
 import { ImportFitDialog } from '../import-fit-dialog/import-fit-dialog';
+import { PendingQuestionnaires } from '../questionnaires/pending-questionnaires';
+import { PlaceQuestionnaireDialog } from '../questionnaires/place-questionnaire-dialog';
 import { CalendarBody } from './calendar-body';
 import { CalendarBulkDelete } from './calendar-bulk-delete';
 import { CalendarEventDetailsDialog } from './calendar-event-details.dialog';
@@ -419,9 +426,13 @@ export function Calendar({
   );
   const [createEventDialog, setCreateEventDialog] = useState<{
     date: Date;
-    type: EVENT_TYPE;
+    type: DialogEventType;
     prefilledData?: CreateEventDto;
   } | null>(null);
+  const [placeQuestionnaireDialog, setPlaceQuestionnaireDialog] =
+    useState<Date | null>(null);
+  const canPlaceQuestionnaire =
+    allowCreate && Boolean(athleteId) && !ownCalendar;
   const [createEventFromTemplateDialog, setCreateEventFromTemplateDialog] =
     useState<Date | null>(null);
   const [aiGenerateEventDialog, setAIGenerateEventDialog] =
@@ -568,13 +579,27 @@ export function Calendar({
       events: calendarData.events.filter(filter),
       cycles: cycles || [],
       createEvent: (date, type) => {
-        setCreateEventDialog({ date, type });
+        if (type === EVENT_TYPE.QUESTIONNAIRE) {
+          setPlaceQuestionnaireDialog(date);
+        } else {
+          setCreateEventDialog({ date, type });
+        }
       },
       createEventFromTemplate: setCreateEventFromTemplateDialog,
       createEventWithAI: setAIGenerateEventDialog,
       openEventDetails,
       eventDetailsOpened,
-      editEvent: (eventId) => setEditEventDialog(eventId),
+      editEvent: (eventId) => {
+        // A questionnaire has no form here: it opens to be read or answered
+        const edited = calendarData.events.find(
+          (event) => event.eventId === eventId,
+        );
+        if (edited?.type === EVENT_TYPE.QUESTIONNAIRE) {
+          openEventDetails(eventId);
+        } else {
+          setEditEventDialog(eventId);
+        }
+      },
       showShortcuts: () => setShortcutsOpen(true),
       createCycle: (startDate, endDate) => {
         setCreateCycleDialog({ startDate, endDate });
@@ -588,6 +613,7 @@ export function Calendar({
       setCycleResize,
       athleteId,
       allowCreate,
+      canPlaceQuestionnaire,
       filter,
       setFilter,
       coloredBy,
@@ -798,6 +824,15 @@ export function Calendar({
           setCreateEventDialog({ date: planningDate, type: EVENT_TYPE.NOTE });
         },
       },
+      ...(canPlaceQuestionnaire
+        ? [
+            {
+              label: m.plan_a_questionnaire(),
+              icon: ClipboardList,
+              onClick: () => setPlaceQuestionnaireDialog(planningDate),
+            },
+          ]
+        : []),
     ];
 
     // Shown without AI too: it leads to the AI settings
@@ -811,7 +846,7 @@ export function Calendar({
     });
 
     return actions;
-  }, [isMobile, allowCreate, hasAIAccess, planningDate]);
+  }, [isMobile, allowCreate, hasAIAccess, planningDate, canPlaceQuestionnaire]);
 
   // Handle global mouse up to end drag selection and cycle resize
   useEffect(() => {
@@ -867,6 +902,10 @@ export function Calendar({
       <EventClipboardProvider>
         <EventContextMenuProvider>
           <CalendarContext.Provider value={memoizedValue}>
+            {/* On a phone, the Today tab lists them */}
+            {!isMobile && ownCalendar && (
+              <PendingQuestionnaires onOpen={openEventDetails} />
+            )}
             <CalendarBulkDelete
               header={
                 <CalendarHeader
@@ -939,7 +978,18 @@ export function Calendar({
                 }}
                 date={createEventDialog?.date}
                 type={createEventDialog?.type}
-                prefilledData={createEventDialog?.prefilledData}
+                prefilledData={
+                  createEventDialog?.prefilledData?.type !==
+                  EVENT_TYPE.QUESTIONNAIRE
+                    ? createEventDialog?.prefilledData
+                    : undefined
+                }
+              />
+              <PlaceQuestionnaireDialog
+                open={placeQuestionnaireDialog !== null}
+                onClose={() => setPlaceQuestionnaireDialog(null)}
+                date={placeQuestionnaireDialog ?? undefined}
+                athleteId={athleteId}
               />
               <AiSetupDialog
                 open={aiSetupOpen}
@@ -959,6 +1009,8 @@ export function Calendar({
                 athleteId={athleteId}
                 onEventGenerated={(event) => {
                   setAIGenerateEventDialog(null);
+                  // The AI writes sessions, never questionnaires
+                  if (event.type === EVENT_TYPE.QUESTIONNAIRE) return;
                   setCreateEventDialog({
                     date: event.startDate,
                     type: event.type,
@@ -970,9 +1022,9 @@ export function Calendar({
                 key={editEventDialog}
                 open={editEventDialog !== null}
                 onClose={() => setEditEventDialog(null)}
-                event={events?.find(
-                  (event) => event.eventId === editEventDialog,
-                )}
+                event={events
+                  ?.filter(isDialogEvent)
+                  .find((event) => event.eventId === editEventDialog)}
                 onDeleted={() => setEventDetailsOpened(null)}
               />
               <CalendarEventDetailsDialog

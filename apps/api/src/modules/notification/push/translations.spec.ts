@@ -1,5 +1,6 @@
 import { Language } from 'src/common/constants/languages.constant';
 
+import { questionnaireNotification } from './questionnaire';
 import { trainingReminderNotification } from './training-reminder';
 import { getPushNotificationTranslation } from './translations';
 
@@ -49,6 +50,25 @@ describe('push notification translations', () => {
     ).toEqual({
       title: 'Morgen',
       body: '2 Einheiten: Laufen, Schwimmen',
+    });
+  });
+
+  it('tells an athlete, in every language, that a questionnaire waits', () => {
+    for (const language of Object.values(Language)) {
+      const { title, body } = questionnaireNotification(
+        language,
+        'request',
+        'Paula',
+        'Hooper',
+      );
+      expect(title).toContain('Paula');
+      expect(body).toContain('Hooper');
+    }
+    expect(
+      questionnaireNotification(Language.FR, 'reminder', 'Paula', 'Hooper'),
+    ).toEqual({
+      title: 'Questionnaire de Paula',
+      body: '« Hooper » attend toujours votre réponse.',
     });
   });
 });

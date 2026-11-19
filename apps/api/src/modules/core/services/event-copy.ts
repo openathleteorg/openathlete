@@ -11,6 +11,7 @@ export const SHIFTABLE_TYPES = [
   EventType.TRAINING,
   EventType.COMPETITION,
   EventType.NOTE,
+  EventType.QUESTIONNAIRE,
 ];
 
 const WORKOUT_INCLUDE = {
@@ -27,6 +28,7 @@ export const SOURCE_INCLUDE = {
   training: { include: { workout: { include: WORKOUT_INCLUDE } } },
   competition: true,
   note: true,
+  questionnaire: { select: { questionnaireId: true, clubId: true } },
   athlete: { select: { user: { select: { timeZone: true } } } },
 } satisfies Prisma.EventInclude;
 
@@ -133,6 +135,23 @@ export function copyTo(
   if (event.note) {
     const { eventNoteId: _id, eventId: _eventId, ...note } = event.note;
     return { ...base, note: { create: note } };
+  }
+  if (event.questionnaire) {
+    // The questionnaire, not its answers: the copy is still to answer
+    const { questionnaireId, clubId } = event.questionnaire;
+    return {
+      ...base,
+      questionnaire: {
+        create: {
+          questionnaire: { connect: { questionnaireId } },
+          // The club only reads the answers of its own athletes
+          ...(clubId &&
+            target.athleteId === event.athleteId && {
+              club: { connect: { clubId } },
+            }),
+        },
+      },
+    };
   }
   return base;
 }

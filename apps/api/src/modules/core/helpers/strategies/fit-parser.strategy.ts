@@ -26,6 +26,90 @@ type BaseLapSegment = {
   order: number;
 };
 
+// FIT event/type IDs when enum conversion is disabled.
+const TIMER_EVENT = 0;
+const TIMER_START = 0;
+const TIMER_STOP_TYPES = new Set([1, 4, 8, 9]);
+
+function fitTimerPauses(
+  time: number[],
+  events: Record<string, unknown>[],
+  startTimestamp: number,
+): number[] {
+  const transitions = events
+    .flatMap(({ event, eventType, timestamp }) => {
+      if (event !== TIMER_EVENT || typeof eventType !== 'number') return [];
+      const paused = TIMER_STOP_TYPES.has(eventType);
+      if (!paused && eventType !== TIMER_START) return [];
+      const ms = toFitTimestamp(timestamp);
+      return ms !== null && Number.isFinite(ms)
+        ? [{ time: (ms - startTimestamp) / 1000, paused }]
+        : [];
+    })
+    .sort((a, b) => a.time - b.time);
+
+  let paused = false;
+  let next = 0;
+  return time.map((t, i) => {
+    while (transitions[next]?.time <= t) paused = transitions[next++].paused;
+    let overlapsPause = paused;
+    // The chart and time-weighted analysis both use forward intervals.
+    while (transitions[next]?.time < time[i + 1]) {
+      paused = transitions[next++].paused;
+      overlapsPause ||= paused;
+    }
+    return overlapsPause ? 1 : 0;
+  });
+}
+
+/**
+ * Longest stretch without a sensor sample that is bridged. Watches and apps
+ * (Gadgetbridge, smart bands) often write heart rate, altitude or cadence in
+ * fewer records than the timeline: those short gaps are interpolated so the
+ * channel stays aligned with time. A longer one is a real dropout, which the
+ * stream cannot hold (no nulls), so the channel is left incomplete and
+ * omitted, as before.
+ */
+const MAX_SENSOR_GAP_SECONDS = 60;
+
+function fillSensorGaps(
+  values: (number | null)[],
+  time: number[],
+): number[] | null {
+  const present = (series: (number | null)[]) =>
+    series.filter((value): value is number => value !== null);
+  const known = values.flatMap((value, index) =>
+    value === null ? [] : [index],
+  );
+  if (!known.length) return null;
+  if (values.length !== time.length) return present(values);
+  const filled = [...values];
+  const bridgeable = (from: number, to: number) =>
+    time[to] - time[from] <= MAX_SENSOR_GAP_SECONDS;
+
+  const first = known[0];
+  const last = known[known.length - 1];
+  for (let i = 0; i < first; i++) {
+    if (bridgeable(i, first)) filled[i] = values[first];
+  }
+  for (let i = last + 1; i < values.length; i++) {
+    if (bridgeable(last, i)) filled[i] = values[last];
+  }
+  for (let k = 1; k < known.length; k++) {
+    const a = known[k - 1];
+    const b = known[k];
+    if (b - a < 2 || !bridgeable(a, b)) continue;
+    const span = time[b] - time[a];
+    for (let i = a + 1; i < b; i++) {
+      const share = span > 0 ? (time[i] - time[a]) / span : 0;
+      filled[i] = values[a]! + (values[b]! - values[a]!) * share;
+    }
+  }
+  // A gap still open leaves a shorter series, omitted later rather than
+  // misaligned with time
+  return present(filled);
+}
+
 export class FitParserStrategy implements ActivityParser {
   private readonly supportedMimeTypes = [
     'application/vnd.garmin.fit',
@@ -107,16 +191,18 @@ export class FitParserStrategy implements ActivityParser {
     const result: ActivityStream = {};
     const time: number[] = [];
     const latlng: number[][] = [];
-    const altitude: number[] = [];
-    const heartrate: number[] = [];
-    const cadence: number[] = [];
-    const watts: number[] = [];
+    const altitude: (number | null)[] = [];
+    const heartrate: (number | null)[] = [];
+    const cadence: (number | null)[] = [];
+    const watts: (number | null)[] = [];
     const distance: number[] = [];
+    const speed: (number | null)[] = [];
     const temp: number[] = [];
 
     let previousLat: number | null = null;
     let previousLon: number | null = null;
     let cumulativeDistance = 0;
+    let hasDistance = false;
 
     for (const record of records) {
       const timestamp =
@@ -153,6 +239,15 @@ export class FitParserStrategy implements ActivityParser {
             : null;
       const power = typeof record.power === 'number' ? record.power : null;
       const dist = typeof record.distance === 'number' ? record.distance : null;
+      const enhancedSpeed = toNumber(record.enhancedSpeed);
+      const legacySpeed = toNumber(record.speed);
+      speed.push(
+        enhancedSpeed !== null && enhancedSpeed >= 0
+          ? enhancedSpeed
+          : legacySpeed !== null && legacySpeed >= 0
+            ? legacySpeed
+            : null,
+      );
 
       if (startTimestamp !== null && timestamp !== null) {
         time.push(Math.max(0, (timestamp - startTimestamp) / 1000));
@@ -190,27 +285,20 @@ export class FitParserStrategy implements ActivityParser {
       }
 
       if (dist !== null) {
-        distance.push(dist);
+        // Anchor leading gaps to the first distance, avoiding a false jump.
+        if (!hasDistance) distance.fill(dist);
+        hasDistance = true;
         cumulativeDistance = dist;
-      } else if (distance.length) {
-        distance.push(cumulativeDistance);
       }
+      distance.push(hasDistance ? cumulativeDistance : 0);
 
-      if (alt !== null) {
-        altitude.push(alt);
-      }
+      altitude.push(alt);
 
-      if (hr !== null) {
-        heartrate.push(hr);
-      }
+      heartrate.push(hr);
 
-      if (cad !== null) {
-        cadence.push(cad);
-      }
+      cadence.push(cad);
 
-      if (power !== null) {
-        watts.push(power);
-      }
+      watts.push(power);
 
       if (
         typeof record.temperature === 'number' &&
@@ -226,20 +314,31 @@ export class FitParserStrategy implements ActivityParser {
     if (latlng.some(isValidGpsPoint)) {
       result.latlng = latlng;
     }
-    if (altitude.length) {
-      result.altitude = altitude;
+    const altitudeSeries = fillSensorGaps(altitude, time);
+    if (altitudeSeries) {
+      result.altitude = altitudeSeries;
     }
-    if (heartrate.length) {
-      result.heartrate = heartrate;
+    const heartrateSeries = fillSensorGaps(heartrate, time);
+    if (heartrateSeries) {
+      result.heartrate = heartrateSeries;
     }
-    if (cadence.length) {
-      result.cadence = cadence;
+    const cadenceSeries = fillSensorGaps(cadence, time);
+    if (cadenceSeries) {
+      result.cadence = cadenceSeries;
     }
-    if (watts.length) {
-      result.watts = watts;
+    const wattsSeries = fillSensorGaps(watts, time);
+    if (wattsSeries) {
+      result.watts = wattsSeries;
     }
-    if (distance.length) {
+    if (hasDistance) {
       result.distance = distance;
+    }
+    if (speed.some((value) => value !== null)) {
+      result.speed = speed;
+    }
+    if (startTimestamp !== null && messages.eventMesgs?.length) {
+      const pauses = fitTimerPauses(time, messages.eventMesgs, startTimestamp);
+      if (pauses.includes(1)) result.timerPaused = pauses;
     }
     // Only a complete series: a shorter one could not be aligned with time.
     if (temp.length && temp.length === time.length) {

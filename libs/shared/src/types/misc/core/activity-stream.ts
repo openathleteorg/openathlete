@@ -1,6 +1,10 @@
 export interface ActivityStream {
   time?: number[];
   distance?: number[];
+  /** Recorded speed in m/s, with null for unavailable samples. */
+  speed?: (number | null)[];
+  /** 1 if the interval until the next sample overlaps a timer pause, else 0. */
+  timerPaused?: number[];
   /** One entry per time sample; [] means GPS unavailable (never [0, 0]). */
   latlng?: number[][];
   altitude?: number[];
@@ -13,13 +17,15 @@ export interface ActivityStream {
 }
 
 export type CompressedActivityStreamUnit =
-  | { r: number; v: number | number[] } // repeat
+  | { r: number; v: number | number[] | null } // repeat
   | { s: number; i: number } // increment
-  | (number | number[]);
+  | (number | number[] | null);
 
 export interface CompressedActivityStream {
   time?: CompressedActivityStreamUnit[];
   distance?: CompressedActivityStreamUnit[];
+  speed?: CompressedActivityStreamUnit[];
+  timerPaused?: CompressedActivityStreamUnit[];
   latlng?: CompressedActivityStreamUnit[];
   altitude?: CompressedActivityStreamUnit[];
   heartrate?: CompressedActivityStreamUnit[];

@@ -10,9 +10,12 @@ function state(overrides: Partial<LifecycleState> = {}): LifecycleState {
     now: NOW,
     localHour: 10,
     localDay: 10,
+    // NOW is a Tuesday
+    localWeekday: 2,
     createdAt: ago(2 * DAY),
     emailTips: true,
     emailRecap: true,
+    emailWeekly: true,
     newsConsent: false,
     billingEnabled: true,
     isSupporter: false,
@@ -208,6 +211,39 @@ describe('nextLifecycleEmail', () => {
         ref: '2026-10',
       });
       expect(nextLifecycleEmail(state({ ...regular, localDay: 8 }))).toBeNull();
+    });
+
+    it('never falls on the day of the Monday email, nor the day after', () => {
+      const monday = { ...regular, localDay: 2, localWeekday: 1 };
+      expect(nextLifecycleEmail(state(monday))).toBeNull();
+      // Without the Monday email, Monday is as good a day as any
+      expect(
+        nextLifecycleEmail(state({ ...monday, emailWeekly: false })),
+      ).toEqual({ kind: 'MONTHLY_RECAP', ref: '2026-10' });
+
+      const weekly = {
+        kind: 'WEEKLY_RECAP' as const,
+        ref: '2026-11-09',
+        sentAt: ago(DAY + 3 * HOUR),
+      };
+      // Tuesday: the spacing holds it back
+      expect(
+        nextLifecycleEmail(
+          state({ ...regular, localDay: 3, localWeekday: 2, sent: [weekly] }),
+        ),
+      ).toBeNull();
+      // Wednesday, still in the first week: it goes
+      expect(
+        nextLifecycleEmail(
+          state({
+            ...regular,
+            now: new Date(NOW.getTime() + DAY),
+            localDay: 4,
+            localWeekday: 3,
+            sent: [weekly],
+          }),
+        ),
+      ).toEqual({ kind: 'MONTHLY_RECAP', ref: '2026-10' });
     });
 
     it('skips quiet months, months already recapped, and those who opted out', () => {

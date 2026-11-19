@@ -51,6 +51,15 @@ export const noteEventSchema = baseEventSchema.extend({
 });
 
 /**
+ * A coach's questionnaire placed in the calendar: it opens at the start,
+ * and its name is the questionnaire's title.
+ */
+export const questionnaireEventSchema = baseEventSchema.extend({
+  type: z.literal(EVENT_TYPE.QUESTIONNAIRE),
+  questionnaireId: z.number().int().positive(),
+});
+
+/**
  * An activity logged by hand, without a device: its duration is the time
  * between its start and end, its distance and elevation are optional.
  */
@@ -72,6 +81,7 @@ export const createEventDtoSchema = z.discriminatedUnion('type', [
   competitionEventSchema,
   noteEventSchema,
   activityEventSchema,
+  questionnaireEventSchema,
 ]);
 
 export type CreateEventDto = z.infer<typeof createEventDtoSchema>;

@@ -36,6 +36,7 @@ import { AppShell } from '../mobile/app-shell';
 import { PlanImportHandler } from '../plan-import-handler';
 import { AppSidebar } from '../sidebar/app-sidebar';
 import { SportIcon } from '../sport-icon/sport-icon';
+import { YearReviewProvider } from '../year-review/year-review-provider';
 
 interface P {
   children: React.ReactNode;
@@ -209,7 +210,9 @@ export function DashboardLayout({ children }: P) {
         <TemplateLibrarySidebarProvider>
           <SharedDndProvider>
             <FinderProvider>
-              <LayoutContent>{children}</LayoutContent>
+              <YearReviewProvider>
+                <LayoutContent>{children}</LayoutContent>
+              </YearReviewProvider>
             </FinderProvider>
           </SharedDndProvider>
         </TemplateLibrarySidebarProvider>

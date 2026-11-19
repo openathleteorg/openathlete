@@ -22,6 +22,7 @@ export const EVENT_KINDS = {
   COMPETITION: 'race',
   NOTE: 'note',
   ACTIVITY: 'activity',
+  QUESTIONNAIRE: 'questionnaire',
 } as const;
 export type EventKind = (typeof EVENT_KINDS)[keyof typeof EVENT_KINDS];
 export const EVENT_TYPE_OF_KIND = {
@@ -29,6 +30,7 @@ export const EVENT_TYPE_OF_KIND = {
   race: 'COMPETITION',
   note: 'NOTE',
   activity: 'ACTIVITY',
+  questionnaire: 'QUESTIONNAIRE',
 } as const;
 
 export const WORKOUT_STEPS_INCLUDE = {
@@ -87,6 +89,7 @@ export const CALENDAR_INCLUDE = {
     },
   },
   note: true,
+  questionnaire: { select: { answeredAt: true } },
   activity: { select: ACTIVITY_SELECT },
 } satisfies Prisma.EventInclude;
 
@@ -98,7 +101,7 @@ const optionalNumber = z.number().optional();
 
 export const calendarItemSchema = z.object({
   eventId: z.number(),
-  type: z.enum(['training', 'race', 'note', 'activity']),
+  type: z.enum(['training', 'race', 'note', 'activity', 'questionnaire']),
   name: z.string(),
   date: z.string().describe('Local date'),
   start: z.string().describe('Local start time with UTC offset'),
@@ -119,7 +122,7 @@ export const calendarItemSchema = z.object({
     .enum(['done', 'missed', 'planned'])
     .optional()
     .describe(
-      'Planned sessions: done (an activity is linked), missed or planned',
+      'Planned sessions: done (an activity is linked), missed or planned. Questionnaires: done once the athlete answered',
     ),
   doneActivityId: optionalNumber.describe('eventId of the activity done'),
   completion: optionalNumber.describe('Done moving time / planned time, %'),
@@ -248,6 +251,21 @@ export function toCalendarItem(
     return {
       ...base,
       ...definedOnly({ description: event.note.description }),
+    } as CalendarItem;
+  }
+
+  // The answers are the coach's to read in the app, not the agent's
+  if (event.questionnaire) {
+    return {
+      ...base,
+      ...definedOnly({
+        repeats: event.seriesId ? true : undefined,
+        status: event.questionnaire.answeredAt
+          ? 'done'
+          : date < today
+            ? 'missed'
+            : 'planned',
+      }),
     } as CalendarItem;
   }
 
