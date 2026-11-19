@@ -1475,7 +1475,11 @@ export class EventService {
         continue;
       }
 
-      const reduced = reductActivityStreamToResolution(streamValue, resolution);
+      const reduced = reductActivityStreamToResolution(
+        streamValue,
+        resolution,
+        key === 'timerPaused',
+      );
       (compressedStreams as Record<string, unknown>)[key] = reduced;
     }
 
