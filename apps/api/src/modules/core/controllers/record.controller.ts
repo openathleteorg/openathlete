@@ -143,6 +143,32 @@ export class RecordController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get('running-economy')
+  @ApiOperation({
+    summary: 'Running power per unit of speed',
+    description:
+      'Joules per metre (watts per m/s) on the flat runs of the last 90 days: at most 1% climbing and 3 km or more, counting only the samples run faster than 1.5 m/s. The median of the runs; null without three such runs with power. FTP divided by it gives the threshold speed, to set pace zones from a power threshold.',
+  })
+  @ApiQuery({
+    name: 'athleteId',
+    type: Number,
+    description:
+      "Optional athlete ID. If not provided, uses authenticated user's athlete.",
+    required: false,
+  })
+  @ApiResponse({ status: 200, description: 'Joules per metre, or null' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getRunningEconomy(
+    @JwtUser() user: AuthUser,
+    @Query('athleteId', new ParseIntPipe({ optional: true }))
+    athleteId?: Athlete['athleteId'],
+  ) {
+    return this.recordService.getRunningEconomy(user, athleteId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('sports')
   @ApiOperation({
     summary: 'Sports that have records',
