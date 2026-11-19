@@ -47,6 +47,8 @@ interface Totals {
   heartSum: number;
   /** Seconds with power, for the average power */
   powerSeconds: number;
+  /** Metres covered with power, which the work is measured over */
+  poweredMetres: number;
 }
 
 const empty = (): Totals => ({
@@ -56,6 +58,7 @@ const empty = (): Totals => ({
   heartSeconds: 0,
   heartSum: 0,
   powerSeconds: 0,
+  poweredMetres: 0,
 });
 
 /**
@@ -94,11 +97,13 @@ export function activityEfficiency(
     const dt = time[i] - time[i - 1];
     if (dt > 0 && dt <= MAX_GAP_SECONDS) {
       segment.seconds += dt;
-      segment.metres += Math.max(distance[i] - distance[i - 1], 0);
+      const step = Math.max(distance[i] - distance[i - 1], 0);
+      segment.metres += step;
       const power = watts[i];
       if (power > 0) {
         segment.work += power * dt;
         segment.powerSeconds += dt;
+        segment.poweredMetres += step;
       }
       const heart = heartrate?.[i];
       if (heart && heart > 0) {
@@ -122,7 +127,7 @@ export function activityEfficiency(
 
   const flatSpeedPerWatt =
     flat.powerSeconds >= MIN_SECONDS && flat.work > 0
-      ? flat.metres / flat.work
+      ? flat.poweredMetres / flat.work
       : null;
   const powerEfficiencyFactor =
     notDown.powerSeconds >= MIN_SECONDS && notDown.heartSeconds >= MIN_SECONDS
@@ -140,4 +145,5 @@ function add(into: Totals, segment: Totals) {
   into.heartSeconds += segment.heartSeconds;
   into.heartSum += segment.heartSum;
   into.powerSeconds += segment.powerSeconds;
+  into.poweredMetres += segment.poweredMetres;
 }

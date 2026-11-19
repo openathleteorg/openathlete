@@ -79,6 +79,17 @@ describe('activityEfficiency', () => {
     );
   });
 
+  it('counts only the metres run with power on a stretch with a few dropouts', () => {
+    // One sample in twelve without power: the stretches still count, and
+    // the metres of those samples must not read as free
+    const stream = flat();
+    for (let i = 0; i < stream.watts.length; i += 12) stream.watts[i] = 0;
+    expect(activityEfficiency(stream, run).flatSpeedPerWatt).toBeCloseTo(
+      4 / 300,
+      9,
+    );
+  });
+
   it('gives nothing without power, too short, or outside running', () => {
     const { watts: _watts, ...noPower } = flat();
     expect(activityEfficiency(noPower, run)).toEqual({
