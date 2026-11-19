@@ -62,6 +62,54 @@ function fitTimerPauses(
   });
 }
 
+/**
+ * Longest stretch without a sensor sample that is bridged. Watches and apps
+ * (Gadgetbridge, smart bands) often write heart rate, altitude or cadence in
+ * fewer records than the timeline: those short gaps are interpolated so the
+ * channel stays aligned with time. A longer one is a real dropout, which the
+ * stream cannot hold (no nulls), so the channel is left incomplete and
+ * omitted, as before.
+ */
+const MAX_SENSOR_GAP_SECONDS = 60;
+
+function fillSensorGaps(
+  values: (number | null)[],
+  time: number[],
+): number[] | null {
+  const present = (series: (number | null)[]) =>
+    series.filter((value): value is number => value !== null);
+  const known = values.flatMap((value, index) =>
+    value === null ? [] : [index],
+  );
+  if (!known.length) return null;
+  if (values.length !== time.length) return present(values);
+  const filled = [...values];
+  const bridgeable = (from: number, to: number) =>
+    time[to] - time[from] <= MAX_SENSOR_GAP_SECONDS;
+
+  const first = known[0];
+  const last = known[known.length - 1];
+  for (let i = 0; i < first; i++) {
+    if (bridgeable(i, first)) filled[i] = values[first];
+  }
+  for (let i = last + 1; i < values.length; i++) {
+    if (bridgeable(last, i)) filled[i] = values[last];
+  }
+  for (let k = 1; k < known.length; k++) {
+    const a = known[k - 1];
+    const b = known[k];
+    if (b - a < 2 || !bridgeable(a, b)) continue;
+    const span = time[b] - time[a];
+    for (let i = a + 1; i < b; i++) {
+      const share = span > 0 ? (time[i] - time[a]) / span : 0;
+      filled[i] = values[a]! + (values[b]! - values[a]!) * share;
+    }
+  }
+  // A gap still open leaves a shorter series, omitted later rather than
+  // misaligned with time
+  return present(filled);
+}
+
 export class FitParserStrategy implements ActivityParser {
   private readonly supportedMimeTypes = [
     'application/vnd.garmin.fit',
@@ -143,10 +191,10 @@ export class FitParserStrategy implements ActivityParser {
     const result: ActivityStream = {};
     const time: number[] = [];
     const latlng: number[][] = [];
-    const altitude: number[] = [];
-    const heartrate: number[] = [];
-    const cadence: number[] = [];
-    const watts: number[] = [];
+    const altitude: (number | null)[] = [];
+    const heartrate: (number | null)[] = [];
+    const cadence: (number | null)[] = [];
+    const watts: (number | null)[] = [];
     const distance: number[] = [];
     const speed: (number | null)[] = [];
     const temp: number[] = [];
@@ -244,21 +292,13 @@ export class FitParserStrategy implements ActivityParser {
       }
       distance.push(hasDistance ? cumulativeDistance : 0);
 
-      if (alt !== null) {
-        altitude.push(alt);
-      }
+      altitude.push(alt);
 
-      if (hr !== null) {
-        heartrate.push(hr);
-      }
+      heartrate.push(hr);
 
-      if (cad !== null) {
-        cadence.push(cad);
-      }
+      cadence.push(cad);
 
-      if (power !== null) {
-        watts.push(power);
-      }
+      watts.push(power);
 
       if (
         typeof record.temperature === 'number' &&
@@ -274,17 +314,21 @@ export class FitParserStrategy implements ActivityParser {
     if (latlng.some(isValidGpsPoint)) {
       result.latlng = latlng;
     }
-    if (altitude.length) {
-      result.altitude = altitude;
+    const altitudeSeries = fillSensorGaps(altitude, time);
+    if (altitudeSeries) {
+      result.altitude = altitudeSeries;
     }
-    if (heartrate.length) {
-      result.heartrate = heartrate;
+    const heartrateSeries = fillSensorGaps(heartrate, time);
+    if (heartrateSeries) {
+      result.heartrate = heartrateSeries;
     }
-    if (cadence.length) {
-      result.cadence = cadence;
+    const cadenceSeries = fillSensorGaps(cadence, time);
+    if (cadenceSeries) {
+      result.cadence = cadenceSeries;
     }
-    if (watts.length) {
-      result.watts = watts;
+    const wattsSeries = fillSensorGaps(watts, time);
+    if (wattsSeries) {
+      result.watts = wattsSeries;
     }
     if (hasDistance) {
       result.distance = distance;

@@ -61,6 +61,8 @@ function fixture(
     gps?: boolean;
     missingGps?: number[];
     samples?: Record<string, unknown>[];
+    /** Seconds from the start of each of the three records */
+    seconds?: number[];
     timerEvents?: { seconds: number; type: string }[];
     session?: Record<string, unknown>;
   } = {},
@@ -77,7 +79,7 @@ function fixture(
   if (options.records !== false) {
     for (let i = 0; i < 3; i++)
       encoder.onMesg(20, {
-        timestamp: start + i,
+        timestamp: start + (options.seconds?.[i] ?? i),
         distance: i * 3,
         altitude: 100 + i,
         power: 200 + i,
@@ -251,8 +253,19 @@ describe('Manual FIT parsing', () => {
     const withoutRpe = await parse(fixture());
     expect(withoutRpe.activity.rpe).toBeNull();
   });
-  test('omits incomplete channels rather than shifting their timestamps', async () => {
+  test('bridges a sensor missing from some records, as sparse recorders write them', async () => {
+    // Gadgetbridge and smart bands leave heart rate out of some records:
+    // the channel stays, so its graph and training load do too (#176)
     const result = await parse(fixture({ partial: true }));
+    const stream = uncompressActivityStream(result.details.stream);
+    expect(stream.heartrate).toEqual([120, 121, 122]);
+    expect(stream.watts).toEqual([200, 201, 202]);
+    expect(result.warnings).not.toContain('FIT_INCOMPLETE_CHANNELS');
+  });
+  test('omits a channel with a real dropout rather than shifting its timestamps', async () => {
+    const result = await parse(
+      fixture({ partial: true, seconds: [0, 60, 200] }),
+    );
     const stream = uncompressActivityStream(result.details.stream);
     expect(stream.heartrate).toBeUndefined();
     expect(stream.watts).toEqual([200, 201, 202]);
