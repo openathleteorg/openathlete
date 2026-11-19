@@ -226,7 +226,23 @@ describe('lifecycle emails (PostgreSQL)', () => {
     }
     await addActivity(athleteId, new Date('2026-09-12T07:00:00Z'), 20_000);
 
-    expect(await scheduler.sendLifecycleEmails(NOW)).toBe(1);
+    // Never on a Monday, the day of the weekly email
+    expect(await scheduler.sendLifecycleEmails(NOW)).toBe(0);
+    // Its Monday email went out: two days later, the recap goes
+    await prisma.lifecycleEmail.create({
+      data: {
+        userId: user.userId,
+        kind: 'WEEKLY_RECAP',
+        ref: '2026-11-02',
+        sentAt: new Date('2026-11-02T07:00:00Z'),
+      },
+    });
+    expect(
+      await scheduler.sendLifecycleEmails(new Date(NOW.getTime() + DAY)),
+    ).toBe(0);
+    expect(
+      await scheduler.sendLifecycleEmails(new Date(NOW.getTime() + 2 * DAY)),
+    ).toBe(1);
     expect(sent[0].subject).toBe('October: 40 km in 4 sessions');
     expect(sent[0].text).toContain("That's 100% more than in September.");
     expect(sent[0].headers!['List-Unsubscribe']).toContain(

@@ -62,6 +62,9 @@
   --event-note: #fdf6dd;
   --event-note-hover: #fbefc8;
   --event-note-border: #f7e7b1;
+  --event-questionnaire: #f1edfd;
+  --event-questionnaire-hover: #e8e1fb;
+  --event-questionnaire-border: #dcd2f8;
   --radius: 0.625rem;
   --sidebar: #f2f3f8;
   --sidebar-foreground: #5e6684;
@@ -130,6 +133,9 @@
   --event-note: oklch(0.32 0.05 90);
   --event-note-hover: oklch(0.36 0.05 90);
   --event-note-border: oklch(0.4 0.05 90);
+  --event-questionnaire: oklch(0.3 0.05 290);
+  --event-questionnaire-hover: oklch(0.34 0.05 290);
+  --event-questionnaire-border: oklch(0.4 0.06 290);
   --sidebar: oklch(0.18 0.01 265);
   --sidebar-foreground: oklch(0.95 0.01 265);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -197,6 +203,9 @@
   --color-event-note: var(--event-note);
   --color-event-note-hover: var(--event-note-hover);
   --color-event-note-border: var(--event-note-border);
+  --color-event-questionnaire: var(--event-questionnaire);
+  --color-event-questionnaire-hover: var(--event-questionnaire-hover);
+  --color-event-questionnaire-border: var(--event-questionnaire-border);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

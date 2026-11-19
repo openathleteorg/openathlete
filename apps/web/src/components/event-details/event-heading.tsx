@@ -30,9 +30,7 @@ export function EventHeading({
       : undefined;
   return (
     <div className="flex flex-wrap items-center gap-2 grow text-sm md:text-base">
-      {event.type !== EVENT_TYPE.NOTE && event.sport && (
-        <SportIcon sport={event.sport} />
-      )}
+      {'sport' in event && event.sport && <SportIcon sport={event.sport} />}
       {!hideName && <span className="break-words">{event.name}</span>}
       <Badge className="text-xs">{eventTypeLabelMap[event.type]}</Badge>
       {event.type === EVENT_TYPE.ACTIVITY && event.isRace && (

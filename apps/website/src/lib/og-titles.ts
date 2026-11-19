@@ -26,6 +26,10 @@ const TITLES: Record<string, Candidates> = {
   '/features/ai-coach': ['features_ai_h1', 'features_ai_seo_title'],
   '/features/mcp-server': ['features_mcp_h1', 'features_mcp_seo_title'],
   '/features/watch-sync': ['features_sync_h1', 'features_sync_seo_title'],
+  '/features/athlete-questionnaires': [
+    'features_quest_h1',
+    'features_quest_seo_title',
+  ],
   '/athletes': [
     ['athletes_hero_title_1', 'athletes_hero_title_2'],
     'athletes_seo_title',

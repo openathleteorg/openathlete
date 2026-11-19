@@ -8,6 +8,8 @@ export const ACTIVITY_STREAM_KEYS = [
   'latlng',
   'heartrate',
   'distance',
+  'speed',
+  'timerPaused',
   'time',
   'watts',
   'gap',

@@ -19,6 +19,7 @@ import {
   CLUB_DESCRIPTION, CLUB_MEMBERS, CLUB_NAME, GROUPS, GroupKey, PENDING_CLUB_INVITATIONS, ROSTER_GROUPS, STAFF,
 } from './lib/club';
 import { addDays, at, daysBetween, mondayOf, today as getToday, TIME_ZONE } from './lib/dates';
+import { seedQuestionnaires } from './lib/questionnaires';
 import { hashSeed, Random } from './lib/random';
 import { PENDING_INVITE, ROSTER, RosterAthlete } from './lib/roster';
 import { buildSeason, PlannedDay, Race } from './lib/season';
@@ -948,12 +949,12 @@ async function seedAiSettings(db: Db, userId: number, today: Date) {
       { userId, task: 'POST_ACTIVITY_QUESTIONS', modelId: 'gpt-5.4-mini', aiCredentialId: openai.aiCredentialId },
     ],
   });
-  const month = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
+  // This month's usage, recorded day by day
   await db.aiUsage.createMany({
     data: [
-      { userId, month, task: 'ACTIVITY_SUMMARY', source: 'OWN_KEY', inputTokens: 48_200, outputTokens: 6_900, calls: 4 },
-      { userId, month, task: 'EVENT_GENERATION', source: 'OWN_KEY', inputTokens: 31_500, outputTokens: 12_400, calls: 2 },
-      { userId, month, task: 'POST_ACTIVITY_QUESTIONS', source: 'OWN_KEY', inputTokens: 9_800, outputTokens: 1_300, calls: 3 },
+      { userId, day: addDays(today, -1), task: 'ACTIVITY_SUMMARY', source: 'OWN_KEY', inputTokens: 48_200, outputTokens: 6_900, calls: 4 },
+      { userId, day: addDays(today, -3), task: 'EVENT_GENERATION', source: 'OWN_KEY', inputTokens: 31_500, outputTokens: 12_400, calls: 2 },
+      { userId, day: addDays(today, -2), task: 'POST_ACTIVITY_QUESTIONS', source: 'OWN_KEY', inputTokens: 9_800, outputTokens: 1_300, calls: 3 },
     ],
   });
 }
@@ -1311,6 +1312,11 @@ async function main() {
   for (const [i, spec] of ROSTER.entries()) {
     rosterIds[spec.lastName] = await seedRosterAthlete(db, spec, i, today, coach.user.userId, passwordHash, rosterActivities);
   }
+  await seedQuestionnaires(db, today, coach.user.userId, [
+    { athleteId: camille.athleteId, story: true },
+    ...['Martin', 'Bernard', 'Rossi', 'Dubois'].map((lastName) => ({ athleteId: rosterIds[lastName].athleteId, story: false })),
+  ]);
+  log('questionnaires: Hooper index and weekly check-in for 5 athletes');
   // The club: Julien's athletes and members he reaches through it
   const members: { userId: number; athleteId: number; group: GroupKey }[] = [];
   for (const [i, spec] of CLUB_MEMBERS.entries()) {

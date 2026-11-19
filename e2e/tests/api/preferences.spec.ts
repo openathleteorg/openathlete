@@ -56,3 +56,27 @@ test('keeps vouched record suspects with the athlete', async ({ request }) => {
   const after = await (await request.get(url, { headers })).json();
   expect(after.dismissedRecordSuspects).toEqual([12, 34]);
 });
+
+test('sends the weekly emails by default, until turned off', async ({
+  request,
+}) => {
+  const athlete = await createAthlete(request);
+  const headers = apiHeaders(undefined, athlete.accessToken);
+  const getMe = async () =>
+    (await request.get(`${API_URL}/user/me`, { headers })).json();
+
+  expect(await getMe()).toMatchObject({
+    emailWeekly: true,
+    emailCoachWeekly: true,
+  });
+
+  const updated = await request.patch(`${API_URL}/user`, {
+    headers,
+    data: { emailWeekly: false },
+  });
+  expect(updated.ok(), await updated.text()).toBe(true);
+  expect(await getMe()).toMatchObject({
+    emailWeekly: false,
+    emailCoachWeekly: true,
+  });
+});

@@ -13,6 +13,7 @@ const state = vi.hoisted(() => ({
     athleteId: number;
     user: { firstName: string; lastName: string };
   }[],
+  coaches: [] as { userId: number }[],
 }));
 
 vi.mock('@/contexts/finder', () => ({
@@ -23,6 +24,7 @@ vi.mock('@/components/clubs/use-group-filter', () => ({
 }));
 vi.mock('@/api/athlete', () => ({
   useGetMyCoachedAthletesQuery: () => ({ data: state.athletes }),
+  useGetMyCoachesQuery: () => ({ data: state.coaches }),
 }));
 vi.mock('@/contexts/space', () => ({
   useSpaceContext: () => ({ space: state.space }),
@@ -36,6 +38,9 @@ vi.mock('@/components/sidebar/space-switcher', () => ({
 }));
 vi.mock('@/components/sidebar/support-reminder', () => ({
   SupportReminder: () => null,
+}));
+vi.mock('@/components/year-review/entry/year-review-button', () => ({
+  YearReviewButton: () => null,
 }));
 // Every message renders as its key.
 vi.mock('@/paraglide/messages', () => ({
@@ -149,6 +154,7 @@ describe('AppSidebar collapsed on desktop', () => {
       '/dashboard/statistics/102',
       '/dashboard/records/102',
       '/dashboard/metrics/102',
+      '/dashboard/questionnaires/102',
       '/dashboard/notes/102',
       '/dashboard/settings/102',
     ]);
@@ -199,6 +205,21 @@ describe('AppSidebar elsewhere', () => {
     expect(
       document.querySelector('a[href="/dashboard/calendar"]'),
     ).not.toBeNull();
+  });
+
+  it("shows an athlete their coaches' questionnaires", async () => {
+    state.space = 'ATHLETE';
+    state.athletes = [];
+    state.coaches = [];
+    await render();
+    const link = () =>
+      document.querySelector('a[href="/dashboard/my-questionnaires"]');
+    expect(link()).toBeNull();
+    act(() => root?.unmount());
+    state.coaches = [{ userId: 1 }];
+    await render();
+    expect(link()).not.toBeNull();
+    state.coaches = [];
   });
 
   it('keeps the athlete tree in the drawer on phones', async () => {

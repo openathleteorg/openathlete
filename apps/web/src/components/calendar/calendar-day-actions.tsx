@@ -4,6 +4,7 @@ import { m } from '@/paraglide/messages';
 import {
   Activity,
   Award,
+  ClipboardList,
   ClipboardPaste,
   FileText,
   PenLine,
@@ -56,8 +57,12 @@ export function CalendarDayActions({
   onCopyToAthletes?: () => void;
 }) {
   const { Item, Separator } = MENUS[menu];
-  const { createEvent, createEventFromTemplate, createEventWithAI } =
-    useCalendarContext();
+  const {
+    createEvent,
+    createEventFromTemplate,
+    createEventWithAI,
+    canPlaceQuestionnaire,
+  } = useCalendarContext();
   const { clipboard, hasClipboard } = useEventClipboard();
   const { available: hasAIAccess } = useAiTaskAvailable(
     AiTask.EVENT_GENERATION,
@@ -142,6 +147,12 @@ export function CalendarDayActions({
         <StickyNote className="mr-2 h-4 w-4" />
         {m.plan_a_note()}
       </Item>
+      {canPlaceQuestionnaire && (
+        <Item onClick={() => createEvent(day, EVENT_TYPE.QUESTIONNAIRE)}>
+          <ClipboardList className="mr-2 h-4 w-4" />
+          {m.plan_a_questionnaire()}
+        </Item>
+      )}
       <Item onClick={() => createEvent(day, EVENT_TYPE.ACTIVITY)}>
         <PenLine className="mr-2 h-4 w-4" />
         {m.event_dialog_plan_activity()}

@@ -1,11 +1,12 @@
 import { shots } from '@/assets/screenshots';
-import { msg } from '@/components/features/helpers';
+import { msg, questionnaireCardLabels } from '@/components/features/helpers';
 import {
   ArrowLink,
   FeatureHero,
   FeatureJsonLd,
   SplitRow,
 } from '@/components/features/kit';
+import { QuestionnaireCard } from '@/components/features/quest-visuals';
 import { CtaBand } from '@/components/site/cta-band';
 import {
   Container,
@@ -334,7 +335,7 @@ export default async function FeaturesPage({ params }: Props) {
                   {m.features_hub_mcp_body()}
                 </p>
                 <code className="mt-5 w-fit rounded-lg bg-white/10 px-3 py-1.5 font-mono text-[0.78rem] text-white/80">
-                  plan_sessions · get_training_load · +21
+                  plan_sessions · get_training_load · +23
                 </code>
                 <span className="mt-auto pt-6 font-medium text-white group-hover:text-mint">
                   {m.features_nav_mcp_title()} →
@@ -373,6 +374,33 @@ export default async function FeaturesPage({ params }: Props) {
               </ArrowLink>
             </div>
           </SplitRow>
+          <div className="mt-20 sm:mt-28">
+            <SplitRow
+              flip
+              as="h3"
+              kicker={m.features_quest_hub_kicker()}
+              title={m.features_quest_hub_title()}
+              body={m.features_quest_hub_body()}
+              points={[
+                m.features_quest_hub_p1(),
+                m.features_quest_hub_p2(),
+                m.features_quest_hub_p3(),
+              ]}
+              visual={
+                <QuestionnaireCard
+                  labels={questionnaireCardLabels()}
+                  className="mx-auto max-w-[30rem]"
+                />
+              }
+            >
+              <ArrowLink
+                href={p('/features/athlete-questionnaires')}
+                className="mt-7"
+              >
+                {m.features_nav_quest_title()}
+              </ArrowLink>
+            </SplitRow>
+          </div>
         </Container>
       </Section>
 

@@ -26,6 +26,7 @@ const row = (
   averageRpe: null,
   metrics: {},
   previous: null,
+  questionnaires: { due: 0, answered: 0, lastAnsweredAt: null },
   ...overrides,
 });
 

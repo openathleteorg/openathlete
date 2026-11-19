@@ -3,9 +3,23 @@ import { z } from 'zod';
 
 import {
   COMPETITION_PRIORITY,
+  type CreateEventDto,
   EVENT_TYPE,
+  type Event,
+  type QuestionnaireEvent,
   SPORT_TYPE,
 } from '@openathlete/shared';
+
+/** The events this dialog writes: questionnaires are placed apart */
+export type DialogEventType = Exclude<EVENT_TYPE, EVENT_TYPE.QUESTIONNAIRE>;
+export type DialogEvent = Exclude<Event, QuestionnaireEvent>;
+export type DialogCreateEventDto = Exclude<
+  CreateEventDto,
+  { type: EVENT_TYPE.QUESTIONNAIRE }
+>;
+
+export const isDialogEvent = (event: Event): event is DialogEvent =>
+  event.type !== EVENT_TYPE.QUESTIONNAIRE;
 
 // Base schema for all event types
 export const baseEventFormSchema = z.object({

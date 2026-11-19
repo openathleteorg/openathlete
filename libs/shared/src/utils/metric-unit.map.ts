@@ -29,7 +29,8 @@ export const metricUnitMap: Record<METRIC_TYPE, string> = {
   [METRIC_TYPE.SLEEP_RESPIRATION_AVG]: 'breaths/min',
   [METRIC_TYPE.SLEEP_SPO2_AVG]: '%',
   [METRIC_TYPE.NAP_DURATION]: 'h',
-  [METRIC_TYPE.HOOPER_INDEX]: '/10',
+  // Four answers from 1 to 7: 4 to 28
+  [METRIC_TYPE.HOOPER_INDEX]: 'pts',
 
   [METRIC_TYPE.HR_MAX]: 'bpm',
   [METRIC_TYPE.HR_REST]: 'bpm',
