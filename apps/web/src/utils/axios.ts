@@ -133,6 +133,21 @@ export const routes = {
     uploadImage: '/files/images',
     get: (fileId: string) => `/files/${fileId}`,
   },
+  questionnaire: {
+    list: '/questionnaires',
+    create: '/questionnaires',
+    pending: '/questionnaires/pending',
+    responses: '/questionnaires/responses',
+    get: (questionnaireId: number) => `/questionnaires/${questionnaireId}`,
+    update: (questionnaireId: number) => `/questionnaires/${questionnaireId}`,
+    remove: (questionnaireId: number) => `/questionnaires/${questionnaireId}`,
+    archive: (questionnaireId: number) =>
+      `/questionnaires/${questionnaireId}/archive`,
+    restore: (questionnaireId: number) =>
+      `/questionnaires/${questionnaireId}/restore`,
+    ofEvent: (eventId: number) => `/questionnaires/events/${eventId}`,
+    answers: (eventId: number) => `/questionnaires/events/${eventId}/answers`,
+  },
   coachNote: {
     notebook: '/coach-notes/notebook',
     list: '/coach-notes',
@@ -198,12 +213,14 @@ export const routes = {
     recovery: '/statistics/recovery',
     terrain: '/statistics/terrain',
     cardiacCost: '/statistics/cardiac-cost',
+    efficiency: '/statistics/efficiency',
     durability: '/statistics/durability',
     longRuns: '/statistics/long-runs',
     intensity: '/statistics/intensity',
     trends: '/statistics/trends',
     load: '/statistics/load',
   },
+  yearReview: '/year-review',
   coach: {
     dashboard: (start?: string, end?: string, compare?: boolean) => {
       const params = new URLSearchParams();

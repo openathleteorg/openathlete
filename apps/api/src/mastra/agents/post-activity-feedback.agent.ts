@@ -56,7 +56,7 @@ OUTPUT FORMAT (JSON ONLY, no markdown, no explanations):
       "text": "<question text, 1 sentence maximum, in target language>",
       "qcmOptions": [
         { "label": "<option label in target language>" }
-      ] // optional, include only if QCM options would help guide the response
+      ] // or null when free-form answers fit better
     }
   ]
 }

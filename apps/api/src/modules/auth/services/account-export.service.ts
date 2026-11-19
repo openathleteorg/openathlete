@@ -46,7 +46,11 @@ export class AccountExportService {
         trainingReminders: true,
         emailTips: true,
         emailRecap: true,
+        emailQuestionnaires: true,
+        emailWeekly: true,
+        emailCoachWeekly: true,
         emailNewsConsentAt: true,
+        unitSystem: true,
         roles: true,
         onboardingCompleted: true,
         acquisitionSource: true,
@@ -133,6 +137,36 @@ export class AccountExportService {
           updatedAt: true,
         },
         orderBy: { coachNoteId: 'asc' },
+      }),
+    );
+    // The questionnaires the user wrote as a coach
+    write(
+      'questionnaires',
+      await this.prisma.questionnaire.findMany({
+        where: { coachUserId: userId },
+        select: {
+          title: true,
+          description: true,
+          scoreKind: true,
+          scoreMetricType: true,
+          archivedAt: true,
+          createdAt: true,
+          questions: {
+            select: {
+              position: true,
+              type: true,
+              label: true,
+              help: true,
+              required: true,
+              config: true,
+              inScore: true,
+              metricType: true,
+              archivedAt: true,
+            },
+            orderBy: { position: 'asc' },
+          },
+        },
+        orderBy: { questionnaireId: 'asc' },
       }),
     );
     write(
@@ -399,6 +433,25 @@ export class AccountExportService {
         ...(cursor ? { skip: 1, cursor: { eventId: cursor } } : {}),
         include: {
           ...EVENT_INCLUDES,
+          // The athlete's answers, with the questions they answer
+          questionnaire: {
+            select: {
+              questionnaireId: true,
+              answeredAt: true,
+              score: true,
+              answers: {
+                select: {
+                  valueNumber: true,
+                  valueText: true,
+                  valueOptions: true,
+                  question: {
+                    select: { label: true, type: true, config: true },
+                  },
+                },
+                orderBy: { question: { position: 'asc' } },
+              },
+            },
+          },
           activity: {
             include: {
               feedbackQuestions: true,

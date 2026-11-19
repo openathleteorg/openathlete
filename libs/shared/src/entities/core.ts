@@ -108,6 +108,19 @@ export type NoteEvent = PrismaEventNote &
     type: EVENT_TYPE.NOTE;
   };
 
+/**
+ * A coach's questionnaire placed in the calendar. Its name is the
+ * questionnaire's title; the questions and answers are read apart.
+ */
+export type QuestionnaireEvent = Omit<PrismaEvent, 'type'> & {
+  type: EVENT_TYPE.QUESTIONNAIRE;
+  questionnaireId: number;
+  /** The club the coach placed it for, whose coaches read the answers */
+  clubId: number | null;
+  answeredAt: Date | null;
+  score: number | null;
+};
+
 export interface ActivitySegment extends PrismaActivitySegment {
   workoutStep?: WorkoutStep;
 }
@@ -132,7 +145,7 @@ export interface PlannedSession {
 
 export type ActivityEvent = Omit<
   PrismaEvent,
-  'type' | 'activity' | 'training' | 'competition' | 'note'
+  'type' | 'activity' | 'training' | 'competition' | 'note' | 'questionnaire'
 > &
   Omit<PrismaEventActivity, 'event' | 'sport'> & {
     type: EVENT_TYPE.ACTIVITY;
@@ -149,7 +162,11 @@ export type ActivityEvent = Omit<
   };
 
 export type Event =
-  TrainingEvent | CompetitionEvent | NoteEvent | ActivityEvent;
+  | TrainingEvent
+  | CompetitionEvent
+  | NoteEvent
+  | ActivityEvent
+  | QuestionnaireEvent;
 
 export interface EventTemplate extends PrismaEventTemplate {
   event?: Event;

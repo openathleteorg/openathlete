@@ -10,11 +10,36 @@ const GUIDE_ACTIVITY_IDS = new Set(
 );
 
 /**
- * The Suunto activities a guide is recommended for. None: the guide is
- * offered in every sport mode.
+ * Sports a workout is planned in that a watch records in several modes. The
+ * watch offers a guide only in the sport modes it lists, although the API
+ * calls them recommendations: a run planned as trail would be missing when
+ * the athlete starts a road run or the treadmill, a ride planned as gravel
+ * when they start a road ride.
+ */
+const SPORT_GROUPS: SportType[][] = [
+  [SportType.RUNNING, SportType.TRAIL_RUNNING, SportType.VIRTUAL_RUN],
+  [
+    SportType.CYCLING,
+    SportType.VIRTUAL_RIDE,
+    SportType.MOUNTAIN_BIKE_RIDE,
+    SportType.GRAVEL_RIDE,
+    SportType.E_BIKE_RIDE,
+    SportType.E_MOUNTAIN_BIKE_RIDE,
+    SportType.HANDCYCLE,
+  ],
+];
+
+/**
+ * The Suunto activities a guide is offered in: those of its sport first,
+ * then those of the other sports of its group. None: the guide is offered
+ * in every sport mode.
  */
 export function mapSportToSuuntoActivityIds(sport: SportType): number[] {
-  return suuntoActivityIds(sport).filter((id) => GUIDE_ACTIVITY_IDS.has(id));
+  const group = SPORT_GROUPS.find((sports) => sports.includes(sport)) ?? [];
+  const ids = [sport, ...group.filter((other) => other !== sport)].flatMap(
+    suuntoActivityIds,
+  );
+  return [...new Set(ids)].filter((id) => GUIDE_ACTIVITY_IDS.has(id));
 }
 
 /** Based on Suunto's list of activities */

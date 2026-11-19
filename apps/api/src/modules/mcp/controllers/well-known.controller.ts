@@ -1,5 +1,14 @@
-import { Controller, Get, Header, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  NotFoundException,
+  Param,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiExcludeController } from '@nestjs/swagger';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { OAuthService } from '../auth/oauth.service';
 
@@ -12,7 +21,15 @@ import { OAuthService } from '../auth/oauth.service';
 @ApiExcludeController()
 @Controller('.well-known')
 export class WellKnownController {
-  constructor(private readonly oauth: OAuthService) {}
+  private readonly openAiAppsChallenge?: string;
+
+  constructor(
+    private readonly oauth: OAuthService,
+    config: ConfigService<ApiEnvSchemaType, true>,
+  ) {
+    this.openAiAppsChallenge =
+      config.get('OPENAI_APPS_CHALLENGE_TOKEN', { infer: true }) || undefined;
+  }
 
   @Get(['oauth-protected-resource', 'oauth-protected-resource/*path'])
   @Header('Cache-Control', 'public, max-age=3600')
@@ -29,5 +46,13 @@ export class WellKnownController {
   @Header('Cache-Control', 'public, max-age=3600')
   authorizationServer() {
     return this.oauth.metadata();
+  }
+
+  /** Proves to OpenAI that we own the domain of the app listed in ChatGPT */
+  @Get('openai-apps-challenge')
+  @Header('Content-Type', 'text/plain; charset=utf-8')
+  openAiAppsChallengeToken(): string {
+    if (!this.openAiAppsChallenge) throw new NotFoundException();
+    return this.openAiAppsChallenge;
   }
 }

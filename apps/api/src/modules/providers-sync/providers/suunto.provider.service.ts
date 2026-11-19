@@ -30,6 +30,7 @@ import {
   toSegmentColumns,
 } from '../../core/helpers/activity-segment';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
+import { savingCompletesHeartRateProfile } from '../../core/helpers/heart-rate-profile';
 import {
   roundCadence,
   roundDistance,
@@ -39,7 +40,11 @@ import {
   roundMetricValue,
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
-import { mapSuuntoWorkoutToSportType } from '../../core/helpers/suunto';
+import {
+  isGeneratedSuuntoName,
+  mapSuuntoWorkoutToSportType,
+  suuntoWorkoutName,
+} from '../../core/helpers/suunto';
 import {
   SuuntoAggregatedActivityData,
   SuuntoDailyActivityEntry,
@@ -67,6 +72,7 @@ import {
 } from '../base/provider-import.interface';
 import { providerRedirectUri } from '../base/provider-urls';
 import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
+import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
 import {
   SuuntoMetricRecord,
   mapSuuntoActivitySamples,
@@ -76,6 +82,36 @@ import {
 } from '../mapping/suunto-health.mapper';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const SUUNTO_RATE_LIMIT_RETRY_MS = 60_000;
+
+/** Suunto error bodies come as JSON, text, or bytes for file downloads */
+function suuntoErrorBody(data: unknown): string {
+  if (data === undefined || data === null) return '';
+  if (Buffer.isBuffer(data)) return data.toString('utf8');
+  if (data instanceof ArrayBuffer) return Buffer.from(data).toString('utf8');
+  if (typeof data === 'string') return data;
+  return JSON.stringify(data);
+}
+
+/**
+ * How long to wait when Suunto refused a request for quota, or null. Its
+ * gateway answers a spent quota with 401 "General auth Error" and a
+ * "Rate limit is exceeded" body as often as with a 429: refreshing the token
+ * cannot help, and doing it for every activity of an import makes it worse.
+ */
+export function suuntoRateLimitDelayMs(error: unknown): number | null {
+  if (!isAxiosError(error) || !error.response) return null;
+  const { status, headers, data } = error.response;
+  const body = suuntoErrorBody(data);
+  if (status !== 429 && !/rate ?limit/i.test(body)) return null;
+  const retryAfter = Number.parseInt(
+    String(headers?.['retry-after'] ?? ''),
+    10,
+  );
+  if (Number.isFinite(retryAfter) && retryAfter > 0) return retryAfter * 1000;
+  const inBody = /try again in (\d+) seconds?/i.exec(body);
+  return inBody ? Number(inBody[1]) * 1000 : SUUNTO_RATE_LIMIT_RETRY_MS;
+}
 
 @Injectable()
 export class SuuntoProviderService
@@ -461,6 +497,11 @@ export class SuuntoProviderService
         throw error;
       }
 
+      const rateLimitDelay = suuntoRateLimitDelayMs(error);
+      if (rateLimitDelay !== null) {
+        throw new ProviderRateLimitError('Suunto', rateLimitDelay);
+      }
+
       if (
         isAxiosError(error) &&
         error.response?.status === 401 &&
@@ -552,12 +593,13 @@ export class SuuntoProviderService
           );
           return result;
         } catch (retryError) {
+          const retryDelay = suuntoRateLimitDelayMs(retryError);
+          if (retryDelay !== null) {
+            throw new ProviderRateLimitError('Suunto', retryDelay);
+          }
           if (isAxiosError(retryError)) {
             this.logger.error(
-              `Suunto request failed after token refresh: ${retryError.response?.status} ${retryError.response?.statusText} - ${JSON.stringify(retryError.response?.data)}`,
-            );
-            this.logger.error(
-              `Token used: length=${tokenResponse.access_token.length}, starts with: ${tokenResponse.access_token.substring(0, 30)}...`,
+              `Suunto request failed after token refresh: ${retryError.response?.status} ${retryError.response?.statusText} - ${suuntoErrorBody(retryError.response?.data).slice(0, 300)}`,
             );
           }
           throw retryError;
@@ -567,7 +609,7 @@ export class SuuntoProviderService
       // Log error details for debugging
       if (isAxiosError(error)) {
         this.logger.error(
-          `Suunto API request failed: ${error.response?.status} ${error.response?.statusText} - ${JSON.stringify(error.response?.data)}`,
+          `Suunto API request failed: ${error.response?.status} ${error.response?.statusText} - ${suuntoErrorBody(error.response?.data).slice(0, 300)}`,
         );
       }
 
@@ -704,6 +746,9 @@ export class SuuntoProviderService
         workout.workoutKey,
       );
     } catch (error) {
+      // Out of quota: the job waits and tries the file again, since a saved
+      // activity without streams is retried by its next import
+      if (error instanceof ProviderRateLimitError) throw error;
       // The summary is saved: the activity shows without its streams
       this.logger.warn(
         `Failed to import the FIT file of Suunto workout ${workout.workoutKey}: ${error instanceof Error ? error.message : String(error)}`,
@@ -910,7 +955,10 @@ export class SuuntoProviderService
   }
 
   /**
-   * Queue activities for import
+   * Queue the history's activities for import: those not saved yet, and
+   * those saved without their FIT file (refused for quota, for instance),
+   * which the import fetches again. Saved activities still named after
+   * their key take their sport's name on the way.
    */
   private async enqueueActivities(
     account: ProviderAccount,
@@ -920,34 +968,67 @@ export class SuuntoProviderService
       return 0;
     }
 
-    const existingExternalIds = await this.prisma.eventActivity.findMany({
-      where: {
-        externalId: {
-          in: activities.map((a) => a.externalId),
-        },
-      },
+    const externalIds = activities.map((a) => a.externalId);
+    const saved = await this.prisma.eventActivity.findMany({
+      where: { externalId: { in: externalIds } },
       select: {
         externalId: true,
+        eventId: true,
+        event: { select: { name: true } },
       },
     });
+    // Streams stay in the database: only which ones are empty is read
+    const withoutStream = await this.prisma.eventActivity.findMany({
+      where: {
+        externalId: { in: externalIds },
+        OR: [{ stream: { equals: Prisma.DbNull } }, { stream: { equals: {} } }],
+      },
+      select: { externalId: true },
+    });
 
-    const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.externalId),
+    const savedById = new Map(saved.map((a) => [a.externalId, a]));
+    const incomplete = new Set(withoutStream.map((a) => a.externalId));
+
+    const renamed = await this.renameGeneratedNames(activities, savedById);
+    if (renamed > 0) {
+      this.logger.log(
+        `Named ${renamed} Suunto activities after their sport for account ${account.providerAccountId}`,
+      );
+    }
+
+    const toQueue = activities.filter(
+      (a) => !savedById.has(a.externalId) || incomplete.has(a.externalId),
     );
 
-    const newActivities = activities.filter(
-      (a) => !existingIdsSet.has(a.externalId),
-    );
-
-    if (newActivities.length === 0) {
+    if (toQueue.length === 0) {
       this.logger.log(
         `No new Suunto activities to queue for account ${account.providerAccountId}`,
       );
       return 0;
     }
 
-    await this.queueService.addActivityImportJobs(account, newActivities, true);
-    return newActivities.length;
+    await this.queueService.addActivityImportJobs(account, toQueue, true);
+    return toQueue.length;
+  }
+
+  /** Activities saved before their sport was read were named after their key */
+  private async renameGeneratedNames(
+    activities: ImportedActivity[],
+    savedById: Map<string, { eventId: number; event: { name: string } }>,
+  ): Promise<number> {
+    const updates = activities.flatMap((activity) => {
+      const saved = savedById.get(activity.externalId);
+      if (!saved || !isGeneratedSuuntoName(saved.event.name)) return [];
+      if (isGeneratedSuuntoName(activity.name)) return [];
+      return [
+        this.prisma.event.update({
+          where: { eventId: saved.eventId },
+          data: { name: activity.name },
+        }),
+      ];
+    });
+    if (updates.length > 0) await this.prisma.$transaction(updates);
+    return updates.length;
   }
 
   /**
@@ -1126,7 +1207,7 @@ export class SuuntoProviderService
     const startDate = new Date(workout.startTime);
     return {
       externalId: workout.workoutKey,
-      name: workout.workoutName || `Suunto Workout ${workout.workoutKey}`,
+      name: suuntoWorkoutName(workout),
       startDate,
       endDate: workout.stopTime
         ? new Date(workout.stopTime)
@@ -1325,30 +1406,39 @@ export class SuuntoProviderService
       return;
     }
 
-    await this.prisma.$transaction(
-      validMetrics.map((metric) =>
-        this.prisma.athleteMetric.upsert({
-          where: {
-            athleteId_type_date: {
-              athleteId: athleteId,
-              type: metric.type as unknown as MetricType,
-              date: metric.date,
-            },
-          },
-          create: {
-            athleteId: athleteId,
-            type: metric.type as unknown as MetricType,
-            date: metric.date,
-            value: roundMetricValue(metric.value),
-            source: 'SUUNTO',
-          },
-          update: {
-            value: roundMetricValue(metric.value),
-            source: 'SUUNTO',
-          },
-        }),
-      ),
+    // The resting HR now comes from sleep: once it joins an HR max, the
+    // loads are computed again, as for the other providers
+    const completed = await savingCompletesHeartRateProfile(
+      this.prisma,
+      athleteId,
+      validMetrics.map((metric) => metric.type),
+      () =>
+        this.prisma.$transaction(
+          validMetrics.map((metric) =>
+            this.prisma.athleteMetric.upsert({
+              where: {
+                athleteId_type_date: {
+                  athleteId: athleteId,
+                  type: metric.type as unknown as MetricType,
+                  date: metric.date,
+                },
+              },
+              create: {
+                athleteId: athleteId,
+                type: metric.type as unknown as MetricType,
+                date: metric.date,
+                value: roundMetricValue(metric.value),
+                source: 'SUUNTO',
+              },
+              update: {
+                value: roundMetricValue(metric.value),
+                source: 'SUUNTO',
+              },
+            }),
+          ),
+        ),
     );
+    if (completed) await this.queueService.addTrainingLoadRecalcJob(athleteId);
   }
 
   /** Sync an account's 24/7 data from a day up to now */

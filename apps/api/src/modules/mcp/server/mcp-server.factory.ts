@@ -24,6 +24,7 @@ import { registerCalendarReadTools } from './tools/calendar-read.tools';
 import { registerCalendarWriteTools } from './tools/calendar-write.tools';
 import { ToolDeps } from './tools/deps';
 import { registerLoadTools } from './tools/load.tools';
+import { registerQuestionnaireTools } from './tools/questionnaire.tools';
 
 /**
  * Builds the MCP server of one request. Tools are registered per request
@@ -82,6 +83,7 @@ export class McpServerFactory {
       registerAthleteTools(server, ctx, this.deps);
       registerCalendarReadTools(server, ctx, this.deps);
       registerLoadTools(server, ctx, this.deps);
+      registerQuestionnaireTools(server, ctx, this.deps);
     }
     if (ctx.can('write')) {
       registerCalendarWriteTools(server, ctx, this.deps);

@@ -20,6 +20,8 @@ import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIcon,
+  ClipboardCheck,
+  ClipboardList,
   Copy,
   Edit2,
   FileText,
@@ -42,6 +44,7 @@ import {
 
 import { ConfirmAction } from '../confirm-action';
 import { garminActivityLabel } from '../garmin-attribution/garmin-source';
+import { questionnaireErrorMessage } from '../questionnaires/questionnaire-errors';
 import { SportIcon } from '../sport-icon/sport-icon';
 import { isStrengthSport } from '../strength/strength-sports';
 import {
@@ -240,13 +243,21 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
       posthog?.capture(AnalyticsEvent.event_deleted, {
         event_type: event.type,
       });
-      // A plan can come back; an activity comes from its device
-      if (event.type !== EVENT_TYPE.ACTIVITY) {
+      // A plan can come back; an activity comes from its device, and
+      // answers deleted are gone
+      if (
+        event.type !== EVENT_TYPE.ACTIVITY &&
+        !(event.type === EVENT_TYPE.QUESTIONNAIRE && event.answeredAt)
+      ) {
         undoable(m.calendar_items_deleted({ count: 1 }), () =>
           restoreDeleted(queryClient, [event]),
         );
       }
     },
+    onError: (error) =>
+      toast.error(
+        questionnaireErrorMessage(error) ?? m.failed_to_delete_event(),
+      ),
   });
   const deleteSeriesMutation = useDeleteEventSeriesMutation({
     onSuccess: ({ deleted }) => {
@@ -256,8 +267,9 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
           other.seriesId === event.seriesId &&
           other.startDate >= event.startDate &&
           (other.eventId === event.eventId ||
-            !isPlannedEvent(other) ||
-            !other.relatedActivity),
+            (other.type === EVENT_TYPE.QUESTIONNAIRE
+              ? !other.answeredAt
+              : !isPlannedEvent(other) || !other.relatedActivity)),
       );
       undoable(m.calendar_items_deleted({ count: deleted }), () =>
         restoreDeleted(queryClient, occurrences),
@@ -295,7 +307,7 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
       case COLORED_BY.TYPE:
         return getEventTypeColor(event.type);
       case COLORED_BY.SPORT: {
-        const sport = event.type !== EVENT_TYPE.NOTE ? event.sport : null;
+        const sport = 'sport' in event ? event.sport : null;
         if (sport === null)
           return 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/40 dark:hover:bg-gray-800/50 border-border/50';
         return getSportColor(sport);
@@ -431,12 +443,30 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                   detailed ? 'whitespace-normal' : !compact && 'line-clamp-2',
                 )}
               >
-                {event.type !== EVENT_TYPE.NOTE && (
+                {'sport' in event && (
                   <SportIcon
                     sport={event.sport}
                     className="inline-block mr-1"
                   />
                 )}
+                {event.type === EVENT_TYPE.QUESTIONNAIRE &&
+                  (event.answeredAt ? (
+                    <ClipboardCheck
+                      className="inline-block mr-1 size-3.5 text-green-600 dark:text-green-400"
+                      role="img"
+                      aria-label={m.questionnaire_answered()}
+                    />
+                  ) : (
+                    <ClipboardList
+                      className="inline-block mr-1 size-3.5 text-muted-foreground"
+                      role="img"
+                      aria-label={
+                        new Date(event.startDate) <= new Date()
+                          ? m.questionnaire_unanswered()
+                          : m.questionnaire()
+                      }
+                    />
+                  ))}
                 {event.seriesId && (
                   <Repeat
                     className="inline-block mr-1 size-3 text-muted-foreground"

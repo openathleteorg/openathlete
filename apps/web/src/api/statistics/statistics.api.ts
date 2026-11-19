@@ -6,6 +6,7 @@ import {
   StatisticsCardiacCostDto,
   StatisticsDaysDto,
   StatisticsDurabilityDto,
+  StatisticsEfficiencyDto,
   StatisticsFiltersDto,
   StatisticsIntensityDto,
   StatisticsLoadDto,
@@ -81,6 +82,13 @@ export class StatisticsAPI {
     params: StatisticsSectionParams & { sport: SPORT_TYPE },
   ): Promise<StatisticsCardiacCostDto> {
     const res = await client.get(routes.statistics.cardiacCost, { params });
+    return res.data;
+  }
+
+  static async getEfficiency(
+    params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  ): Promise<StatisticsEfficiencyDto> {
+    const res = await client.get(routes.statistics.efficiency, { params });
     return res.data;
   }
 

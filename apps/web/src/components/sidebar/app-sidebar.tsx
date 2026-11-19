@@ -1,4 +1,7 @@
-import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
+import {
+  useGetMyCoachedAthletesQuery,
+  useGetMyCoachesQuery,
+} from '@/api/athlete';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
 import { CoachAthleteNav } from '@/components/coach-nav/coach-athlete-nav';
@@ -17,12 +20,14 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { YearReviewButton } from '@/components/year-review/entry/year-review-button';
 import { useSpaceContext } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import {
   Activity,
   Calendar,
+  ClipboardList,
   CogIcon,
   MedalIcon,
   MessageCircle,
@@ -41,6 +46,7 @@ import { UserRole } from '@openathlete/shared';
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const { space } = useSpaceContext();
   const { data: athletes } = useGetMyCoachedAthletesQuery();
+  const { data: coaches } = useGetMyCoachesQuery();
   const { resolvedTheme } = useTheme();
   const { isMobile, setOpenMobile, state } = useSidebar();
   const showAthleteSelector =
@@ -67,6 +73,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           title: m.messages(),
           url: getPath(['dashboard', 'messages']),
           icon: MessageCircle,
+          spaces: ['COACH'] as UserRole[],
+        },
+        {
+          title: m.questionnaires(),
+          url: getPath(['dashboard', 'questionnaires']),
+          icon: ClipboardList,
           spaces: ['COACH'] as UserRole[],
         },
         {
@@ -105,6 +117,13 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             title: m.metrics(),
             url: getPath(['dashboard', 'metrics']) + `/${athlete.athleteId}`,
             icon: Activity,
+          },
+          {
+            title: m.questionnaires(),
+            url:
+              getPath(['dashboard', 'questionnaires']) +
+              `/${athlete.athleteId}`,
+            icon: ClipboardList,
           },
           {
             title: m.coach_notes(),
@@ -146,6 +165,17 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         icon: Activity,
         spaces: ['ATHLETE'] as UserRole[],
       },
+      // Questionnaires come from coaches: an athlete alone has none
+      ...(coaches?.length
+        ? [
+            {
+              title: m.questionnaires(),
+              url: getPath(['dashboard', 'my-questionnaires']),
+              icon: ClipboardList,
+              spaces: ['ATHLETE'] as UserRole[],
+            },
+          ]
+        : []),
       {
         title: m.messages(),
         url: getPath(['dashboard', 'messages']),
@@ -165,7 +195,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           ]
         : []),
     ];
-  }, [athletes, space]);
+  }, [athletes, coaches, space]);
 
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
@@ -216,6 +246,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         )}
       </SidebarContent>
       <SidebarFooter>
+        <YearReviewButton variant="sidebar" />
         <SupportReminder />
         <NavUser />
       </SidebarFooter>

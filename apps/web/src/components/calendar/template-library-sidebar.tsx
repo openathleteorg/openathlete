@@ -48,7 +48,7 @@ import {
   isClubStaff,
 } from '@openathlete/shared';
 
-import { CreateEventDialog } from '../create-event-dialog';
+import { CreateEventDialog, isDialogEvent } from '../create-event-dialog';
 import {
   DraggableData,
   DraggableType,
@@ -620,7 +620,12 @@ export function TemplateLibrarySidebar() {
             setEditingTemplate(null);
             refetchTemplates();
           }}
-          event={editingTemplate.event}
+          // Questionnaires are never templates
+          event={
+            isDialogEvent(editingTemplate.event)
+              ? editingTemplate.event
+              : undefined
+          }
           isTemplate={true}
         />
       )}

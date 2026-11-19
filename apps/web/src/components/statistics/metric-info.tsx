@@ -60,6 +60,11 @@ const COPY: Record<
     what: m.metric_critical_speed_what,
     limits: m.metric_critical_speed_limits,
   },
+  runEfficiency: {
+    name: m.statistics_run_efficiency,
+    what: m.metric_run_efficiency_what,
+    limits: m.metric_run_efficiency_limits,
+  },
   cardiacCost: {
     name: m.statistics_cost_title,
     what: m.metric_cost_what,

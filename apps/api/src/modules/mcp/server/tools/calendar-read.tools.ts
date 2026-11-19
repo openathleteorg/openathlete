@@ -101,7 +101,7 @@ const templateSchema = calendarItemSchema
 const templatesOutput = z.object({ templates: z.array(templateSchema) });
 
 const kindsInput = z
-  .array(z.enum(['training', 'race', 'note', 'activity']))
+  .array(z.enum(['training', 'race', 'note', 'activity', 'questionnaire']))
   .optional()
   .describe('Only these kinds of items; all by default');
 

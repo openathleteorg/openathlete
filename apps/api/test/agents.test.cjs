@@ -254,7 +254,7 @@ test('summarises an activity on hosted Claude, at a medium effort', async () => 
   assert.deepEqual(result, summary);
 });
 
-test('a summary with too many points is refused, not stored', async () => {
+test('a summary with one point too many keeps its first three', async () => {
   providersAnswer(
     JSON.stringify({
       headline: 'Good run',
@@ -262,6 +262,21 @@ test('a summary with too many points is refused, not stored', async () => {
       suggestion: null,
     }),
   );
+
+  const result = await ai.generateObject(
+    activitySummaryAgent,
+    model({ id: 'openai/gpt-5.1', apiKey: 'sk-user-openai' }),
+    'Run',
+    activitySummaryOutputSchema,
+  );
+
+  assert.deepEqual(result.points, ['a', 'b', 'c']);
+  // Refused by Mastra but repaired: its tokens still count
+  assert.equal(usageRecords.length, 1);
+});
+
+test('an answer that is not JSON still fails', async () => {
+  providersAnswer('Great run, well done!');
 
   await assert.rejects(
     ai.generateObject(

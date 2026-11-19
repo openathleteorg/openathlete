@@ -1,16 +1,21 @@
-import { EVENT_TYPE, Event, SPORT_TYPE } from '@openathlete/shared';
-import type { CreateEventDto } from '@openathlete/shared';
+import { EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
 
-import { type EventFormValues, NO_EQUIPMENT } from './event-form-schemas';
+import {
+  type DialogCreateEventDto,
+  type DialogEvent,
+  type DialogEventType,
+  type EventFormValues,
+  NO_EQUIPMENT,
+} from './event-form-schemas';
 
 type CreateProps = {
   date?: Date;
-  type?: EVENT_TYPE;
-  prefilledData?: CreateEventDto;
+  type?: DialogEventType;
+  prefilledData?: DialogCreateEventDto;
 };
 
 type EditProps = {
-  event?: Event;
+  event?: DialogEvent;
 };
 
 type Props = CreateProps | EditProps;

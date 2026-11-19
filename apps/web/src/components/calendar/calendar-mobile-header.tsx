@@ -50,7 +50,11 @@ function WeekStrip({
   const counts = useMemo(() => {
     const byDay: Record<string, number> = {};
     for (const event of events) {
-      if (event.type === EVENT_TYPE.NOTE) continue;
+      if (
+        event.type === EVENT_TYPE.NOTE ||
+        event.type === EVENT_TYPE.QUESTIONNAIRE
+      )
+        continue;
       const key = event.startDate.toDateString();
       byDay[key] = (byDay[key] ?? 0) + 1;
     }

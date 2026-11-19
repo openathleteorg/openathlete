@@ -100,7 +100,8 @@ export class CalendarFeedService {
       this.prisma.event.findMany({
         where: {
           athleteId,
-          type: { not: EventType.ACTIVITY },
+          // Questionnaires are answered in the app, not planned around
+          type: { notIn: [EventType.ACTIVITY, EventType.QUESTIONNAIRE] },
           startDate: {
             gte: addUtcDays(now, -FEED_DAYS_BEFORE),
             lte: addUtcDays(now, FEED_DAYS_AFTER),

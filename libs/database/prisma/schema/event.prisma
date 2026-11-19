@@ -44,6 +44,7 @@ model Event {
   training       EventTraining?
   competition    EventCompetition?
   note           EventNote?
+  questionnaire  EventQuestionnaire?
   activity       EventActivity?
   athlete        Athlete?          @relation(fields: [athleteId], references: [athleteId])
   athleteId      Int?              @map("athlete_id")
@@ -212,6 +213,10 @@ model EventActivity {
   efficiencyFactor       Float?             @map("efficiency_factor")
   /// Efficiency lost from the first half to the second, in percent
   decouplingPercent      Float?             @map("decoupling_percent")
+  /// Runs: metres per joule on the flat; times body mass, running effectiveness
+  flatSpeedPerWatt       Float?             @map("flat_speed_per_watt")
+  /// Runs: average power over average heart rate, off the descents
+  powerEfficiencyFactor  Float?             @map("power_efficiency_factor")
   /// Version of the figures above: older ones are recomputed in the background
   intensityVersion       Int                @default(0) @map("intensity_version")
   /// Activity description/notes

@@ -51,6 +51,15 @@ export function toRecreateDto(event: Event): CreateEventDto | null {
         type: EVENT_TYPE.NOTE,
         description: event.description || event.name,
       };
+    // Unanswered only: the answers deleted cannot come back
+    case EVENT_TYPE.QUESTIONNAIRE:
+      return event.answeredAt
+        ? null
+        : {
+            ...base,
+            type: EVENT_TYPE.QUESTIONNAIRE,
+            questionnaireId: event.questionnaireId,
+          };
     default:
       return null;
   }

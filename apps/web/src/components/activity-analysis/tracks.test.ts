@@ -48,6 +48,33 @@ describe('buildChartRows', () => {
     );
   });
 
+  it('uses recorded speed through GPS gaps and breaks at a timer pause', () => {
+    const stream = {
+      time: [0, 1, 15, 16, 48, 49],
+      latlng: [[45, 5], [], [], [], [45, 5], [45, 5]],
+      speed: [3, 2, 0, 3, 2, 4],
+      timerPaused: [0, 0, 0, 1, 0, 0],
+    };
+    const raw = buildChartRows(stream, SPORT_TYPE.RUNNING, 'time', {
+      smooth: false,
+    });
+    expect(raw.rows.map((row) => row.speed)).toEqual([3, 2, 0, null, 2, 4]);
+
+    const smoothed = buildChartRows(stream, SPORT_TYPE.RUNNING, 'time');
+    expect(smoothed.rows[3].speed).toBeNull();
+    expect(smoothed.rows[4].speed).toBe(2);
+  });
+
+  it('falls back to distance when a recorded speed sample is missing', () => {
+    const { rows } = buildChartRows(
+      { time: [0, 1, 2], distance: [0, 3, 6], speed: [2, null, 4] },
+      SPORT_TYPE.RUNNING,
+      'distance',
+      { smooth: false },
+    );
+    expect(rows.map((row) => row.speed)).toEqual([2, 3, 4]);
+  });
+
   it('counts running cadence in steps per minute', () => {
     expect(
       buildChartRows(run, SPORT_TYPE.RUNNING, 'time').rows[0].cadence,

@@ -175,6 +175,8 @@ describe('MCP tools (PostgreSQL)', () => {
           'update_training_zone',
         ].includes(tool.name),
       );
+      // ChatGPT's app review requires every tool to say whether it destroys data
+      expect(typeof tool.annotations?.destructiveHint).toBe('boolean');
     }
   });
 
@@ -736,6 +738,60 @@ describe('MCP tools (PostgreSQL)', () => {
         }),
       ),
     ).toContain('in the future');
+  });
+
+  it("reads the questionnaires' answers its user may read", async () => {
+    const span = { from: '2026-01-01', to: '2026-01-31' };
+    // The athlete reads what they answered to their coach
+    const own = data<{ questionnaires: unknown[] }>(
+      await (
+        await connect(athlete, ['read'])
+      ).call('get_questionnaire_answers', span),
+    );
+    expect(own.questionnaires).toEqual([
+      {
+        eventId: 3006,
+        questionnaire: 'Hooper',
+        date: '2026-01-08',
+        status: 'answered',
+        answers: [{ question: 'Fatigue', answer: '4 on 1-7' }],
+      },
+    ]);
+
+    // As a coach, the answers to the questionnaires they wrote
+    const coached = data<{ questionnaires: unknown[] }>(
+      await (
+        await connect(athlete, ['read'])
+      ).call('get_questionnaire_answers', {
+        ...span,
+        athleteId: COACH_ATHLETE_ID,
+      }),
+    );
+    expect(coached.questionnaires).toEqual([
+      expect.objectContaining({
+        eventId: 3007,
+        status: 'answered',
+        answers: [{ question: 'How was the week?', answer: 'Good week' }],
+      }),
+      expect.objectContaining({ eventId: 3008, status: 'missed', answers: [] }),
+    ]);
+
+    // A coach link the database no longer holds reads nothing
+    const former = {
+      userId: STRANGER_USER_ID,
+      email: 'stranger@example.com',
+      athlete: { athleteId: STRANGER_ATHLETE_ID },
+      coachAthletes: [{ athleteId: DELETED_ATHLETE_ID }],
+    } as AuthUser;
+    const none = data<{ questionnaires: unknown[] }>(
+      await (
+        await connect(former, ['read'])
+      ).call('get_questionnaire_answers', {
+        ...span,
+        athleteId: DELETED_ATHLETE_ID,
+      }),
+    );
+    expect(none.questionnaires).toEqual([]);
   });
 
   it('gives the context an agent plans from', async () => {

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   HttpCode,
+  Optional,
   Post,
   Query,
 } from '@nestjs/common';
@@ -10,6 +11,7 @@ import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import {
@@ -26,6 +28,12 @@ function preference(list: EmailList, subscribed: boolean) {
       return { emailRecap: subscribed };
     case 'news':
       return { emailNewsConsentAt: subscribed ? new Date() : null };
+    case 'questionnaires':
+      return { emailQuestionnaires: subscribed };
+    case 'weekly':
+      return { emailWeekly: subscribed };
+    case 'coach_weekly':
+      return { emailCoachWeekly: subscribed };
   }
 }
 
@@ -39,6 +47,7 @@ export class EmailPreferencesController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService<ApiEnvSchemaType, true>,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   @Post('unsubscribe')
@@ -76,10 +85,16 @@ export class EmailPreferencesController {
     if (!read) throw new BadRequestException('Invalid token');
 
     // A deleted account has nothing left to unsubscribe from
-    await this.prisma.user.updateMany({
+    const { count } = await this.prisma.user.updateMany({
       where: { userId: read.userId },
       data: preference(read.list, subscribed),
     });
+    // How many leave the Monday email, next to how many it brings back
+    if (count > 0 && !subscribed && read.list === 'weekly') {
+      await this.analytics?.capture(read.userId, 'weekly_email_unsubscribed', {
+        from: 'email',
+      });
+    }
     return { list: read.list, subscribed };
   }
 }

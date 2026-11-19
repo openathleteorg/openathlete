@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { emailLanguageSchema } from '../../../email/email';
+import { unitSystemSchema } from '../core/unit-system.dto';
 import { newPasswordSchema } from './password';
 import { personNameSchema } from './person-name';
 
@@ -17,6 +18,8 @@ export const createAccountDtoSchema = z.object({
   language: emailLanguageSchema.optional(),
   /** Asked for news about the project, Supporter included (unticked by default) */
   emailNews: z.boolean().optional(),
+  /** Absent, the account starts with the column's default */
+  unitSystem: unitSystemSchema.optional(),
 });
 
 export type CreateAccountDto = z.infer<typeof createAccountDtoSchema>;

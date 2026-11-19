@@ -4,6 +4,7 @@ export const ATHLETE_PAGES = [
   'statistics',
   'records',
   'metrics',
+  'questionnaires',
   'notes',
   'settings',
 ] as const;

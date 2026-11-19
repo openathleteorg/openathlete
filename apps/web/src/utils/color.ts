@@ -163,6 +163,8 @@ export const getEventTypeColor = (type: EVENT_TYPE) => {
       return 'bg-event-note hover:bg-event-note-hover border-event-note-border';
     case 'TRAINING':
       return 'bg-event-training hover:bg-event-training-hover border-event-training-border';
+    case 'QUESTIONNAIRE':
+      return 'bg-event-questionnaire hover:bg-event-questionnaire-hover border-event-questionnaire-border';
   }
 };
 

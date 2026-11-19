@@ -212,6 +212,158 @@ export const mapSuuntoActivityId = (activityId: number): SportType => {
  * Maps Suunto workout data to sport type based on available fields
  * Priority: activityId > extensionTypes > workoutName
  */
+/**
+ * Names of Suunto's sports as the Suunto app shows them, by activity id.
+ * Source: Suunto API Zone, "Supported sport types"
+ * (https://aspartnercontent.blob.core.windows.net/apizone/docs/Activities.pdf),
+ * linked from the Workout API description.
+ */
+const SUUNTO_ACTIVITY_NAMES: Record<number, string> = {
+  0: 'Walking',
+  1: 'Running',
+  2: 'Cycling',
+  3: 'Cross-country skiing',
+  4: 'Sports',
+  5: 'Sports',
+  6: 'Sports',
+  7: 'Sports',
+  8: 'Sports',
+  9: 'Sports',
+  10: 'Mountain biking',
+  11: 'Hiking',
+  12: 'Roller skating',
+  13: 'Downhill skiing',
+  14: 'Paddling',
+  15: 'Rowing',
+  16: 'Golfing',
+  17: 'Indoor sports',
+  18: 'Parkouring',
+  19: 'Ball games',
+  20: 'Outdoor gym',
+  21: 'Swimming',
+  22: 'Trail running',
+  23: 'Gym',
+  24: 'Nordic walking',
+  25: 'Horseback riding',
+  26: 'Motorsports',
+  27: 'Skateboarding',
+  28: 'Water sports',
+  29: 'Climbing',
+  30: 'Snowboarding',
+  31: 'Ski touring',
+  32: 'Fitness class',
+  33: 'Soccer',
+  34: 'Tennis',
+  35: 'Basketball',
+  36: 'Badminton',
+  37: 'Baseball',
+  38: 'Volleyball',
+  39: 'American football',
+  40: 'Table tennis',
+  41: 'Racquet ball',
+  42: 'Squash',
+  43: 'Floorball',
+  44: 'Handball',
+  45: 'Softball',
+  46: 'Bowling',
+  47: 'Cricket',
+  48: 'Rugby',
+  49: 'Ice skating',
+  50: 'Ice hockey',
+  51: 'Yoga/pilates',
+  52: 'Indoor cycling',
+  53: 'Treadmill',
+  54: 'Crossfit',
+  55: 'Crosstrainer',
+  56: 'Roller skiing',
+  57: 'Indoor rowing',
+  58: 'Stretching',
+  59: 'Track and field',
+  60: 'Orienteering',
+  61: 'Standup paddling',
+  62: 'Combat sport',
+  63: 'Kettlebell',
+  64: 'Dancing',
+  65: 'Snow shoeing',
+  66: 'Frisbee golf',
+  67: 'Futsal',
+  68: 'Multisport',
+  69: 'Aerobics',
+  70: 'Trekking',
+  71: 'Sailing',
+  72: 'Kayaking',
+  73: 'Circuit training',
+  74: 'Triathlon',
+  75: 'Padel',
+  76: 'Cheerleading',
+  77: 'Boxing',
+  78: 'Scubadiving',
+  79: 'Freediving',
+  80: 'Adventure racing',
+  81: 'Gymnastics',
+  82: 'Canoeing',
+  83: 'Mountaineering',
+  84: 'Telemarkskiing',
+  85: 'Openwater swimming',
+  86: 'Windsurfing',
+  87: 'Kitesurfing',
+  88: 'Paragliding',
+  90: 'Snorkeling',
+  91: 'Surfing',
+  92: 'Swimrun',
+  93: 'Duathlon',
+  94: 'Aquathlon',
+  95: 'Obstacle racing',
+  96: 'Fishing',
+  97: 'Hunting',
+  98: 'Transition',
+  99: 'Gravel cycling',
+  100: 'Mermaiding',
+  101: 'Spearfishing',
+  102: 'Jump rope',
+  103: 'Track running',
+  104: 'Calisthenics',
+  105: 'E-biking',
+  106: 'E-mtb',
+  107: 'Backcountry skiing',
+  108: 'Wheelchair sport',
+  109: 'Hand cycling',
+  110: 'Splitboarding',
+  111: 'Biathlon',
+  112: 'Meditation',
+  113: 'Field hockey',
+  114: 'Cyclocross',
+  115: 'Vertical running',
+  116: 'Ski mountaineering',
+  117: 'Skate skiing',
+  118: 'Classic skiing',
+  119: 'Chores',
+  120: 'Pilates',
+  121: 'Yoga',
+};
+
+/** The name we gave Suunto workouts before reading their sport */
+const GENERATED_NAME = /^Suunto Workout [0-9a-f]+$/;
+
+/** Whether an activity still has the name we generated from its key */
+export const isGeneratedSuuntoName = (name: string) =>
+  GENERATED_NAME.test(name);
+
+/**
+ * A workout's name: the one the athlete gave it in the Suunto app, else its
+ * sport as Suunto names it ("Indoor cycling", "Gym"), as the app does. The
+ * API leaves `workoutName` empty for most workouts.
+ */
+export const suuntoWorkoutName = (workout: {
+  workoutName?: string | null;
+  activityId?: number;
+}): string =>
+  workout.workoutName?.trim() ||
+  (workout.activityId !== undefined
+    ? SUUNTO_ACTIVITY_NAMES[workout.activityId]
+    : undefined) ||
+  'Suunto activity';
+
 export const mapSuuntoWorkoutToSportType = (workout: {
   activityId?: number;
   workoutName?: string;

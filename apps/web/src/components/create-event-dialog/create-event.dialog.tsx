@@ -19,7 +19,6 @@ import { AiTask } from '@openathlete/shared';
 import type {
   CreateEventDto,
   CreateWorkoutStepDto,
-  Event,
   SPORT_TYPE,
   UpdateEventDto,
 } from '@openathlete/shared';
@@ -55,6 +54,9 @@ import { useWorkoutDuration } from './hooks/use-workout-duration';
 import { useWorkoutSteps } from './hooks/use-workout-steps';
 import { getEndDate, getStartDate } from './utils/date-helpers';
 import {
+  type DialogCreateEventDto,
+  type DialogEvent,
+  type DialogEventType,
   type EventFormValues,
   eventFormSchema,
 } from './utils/event-form-schemas';
@@ -66,26 +68,26 @@ type P =
       open: boolean;
       onClose: () => void;
       date?: Date;
-      type?: EVENT_TYPE;
-      prefilledData?: CreateEventDto;
+      type?: DialogEventType;
+      prefilledData?: DialogCreateEventDto;
     }
   | {
       open: boolean;
       onClose: () => void;
-      event?: Event;
+      event?: DialogEvent;
       isTemplate?: boolean;
       /** After the event is deleted from the dialog */
       onDeleted?: () => void;
     };
 
 /** Whole sentences: "Edit" + "a" + type reads wrong in every language */
-const EDIT_TITLES: Record<EVENT_TYPE, () => string> = {
+const EDIT_TITLES: Record<DialogEventType, () => string> = {
   [EVENT_TYPE.TRAINING]: () => m.event_dialog_edit_training(),
   [EVENT_TYPE.COMPETITION]: () => m.event_dialog_edit_competition(),
   [EVENT_TYPE.NOTE]: () => m.event_dialog_edit_note(),
   [EVENT_TYPE.ACTIVITY]: () => m.event_dialog_edit_activity(),
 };
-const PLAN_TITLES: Record<EVENT_TYPE, () => string> = {
+const PLAN_TITLES: Record<DialogEventType, () => string> = {
   [EVENT_TYPE.TRAINING]: () => m.event_dialog_plan_training(),
   [EVENT_TYPE.COMPETITION]: () => m.event_dialog_plan_competition(),
   [EVENT_TYPE.NOTE]: () => m.event_dialog_plan_note(),
@@ -289,6 +291,8 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
 
   // Handle event generation (for create mode)
   const handleEventGenerated = (generatedEvent: CreateEventDto) => {
+    // The AI writes sessions, never questionnaires
+    if (generatedEvent.type === EVENT_TYPE.QUESTIONNAIRE) return;
     // Update form with generated event data
     if (generatedEvent.name) setValue('name', generatedEvent.name);
     if (generatedEvent.description !== undefined)

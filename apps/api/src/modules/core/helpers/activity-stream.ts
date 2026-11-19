@@ -5,9 +5,12 @@ import {
   isValidGpsPoint,
 } from '@openathlete/shared';
 
+type StreamSample = number | number[] | null;
+
 export const reductActivityStreamToResolution = (
-  stream: (number | number[] | boolean)[],
+  stream: (StreamSample | boolean)[],
   resolution: number,
+  preserveTimerPauses = false,
 ) => {
   if (resolution >= stream.length) {
     return stream;
@@ -15,7 +18,7 @@ export const reductActivityStreamToResolution = (
 
   const compression = stream.length / resolution;
 
-  const compressedStream: (number | number[] | boolean)[] = [];
+  const compressedStream: (StreamSample | boolean)[] = [];
 
   let previousIndex = -1;
   for (let i = 0; i < stream.length; i += compression) {
@@ -27,14 +30,17 @@ export const reductActivityStreamToResolution = (
       stream
         .slice(previousIndex + 1, index + 1)
         .some((point) => Array.isArray(point) && point.length === 0);
-    compressedStream.push(crossesGap ? [] : sample);
+    const crossesPause =
+      preserveTimerPauses &&
+      stream.slice(index, Math.floor(i + compression)).includes(1);
+    compressedStream.push(crossesGap ? [] : crossesPause ? 1 : sample);
     previousIndex = index;
   }
 
   return compressedStream;
 };
 
-const checkEqual = (a: number | number[], b: number | number[]) => {
+const checkEqual = (a: StreamSample, b: StreamSample) => {
   if (Array.isArray(a) && Array.isArray(b)) {
     return a.length === b.length && a.every((v, i) => v === b[i]);
   }
@@ -45,19 +51,20 @@ const CHANGE_TO_OBJECT = 3;
 
 const pushToCompressed = (
   compressed: CompressedActivityStreamUnit[],
-  previous: number | number[],
+  previous: StreamSample,
   repeatCount: number,
   incrCount: number,
 ) => {
+  const value = previous === null ? null : previous || 0;
   if (repeatCount === 1 && incrCount === 1) {
-    compressed.push(previous || 0);
+    compressed.push(value);
   } else if (repeatCount > 1) {
     if (repeatCount <= CHANGE_TO_OBJECT) {
       for (let j = 0; j < repeatCount; j++) {
-        compressed.push(previous || 0);
+        compressed.push(value);
       }
     } else {
-      compressed.push({ r: repeatCount, v: previous || 0 });
+      compressed.push({ r: repeatCount, v: value });
     }
     repeatCount = 1;
   } else if (incrCount > 1 && typeof previous === 'number') {
@@ -74,7 +81,7 @@ const pushToCompressed = (
 };
 
 const compressStream = (
-  stream: (number | number[])[],
+  stream: StreamSample[],
 ): CompressedActivityStreamUnit[] => {
   let compressed: CompressedActivityStreamUnit[] = [];
   let repeatCount = 1;
@@ -112,11 +119,11 @@ const compressStream = (
 
 const uncompressStream = (
   stream: CompressedActivityStreamUnit[],
-): (number | number[])[] => {
-  const uncompressed: (number | number[])[] = [];
+): StreamSample[] => {
+  const uncompressed: StreamSample[] = [];
 
   for (const iter of stream) {
-    if (typeof iter === 'number' || Array.isArray(iter)) {
+    if (iter === null || typeof iter === 'number' || Array.isArray(iter)) {
       uncompressed.push(iter);
     } else {
       if ('r' in iter && 'v' in iter) {

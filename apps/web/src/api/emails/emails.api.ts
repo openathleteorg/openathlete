@@ -1,6 +1,14 @@
 import client, { routes } from '@/utils/axios';
 
-export type EmailList = 'tips' | 'recap' | 'news';
+const EMAIL_LISTS = [
+  'tips',
+  'recap',
+  'news',
+  'questionnaires',
+  'weekly',
+  'coach_weekly',
+] as const;
+export type EmailList = (typeof EMAIL_LISTS)[number];
 
 /** The links at the foot of the emails, which carry their own token */
 export class EmailsAPI {
@@ -16,5 +24,7 @@ export class EmailsAPI {
 /** The list a token is for, read from it: `<user>.<list>.<signature>` */
 export function emailListOfToken(token: string | null): EmailList | null {
   const list = token?.split('.')[1];
-  return list === 'tips' || list === 'recap' || list === 'news' ? list : null;
+  return (EMAIL_LISTS as readonly string[]).includes(list ?? '')
+    ? (list as EmailList)
+    : null;
 }

@@ -174,6 +174,13 @@ export class UserController {
             'Optional language of the app at sign-up, saved as the preferred language (default FR)',
           example: 'EN',
         },
+        unitSystem: {
+          type: 'string',
+          enum: ['METRIC', 'IMPERIAL'],
+          description:
+            'Optional units the app shows values in (default METRIC)',
+          example: 'METRIC',
+        },
       },
       required: ['email', 'password', 'firstName', 'lastName'],
     },
@@ -250,10 +257,30 @@ export class UserController {
           type: 'boolean',
           description: 'Monthly recap of the training, by email',
         },
+        emailQuestionnaires: {
+          type: 'boolean',
+          description:
+            'Emails telling the athlete a questionnaire from their coach is waiting',
+        },
+        emailWeekly: {
+          type: 'boolean',
+          description:
+            'Monday email: the past week, the form and the week to come',
+        },
+        emailCoachWeekly: {
+          type: 'boolean',
+          description: 'Monday email to coaches: the athletes to look at',
+        },
         emailNews: {
           type: 'boolean',
           description:
             'News about the project, Supporter included; true records the consent with its date',
+        },
+        unitSystem: {
+          type: 'string',
+          enum: ['METRIC', 'IMPERIAL'],
+          description: 'Units the app shows values in',
+          example: 'METRIC',
         },
       },
     },
@@ -344,6 +371,12 @@ export class UserController {
           type: 'string',
           enum: Object.values(UserLanguage),
           example: 'EN',
+        },
+        unitSystem: {
+          type: 'string',
+          enum: ['METRIC', 'IMPERIAL'],
+          description: 'Units the app shows values in',
+          example: 'METRIC',
         },
       },
     },

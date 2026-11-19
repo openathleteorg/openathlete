@@ -53,6 +53,7 @@ export type ProviderIdentity = {
   coachInvitationToken?: string;
   clubJoinToken?: string;
   language?: CreateAccountDto['language'];
+  unitSystem?: CreateAccountDto['unitSystem'];
 };
 
 @Injectable()
@@ -140,6 +141,7 @@ export class AuthService {
       coachInvitationToken: body.coachInvitationToken,
       clubJoinToken: body.clubJoinToken,
       language: body.language,
+      unitSystem: body.unitSystem,
     });
     return this.sessionFor(user);
   }
@@ -177,6 +179,7 @@ export class AuthService {
             coachInvitationToken: identity.coachInvitationToken,
             clubJoinToken: identity.clubJoinToken,
             language: identity.language,
+            unitSystem: identity.unitSystem,
           },
           { emailFromProvider: true },
         );

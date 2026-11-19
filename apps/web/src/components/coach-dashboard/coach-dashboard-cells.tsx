@@ -5,10 +5,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
+import { getPath } from '@/routes/paths';
 import { getDateFnsLocale } from '@/utils/locales';
 import { getMetricUnit } from '@/utils/metric-unit';
 import { cn } from '@/utils/shadcn';
 import { formatDistanceToNowStrict } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 import {
   CoachDashboardAthleteRowDto,
@@ -81,6 +83,39 @@ export function LastActivity({ row }: { row: Row }) {
         locale: getDateFnsLocale(getLocale()),
       })}
     </span>
+  );
+}
+
+/** The coach's questionnaires of the period: answered of those due */
+export function Questionnaires({ row }: { row: Row }) {
+  const { due, answered, lastAnsweredAt } = row.questionnaires;
+  if (due === 0 && !lastAnsweredAt)
+    return <span className="text-muted-foreground">–</span>;
+  return (
+    <Link
+      to={`${getPath(['dashboard', 'questionnaires'])}/${row.athleteId}`}
+      className="flex flex-col hover:underline"
+      title={m.questionnaire_dashboard_cell({ answered, due })}
+    >
+      {due > 0 && (
+        <span
+          className={cn(
+            'tabular-nums',
+            answered < due && 'text-amber-700 dark:text-amber-300',
+          )}
+        >
+          {answered} / {due}
+        </span>
+      )}
+      {lastAnsweredAt && (
+        <span className="text-xs text-muted-foreground">
+          {formatDistanceToNowStrict(new Date(lastAnsweredAt), {
+            addSuffix: true,
+            locale: getDateFnsLocale(getLocale()),
+          })}
+        </span>
+      )}
+    </Link>
   );
 }
 
@@ -176,6 +211,8 @@ export function ColumnCell({
       );
     case 'lastActivity':
       return <LastActivity row={row} />;
+    case 'questionnaires':
+      return <Questionnaires row={row} />;
     default: {
       const type = column as METRIC_TYPE;
       const reading = row.metrics[type];

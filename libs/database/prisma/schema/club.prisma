@@ -54,6 +54,7 @@ model Club {
   invitations   ClubInvitation[]
   sessions      ClubSession[]
   folders       EventTemplateFolder[]
+  questionnaireEvents EventQuestionnaire[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
