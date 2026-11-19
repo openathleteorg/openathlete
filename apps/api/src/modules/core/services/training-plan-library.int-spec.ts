@@ -343,6 +343,140 @@ describe('training plan library (PostgreSQL)', () => {
     ).not.toBeNull();
   });
 
+  /** Today is this instant: only Date, so Prisma's timers keep running */
+  const today = (instant: string) =>
+    jest.useFakeTimers({
+      now: new Date(instant),
+      doNotFake: [
+        'nextTick',
+        'queueMicrotask',
+        'setImmediate',
+        'clearImmediate',
+        'setInterval',
+        'clearInterval',
+        'setTimeout',
+        'clearTimeout',
+        'hrtime',
+        'performance',
+      ],
+    });
+  afterEach(() => jest.useRealTimers());
+
+  const missedRun = (startDate: string) =>
+    prisma.event.create({
+      data: {
+        athleteId: DELETED_ATHLETE_ID,
+        type: 'TRAINING',
+        name: 'Planned run',
+        startDate: new Date(startDate),
+        endDate: new Date(new Date(startDate).getTime() + 3600_000),
+        training: { create: { sport: SPORT_TYPE.RUNNING, description: '' } },
+      },
+    });
+
+  it('replaces from today only when the plan started yesterday', async () => {
+    // Tuesday noon in Berlin: the plan starts on Monday, yesterday
+    today(`${Y}-03-05T11:00:00Z`);
+    const template = await newTemplate();
+    const missed = await missedRun(`${Y}-03-04T07:00:00Z`);
+    const coming = await missedRun(`${Y}-03-06T07:00:00Z`);
+
+    const replaced = await apply(template.trainingPlanTemplateId, {
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
+      conflictMode: TRAINING_PLAN_CONFLICT_MODE.REPLACE,
+    });
+
+    expect(replaced.replaced).toBe(1);
+    // Yesterday's missed run is history, which coaches read
+    expect(
+      await prisma.event.findUnique({ where: { eventId: missed.eventId } }),
+    ).not.toBeNull();
+    expect(
+      await prisma.event.findUnique({ where: { eventId: coming.eventId } }),
+    ).toBeNull();
+  });
+
+  it('keeps the past when a retried job finishes its replacing', async () => {
+    today(`${Y}-03-05T11:00:00Z`);
+    const template = await newTemplate();
+    const dto = applyTrainingPlanSchema.parse({
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
+      conflictMode: TRAINING_PLAN_CONFLICT_MODE.REPLACE,
+    });
+    const plan = await library.checkApply(
+      athlete,
+      template.trainingPlanTemplateId,
+      dto,
+    );
+    const { targets, ...options } = dto;
+    await library.applyToAthlete(plan, targets[0], options, 'job-1');
+    const missed = await missedRun(`${Y}-03-04T07:00:00Z`);
+    const coming = await missedRun(`${Y}-03-06T07:00:00Z`);
+
+    const retried = await library.applyToAthlete(
+      plan,
+      targets[0],
+      options,
+      'job-1',
+    );
+
+    expect(retried.replaced).toBe(1);
+    expect(
+      await prisma.event.findUnique({ where: { eventId: missed.eventId } }),
+    ).not.toBeNull();
+    expect(
+      await prisma.event.findUnique({ where: { eventId: coming.eventId } }),
+    ).toBeNull();
+  });
+
+  it('leaves a finished block as it was when the plan moves', async () => {
+    // Monday: the first week's block (Build) ended yesterday
+    today(`${Y}-03-11T09:00:00Z`);
+    const template = await newTemplate();
+    const { trainingPlanId } = await apply(template.trainingPlanTemplateId, {
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
+    });
+    const before = await prisma.cycle.findMany({
+      where: { trainingPlanId },
+      orderBy: { startDate: 'asc' },
+    });
+
+    const moved = await library.shiftApplied(athlete, trainingPlanId, {
+      days: 7,
+    });
+
+    // Only the note of the second week is still to do
+    expect(moved.moved).toBe(1);
+    const [build, rest] = await prisma.cycle.findMany({
+      where: { trainingPlanId },
+      orderBy: { startDate: 'asc' },
+    });
+    expect(build.startDate).toEqual(before[0].startDate);
+    expect(build.endDate).toEqual(before[0].endDate);
+    expect(rest.startDate.getTime() - before[1].startDate.getTime()).toBe(
+      7 * 24 * 3600_000,
+    );
+  });
+
+  it('leaves a session changed by hand where it is when the plan moves', async () => {
+    const template = await newTemplate();
+    const { trainingPlanId } = await apply(template.trainingPlanTemplateId, {
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
+    });
+    const [first] = await sessionsOf(trainingPlanId);
+    await events.updateEvent(athlete, first.eventId, { name: 'Hills instead' });
+
+    const moved = await library.shiftApplied(athlete, trainingPlanId, {
+      days: 7,
+    });
+
+    expect(moved.moved).toBe(2);
+    const changed = await prisma.event.findUniqueOrThrow({
+      where: { eventId: first.eventId },
+    });
+    expect(changed.startDate).toEqual(first.startDate);
+  });
+
   it('moves the plan whole, at the same local time across the DST change', async () => {
     const template = await newTemplate();
     const { trainingPlanId } = await apply(template.trainingPlanTemplateId, {

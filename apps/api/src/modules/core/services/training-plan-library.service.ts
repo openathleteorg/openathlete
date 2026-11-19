@@ -113,6 +113,13 @@ interface DatedSession {
  * The training plan library: plans laid out by week and weekday, applied to
  * athletes' calendars by start or end date, then moved or removed as a whole.
  */
+/** The start of today in the athlete's time zone */
+function todayStartIn(timeZone: string): Date {
+  return startOfZonedDay(zonedClock(new Date(), timeZone).date, timeZone);
+}
+
+const laterOf = (a: Date, b: Date) => (a > b ? a : b);
+
 @Injectable()
 export class TrainingPlanLibraryService {
   constructor(
@@ -575,9 +582,11 @@ export class TrainingPlanLibraryService {
         startDate: true,
         endDate: true,
         sessions: { select: { eventId: true } },
+        athlete: { select: { user: { select: { timeZone: true } } } },
       },
     });
     if (!existing) return null;
+    const timeZone = validTimeZone(existing.athlete.user.timeZone);
     const conflicts =
       options.conflictMode === TRAINING_PLAN_CONFLICT_MODE.REPLACE
         ? await this.prisma.event.findMany({
@@ -585,7 +594,11 @@ export class TrainingPlanLibraryService {
               athleteId,
               type: EventType.TRAINING,
               training: { relatedActivityId: null },
-              startDate: { gte: existing.startDate, lte: existing.endDate },
+              // As when applying: nothing before today
+              startDate: {
+                gte: laterOf(existing.startDate, todayStartIn(timeZone)),
+                lte: existing.endDate,
+              },
               OR: [
                 { trainingPlanId: null },
                 { trainingPlanId: { not: existing.trainingPlanId } },
@@ -735,7 +748,11 @@ export class TrainingPlanLibraryService {
       timeZone,
     );
     const toMove = await this.prisma.event.findMany({
-      where: this.stillToDo(trainingPlanId, todayStart),
+      // A session changed by hand stays where the athlete or coach put it
+      where: {
+        ...this.stillToDo(trainingPlanId, todayStart),
+        planModifiedAt: null,
+      },
       include: { training: { include: { workout: true } } },
     });
     const moved = toMove.map((event) => ({
@@ -763,6 +780,8 @@ export class TrainingPlanLibraryService {
         });
       }
       for (const cycle of cycles) {
+        // A finished block is history, like its sessions
+        if (cycle.endDate < todayStart) continue;
         // A block already under way keeps its start
         const started = cycle.startDate < todayStart;
         await tx.cycle.update({
@@ -1140,7 +1159,12 @@ export class TrainingPlanLibraryService {
     };
   }
 
-  /** Trainings still to do in the plan's days, which REPLACE removes */
+  /**
+   * Trainings still to do in the plan's days, which REPLACE removes. A plan
+   * may start in the past (a start date before today, a race closer than
+   * the plan is long): what lies before today is the athlete's history,
+   * missed sessions included, and stays.
+   */
   private conflictingSessions(
     athleteId: number,
     range: PlanRange,
@@ -1152,7 +1176,10 @@ export class TrainingPlanLibraryService {
         type: EventType.TRAINING,
         training: { relatedActivityId: null },
         startDate: {
-          gte: startOfZonedDay(range.startDate, timeZone),
+          gte: laterOf(
+            startOfZonedDay(range.startDate, timeZone),
+            todayStartIn(timeZone),
+          ),
           lt: startOfZonedDay(addDaysToDateKey(range.endDate, 1), timeZone),
         },
       },
