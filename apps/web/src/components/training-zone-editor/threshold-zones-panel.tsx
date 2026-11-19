@@ -3,6 +3,7 @@ import {
   useGetModeledMetricsQuery,
   useGetRunningEconomyQuery,
 } from '@/api/record';
+import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -390,6 +391,10 @@ export function ThresholdZonesPanel({
               })
             : m.zones_threshold_no_economy()}
         </p>
+      )}
+      {/* The modelled FTP and the economy come from the athlete's activities */}
+      {(economy || (usesPower && modeled)) && (
+        <GarminAttribution athleteId={athleteId} />
       )}
       <div className="space-y-1.5">
         <Label htmlFor="zones-threshold">{label}</Label>

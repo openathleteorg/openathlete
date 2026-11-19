@@ -17,6 +17,9 @@ vi.mock('@/api/record', () => ({
   useGetModeledMetricsQuery: () => ({ data: data.modeled }),
   useGetRunningEconomyQuery: () => ({ data: data.economy }),
 }));
+vi.mock('@/components/garmin-attribution/garmin-attribution', () => ({
+  GarminAttribution: () => <p data-testid="garmin-attribution" />,
+}));
 vi.mock('@/api/metric', () => ({
   useGetLatestMetricsQuery: () => ({ data: data.metrics }),
 }));
@@ -99,6 +102,10 @@ describe('ThresholdZonesPanel', () => {
     );
     act(() => button('zones_threshold_open').click());
     expect(container.textContent).toContain('zones_threshold_economy 80 7 90');
+    // Derived from the athlete's activities, Garmin ones among them
+    expect(
+      container.querySelector('[data-testid="garmin-attribution"]'),
+    ).not.toBeNull();
     // 310 W at 80 J/m: 3.875 m/s, 4:18/km
     act(() =>
       button('zones_threshold_source_entered FTP run 310 W → 4:18/km').click(),
