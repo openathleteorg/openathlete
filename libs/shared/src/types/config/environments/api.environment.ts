@@ -597,6 +597,14 @@ export const ApiEnvSchema = z
       .default('https://eu.i.posthog.com')
       .describe('PostHog ingestion host'),
 
+    // Domain verification for the ChatGPT app directory (hosted instance)
+    OPENAI_APPS_CHALLENGE_TOKEN: z
+      .string()
+      .optional()
+      .describe(
+        'Token OpenAI asks for at /.well-known/openai-apps-challenge to verify the domain of an app listed in ChatGPT. Unset: 404',
+      ),
+
     // Normalization processor configuration (optional)
     NORMALIZATION_MIN_MOVING_SPEED_MS: z
       .string()
