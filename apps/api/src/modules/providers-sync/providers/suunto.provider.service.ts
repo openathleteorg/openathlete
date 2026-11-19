@@ -30,6 +30,7 @@ import {
   toSegmentColumns,
 } from '../../core/helpers/activity-segment';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
+import { savingCompletesHeartRateProfile } from '../../core/helpers/heart-rate-profile';
 import {
   roundCadence,
   roundDistance,
@@ -1365,30 +1366,39 @@ export class SuuntoProviderService
       return;
     }
 
-    await this.prisma.$transaction(
-      validMetrics.map((metric) =>
-        this.prisma.athleteMetric.upsert({
-          where: {
-            athleteId_type_date: {
-              athleteId: athleteId,
-              type: metric.type as unknown as MetricType,
-              date: metric.date,
-            },
-          },
-          create: {
-            athleteId: athleteId,
-            type: metric.type as unknown as MetricType,
-            date: metric.date,
-            value: roundMetricValue(metric.value),
-            source: 'SUUNTO',
-          },
-          update: {
-            value: roundMetricValue(metric.value),
-            source: 'SUUNTO',
-          },
-        }),
-      ),
+    // The resting HR now comes from sleep: once it joins an HR max, the
+    // loads are computed again, as for the other providers
+    const completed = await savingCompletesHeartRateProfile(
+      this.prisma,
+      athleteId,
+      validMetrics.map((metric) => metric.type),
+      () =>
+        this.prisma.$transaction(
+          validMetrics.map((metric) =>
+            this.prisma.athleteMetric.upsert({
+              where: {
+                athleteId_type_date: {
+                  athleteId: athleteId,
+                  type: metric.type as unknown as MetricType,
+                  date: metric.date,
+                },
+              },
+              create: {
+                athleteId: athleteId,
+                type: metric.type as unknown as MetricType,
+                date: metric.date,
+                value: roundMetricValue(metric.value),
+                source: 'SUUNTO',
+              },
+              update: {
+                value: roundMetricValue(metric.value),
+                source: 'SUUNTO',
+              },
+            }),
+          ),
+        ),
     );
+    if (completed) await this.queueService.addTrainingLoadRecalcJob(athleteId);
   }
 
   /** Sync an account's 24/7 data from a day up to now */

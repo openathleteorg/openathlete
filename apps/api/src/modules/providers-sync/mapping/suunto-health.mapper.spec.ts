@@ -191,6 +191,49 @@ describe('mapSuuntoSleep', () => {
     });
   });
 
+  it("takes the night's lowest heart rate as the resting HR", () => {
+    const night = (start: string, end: string, hrMin: number, nap = false) => ({
+      timestamp: start,
+      entryData: {
+        Duration: 10800,
+        HRAvg: hrMin + 10,
+        HRMin: hrMin,
+        IsNap: nap,
+        BedtimeEnd: end,
+      },
+    });
+    const metrics = mapSuuntoSleep([
+      // A night in two segments: the lower minimum counts
+      night(
+        '2026-11-16T22:30:00.000+01:00',
+        '2026-11-17T01:30:00.000+01:00',
+        52,
+      ),
+      night(
+        '2026-11-17T02:00:00.000+01:00',
+        '2026-11-17T06:30:00.000+01:00',
+        49,
+      ),
+      // A nap rests less than a night, and never sets the resting HR
+      night(
+        '2026-11-17T13:00:00.000+01:00',
+        '2026-11-17T13:30:00.000+01:00',
+        45,
+        true,
+      ),
+      // A watch that measured no heart rate sends 0
+      night(
+        '2026-11-17T22:30:00.000+01:00',
+        '2026-11-18T06:30:00.000+01:00',
+        0,
+      ),
+    ]);
+
+    expect(valuesOf(metrics, MetricType.HR_REST)).toEqual({
+      '2026-11-17': 49,
+    });
+  });
+
   it('counts the whole night when the watch sends only deep sleep', () => {
     // A Suunto 9 Baro night: 7:24 asleep, of which 2:26 deep, no other stage
     const metrics = mapSuuntoSleep([
