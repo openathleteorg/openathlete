@@ -248,6 +248,35 @@ export type StatisticsCardiacCostDto = z.infer<
   typeof statisticsCardiacCostSchema
 >;
 
+/** The efficiency of each run of the period, oldest first */
+export const statisticsEfficiencySchema = z.object({
+  runs: z.array(
+    z.object({
+      eventId: z.number(),
+      name: z.string(),
+      date: z.coerce.date(),
+      /**
+       * Steady and aerobic (40 minutes or more, 80 % of the time below the
+       * first threshold): the runs efficiency is compared on
+       */
+      steady: z.boolean(),
+      /** Efficiency factor: grade-adjusted metres a minute per beat a minute */
+      factor: z.number().nullable(),
+      /** Efficiency factor of power: watts per beat a minute */
+      powerFactor: z.number().nullable(),
+      /** Running effectiveness: m/s per W/kg on the flat, in kg/N */
+      effectiveness: z.number().nullable(),
+      /** Efficiency lost from the first half to the second, in percent */
+      decoupling: z.number().nullable(),
+    }),
+  ),
+  /** False when no weight is known: running effectiveness needs it */
+  hasWeight: z.boolean(),
+});
+export type StatisticsEfficiencyDto = z.infer<
+  typeof statisticsEfficiencySchema
+>;
+
 export const statisticsDurabilitySchema = z.object({
   /** How much the output dropped and the heart rate rose, by outing length */
   series: z.array(

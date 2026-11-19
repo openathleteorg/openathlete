@@ -18,6 +18,7 @@ const COPY = {
   tsb: ["tsb_balance", "tsb"],
   intensityDistribution: ["statistics_section_intensity", "intensity"],
   efficiency: ["statistics_efficiency", "efficiency"],
+  runEfficiency: ["statistics_run_efficiency", "run_efficiency"],
   decoupling: ["statistics_decoupling", "decoupling"],
   monotony: ["statistics_monotony", "monotony"],
   longRun: ["statistics_long_runs", "long_run"],
