@@ -3,6 +3,8 @@ import { Job } from 'bullmq';
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { HttpException, Inject, Optional, forwardRef } from '@nestjs/common';
 
+import { Prisma } from '@openathlete/database';
+
 import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
@@ -48,13 +50,22 @@ export class TrainingPlanApplyProcessor extends WorkerHost {
           ),
         );
       } catch (error) {
-        // A lasting refusal, such as a race deleted since queueing, would
-        // fail every retry: it is that athlete's result, the others go on
-        if (!(error instanceof HttpException)) throw error;
+        // A lasting refusal, such as a race deleted since queueing, or the
+        // athlete themselves (Prisma's "record not found"), would fail every
+        // retry: it is that athlete's result, the others go on
+        if (!isLasting(error)) throw error;
         failures.push({ athleteId: target.athleteId, error: error.message });
       }
       await job.updateData({ ...job.data, results, failures });
     }
     return { results, failures };
   }
+}
+
+function isLasting(error: unknown): error is Error {
+  return (
+    error instanceof HttpException ||
+    (error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2025')
+  );
 }

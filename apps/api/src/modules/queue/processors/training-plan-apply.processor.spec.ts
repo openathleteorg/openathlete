@@ -2,9 +2,15 @@ import { Job } from 'bullmq';
 
 import { NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '@openathlete/database';
+
 import { TrainingPlanLibraryService } from '../../core/services/training-plan-library.service';
 import { TrainingPlanApplyJobData } from '../queue.service';
 import { TrainingPlanApplyProcessor } from './training-plan-apply.processor';
+
+// The FIT SDK, reached through the library service, is ESM, which Jest
+// cannot load
+jest.mock('@garmin/fitsdk', () => ({}));
 
 const result = (athleteId: number) => ({
   athleteId,
@@ -79,6 +85,28 @@ describe('TrainingPlanApplyProcessor', () => {
     ]);
     expect(output.results.map((entry) => entry.athleteId)).toEqual([1, 3]);
     expect(job.data.failures).toEqual(output.failures);
+  });
+
+  it('records an athlete deleted since queueing and goes on', async () => {
+    applyToAthlete.mockImplementation(async (_plan, target) => {
+      if (target.athleteId === 2) {
+        throw new Prisma.PrismaClientKnownRequestError('No record found', {
+          code: 'P2025',
+          clientVersion: 'test',
+        });
+      }
+      return result(target.athleteId);
+    });
+    const job = jobOf({});
+
+    const output = await processor.process(
+      job as unknown as Job<TrainingPlanApplyJobData>,
+    );
+
+    expect(output.failures).toEqual([
+      { athleteId: 2, error: 'No record found' },
+    ]);
+    expect(output.results.map((entry) => entry.athleteId)).toEqual([1, 3]);
   });
 
   it('lets other errors fail the job, keeping who is done for the retry', async () => {

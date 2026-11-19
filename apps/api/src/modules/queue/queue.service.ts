@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
@@ -137,11 +137,13 @@ export class QueueService {
   async addTrainingPlanApplyJob(
     data: Omit<TrainingPlanApplyJobData, 'results' | 'failures'>,
   ): Promise<string> {
-    const job = await this.trainingPlanApplyQueue.add('apply', {
-      ...data,
-      results: [],
-      failures: [],
-    });
+    const job = await this.trainingPlanApplyQueue.add(
+      'apply',
+      { ...data, results: [], failures: [] },
+      // Not BullMQ's counter: it starts again if Redis loses its data, and
+      // a plan saved with an old id would then pass for this job's work
+      { jobId: randomUUID() },
+    );
     return String(job.id);
   }
 

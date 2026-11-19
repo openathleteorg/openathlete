@@ -93,3 +93,28 @@ describe('addTrainingLoadRecalcJob', () => {
     expect(added(queue)).toEqual([BASE]);
   });
 });
+
+describe('addTrainingPlanApplyJob', () => {
+  it('gives each job an id of its own, not the queue counter', async () => {
+    const add = jest.fn(
+      async (_name: string, _data: unknown, opts: { jobId: string }) => ({
+        id: opts.jobId,
+      }),
+    );
+    const service = Object.create(QueueService.prototype) as QueueService;
+    Object.assign(service, { trainingPlanApplyQueue: { add } });
+    const data = {
+      userId: 1,
+      plan: {},
+      targets: [],
+      options: {},
+    } as unknown as Parameters<QueueService['addTrainingPlanApplyJob']>[0];
+
+    const first = await service.addTrainingPlanApplyJob(data);
+    const second = await service.addTrainingPlanApplyJob(data);
+
+    expect(first).toMatch(/^[0-9a-f-]{36}$/);
+    expect(second).not.toBe(first);
+    expect(add.mock.calls[0][1]).toMatchObject({ results: [], failures: [] });
+  });
+});

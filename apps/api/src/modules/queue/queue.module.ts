@@ -20,8 +20,8 @@ import { ProviderFullImportProcessor } from './processors/provider-full-import.p
 import { StravaDescriptionProcessor } from './processors/strava-description.processor';
 import { SuuntoNotificationProcessor } from './processors/suunto-notification.processor';
 import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
-import { TrainingPlanApplyProcessor } from './processors/training-plan-apply.processor';
 import { TrainingLoadRecalcProcessor } from './processors/training-load-recalc.processor';
+import { TrainingPlanApplyProcessor } from './processors/training-plan-apply.processor';
 import { WeeklyEmailProcessor } from './processors/weekly-email.processor';
 import { QueueService } from './queue.service';
 import { GapBackfillService } from './services/gap-backfill.service';
