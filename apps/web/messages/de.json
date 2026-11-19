@@ -2814,6 +2814,8 @@
   "plan_for_athletes_day_label": "Einträge vom {day}: {count}",
   "garmin_attribution_data": "Enthält Daten von Garmin-Geräten.",
   "garmin_attribution_insights": "Erkenntnisse teilweise aus Daten von Garmin-Geräten abgeleitet.",
+  "records_vertical_speed": "Steiggeschwindigkeit",
+  "records_last_days": "Letzte {days} Tage",
   "statistics_run_efficiency": "Laufeffizienz",
   "metric_run_efficiency_what": "Efficiency Factor (Friel): steigungsbereinigte Meter pro Herzschlag. Leistung pro Herzschlag: mittlere Leistung durch mittleren Puls. Running Effectiveness (Coggan): Geschwindigkeit in m/s pro W/kg auf flachen Abschnitten, bei den meisten trainierten Läufern nahe 1 kg/N. Decoupling: wie stark die Effizienz von der ersten zur zweiten Hälfte sinkt. Steigt die Effizienz bei ähnlichen Läufen, bringt dieselbe Anstrengung mehr.",
   "metric_run_efficiency_limits": "Vergleiche gleichmäßige Läufe miteinander: Härtere Läufe zeigen von selbst höhere Werte. Hitze und Müdigkeit verschieben den Puls, und die Laufleistung hängt vom Gerät ab (Stryd und Garmin unterscheiden sich): Vergleiche Läufe mit demselben Gerät. Bergab-Abschnitte fallen auf beiden Seiten jedes Verhältnisses heraus.",

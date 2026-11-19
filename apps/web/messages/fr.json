@@ -2814,6 +2814,8 @@
   "plan_for_athletes_day_label": "Éléments du {day} : {count}",
   "garmin_attribution_data": "Inclut des données fournies par des appareils Garmin.",
   "garmin_attribution_insights": "Analyses issues en partie de données d'appareils Garmin.",
+  "records_vertical_speed": "Vitesse ascensionnelle",
+  "records_last_days": "{days} derniers jours",
   "statistics_run_efficiency": "Efficacité de course",
   "metric_run_efficiency_what": "Facteur d'efficacité (Friel) : mètres corrigés de la pente par battement. Puissance par battement : puissance moyenne sur fréquence cardiaque moyenne. Running effectiveness (Coggan) : vitesse en m/s par W/kg sur le plat, proche de 1 kg/N chez la plupart des coureurs entraînés. Découplage : la baisse d'efficacité de la première moitié à la seconde. Une efficacité qui monte sur des sorties semblables, c'est plus pour le même effort.",
   "metric_run_efficiency_limits": "Compare des sorties régulières entre elles : les plus dures donnent d'elles-mêmes des valeurs plus hautes. La chaleur et la fatigue déplacent la fréquence cardiaque, et la puissance dépend de l'appareil (Stryd et Garmin diffèrent) : compare des sorties mesurées avec le même. Les descentes sont exclues des deux côtés de chaque rapport.",
