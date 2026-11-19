@@ -131,6 +131,15 @@ describe('headlinePositions', () => {
     expect(headlinePositions(pace, [400, 5000, 10000])).toEqual([5000, 10000]);
   });
 
+  it('shows four climbing speeds out of the durations computed', () => {
+    const climbing = RECORD_METRICS.find(
+      (metric) => metric.type === RECORD_TYPE.VERTICAL_SPEED,
+    )!;
+    expect(
+      headlinePositions(climbing, [300, 600, 1200, 1800, 3600, 7200]),
+    ).toEqual([300, 1200, 1800, 3600]);
+  });
+
   it('falls back on the longest ones', () => {
     expect(headlinePositions(pace, [100, 200, 300, 400, 800])).toEqual([
       200, 300, 400, 800,

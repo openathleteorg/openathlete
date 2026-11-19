@@ -43,9 +43,12 @@ const HIGHEST_POWER: [number, number][] = [
 ];
 
 /**
- * Seconds and the most metres climbed per hour: the best vertical-kilometre
- * runners reach about 2000 m/h over half an hour. Faster is a lift, a car or
- * an altimeter jump.
+ * Seconds and the most metres climbed per hour. The half hour comes from
+ * the vertical kilometre record: Rémi Bonnet climbed the 1,000 m of the
+ * Kilomètre Vertical de Fully in 27:21 (October 2025), about 2,190 m/h.
+ * The other durations follow it with a margin, as shorter efforts are
+ * faster and longer ones slower. Faster is a lift, a car or an altimeter
+ * jump.
  */
 const HIGHEST_VERTICAL_SPEED: [number, number][] = [
   [300, 2600],
