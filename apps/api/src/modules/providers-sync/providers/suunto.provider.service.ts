@@ -40,7 +40,11 @@ import {
   roundMetricValue,
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
-import { mapSuuntoWorkoutToSportType } from '../../core/helpers/suunto';
+import {
+  isGeneratedSuuntoName,
+  mapSuuntoWorkoutToSportType,
+  suuntoWorkoutName,
+} from '../../core/helpers/suunto';
 import {
   SuuntoAggregatedActivityData,
   SuuntoDailyActivityEntry,
@@ -951,7 +955,10 @@ export class SuuntoProviderService
   }
 
   /**
-   * Queue activities for import
+   * Queue the history's activities for import: those not saved yet, and
+   * those saved without their FIT file (refused for quota, for instance),
+   * which the import fetches again. Saved activities still named after
+   * their key take their sport's name on the way.
    */
   private async enqueueActivities(
     account: ProviderAccount,
@@ -961,34 +968,67 @@ export class SuuntoProviderService
       return 0;
     }
 
-    const existingExternalIds = await this.prisma.eventActivity.findMany({
-      where: {
-        externalId: {
-          in: activities.map((a) => a.externalId),
-        },
-      },
+    const externalIds = activities.map((a) => a.externalId);
+    const saved = await this.prisma.eventActivity.findMany({
+      where: { externalId: { in: externalIds } },
       select: {
         externalId: true,
+        eventId: true,
+        event: { select: { name: true } },
       },
     });
+    // Streams stay in the database: only which ones are empty is read
+    const withoutStream = await this.prisma.eventActivity.findMany({
+      where: {
+        externalId: { in: externalIds },
+        OR: [{ stream: { equals: Prisma.DbNull } }, { stream: { equals: {} } }],
+      },
+      select: { externalId: true },
+    });
 
-    const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.externalId),
+    const savedById = new Map(saved.map((a) => [a.externalId, a]));
+    const incomplete = new Set(withoutStream.map((a) => a.externalId));
+
+    const renamed = await this.renameGeneratedNames(activities, savedById);
+    if (renamed > 0) {
+      this.logger.log(
+        `Named ${renamed} Suunto activities after their sport for account ${account.providerAccountId}`,
+      );
+    }
+
+    const toQueue = activities.filter(
+      (a) => !savedById.has(a.externalId) || incomplete.has(a.externalId),
     );
 
-    const newActivities = activities.filter(
-      (a) => !existingIdsSet.has(a.externalId),
-    );
-
-    if (newActivities.length === 0) {
+    if (toQueue.length === 0) {
       this.logger.log(
         `No new Suunto activities to queue for account ${account.providerAccountId}`,
       );
       return 0;
     }
 
-    await this.queueService.addActivityImportJobs(account, newActivities, true);
-    return newActivities.length;
+    await this.queueService.addActivityImportJobs(account, toQueue, true);
+    return toQueue.length;
+  }
+
+  /** Activities saved before their sport was read were named after their key */
+  private async renameGeneratedNames(
+    activities: ImportedActivity[],
+    savedById: Map<string, { eventId: number; event: { name: string } }>,
+  ): Promise<number> {
+    const updates = activities.flatMap((activity) => {
+      const saved = savedById.get(activity.externalId);
+      if (!saved || !isGeneratedSuuntoName(saved.event.name)) return [];
+      if (isGeneratedSuuntoName(activity.name)) return [];
+      return [
+        this.prisma.event.update({
+          where: { eventId: saved.eventId },
+          data: { name: activity.name },
+        }),
+      ];
+    });
+    if (updates.length > 0) await this.prisma.$transaction(updates);
+    return updates.length;
   }
 
   /**
@@ -1167,7 +1207,7 @@ export class SuuntoProviderService
     const startDate = new Date(workout.startTime);
     return {
       externalId: workout.workoutKey,
-      name: workout.workoutName || `Suunto Workout ${workout.workoutKey}`,
+      name: suuntoWorkoutName(workout),
       startDate,
       endDate: workout.stopTime
         ? new Date(workout.stopTime)
