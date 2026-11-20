@@ -7,6 +7,7 @@ import {
   CurrentSubscriptionDto,
   CustomerPortalResponseDto,
   InvoiceDto,
+  SupporterBadgesDto,
   SupporterCountDto,
   UpdateSupporterWallDto,
 } from '@openathlete/shared';
@@ -24,6 +25,27 @@ export class SubscriptionAPI {
       routes.subscription.supporters,
     );
     return res.data;
+  }
+
+  static async updateSupporterBadge(
+    show: boolean,
+  ): Promise<CurrentSubscriptionDto> {
+    const res = await client.patch<CurrentSubscriptionDto>(
+      routes.subscription.badge,
+      { show },
+    );
+    return res.data;
+  }
+
+  /** Those of these users who show the Supporter badge to the user */
+  static async getSupporterBadges(userIds: number[]): Promise<number[]> {
+    const res = await client.get<SupporterBadgesDto>(
+      routes.subscription.badges,
+      {
+        params: { userIds: userIds.join(',') },
+      },
+    );
+    return res.data.userIds;
   }
 
   static async updateSupporterWall(

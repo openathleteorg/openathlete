@@ -57,6 +57,8 @@ model User {
   trainingReminderSentOn DateTime? @map("training_reminder_sent_on") @db.Date
   /// What calendar cards and summaries show (see calendarDisplaySchema)
   calendarDisplay     Json?        @map("calendar_display")
+  /// Accent colour of the app (a Supporter perk); null: the default
+  accentTheme         String?      @map("accent_theme")
   /// How the user set up their coach dashboard (columns)
   coachDashboard      Json?        @map("coach_dashboard")
   /// Tracks hidden from activity charts, per sport (see hiddenActivityTracksSchema)

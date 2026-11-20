@@ -39,6 +39,36 @@ export function useCreateCheckout() {
   });
 }
 
+/** Shows or hides the Supporter badge others see */
+export function useUpdateSupporterBadge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (show: boolean) => SubscriptionAPI.updateSupporterBadge(show),
+    onSuccess: (subscription) => {
+      queryClient.setQueryData(subscriptionKeys.current(), subscription);
+      queryClient.invalidateQueries({
+        queryKey: [...subscriptionKeys.all, 'badges'],
+      });
+    },
+  });
+}
+
+/**
+ * Which of these people show the Supporter badge: one request per list
+ * (a club, a dashboard, the conversations), only on instances that sell
+ */
+export function useSupporterBadges(userIds: readonly number[]) {
+  const { data: subscription } = useCurrentSubscription();
+  const ids = [...new Set(userIds)].sort((a, b) => a - b).slice(0, 200);
+  const { data } = useQuery({
+    queryKey: subscriptionKeys.badges(ids),
+    queryFn: () => SubscriptionAPI.getSupporterBadges(ids),
+    enabled: !!subscription?.billingEnabled && ids.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+  return new Set(data ?? []);
+}
+
 /** Shows or hides the user on the Supporter wall of the website */
 export function useUpdateSupporterWall() {
   const queryClient = useQueryClient();

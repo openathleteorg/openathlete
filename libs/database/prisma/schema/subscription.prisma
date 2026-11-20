@@ -50,6 +50,9 @@ model Subscription {
   showOnSupporterWall        Boolean          @default(false) @map("show_on_supporter_wall")
   /// Name shown on that wall instead of the first name; never the full name
   wallName                   String?          @map("wall_name")
+  /// Shows the Supporter badge to coaches, athletes and club members.
+  /// On by default; only an entitled Supporter shows it
+  showSupporterBadge         Boolean          @default(true) @map("show_supporter_badge")
 
   // relationships
   user   User @relation(fields: [userId], references: [userId])

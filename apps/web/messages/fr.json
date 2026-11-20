@@ -3134,5 +3134,19 @@
   "lab_overview_open": "Voir le Labo",
   "lab_teaser_stable": "Stable",
   "club_closed_staff": "Ce club n'accueille plus de nouveaux membres ni de nouvelles séances pour l'instant : son propriétaire n'est plus Supporter. Tout ce qui est déjà planifié continue.",
-  "club_closed_join": "Ce club n'accepte pas de nouveaux membres pour l'instant. Demandez à son entraîneur."
+  "club_closed_join": "Ce club n'accepte pas de nouveaux membres pour l'instant. Demandez à son entraîneur.",
+  "accent_title": "Couleur de l'application",
+  "accent_description": "La couleur des boutons et des repères. Les modes clair et sombre sont dans le menu de votre compte.",
+  "accent_save_failed": "La couleur n'a pas pu être enregistrée.",
+  "accent_default": "Marine (par défaut)",
+  "accent_ocean": "Océan",
+  "accent_forest": "Forêt",
+  "accent_sunset": "Couchant",
+  "accent_berry": "Myrtille",
+  "accent_rose": "Rose",
+  "supporter_badge_label": "Supporter",
+  "supporter_badge_title": "Badge Supporter",
+  "supporter_badge_show": "Afficher mon badge",
+  "supporter_badge_description": "Un petit cœur à côté de votre nom, pour vos coachs, vos athlètes, les membres de vos clubs et vos conversations.",
+  "supporter_badge_save_failed": "Le badge n'a pas pu être enregistré."
 }

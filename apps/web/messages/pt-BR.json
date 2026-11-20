@@ -3134,5 +3134,19 @@
   "lab_overview_open": "Ver o Laboratório",
   "lab_teaser_stable": "Estável",
   "club_closed_staff": "Este clube não aceita novos membros nem sessões por enquanto: o dono não é mais Supporter. Tudo o que já está planejado continua.",
-  "club_closed_join": "Este clube não está aceitando novos membros por enquanto. Fale com o treinador."
+  "club_closed_join": "Este clube não está aceitando novos membros por enquanto. Fale com o treinador.",
+  "accent_title": "Cor do app",
+  "accent_description": "A cor dos botões e destaques. Os modos claro e escuro ficam no menu da sua conta.",
+  "accent_save_failed": "Não foi possível salvar a cor.",
+  "accent_default": "Marinho (padrão)",
+  "accent_ocean": "Oceano",
+  "accent_forest": "Floresta",
+  "accent_sunset": "Pôr do sol",
+  "accent_berry": "Mirtilo",
+  "accent_rose": "Rosa",
+  "supporter_badge_label": "Supporter",
+  "supporter_badge_title": "Selo Supporter",
+  "supporter_badge_show": "Mostrar meu selo",
+  "supporter_badge_description": "Um pequeno coração ao lado do seu nome, para seus treinadores, atletas, membros dos clubes e conversas.",
+  "supporter_badge_save_failed": "Não foi possível salvar o selo."
 }

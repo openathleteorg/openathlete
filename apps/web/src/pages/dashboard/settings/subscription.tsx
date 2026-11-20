@@ -11,6 +11,7 @@ import {
   SupporterOffer,
   TierPicker,
 } from '@/components/paywall/supporter-offer';
+import { SupporterBadgeSettings } from '@/components/supporter-perks/supporter-badge-settings';
 import { SupporterGoal } from '@/components/supporter/supporter-goal';
 import { SupporterWallSettings } from '@/components/supporter/supporter-wall';
 import { Badge } from '@/components/ui/badge';
@@ -283,6 +284,8 @@ export function SubscriptionSettingsPage() {
         show={subscription.showOnSupporterWall}
         wallName={subscription.wallName}
       />
+
+      <SupporterBadgeSettings show={subscription.showSupporterBadge} />
 
       {managesStripe && interval && !subscription.cancelAtPeriodEnd && (
         <ChangeContribution

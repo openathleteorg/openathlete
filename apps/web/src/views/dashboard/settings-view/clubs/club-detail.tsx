@@ -6,11 +6,13 @@ import {
   useUpdateClubMemberMutation,
   useUpdateClubMutation,
 } from '@/api/club';
+import { useSupporterBadges } from '@/api/subscription';
 import { clubRoleLabel } from '@/components/clubs/club-role';
 import { GroupsManager } from '@/components/clubs/groups-manager';
 import { NameDialog } from '@/components/clubs/name-dialog';
 import { ConfirmAction } from '@/components/confirm-action';
 import { LockedPanel } from '@/components/supporter-perks/locks';
+import { SupporterBadge } from '@/components/supporter-perks/supporter-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -81,6 +83,9 @@ export function ClubDetail({ clubId }: { clubId: number }) {
   const role = club?.role;
   // The club keeps running without a Supporter owner, but does not grow
   const acceptsMembers = club?.acceptsMembers ?? true;
+  const badges = useSupporterBadges(
+    club?.members.map((member) => member.userId) ?? [],
+  );
   const staff = useMemo(
     () => club?.members.filter((member) => isClubStaff(member.role)) ?? [],
     [club],
@@ -123,6 +128,7 @@ export function ClubDetail({ clubId }: { clubId: number }) {
       title={
         <span className="flex flex-wrap items-center gap-2">
           {fullName(member)}
+          <SupporterBadge show={badges.has(member.userId)} />
           {isMe(member) && (
             <span className="text-muted-foreground">{m.club_you()}</span>
           )}

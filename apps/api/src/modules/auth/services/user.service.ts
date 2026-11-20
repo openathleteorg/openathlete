@@ -157,6 +157,7 @@ export class UserService {
         timeZone: true,
         trainingReminders: true,
         calendarDisplay: true,
+        accentTheme: true,
         coachDashboard: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
@@ -469,6 +470,7 @@ export class UserService {
         timeZone: data.timeZone,
         trainingReminders: data.trainingReminders,
         calendarDisplay: data.calendarDisplay,
+        accentTheme: data.accentTheme,
         coachDashboard: data.coachDashboard,
         hiddenActivityTracks: data.hiddenActivityTracks,
         supportReminderDismissedAt: data.supportReminderDismissed
@@ -503,6 +505,7 @@ export class UserService {
         timeZone: true,
         trainingReminders: true,
         calendarDisplay: true,
+        accentTheme: true,
         coachDashboard: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,

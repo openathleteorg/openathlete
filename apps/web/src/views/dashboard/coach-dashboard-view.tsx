@@ -1,4 +1,5 @@
 import { useCoachDashboardQuery } from '@/api/coach';
+import { useSupporterBadges } from '@/api/subscription';
 import {
   GroupFilterOption,
   useGroupFilterOptions,
@@ -20,6 +21,7 @@ import { useCoachDashboardSettings } from '@/components/coach-dashboard/use-coac
 import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
 import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
 import { SupporterMark } from '@/components/supporter-perks/locks';
+import { SupporterBadge } from '@/components/supporter-perks/supporter-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -374,6 +376,9 @@ export function CoachDashboardView() {
     (option) => option.value === groupFilter,
   );
   const allRows = data?.athletes ?? [];
+  const badges = useSupporterBadges(
+    allRows.flatMap((row) => (row.userId ? [row.userId] : [])),
+  );
   const rows = selectedGroup
     ? allRows.filter((row) => selectedGroup.athleteIds.has(row.athleteId))
     : allRows;
@@ -599,7 +604,12 @@ export function CoachDashboardView() {
                       />
                     </td>
                     <td className="px-2 py-3">
-                      <div className="font-medium truncate">{name(row)}</div>
+                      <div className="flex min-w-0 items-center gap-1 font-medium">
+                        <span className="truncate">{name(row)}</span>
+                        <SupporterBadge
+                          show={!!row.userId && badges.has(row.userId)}
+                        />
+                      </div>
                       <div className="text-xs text-muted-foreground truncate">
                         {row.email}
                       </div>
@@ -625,7 +635,12 @@ export function CoachDashboardView() {
                 <CardContent className="space-y-3 pt-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="font-medium">{name(row)}</div>
+                      <div className="flex items-center gap-1 font-medium">
+                        {name(row)}
+                        <SupporterBadge
+                          show={!!row.userId && badges.has(row.userId)}
+                        />
+                      </div>
                       <LastActivity row={row} />
                     </div>
                     <Actions row={row} />

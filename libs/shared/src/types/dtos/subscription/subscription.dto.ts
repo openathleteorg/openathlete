@@ -41,9 +41,14 @@ export const currentSubscriptionDtoSchema = z.object({
   showOnSupporterWall: z.boolean(),
   /** Name shown there instead of the first name */
   wallName: z.string().nullable(),
+  /** Coaches, athletes and club members see the Supporter badge */
+  showSupporterBadge: z.boolean(),
   /** What the user may use of FEATURES today, decided by the server's clock */
   features: featureAccessMapSchema,
 });
+
+/** Users one request about badges may name */
+export const SUPPORTER_BADGES_MAX = 200;
 
 export type CurrentSubscriptionDto = z.infer<
   typeof currentSubscriptionDtoSchema
@@ -56,6 +61,31 @@ export const supporterCountDtoSchema = z.object({
 });
 
 export type SupporterCountDto = z.infer<typeof supporterCountDtoSchema>;
+
+/** Show or hide the Supporter badge others see */
+export const updateSupporterBadgeDtoSchema = z.object({ show: z.boolean() });
+export type UpdateSupporterBadgeDto = z.infer<
+  typeof updateSupporterBadgeDtoSchema
+>;
+
+/** Users to ask about, among those the requester sees in the app */
+export const supporterBadgesQuerySchema = z.object({
+  userIds: z
+    .string()
+    .transform((value) =>
+      value
+        .split(',')
+        .map(Number)
+        .filter((id) => Number.isInteger(id) && id > 0),
+    )
+    .pipe(z.array(z.number()).max(SUPPORTER_BADGES_MAX)),
+});
+
+/** Those of them who show the Supporter badge */
+export const supporterBadgesDtoSchema = z.object({
+  userIds: z.array(z.number().int()),
+});
+export type SupporterBadgesDto = z.infer<typeof supporterBadgesDtoSchema>;
 
 /** Longest name a Supporter may show on the wall */
 export const SUPPORTER_WALL_NAME_MAX_LENGTH = 30;

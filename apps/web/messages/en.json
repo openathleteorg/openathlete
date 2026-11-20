@@ -3134,5 +3134,19 @@
   "lab_overview_open": "See the Lab",
   "lab_teaser_stable": "Stable",
   "club_closed_staff": "This club takes no new members or sessions for now: its owner is no longer a Supporter. Everything already planned keeps running.",
-  "club_closed_join": "This club isn't taking new members for now. Ask its coach."
+  "club_closed_join": "This club isn't taking new members for now. Ask its coach.",
+  "accent_title": "App colour",
+  "accent_description": "The colour of buttons and highlights. Light and dark mode are in your account menu.",
+  "accent_save_failed": "The colour could not be saved.",
+  "accent_default": "Navy (default)",
+  "accent_ocean": "Ocean",
+  "accent_forest": "Forest",
+  "accent_sunset": "Sunset",
+  "accent_berry": "Berry",
+  "accent_rose": "Rose",
+  "supporter_badge_label": "Supporter",
+  "supporter_badge_title": "Supporter badge",
+  "supporter_badge_show": "Show my badge",
+  "supporter_badge_description": "A small heart next to your name, for your coaches, athletes, club members and conversations.",
+  "supporter_badge_save_failed": "The badge could not be saved."
 }

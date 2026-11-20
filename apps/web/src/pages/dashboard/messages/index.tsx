@@ -4,12 +4,14 @@ import {
   useGetUserThreadsQuery as useGetMessageThreadsQuery,
   useMessagesWebSocket,
 } from '@/api/messages';
+import { useSupporterBadges } from '@/api/subscription';
 import { useGetMeQuery } from '@/api/user';
 import { ChatInput } from '@/components/chatbot/chat-input';
 import { BroadcastControls } from '@/components/messages/broadcast-controls';
 import { MessageMessages } from '@/components/messages/message-messages';
 import { MessageSearch } from '@/components/messages/message-search';
 import { NewMessageThreadDialog } from '@/components/messages/new-message-thread-dialog';
+import { SupporterBadge } from '@/components/supporter-perks/supporter-badge';
 import { Button } from '@/components/ui/button';
 import { PageLoader } from '@/components/ui/loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -93,6 +95,13 @@ export function MessagesPage() {
       return unreadCount > 0;
     });
   }, [allThreads, filter, currentUser, messageThreads]);
+  const badges = useSupporterBadges(
+    (messageThreads ?? []).flatMap((thread: MessageThread) =>
+      (thread.participants ?? [])
+        .map((participant) => participant.userId)
+        .filter((userId) => userId !== currentUser?.userId),
+    ),
+  );
 
   const activeId = activeMessageThreadId;
   const setActiveId = setActiveMessageThreadId;
@@ -426,6 +435,12 @@ export function MessagesPage() {
             {threads?.map((thread: AgentThread | MessageThread) => {
               const threadId = (thread as MessageThread).messageThreadId;
               const threadTitle = thread.title;
+              // The heart of a Supporter, in a one-to-one conversation
+              const others =
+                (thread as MessageThread).participants?.filter(
+                  (participant) => participant.userId !== currentUser?.userId,
+                ) ?? [];
+              const partner = others.length === 1 ? others[0].userId : null;
               const threadCreatedAt = thread.createdAt;
               const unreadCount = currentUser
                 ? calculateUnreadCount(
@@ -460,6 +475,9 @@ export function MessagesPage() {
                             : threadTitle
                           : m.message_thread_title({ id: threadId })}
                       </h3>
+                      <SupporterBadge
+                        show={partner !== null && badges.has(partner)}
+                      />
                       {unreadCount > 0 && <UnreadBadge count={unreadCount} />}
                     </div>
                     <p className="text-xs text-muted-foreground">

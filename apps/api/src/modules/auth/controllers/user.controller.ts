@@ -325,6 +325,10 @@ export class UserController {
     @Body(new ZodValidationPipe(updateAccountDtoSchema)) body: UpdateAccountDto,
   ) {
     if (body.coachDashboard) await this.assertMayChangeColumns(user, body);
+    // An accent colour is a Supporter perk; going back to the default is not
+    if (body.accentTheme) {
+      await this.features.assert(user.userId, Feature.THEMES);
+    }
     return this.userService.updateAccount(user, body);
   }
 

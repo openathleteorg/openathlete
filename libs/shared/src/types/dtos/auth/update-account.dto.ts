@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { isTimeZone } from '../../../utils/date';
+import { accentThemeSchema } from '../../accent-themes';
 import { calendarDisplaySchema } from '../core/calendar-display.dto';
 import { coachDashboardSettingsSchema } from '../core/coach-dashboard-settings.dto';
 import { hiddenActivityTracksSchema } from '../core/hidden-activity-tracks.dto';
@@ -18,6 +19,8 @@ export const updateAccountDtoSchema = trainingProfileSchema.extend({
   trainingReminders: z.boolean().optional(),
   /** What the calendar shows */
   calendarDisplay: calendarDisplaySchema.optional(),
+  /** Accent colour (Supporter perk); null: back to the default */
+  accentTheme: accentThemeSchema.optional(),
   coachDashboard: coachDashboardSettingsSchema.optional(),
   /** Tracks hidden from activity charts, per sport */
   hiddenActivityTracks: hiddenActivityTracksSchema.optional(),

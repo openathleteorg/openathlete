@@ -3134,5 +3134,19 @@
   "lab_overview_open": "Bekijk het Lab",
   "lab_teaser_stable": "Stabiel",
   "club_closed_staff": "Deze club neemt voorlopig geen nieuwe leden of trainingen aan: de eigenaar is geen Supporter meer. Alles wat al gepland is, loopt door.",
-  "club_closed_join": "Deze club neemt voorlopig geen nieuwe leden aan. Vraag het de trainer."
+  "club_closed_join": "Deze club neemt voorlopig geen nieuwe leden aan. Vraag het de trainer.",
+  "accent_title": "Kleur van de app",
+  "accent_description": "De kleur van knoppen en accenten. Lichte en donkere modus staan in je accountmenu.",
+  "accent_save_failed": "De kleur kon niet worden opgeslagen.",
+  "accent_default": "Marine (standaard)",
+  "accent_ocean": "Oceaan",
+  "accent_forest": "Bos",
+  "accent_sunset": "Zonsondergang",
+  "accent_berry": "Bosbes",
+  "accent_rose": "Roos",
+  "supporter_badge_label": "Supporter",
+  "supporter_badge_title": "Supporter-badge",
+  "supporter_badge_show": "Mijn badge tonen",
+  "supporter_badge_description": "Een klein hartje naast je naam, voor je trainers, atleten, clubleden en gesprekken.",
+  "supporter_badge_save_failed": "De badge kon niet worden opgeslagen."
 }

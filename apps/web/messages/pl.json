@@ -3134,5 +3134,19 @@
   "lab_overview_open": "Zobacz Laboratorium",
   "lab_teaser_stable": "Stabilna",
   "club_closed_staff": "Ten klub na razie nie przyjmuje nowych członków ani treningów: właściciel nie jest już Supporterem. Wszystko, co już zaplanowane, działa dalej.",
-  "club_closed_join": "Ten klub na razie nie przyjmuje nowych członków. Zapytaj trenera."
+  "club_closed_join": "Ten klub na razie nie przyjmuje nowych członków. Zapytaj trenera.",
+  "accent_title": "Kolor aplikacji",
+  "accent_description": "Kolor przycisków i wyróżnień. Tryb jasny i ciemny znajdziesz w menu konta.",
+  "accent_save_failed": "Nie udało się zapisać koloru.",
+  "accent_default": "Granatowy (domyślny)",
+  "accent_ocean": "Ocean",
+  "accent_forest": "Las",
+  "accent_sunset": "Zachód słońca",
+  "accent_berry": "Jagoda",
+  "accent_rose": "Róża",
+  "supporter_badge_label": "Supporter",
+  "supporter_badge_title": "Odznaka Supportera",
+  "supporter_badge_show": "Pokaż moją odznakę",
+  "supporter_badge_description": "Małe serce obok Twojego imienia, widoczne dla trenerów, zawodników, członków klubów i w rozmowach.",
+  "supporter_badge_save_failed": "Nie udało się zapisać odznaki."
 }

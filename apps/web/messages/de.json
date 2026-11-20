@@ -3134,5 +3134,19 @@
   "lab_overview_open": "Labor ansehen",
   "lab_teaser_stable": "Stabil",
   "club_closed_staff": "Dieser Verein nimmt vorerst keine neuen Mitglieder oder Einheiten an: Der Inhaber ist kein Supporter mehr. Alles bereits Geplante läuft weiter.",
-  "club_closed_join": "Dieser Verein nimmt vorerst keine neuen Mitglieder auf. Frag den Trainer."
+  "club_closed_join": "Dieser Verein nimmt vorerst keine neuen Mitglieder auf. Frag den Trainer.",
+  "accent_title": "App-Farbe",
+  "accent_description": "Die Farbe von Schaltflächen und Hervorhebungen. Hell- und Dunkelmodus findest du im Kontomenü.",
+  "accent_save_failed": "Die Farbe konnte nicht gespeichert werden.",
+  "accent_default": "Marine (Standard)",
+  "accent_ocean": "Ozean",
+  "accent_forest": "Wald",
+  "accent_sunset": "Abendrot",
+  "accent_berry": "Heidelbeere",
+  "accent_rose": "Rose",
+  "supporter_badge_label": "Supporter",
+  "supporter_badge_title": "Supporter-Abzeichen",
+  "supporter_badge_show": "Mein Abzeichen zeigen",
+  "supporter_badge_description": "Ein kleines Herz neben deinem Namen, für deine Trainer, Athleten, Vereinsmitglieder und Unterhaltungen.",
+  "supporter_badge_save_failed": "Das Abzeichen konnte nicht gespeichert werden."
 }
