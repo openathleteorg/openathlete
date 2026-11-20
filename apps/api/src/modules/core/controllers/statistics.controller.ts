@@ -22,6 +22,7 @@ import {
   getStatisticsOverviewQuerySchema,
   getStatisticsSectionQuerySchema,
   getStatisticsTrendsQuerySchema,
+  statisticsGranularity,
 } from '@openathlete/shared';
 
 import { UserTypeGuard } from 'src/modules/auth';
@@ -42,14 +43,19 @@ export class StatisticsController {
 
   /**
    * The Lab's data for those who have it; for the others, one real figure
-   * (the teaser), never the full data hidden by the app
+   * (the teaser), never the full data hidden by the app. Apps released
+   * before the teaser do not send lab=1 and get an empty answer of the
+   * usual shape instead, which they draw as "no data" rather than break on.
    */
   private async lab<T>(
     user: AuthUser,
     query: GetStatisticsTrendsQueryDto,
+    knowsTeaser: string | undefined,
     read: () => Promise<T>,
+    empty: () => T,
   ): Promise<LabResponse<T>> {
     if (await this.features.can(user.userId, Feature.LAB)) return read();
+    if (knowsTeaser !== '1') return empty();
     return {
       locked: true,
       teaser: await this.labTeaser.teaser(user, query),
@@ -240,9 +246,14 @@ export class StatisticsController {
     @JwtUser() user: AuthUser,
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
+    @Query('lab') lab?: string,
   ) {
-    return this.lab(user, query, () =>
-      this.statisticsService.getTerrain(user, query),
+    return this.lab(
+      user,
+      query,
+      lab,
+      () => this.statisticsService.getTerrain(user, query),
+      () => ({ bins: [], classes: [] }),
     );
   }
 
@@ -265,9 +276,14 @@ export class StatisticsController {
     @JwtUser() user: AuthUser,
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
+    @Query('lab') lab?: string,
   ) {
-    return this.lab(user, query, () =>
-      this.statisticsService.getCardiacCost(user, query),
+    return this.lab(
+      user,
+      query,
+      lab,
+      () => this.statisticsService.getCardiacCost(user, query),
+      () => ({ unit: 'speed' as const, bins: [] }),
     );
   }
 
@@ -313,9 +329,14 @@ export class StatisticsController {
     @JwtUser() user: AuthUser,
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
+    @Query('lab') lab?: string,
   ) {
-    return this.lab(user, query, () =>
-      this.statisticsService.getDurability(user, query),
+    return this.lab(
+      user,
+      query,
+      lab,
+      () => this.statisticsService.getDurability(user, query),
+      () => ({ series: [], outings: [] }),
     );
   }
 
@@ -360,9 +381,17 @@ export class StatisticsController {
     @JwtUser() user: AuthUser,
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
+    @Query('lab') lab?: string,
   ) {
-    return this.lab(user, query, () =>
-      this.statisticsService.getTrends(user, query),
+    return this.lab(
+      user,
+      query,
+      lab,
+      () => this.statisticsService.getTrends(user, query),
+      () => ({
+        granularity: statisticsGranularity(query.from, query.to),
+        buckets: [],
+      }),
     );
   }
 

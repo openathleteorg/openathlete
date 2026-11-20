@@ -55,6 +55,7 @@ test('a free account discovers the Lab and the comparison behind a lock', async 
       sport: 'RUNNING',
       from: new Date(Date.now() - 84 * 86_400_000).toISOString(),
       to: new Date().toISOString(),
+      lab: 1,
     },
   });
   expect(await terrain.json()).toMatchObject({ locked: true });

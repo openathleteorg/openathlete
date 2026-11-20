@@ -52,7 +52,7 @@ const LAB = [
 describe('StatisticsController and the Lab', () => {
   it.each(LAB)('%s sends the teaser only, without the Lab', async (method) => {
     const { controller, statistics, features, labTeaser } = build(false);
-    await expect(controller[method](user, query)).resolves.toEqual({
+    await expect(controller[method](user, query, '1')).resolves.toEqual({
       locked: true,
       teaser: TEASER,
     });
@@ -64,7 +64,7 @@ describe('StatisticsController and the Lab', () => {
   it.each(LAB)('%s sends the full data with the Lab', async (method) => {
     // Without Stripe, FeatureAccessService answers true for everyone
     const { controller, statistics, labTeaser } = build(true);
-    const result = await controller[method](user, query);
+    const result = await controller[method](user, query, '1');
     expect(result).not.toHaveProperty('locked');
     expect(statistics[method]).toHaveBeenCalledWith(user, query);
     expect(labTeaser.teaser).not.toHaveBeenCalled();
@@ -79,4 +79,16 @@ describe('StatisticsController and the Lab', () => {
     expect(features.can).not.toHaveBeenCalled();
     expect(statistics.getEfficiency).toHaveBeenCalled();
   });
+
+  it.each(LAB)(
+    '%s answers apps without the teaser with empty data, never the Lab',
+    async (method) => {
+      const { controller, statistics, labTeaser } = build(false);
+      const result = await controller[method](user, query, undefined);
+      expect(result).not.toHaveProperty('locked');
+      expect(JSON.stringify(result)).not.toMatch(/median/);
+      expect(statistics[method]).not.toHaveBeenCalled();
+      expect(labTeaser.teaser).not.toHaveBeenCalled();
+    },
+  );
 });
