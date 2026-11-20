@@ -47,4 +47,5 @@ export * from './coach-dashboard-settings.dto';
 export * from './metric-threshold.dto';
 export * from './club-session.dto';
 export * from './garmin-data.dto';
+export * from './training-plan.dto';
 export * from './questionnaire.dto';

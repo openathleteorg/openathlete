@@ -21,6 +21,7 @@ import { StravaDescriptionProcessor } from './processors/strava-description.proc
 import { SuuntoNotificationProcessor } from './processors/suunto-notification.processor';
 import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
 import { TrainingLoadRecalcProcessor } from './processors/training-load-recalc.processor';
+import { TrainingPlanApplyProcessor } from './processors/training-plan-apply.processor';
 import { WeeklyEmailProcessor } from './processors/weekly-email.processor';
 import { QueueService } from './queue.service';
 import { GapBackfillService } from './services/gap-backfill.service';
@@ -411,6 +412,16 @@ function parseRedisUrl(redisUrl: string): {
       },
     }),
     BullModule.registerQueue({
+      name: 'training-plan-apply',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+        // The app polls the job for its results
+        removeOnComplete: { age: 24 * 3600, count: 1000 },
+        removeOnFail: { age: 7 * 24 * 3600 },
+      },
+    }),
+    BullModule.registerQueue({
       name: 'training-load-recalc',
       defaultJobOptions: {
         attempts: 3,
@@ -450,6 +461,7 @@ function parseRedisUrl(redisUrl: string): {
       ? [
           ActivityProcessingProcessor,
           DuplicateActivitiesProcessor,
+          TrainingPlanApplyProcessor,
           TrainingLoadRecalcProcessor,
           // The Monday emails: queued and sent where jobs are processed,
           // so one process runs the schedule

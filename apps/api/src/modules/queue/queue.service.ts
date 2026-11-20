@@ -1,11 +1,21 @@
 import { Queue } from 'bullmq';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { ProviderAccount } from '@openathlete/database';
+import {
+  TrainingPlanApplyFailure,
+  TrainingPlanApplyJobStatus,
+  TrainingPlanApplyResult,
+  TrainingPlanApplyTarget,
+} from '@openathlete/shared';
 
+import type {
+  ApplyOptions,
+  PlanToApply,
+} from '../core/services/training-plan-library.service';
 import { ImportedActivity } from '../providers-sync/base/provider-import.interface';
 
 export interface ActivityImportJobData {
@@ -71,6 +81,19 @@ export interface StravaDescriptionJobData {
   eventActivityId: number;
 }
 
+/** A library plan applied to several athletes, each in its own transaction */
+export interface TrainingPlanApplyJobData {
+  /** Who asked: only they can read the job */
+  userId: number;
+  plan: PlanToApply;
+  targets: TrainingPlanApplyTarget[];
+  options: ApplyOptions;
+  /** Filled as athletes are done, so a retry skips them */
+  results: TrainingPlanApplyResult[];
+  /** Athletes skipped for a lasting reason, such as a deleted race */
+  failures?: TrainingPlanApplyFailure[];
+}
+
 /** TRIMP of all an athlete's activities, after HR max or resting HR changed */
 export interface TrainingLoadRecalcJobData {
   athleteId: number;
@@ -105,9 +128,47 @@ export class QueueService {
     private readonly duplicateActivitiesQueue: Queue<DuplicateActivitiesJobData>,
     @InjectQueue('strava-description')
     private readonly stravaDescriptionQueue: Queue<StravaDescriptionJobData>,
+    @InjectQueue('training-plan-apply')
+    private readonly trainingPlanApplyQueue: Queue<TrainingPlanApplyJobData>,
     @InjectQueue('training-load-recalc')
     private readonly trainingLoadRecalcQueue: Queue<TrainingLoadRecalcJobData>,
   ) {}
+
+  async addTrainingPlanApplyJob(
+    data: Omit<TrainingPlanApplyJobData, 'results' | 'failures'>,
+  ): Promise<string> {
+    const job = await this.trainingPlanApplyQueue.add(
+      'apply',
+      { ...data, results: [], failures: [] },
+      // Not BullMQ's counter: it starts again if Redis loses its data, and
+      // a plan saved with an old id would then pass for this job's work
+      { jobId: randomUUID() },
+    );
+    return String(job.id);
+  }
+
+  /** Null when the job is unknown, or someone else's */
+  async getTrainingPlanApplyJob(
+    jobId: string,
+    userId: number,
+  ): Promise<TrainingPlanApplyJobStatus | null> {
+    const job = await this.trainingPlanApplyQueue.getJob(jobId);
+    if (!job || job.data.userId !== userId) return null;
+    const state = await job.getState();
+    return {
+      jobId,
+      state: (['waiting', 'active', 'completed', 'failed'] as const).includes(
+        state as 'waiting',
+      )
+        ? (state as TrainingPlanApplyJobStatus['state'])
+        : state === 'delayed' || state === 'prioritized'
+          ? 'waiting'
+          : 'unknown',
+      results: job.data.results,
+      failures: job.data.failures ?? [],
+      error: job.failedReason ?? null,
+    };
+  }
 
   /**
    * Waits a minute so that HR max and resting HR typed one after the other

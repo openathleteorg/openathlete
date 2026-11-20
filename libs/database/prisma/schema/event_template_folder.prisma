@@ -30,6 +30,7 @@ model EventTemplateFolder {
   /// The club library holding it; null in its author's own library
   club           Club?                 @relation(fields: [clubId], references: [clubId], onDelete: Cascade)
   clubId         Int?                  @map("club_id")
+  trainingPlanTemplates TrainingPlanTemplate[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

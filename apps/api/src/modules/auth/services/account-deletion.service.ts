@@ -225,6 +225,9 @@ export class AccountDeletionService {
   }
 
   private async deleteUserData(tx: Tx, userId: number) {
+    // Cascades with the user; before the folders it may sit in. Plans
+    // applied from them stay with their athletes
+    await tx.trainingPlanTemplate.deleteMany({ where: { userId } });
     await tx.eventTemplateFolder.deleteMany({ where: { userId } });
     await tx.token.deleteMany({ where: { userId } });
     await tx.subscription.deleteMany({ where: { userId } });

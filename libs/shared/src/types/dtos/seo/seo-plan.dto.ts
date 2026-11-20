@@ -17,7 +17,7 @@ const elevationGainRangeSchema = z.object({
 
 export type ElevationGainRange = z.infer<typeof elevationGainRangeSchema>;
 
-const planSessionSchema = z.object({
+export const planSessionSchema = z.object({
   dayOfWeek: z.number().min(0).max(6), // 0-6 (sunday-saturday)
   name: z.string().min(1),
   sport: z.nativeEnum(SPORT_TYPE),
@@ -26,6 +26,14 @@ const planSessionSchema = z.object({
   goalDuration: z.number().optional().nullable(), // seconds
   goalElevationGain: z.number().optional().nullable(),
   goalRpe: z.number().optional().nullable(),
+  /** Local start time (HH:mm); plans without one start at 09:00 */
+  startTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional()
+    .nullable(),
+  /** A training by default; a note carries only its name and description */
+  kind: z.enum(['TRAINING', 'NOTE']).optional(),
   workout: z
     .object({
       steps: z.array(createWorkoutStepDtoSchema).default([]),
@@ -36,7 +44,7 @@ const planSessionSchema = z.object({
 
 export type PlanSession = z.infer<typeof planSessionSchema>;
 
-const planWeekSchema = z.object({
+export const planWeekSchema = z.object({
   weekNumber: z.number().min(1),
   theme: z.string().optional().nullable(),
   sessions: z.array(planSessionSchema),
@@ -44,7 +52,7 @@ const planWeekSchema = z.object({
 
 export type PlanWeek = z.infer<typeof planWeekSchema>;
 
-const planCycleSchema = z.object({
+export const planCycleSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
   phase: z.nativeEnum(CYCLE_PHASE),

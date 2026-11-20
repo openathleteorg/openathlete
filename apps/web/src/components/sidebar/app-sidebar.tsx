@@ -87,6 +87,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           icon: NotebookPen,
           spaces: ['COACH'] as UserRole[],
         },
+        {
+          title: m.training_plans(),
+          url: getPath(['dashboard', 'plans']),
+          icon: ClipboardList,
+          spaces: ['COACH'] as UserRole[],
+        },
       ];
       const athleteGroups: SidebarItem[] = (athletes || []).map((athlete) => ({
         title: athlete.user?.firstName + ' ' + athlete.user?.lastName,
@@ -176,6 +182,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             },
           ]
         : []),
+      {
+        title: m.training_plans(),
+        url: getPath(['dashboard', 'plans']),
+        icon: ClipboardList,
+        spaces: ['ATHLETE'] as UserRole[],
+      },
       {
         title: m.messages(),
         url: getPath(['dashboard', 'messages']),

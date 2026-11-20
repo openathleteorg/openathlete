@@ -18,6 +18,7 @@ import {
 import {
   Bell,
   ChevronRight,
+  ClipboardList,
   Download,
   Globe,
   LogOut,
@@ -175,6 +176,15 @@ function MeScreen() {
         {trainingTabs.map((tab) => (
           <SettingRow key={tab} tab={tab} label={tabLabels[tab]} />
         ))}
+        <Link
+          to={getPath(['dashboard', 'plans'])}
+          data-plans-link
+          className={rowClass}
+        >
+          <ClipboardList className="size-5 shrink-0 text-muted-foreground" />
+          <span className="min-w-0 flex-1 truncate">{m.training_plans()}</span>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground/60" />
+        </Link>
       </Group>
 
       <Group title={m.me_section_app()}>

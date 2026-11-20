@@ -24,6 +24,8 @@ describe('app navigation', () => {
   it('keeps settings in the Me tab, as screens pushed over it', () => {
     expect(findTab(athlete, '/dashboard/settings')?.id).toBe('me');
     expect(isTabRoot(athlete, '/dashboard/settings')).toBe(false);
+    // Pushed from the Me tab, as the settings are
+    expect(isTabRoot(athlete, '/dashboard/plans')).toBe(false);
     expect(isTabRoot(athlete, '/dashboard/profile')).toBe(true);
   });
 

@@ -95,6 +95,12 @@ const AthleteNotesPage = lazy(() =>
   })),
 );
 
+const TrainingPlansPage = lazy(() =>
+  import('@/pages/dashboard/plans').then((module) => ({
+    default: module.TrainingPlansPage,
+  })),
+);
+
 const ActivityPage = lazy(() =>
   import('@/pages/dashboard/activity').then((module) => ({
     default: module.ActivityPage,
@@ -236,6 +242,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'notes', 'athleteId']),
         element: <AthleteNotesPage />,
+      },
+      {
+        path: getPath(['dashboard', 'plans']),
+        element: <TrainingPlansPage />,
       },
       {
         path: getPath(['dashboard', 'questionnaires']),
