@@ -16,6 +16,10 @@ import { useState } from 'react';
 import { ActivityEvent } from '@openathlete/shared';
 
 import { ActivityDetailsMap } from '../event-details/activity-details-map';
+import {
+  ACTIVITY_ROUTE_KEYS,
+  ACTIVITY_ROUTE_RESOLUTION,
+} from '../event-details/activity-stream-keys';
 import { ActivityFeedbackOverlay } from './activity-feedback-overlay';
 
 interface P {
@@ -31,8 +35,8 @@ export function ActivityFeedbackDialog({ event, open, onClose }: P) {
   // Fetch stream for map display
   const { data: stream, isLoading: isLoadingStream } = useGetEventStreamQuery(
     event.eventId,
-    1000, // resolution
-    ['latlng', 'distance', 'time'],
+    ACTIVITY_ROUTE_RESOLUTION,
+    ACTIVITY_ROUTE_KEYS,
     open && !showFeedback,
   );
 
@@ -116,6 +120,7 @@ export function ActivityFeedbackDialog({ event, open, onClose }: P) {
                 polyline={stream.latlng}
                 distance={stream.distance}
                 time={stream.time}
+                timerPaused={stream.timerPaused}
                 className="w-full h-full rounded-xl shadow-sm border"
               />
             </div>
