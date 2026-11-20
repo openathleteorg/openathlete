@@ -42,11 +42,12 @@ export function ContentNl() {
       <p>
         <strong>OpenAthlete</strong> is gratis tot vijf atleten. Daarboven heft
         het Supporter-abonnement, vanaf {q('oaYear')} per jaar, de limiet op,
-        hoe groot je groep ook is, en voegt het ook AI op onze sleutels toe.
-        Synchronisatie met het horloge is gratis voor atleten. Zelf hosten is
-        gratis en zonder limieten. Clubs krijgen een gratis clubomgeving, en
-        atleten die een coach via een club begeleidt, tellen niet mee voor de
-        vijf.
+        hoe groot je groep ook is, en voegt het ook het Lab toe, eerdere toegang
+        tot nieuwe functies, de geavanceerde coachtools, een eigen club en AI op
+        onze sleutels. Synchronisatie met het horloge is gratis voor atleten.
+        Zelf hosten is gratis en zonder limieten. Een club wordt geopend door
+        een Supporter en leden en coaches doen gratis mee, en atleten die een
+        coach via een club begeleidt, tellen niet mee voor de vijf.
       </p>
 
       <table>
@@ -125,13 +126,13 @@ export function ContentNl() {
         lezing en een paar vragen, en de gemelde inspanning en eventuele pijn
         komen in een blessurelogboek en op je dashboard. Via de MCP-server
         kunnen Claude of ChatGPT de training van een atleet lezen en tot 60
-        trainingen in diens kalender plannen. Clubs krijgen een gratis
-        clubomgeving zonder atletenlimiet: groepen met eigen coaches, een
-        gedeelde bibliotheek, wekelijkse clubtrainingen waarop atleten reageren,
-        en een training, dag of week die naar een hele groep wordt gekopieerd en
-        aan de zones van elke atleet wordt aangepast. De code is AGPL-3.0, dus
-        een club kan ook een eigen instantie draaien met single sign-on en
-        registratie alleen op uitnodiging.
+        trainingen in diens kalender plannen. Een club wordt geopend door een
+        Supporter en leden doen gratis mee, zonder atletenlimiet: groepen met
+        eigen coaches, een gedeelde bibliotheek, wekelijkse clubtrainingen
+        waarop atleten reageren, en een training, dag of week die naar een hele
+        groep wordt gekopieerd en aan de zones van elke atleet wordt aangepast.
+        De code is AGPL-3.0, dus een club kan ook een eigen instantie draaien
+        met single sign-on en registratie alleen op uitnodiging.
       </p>
 
       <h2>Wat elk mist</h2>
@@ -162,10 +163,11 @@ export function ContentNl() {
       <p>
         Een club met drie coaches en zestig leden: willen ze een bondspartner en
         een bibliotheek met oefenvideo's, dan passen de clubabonnementen van
-        Nolio het best. Zo niet, dan doet de clubomgeving van OpenAthlete het
-        gratis, met groepen, een gedeelde bibliotheek en de baantraining van
-        dinsdag al in de kalender van elk lid. Een zelfgehoste instantie is een
-        optie als iemand in de club graag een server beheert.
+        Nolio het best. Zo niet, dan doet een club op OpenAthlete het, geopend
+        door een Supporter en gratis voor de andere coaches en leden, met
+        groepen, een gedeelde bibliotheek en de baantraining van dinsdag al in
+        de kalender van elk lid. Een zelfgehoste instantie is een optie als
+        iemand in de club graag een server beheert.
       </p>
       <p>
         Een coach die schema's verkoopt aan atleten die hij nooit spreekt: blijf

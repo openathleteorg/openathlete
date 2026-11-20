@@ -117,17 +117,19 @@ export function ContentFr() {
 
       <h2>OpenAthlete</h2>
       <p>
-        Toutes les fonctionnalités sont gratuites sur nos serveurs&nbsp;:
+        Tout ce qu'il faut pour s'entraîner est gratuit sur nos serveurs&nbsp;:
         calendrier, éditeur de séances, envoi des séances vers Garmin, Suunto et
         COROS, charge d'entraînement et coaching jusqu'à cinq athlètes. L'offre
         Supporter facultative (à partir de {q('oaMonth')} par mois ou{' '}
-        {q('oaYear')} par an) ajoute l'IA sur nos clés et un nombre illimité
-        d'athlètes suivis, rien d'autre. Le code est sous licence
-        AGPL-3.0&nbsp;: vous pouvez aussi l'héberger sur votre propre serveur,
-        gratuitement et sans limite. Les clubs ont aussi un espace club gratuit,
-        sans limite d'athlètes&nbsp;: des groupes avec leurs entraîneurs, une
-        bibliothèque de séances partagée, des séances de club hebdomadaires et
-        des plans copiés à tout un groupe.
+        {q('oaYear')} par an) finance le projet et ajoute le Lab, l'accès
+        anticipé aux nouveautés, les outils coach avancés et les clubs, l'IA sur
+        nos clés et un nombre illimité d'athlètes suivis. Le code est sous
+        licence AGPL-3.0&nbsp;: vous pouvez aussi l'héberger sur votre propre
+        serveur, gratuitement et sans limite. Un club est ouvert par un
+        Supporter et ses membres le rejoignent gratuitement, sans limite
+        d'athlètes&nbsp;: des groupes avec leurs entraîneurs, une bibliothèque
+        de séances partagée, des séances de club hebdomadaires et des plans
+        copiés à tout un groupe.
       </p>
       <p>
         La charge d'entraînement est le TRIMP de Banister calculé à partir de la
@@ -201,8 +203,9 @@ export function ContentFr() {
         applications natives éprouvées. Choisissez Final Surge pour une équipe
         scolaire ou un club américain avec un forfait simple. Choisissez
         OpenAthlete si vous voulez vos séances sur Garmin, Suunto ou COROS sans
-        payer, un prix entraîneur fixe, l'IA avec votre propre clé, un espace
-        club gratuit, ou un code que vous pouvez héberger vous-même.
+        payer, un prix entraîneur fixe, l'IA avec votre propre clé, un club que
+        vos membres rejoignent gratuitement, ou un code que vous pouvez héberger
+        vous-même.
       </p>
 
       <h2>Récupérer votre historique</h2>

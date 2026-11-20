@@ -70,10 +70,10 @@ export function ContentEn() {
         <strong>Coaching.</strong> A coach plans directly in each athlete's
         calendar, reuses templates and sees what was actually done. An athlete
         can have more than one coach, and there is a group chat. Coaching up to
-        five athletes is free. Clubs get a free club space, with groups and
-        their coaches, a shared workout library, weekly club sessions and plans
-        copied to a whole group; athletes a coach reaches through a club don't
-        count against that limit.
+        five athletes is free. Clubs, opened by a Supporter and joined free by
+        members and coaches, have groups and their coaches, a shared workout
+        library, weekly club sessions and plans copied to a whole group;
+        athletes a coach reaches through a club don't count against that limit.
       </p>
       <p>
         <strong>AI, if you want it.</strong> Nothing runs until you agree to it,
@@ -97,8 +97,8 @@ export function ContentEn() {
           sources of activities only.
         </li>
         <li>
-          There is no club billing: the club space is free, and membership fees
-          are handled outside OpenAthlete.
+          There is no club billing: members join a club for free, and membership
+          fees are handled outside OpenAthlete.
         </li>
         <li>
           It does not predict injuries. It records pain when athletes report it
@@ -113,12 +113,13 @@ export function ContentEn() {
 
       <h2>How it is paid for</h2>
       <p>
-        Every feature is free on the hosted version. The Supporter plan, from €5
-        a month or €50 a year, adds two things: AI that runs on OpenAthlete's
-        keys, within a weekly allowance for reasonable use that resets every
-        Monday, and coaching for more than five athletes. Self-hosting is free,
-        with no limits. Details are on the{' '}
-        <Link href="/pricing">pricing page</Link>.
+        Everything you need to train is free on the hosted version. The
+        Supporter plan, from €5 a month or €50 a year, funds the project and, as
+        a thank-you, adds the Lab, early access to new features, the advanced
+        coach tools and clubs, coaching for more than five athletes, and AI that
+        runs on OpenAthlete's keys, within a weekly allowance for reasonable use
+        that resets every Monday. Self-hosting is free, with no limits. Details
+        are on the <Link href="/pricing">pricing page</Link>.
       </p>
       <p>
         The hosted API and database run at OVH in France, and the web app is

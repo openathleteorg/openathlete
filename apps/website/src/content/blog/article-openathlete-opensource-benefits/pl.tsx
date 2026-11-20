@@ -123,12 +123,13 @@ export function ContentPl() {
 
       <h2>Jeśli wolisz nie utrzymywać serwera</h2>
       <p>
-        Wersja hostowana jest darmowa i zawiera wszystkie funkcje. Jej API i
-        baza danych działają w OVH we Francji, a aplikację webową serwuje
-        Vercel. Plan Supporter (od 5&nbsp;€ miesięcznie lub 50&nbsp;€ rocznie)
-        dodaje AI na kluczach OpenAthlete i coaching dla więcej niż pięciu
-        zawodników, a do tego pomaga opłacić serwery. Więcej o tym, co stoi za
-        projektem, znajdziesz na{' '}
+        Wszystko, czego potrzebujesz do treningu, jest darmowe w wersji
+        hostowanej. Jej API i baza danych działają w OVH we Francji, a aplikację
+        webową serwuje Vercel. Plan Supporter (od 5&nbsp;€ miesięcznie lub
+        50&nbsp;€ rocznie) pomaga opłacić serwery, a w podziękowaniu dodaje Lab,
+        wcześniejszy dostęp do nowych funkcji, zaawansowane narzędzia trenerskie
+        i kluby, AI na kluczach OpenAthlete oraz coaching dla więcej niż pięciu
+        zawodników. Więcej o tym, co stoi za projektem, znajdziesz na{' '}
         <Link href="/pl/open-source">stronie o open source</Link>.
       </p>
     </div>

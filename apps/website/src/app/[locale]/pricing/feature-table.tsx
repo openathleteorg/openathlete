@@ -74,6 +74,22 @@ function groups(): Group[] {
       ],
     },
     {
+      // What a Supporter's contribution unlocks; everything to train above
+      // stays free, and a self-hosted instance has it all
+      title: m.pricing_page_group_support(),
+      rows: [
+        { label: m.pricing_page_row_lab(), cells: [false, true, true] },
+        { label: m.pricing_page_row_compare(), cells: [false, true, true] },
+        { label: m.pricing_page_row_early(), cells: [false, true, true] },
+        {
+          label: m.pricing_page_row_coach_tools(),
+          cells: [false, true, true],
+        },
+        { label: m.pricing_page_row_clubs(), cells: [false, true, true] },
+        { label: m.pricing_page_row_badge(), cells: [false, true, true] },
+      ],
+    },
+    {
       title: m.pricing_page_group_account(),
       rows: [
         {

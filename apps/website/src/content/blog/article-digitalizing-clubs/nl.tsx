@@ -88,21 +88,22 @@ export function ContentNl() {
 
       <h2>Twee manieren om een club op OpenAthlete te runnen</h2>
       <p>
-        OpenAthlete heeft een clubruimte. Die is gratis op onze servers, zonder
-        limiet op het aantal atleten, en een club die liever een eigen server
-        heeft, krijgt dezelfde functies door OpenAthlete daar te installeren.
+        OpenAthlete heeft een clubruimte. Op onze servers opent een Supporter de
+        club en doen leden en trainers gratis mee, zonder limiet op het aantal
+        atleten, en een club die liever een eigen server heeft, krijgt dezelfde
+        functies door OpenAthlete daar te installeren.
       </p>
       <p>
-        <strong>Een clubruimte, op onze servers.</strong> Een trainer maakt de
-        club aan onder Instellingen &gt; Clubs en geeft elk lid een rol:
-        eigenaar, beheerder, coach, assistent of atleet. Elke coach van de club
-        bereikt de atleten van de club, en die atleten tellen niet mee voor de
-        limiet van vijf atleten van een gratis coachaccount. Leden komen binnen
-        via een lijst die je importeert (geplakt, of een CSV uit de
-        clubspreadsheet, inclusief groepen), met een deelnamecode of via links
-        die verlopen. Elke groep, op tempo of niveau, heeft eigen coaches, en de
-        clubbibliotheek bevat de workouts en mappen die elke coach van de club
-        gebruikt.
+        <strong>Een clubruimte, op onze servers.</strong> Een trainer met een
+        Supporter-abonnement maakt de club aan onder Instellingen &gt; Clubs en
+        geeft elk lid een rol: eigenaar, beheerder, coach, assistent of atleet.
+        Elke coach van de club bereikt de atleten van de club, en die atleten
+        tellen niet mee voor de limiet van vijf atleten van een gratis
+        coachaccount. Leden komen binnen via een lijst die je importeert
+        (geplakt, of een CSV uit de clubspreadsheet, inclusief groepen), met een
+        deelnamecode of via links die verlopen. Elke groep, op tempo of niveau,
+        heeft eigen coaches, en de clubbibliotheek bevat de workouts en mappen
+        die elke coach van de club gebruikt.
       </p>
       <p>
         Om voor een groep te plannen, kopieer je een training, een dag of een

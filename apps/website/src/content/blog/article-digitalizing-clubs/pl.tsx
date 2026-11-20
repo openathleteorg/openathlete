@@ -87,21 +87,22 @@ export function ContentPl() {
 
       <h2>Dwa sposoby prowadzenia klubu w OpenAthlete</h2>
       <p>
-        OpenAthlete ma przestrzeń klubową. Jest bezpłatna na naszych serwerach,
-        bez limitu liczby zawodników, a klub, który woli własny serwer, dostaje
-        te same funkcje, instalując tam OpenAthlete.
+        OpenAthlete ma przestrzeń klubową. Na naszych serwerach klub zakłada
+        Supporter, a członkowie i trenerzy dołączają bezpłatnie, bez limitu
+        liczby zawodników, a klub, który woli własny serwer, dostaje te same
+        funkcje, instalując tam OpenAthlete.
       </p>
       <p>
-        <strong>Przestrzeń klubowa na naszych serwerach.</strong> Trener zakłada
-        klub w Ustawienia &gt; Kluby i nadaje każdemu członkowi rolę:
-        właściciel, administrator, trener, asystent lub zawodnik. Każdy trener
-        klubu ma dostęp do zawodników klubu, a ci zawodnicy nie wliczają się do
-        limitu pięciu zawodników bezpłatnego konta trenera. Członkowie dołączają
-        z listy, którą importujesz (wklejonej albo jako CSV z klubowego arkusza,
-        razem z grupami), za pomocą kodu dołączenia albo przez linki, które
-        wygasają. Każda grupa, według tempa lub poziomu, ma własnych trenerów, a
-        biblioteka klubu przechowuje treningi i foldery, z których korzysta
-        każdy trener klubu.
+        <strong>Przestrzeń klubowa na naszych serwerach.</strong> Trener z
+        planem Supporter zakłada klub w Ustawienia &gt; Kluby i nadaje każdemu
+        członkowi rolę: właściciel, administrator, trener, asystent lub
+        zawodnik. Każdy trener klubu ma dostęp do zawodników klubu, a ci
+        zawodnicy nie wliczają się do limitu pięciu zawodników bezpłatnego konta
+        trenera. Członkowie dołączają z listy, którą importujesz (wklejonej albo
+        jako CSV z klubowego arkusza, razem z grupami), za pomocą kodu
+        dołączenia albo przez linki, które wygasają. Każda grupa, według tempa
+        lub poziomu, ma własnych trenerów, a biblioteka klubu przechowuje
+        treningi i foldery, z których korzysta każdy trener klubu.
       </p>
       <p>
         Żeby zaplanować coś dla grupy, skopiuj jednostkę, dzień albo tydzień do

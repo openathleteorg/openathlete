@@ -1,5 +1,7 @@
 import type { SupportedLocale } from '@/utils/locales';
 
+import type { Feature } from '@openathlete/shared';
+
 /**
  * Figures of the transparency page that are kept by hand. The revenue and
  * the funding thresholds are not here: they stay in the API's environment,
@@ -61,6 +63,11 @@ export interface ShippedItem {
   title: Localized;
   /** A page of the site (without locale) or a full URL */
   href: string;
+  /**
+   * Its entry in FEATURES (@openathlete/shared), when Supporters get it
+   * first: the page then says until when
+   */
+  feature?: Feature;
 }
 
 /**

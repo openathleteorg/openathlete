@@ -74,11 +74,11 @@ export function ContentIt() {
         <strong>Allenatori.</strong> L'allenatore pianifica direttamente nel
         calendario di ogni atleta, riusa i modelli e vede cosa è stato fatto
         davvero. Un atleta può avere più di un allenatore, e c'è una chat di
-        gruppo. Seguire fino a cinque atleti è gratis. I club hanno uno spazio
-        gratuito, con gruppi e i loro allenatori, una libreria di allenamenti
-        condivisa, sedute settimanali del club e piani copiati a tutto un
-        gruppo; gli atleti che un allenatore segue tramite un club non contano
-        in quel limite.
+        gruppo. Seguire fino a cinque atleti è gratis. Un club lo apre un
+        Supporter, e membri e allenatori entrano gratis; ha gruppi e i loro
+        allenatori, una libreria di allenamenti condivisa, sedute settimanali
+        del club e piani copiati a tutto un gruppo, e gli atleti che un
+        allenatore segue tramite un club non contano in quel limite.
       </p>
       <p>
         <strong>IA, se la vuoi.</strong> Non parte niente senza il tuo consenso,
@@ -103,8 +103,8 @@ export function ContentIt() {
           Entrambi sono solo fonti di attività.
         </li>
         <li>
-          Non c'è fatturazione per i club: lo spazio club è gratuito e le quote
-          si gestiscono fuori da OpenAthlete.
+          Non c'è fatturazione per i club: entrare in un club è gratuito e le
+          quote si gestiscono fuori da OpenAthlete.
         </li>
         <li>
           Non prevede gli infortuni. Registra il dolore quando l'atleta lo
@@ -119,12 +119,14 @@ export function ContentIt() {
 
       <h2>Come si finanzia</h2>
       <p>
-        Tutte le funzioni sono gratuite sulla versione ospitata. Il piano
-        Supporter, a partire da 5 € al mese o 50 € all'anno, aggiunge due cose:
-        l'IA sulle chiavi di OpenAthlete, con una quota settimanale per un uso
-        ragionevole che si rinnova ogni lunedì, e la possibilità di seguire più
-        di cinque atleti. Il self-hosting è gratuito e senza limiti. I dettagli
-        sono nella <Link href="/it/pricing">pagina dei prezzi</Link>.
+        Tutto ciò che serve per allenarsi è gratuito sulla versione ospitata. Il
+        piano Supporter, a partire da 5 € al mese o 50 € all'anno, finanzia il
+        progetto e, come ringraziamento, aggiunge il Lab, l'accesso anticipato
+        alle novità, gli strumenti avanzati per allenatori e i club, la
+        possibilità di seguire più di cinque atleti e l'IA sulle chiavi di
+        OpenAthlete, con una quota settimanale per un uso ragionevole che si
+        rinnova ogni lunedì. Il self-hosting è gratuito e senza limiti. I
+        dettagli sono nella <Link href="/it/pricing">pagina dei prezzi</Link>.
       </p>
       <p>
         L'API e il database della versione ospitata girano su OVH, in Francia, e

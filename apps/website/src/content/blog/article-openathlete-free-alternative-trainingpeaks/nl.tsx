@@ -113,14 +113,16 @@ export function ContentNl() {
 
       <h2>OpenAthlete</h2>
       <p>
-        Op onze servers is elke functie gratis: kalender, workout-editor,
-        geplande workouts naar Garmin, Suunto en COROS, trainingsbelasting en
-        coaching tot vijf atleten. Het optionele Supporter-abonnement (vanaf{' '}
-        {q('oaMonth')} per maand of {q('oaYear')} per jaar) voegt AI op onze
-        sleutels en een onbeperkt aantal begeleide atleten toe, en verder niets.
-        De code is AGPL-3.0, dus je kunt het ook gratis en zonder limieten op je
-        eigen server draaien. Clubs krijgen ook een gratis clubomgeving, zonder
-        atletenlimiet: groepen met eigen coaches, een gedeelde
+        Op onze servers is alles wat je nodig hebt om te trainen gratis:
+        kalender, workout-editor, geplande workouts naar Garmin, Suunto en
+        COROS, trainingsbelasting en coaching tot vijf atleten. Het optionele
+        Supporter-abonnement (vanaf {q('oaMonth')} per maand of {q('oaYear')}{' '}
+        per jaar) financiert het project en voegt het Lab toe, eerdere toegang
+        tot nieuwe functies, de geavanceerde coachtools en clubs, AI op onze
+        sleutels en een onbeperkt aantal begeleide atleten. De code is AGPL-3.0,
+        dus je kunt het ook gratis en zonder limieten op je eigen server
+        draaien. Een club wordt geopend door een Supporter en leden doen gratis
+        mee, zonder atletenlimiet: groepen met eigen coaches, een gedeelde
         workoutbibliotheek, wekelijkse clubtrainingen en schema's die naar een
         hele groep worden gekopieerd.
       </p>
@@ -194,7 +196,8 @@ export function ContentNl() {
         apps wilt. Kies Final Surge voor een Amerikaans school- of clubteam met
         eenvoudige vaste prijzen. Kies OpenAthlete als je workouts op Garmin,
         Suunto of COROS wilt zonder te betalen, een vaste coachprijs, AI op je
-        eigen sleutel, een gratis clubomgeving, of code die je zelf kunt hosten.
+        eigen sleutel, een club waar je sporters gratis lid van worden, of code
+        die je zelf kunt hosten.
       </p>
 
       <h2>Je geschiedenis verhuizen</h2>

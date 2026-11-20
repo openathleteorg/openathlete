@@ -194,22 +194,24 @@ export function ContentPtBr() {
       <p>
         O nosso, então julgue levando isso em conta. É open source (AGPL),
         gratuito para hospedar por conta própria, ou hospedado por nós na
-        França. Todas as funções são gratuitas na versão hospedada, incluindo a
-        assessoria de até 5 atletas; o Supporter, a partir de € 5 por mês ou €
-        50 por ano, acrescenta atletas ilimitados e IA com as nossas chaves (
-        <Link href="/pt-br/pricing">preços</Link>). Os clubes têm um espaço de
-        clube gratuito, sem limite de atletas: grupos com seus treinadores,
-        biblioteca compartilhada, treinos semanais do clube e planos copiados
-        para um grupo inteiro. Os treinos planejados vão para relógios Garmin,
-        Suunto e COROS; as atividades chegam dessas três marcas, da Polar e do
-        Strava. A carga de treino é o TRIMP pela frequência cardíaca, com o RPE
-        da sessão ao lado, e forma, fadiga e frescor são projetados sobre os
-        treinos planejados. A IA é opcional e roda com a sua própria chave ou
-        com a cota do Supporter.
+        França. Tudo o que você precisa para treinar é gratuito na versão
+        hospedada, incluindo a assessoria de até 5 atletas; o Supporter, a
+        partir de € 5 por mês ou € 50 por ano, financia o projeto e acrescenta o
+        Lab, o acesso antecipado às novidades, as ferramentas avançadas de
+        treinador e os clubes, atletas ilimitados e IA com as nossas chaves (
+        <Link href="/pt-br/pricing">preços</Link>). Um clube é aberto por um
+        Supporter e os membros entram de graça, sem limite de atletas: grupos
+        com seus treinadores, biblioteca compartilhada, treinos semanais do
+        clube e planos copiados para um grupo inteiro. Os treinos planejados vão
+        para relógios Garmin, Suunto e COROS; as atividades chegam dessas três
+        marcas, da Polar e do Strava. A carga de treino é o TRIMP pela
+        frequência cardíaca, com o RPE da sessão ao lado, e forma, fadiga e
+        frescor são projetados sobre os treinos planejados. A IA é opcional e
+        roda com a sua própria chave ou com a cota do Supporter.
       </p>
       <p>
         As limitações são reais. Não há marketplace para vender planilhas, nem
-        cobrança para clubes (o espaço de clube é gratuito, mas as mensalidades
+        cobrança para clubes (entrar num clube é gratuito, mas as mensalidades
         ficam fora do OpenAthlete), nem app de rolo, nem envio de treinos para
         relógios Polar. A análise é menos profunda que a do intervals.icu, e o
         projeto é jovem e desenvolvido por uma única pessoa. Nossa resposta para

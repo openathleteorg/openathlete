@@ -114,14 +114,16 @@ export function ContentDe() {
 
       <h2>OpenAthlete</h2>
       <p>
-        Auf unseren Servern ist jede Funktion kostenlos: Kalender,
-        Workout-Builder, geplante Workouts an Garmin, Suunto und COROS,
-        Trainingsbelastung und Coaching für bis zu fünf Athleten. Der optionale
-        Supporter-Tarif (ab {q('oaMonth')} im Monat oder {q('oaYear')} im Jahr)
-        bringt KI über unsere Schlüssel und unbegrenzt viele betreute Athleten,
-        sonst nichts. Der Code steht unter AGPL-3.0, du kannst ihn also auch
-        kostenlos und ohne Einschränkungen auf deinem eigenen Server betreiben.
-        Auch Vereine bekommen einen kostenlosen Vereinsbereich ohne
+        Auf unseren Servern ist alles kostenlos, was du zum Trainieren brauchst:
+        Kalender, Workout-Builder, geplante Workouts an Garmin, Suunto und
+        COROS, Trainingsbelastung und Coaching für bis zu fünf Athleten. Der
+        optionale Supporter-Tarif (ab {q('oaMonth')} im Monat oder {q('oaYear')}{' '}
+        im Jahr) finanziert das Projekt und bringt das Lab, früheren Zugang zu
+        neuen Funktionen, die erweiterten Coach-Werkzeuge und Vereine, KI über
+        unsere Schlüssel und unbegrenzt viele betreute Athleten. Der Code steht
+        unter AGPL-3.0, du kannst ihn also auch kostenlos und ohne
+        Einschränkungen auf deinem eigenen Server betreiben. Einen Verein
+        eröffnet ein Supporter, Mitglieder treten kostenlos bei, ohne
         Athletenlimit: Gruppen mit eigenen Coaches, eine gemeinsame
         Workout-Bibliothek, wöchentliche Vereinseinheiten und Pläne, die auf
         eine ganze Gruppe kopiert werden.
@@ -197,8 +199,8 @@ export function ContentDe() {
         für ein US-Schul- oder Vereinsteam mit einfachen Pauschalpreisen. Nimm
         OpenAthlete, wenn du Workouts auf Garmin, Suunto oder COROS willst, ohne
         zu bezahlen, einen pauschalen Coach-Preis, KI mit deinem eigenen
-        Schlüssel, einen kostenlosen Vereinsbereich oder Code, den du selbst
-        hosten kannst.
+        Schlüssel, einen Verein, dem deine Mitglieder kostenlos beitreten, oder
+        Code, den du selbst hosten kannst.
       </p>
 
       <h2>Deine Trainingshistorie umziehen</h2>

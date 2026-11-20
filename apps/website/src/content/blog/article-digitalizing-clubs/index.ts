@@ -33,15 +33,15 @@ export const articleDigitalizingClubs: BlogPost = {
       nl: 'Groepen op tempo, één trainer per groep, trainingen één keer geschreven, zorgvuldig met gezondheidsgegevens, en twee manieren waarop een club OpenAthlete nu kan gebruiken.',
     },
     excerpt: {
-      en: 'A practical structure for clubs with several volunteer coaches, and how the free OpenAthlete club space handles groups, a shared library and weekly club sessions.',
-      fr: "Une organisation concrète pour les clubs à plusieurs entraîneurs bénévoles, et ce que l'espace club gratuit d'OpenAthlete apporte : groupes, bibliothèque partagée et séances de club.",
-      es: 'Una estructura práctica para clubes con varios entrenadores voluntarios, y lo que aporta el espacio de club gratuito de OpenAthlete: grupos, biblioteca compartida y sesiones de club.',
-      it: 'Una struttura pratica per società con più allenatori volontari, e cosa offre lo spazio gratuito di OpenAthlete per le società: gruppi, libreria condivisa e sedute di società.',
+      en: 'A practical structure for clubs with several volunteer coaches, and how an OpenAthlete club, opened by a Supporter and free to join, handles groups, a shared library and weekly club sessions.',
+      fr: "Une organisation concrète pour les clubs à plusieurs entraîneurs bénévoles, et ce qu'un club OpenAthlete, ouvert par un Supporter et gratuit pour ses membres, apporte : groupes, bibliothèque partagée et séances de club.",
+      es: 'Una estructura práctica para clubes con varios entrenadores voluntarios, y lo que aporta un club en OpenAthlete, abierto por un Supporter y gratis para sus miembros: grupos, biblioteca compartida y sesiones de club.',
+      it: 'Una struttura pratica per società con più allenatori volontari, e cosa offre una società su OpenAthlete, aperta da un Supporter e gratuita per i tesserati: gruppi, libreria condivisa e sedute di società.',
       'pt-br':
-        'Uma estrutura prática para clubes com vários treinadores, e o que o espaço de clube gratuito do OpenAthlete oferece: grupos, biblioteca compartilhada e treinos do clube.',
-      de: 'Eine praktische Struktur für Vereine mit mehreren Trainern und was der kostenlose Vereinsbereich von OpenAthlete bietet: Gruppen, gemeinsame Bibliothek und Vereinseinheiten.',
-      pl: 'Praktyczna struktura dla klubów z kilkoma trenerami wolontariuszami i to, jak bezpłatna przestrzeń klubowa OpenAthlete obsługuje grupy, wspólną bibliotekę i cotygodniowe treningi klubowe.',
-      nl: 'Een praktische structuur voor clubs met meerdere vrijwillige trainers, en hoe de gratis clubruimte van OpenAthlete groepen, een gedeelde bibliotheek en wekelijkse clubtrainingen regelt.',
+        'Uma estrutura prática para clubes com vários treinadores, e o que um clube no OpenAthlete, aberto por um Supporter e gratuito para os membros, oferece: grupos, biblioteca compartilhada e treinos do clube.',
+      de: 'Eine praktische Struktur für Vereine mit mehreren Trainern und was ein Verein auf OpenAthlete bietet, den ein Supporter eröffnet und dem Mitglieder kostenlos beitreten: Gruppen, gemeinsame Bibliothek und Vereinseinheiten.',
+      pl: 'Praktyczna struktura dla klubów z kilkoma trenerami wolontariuszami i to, jak klub w OpenAthlete, zakładany przez Supportera i bezpłatny dla członków, obsługuje grupy, wspólną bibliotekę i cotygodniowe treningi klubowe.',
+      nl: 'Een praktische structuur voor clubs met meerdere vrijwillige trainers, en hoe een club op OpenAthlete, geopend door een Supporter en gratis voor leden, groepen, een gedeelde bibliotheek en wekelijkse clubtrainingen regelt.',
     },
     author: {
       name: 'OpenAthlete Team',

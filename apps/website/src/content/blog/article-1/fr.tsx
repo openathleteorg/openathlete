@@ -78,9 +78,10 @@ export function ContentFr() {
         calendrier de chaque athlète, réutilise ses modèles de séances et voit
         ce qui a réellement été fait. Un athlète peut avoir plusieurs coachs, et
         une messagerie de groupe est disponible. Suivre jusqu'à cinq athlètes
-        est gratuit. Les clubs ont un espace club gratuit, avec des groupes et
-        leurs coachs, une bibliothèque de séances partagée, des séances de club
-        hebdomadaires et des plans copiés à tout un groupe&nbsp;; les athlètes
+        est gratuit. Un club est ouvert par un Supporter, et ses membres et
+        coachs le rejoignent gratuitement&nbsp;; il réunit des groupes et leurs
+        coachs, une bibliothèque de séances partagée, des séances de club
+        hebdomadaires et des plans copiés à tout un groupe, et les athlètes
         qu'un coach suit via un club ne comptent pas dans cette limite.
       </p>
       <p>
@@ -106,8 +107,8 @@ export function ContentFr() {
           Strava. Ces deux services servent uniquement de sources d'activités.
         </li>
         <li>
-          Il n'y a pas de facturation au club&nbsp;: l'espace club est gratuit,
-          et les cotisations se gèrent en dehors d'OpenAthlete.
+          Il n'y a pas de facturation au club&nbsp;: rejoindre un club est
+          gratuit, et les cotisations se gèrent en dehors d'OpenAthlete.
         </li>
         <li>
           Elle ne prédit pas les blessures. Elle enregistre la douleur quand
@@ -123,13 +124,14 @@ export function ContentFr() {
 
       <h2>Comment le projet est financé</h2>
       <p>
-        Toutes les fonctionnalités sont gratuites sur la version hébergée.
-        L'offre Supporter, à partir de 5 € par mois ou 50 € par an, ajoute deux
-        choses&nbsp;: l'IA sur les clés d'OpenAthlete, avec un quota
-        hebdomadaire d'usage raisonnable, renouvelé chaque lundi, et le suivi de
-        plus de cinq athlètes. L'auto-hébergement est gratuit et sans limite.
-        Tout est détaillé sur la <Link href="/fr/pricing">page des tarifs</Link>
-        .
+        Tout ce qu'il faut pour s'entraîner est gratuit sur la version hébergée.
+        L'offre Supporter, à partir de 5 € par mois ou 50 € par an, finance le
+        projet et, en remerciement, ajoute le Lab, l'accès anticipé aux
+        nouveautés, les outils coach avancés et les clubs, le suivi de plus de
+        cinq athlètes, et l'IA sur les clés d'OpenAthlete, avec un quota
+        hebdomadaire d'usage raisonnable, renouvelé chaque lundi.
+        L'auto-hébergement est gratuit et sans limite. Tout est détaillé sur la{' '}
+        <Link href="/fr/pricing">page des tarifs</Link>.
       </p>
       <p>
         L'API et la base de données de la version hébergée tournent chez OVH, en

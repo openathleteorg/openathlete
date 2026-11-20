@@ -15,7 +15,7 @@ import {
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
 import { TrackedLink } from '@/components/site/tracked-link';
 import { PhoneShot, Screenshot } from '@/components/site/visuals/screenshot';
-import { SELF_HOSTING_DOCS_URL } from '@/config';
+import { SELF_HOSTING_DOCS_URL, SUPPORTER_YEARLY_EUR } from '@/config';
 import {
   COACH_PRICING,
   type Currency,
@@ -24,6 +24,7 @@ import {
 } from '@/content/pricing';
 import { initLocale } from '@/i18n/server';
 import { signupUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import {
   DATE_LOCALES,
@@ -85,7 +86,8 @@ export async function generateMetadata({ params }: Props) {
 export default async function ClubsPage({ params }: Props) {
   const locale = initLocale((await params).locale);
   const intl = DATE_LOCALES[locale];
-  const faqs = faqEntries('clubspage_faq', 5);
+  const prices = supporterPriceVars(locale);
+  const faqs = faqEntries('clubspage_faq', 5, prices);
   const tpPremium =
     COACH_PRICING.find((vendor) => vendor.id === 'trainingpeaks')?.yearly(
       CLUB_ATHLETES,
@@ -101,9 +103,10 @@ export default async function ClubsPage({ params }: Props) {
   }> = [
     {
       name: m.clubspage_cost_oa_cloud(),
-      note: m.clubspage_cost_oa_cloud_note(),
-      amount: 0,
-      label: formatPrice(0, 'EUR', intl),
+      // The owner's Supporter subscription covers the whole club
+      note: m.clubspage_cost_oa_cloud_note(prices),
+      amount: SUPPORTER_YEARLY_EUR,
+      label: formatPrice(SUPPORTER_YEARLY_EUR, 'EUR', intl),
       currency: 'EUR',
       ours: true,
     },

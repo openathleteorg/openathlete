@@ -203,24 +203,26 @@ export function ContentNl() {
       <h3>OpenAthlete</h3>
       <p>
         Van ons, dus oordeel daarnaar. Het is open source (AGPL), gratis om zelf
-        te hosten, of door ons gehost in Frankrijk. In de gehoste versie is elke
-        functie gratis, coaching van maximaal 5 sporters inbegrepen; Supporter,
-        vanaf €&nbsp;5 per maand of €&nbsp;50 per jaar, voegt een onbeperkt
-        aantal gecoachte sporters toe en AI op onze sleutels (
-        <Link href="/nl/pricing">prijzen</Link>). Clubs krijgen een gratis
-        clubomgeving zonder limiet op het aantal sporters: groepen met hun
-        coaches, een gedeelde bibliotheek, wekelijkse clubtrainingen en
-        schema&apos;s die naar een hele groep worden gekopieerd. Geplande
-        trainingen gaan naar horloges van Garmin, Suunto en COROS; activiteiten
-        komen binnen van die drie plus Polar en Strava. De trainingsbelasting is
-        TRIMP op basis van hartslag met session-RPE ernaast, en fitheid,
-        vermoeidheid en vorm worden doorgerekend over de trainingen die je
-        gepland hebt. AI is optioneel en draait op je eigen sleutel of het
-        Supporter-tegoed.
+        te hosten, of door ons gehost in Frankrijk. In de gehoste versie is
+        alles wat je nodig hebt om te trainen gratis, coaching van maximaal 5
+        sporters inbegrepen; Supporter, vanaf €&nbsp;5 per maand of €&nbsp;50
+        per jaar, financiert het project en voegt het Lab toe, eerdere toegang
+        tot nieuwe functies, de geavanceerde coachtools en clubs, een onbeperkt
+        aantal gecoachte sporters en AI op onze sleutels (
+        <Link href="/nl/pricing">prijzen</Link>). Een club wordt geopend door
+        een Supporter en leden doen gratis mee, zonder limiet op het aantal
+        sporters: groepen met hun coaches, een gedeelde bibliotheek, wekelijkse
+        clubtrainingen en schema&apos;s die naar een hele groep worden
+        gekopieerd. Geplande trainingen gaan naar horloges van Garmin, Suunto en
+        COROS; activiteiten komen binnen van die drie plus Polar en Strava. De
+        trainingsbelasting is TRIMP op basis van hartslag met session-RPE
+        ernaast, en fitheid, vermoeidheid en vorm worden doorgerekend over de
+        trainingen die je gepland hebt. AI is optioneel en draait op je eigen
+        sleutel of het Supporter-tegoed.
       </p>
       <p>
         De beperkingen zijn echt. Er is geen marketplace om schema&apos;s te
-        verkopen, geen clubfacturatie (de clubomgeving is gratis, maar
+        verkopen, geen clubfacturatie (lid worden van een club is gratis, maar
         lidmaatschapsgelden regel je buiten OpenAthlete), geen app voor
         indoortraining en geen trainingen naar Polar-horloges. De analyse is
         minder diep dan bij intervals.icu, en het project is jong en wordt door

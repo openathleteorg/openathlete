@@ -45,11 +45,13 @@ export function ContentDe() {
       <p>
         <strong>OpenAthlete</strong> ist bis zu fünf Athleten kostenlos. Darüber
         hebt der Supporter-Plan ab {q('oaYear')} im Jahr das Limit auf, egal wie
-        viele Athleten du betreust, und bringt zusätzlich KI über unsere
-        Schlüssel mit. Die Synchronisierung mit der Uhr ist für Athleten
-        kostenlos. Selbst gehostet ist es kostenlos und ohne Limits. Vereine
-        bekommen einen kostenlosen Vereinsbereich, und Athleten, die ein Coach
-        über einen Verein betreut, zählen nicht zu den fünf.
+        viele Athleten du betreust, und bringt zusätzlich das Lab, früheren
+        Zugang zu neuen Funktionen, die erweiterten Coach-Werkzeuge, einen
+        eigenen Verein und KI über unsere Schlüssel mit. Die Synchronisierung
+        mit der Uhr ist für Athleten kostenlos. Selbst gehostet ist es kostenlos
+        und ohne Limits. Einen Verein eröffnet ein Supporter, Mitglieder und
+        Coaches treten kostenlos bei, und Athleten, die ein Coach über einen
+        Verein betreut, zählen nicht zu den fünf.
       </p>
 
       <table>
@@ -130,14 +132,14 @@ export function ContentDe() {
         Anstrengung und eventuelle Schmerzen landen in einem
         Verletzungsprotokoll und auf deinem Dashboard. Über den MCP-Server
         können Claude oder ChatGPT das Training eines Athleten lesen und bis zu
-        60 Einheiten in seinen Kalender planen. Vereine bekommen einen
-        kostenlosen Vereinsbereich ohne Athletenlimit: Gruppen mit eigenen
-        Coaches, eine gemeinsame Bibliothek, wöchentliche Vereinseinheiten, für
-        die Athleten zu- oder absagen, und eine Einheit, einen Tag oder eine
-        Woche, auf eine ganze Gruppe kopiert und an die Zonen jedes Athleten
-        angepasst. Der Code steht unter AGPL-3.0, ein Verein kann also auch eine
-        eigene Instanz mit Single Sign-on und Registrierung nur auf Einladung
-        betreiben.
+        60 Einheiten in seinen Kalender planen. Einen Verein eröffnet ein
+        Supporter, Mitglieder treten kostenlos bei, ohne Athletenlimit: Gruppen
+        mit eigenen Coaches, eine gemeinsame Bibliothek, wöchentliche
+        Vereinseinheiten, für die Athleten zu- oder absagen, und eine Einheit,
+        einen Tag oder eine Woche, auf eine ganze Gruppe kopiert und an die
+        Zonen jedes Athleten angepasst. Der Code steht unter AGPL-3.0, ein
+        Verein kann also auch eine eigene Instanz mit Single Sign-on und
+        Registrierung nur auf Einladung betreiben.
       </p>
 
       <h2>Was jedem fehlt</h2>
@@ -169,8 +171,9 @@ export function ContentDe() {
       <p>
         Ein Verein mit drei Coaches und sechzig Mitgliedern: Wollen sie einen
         Verbandspartner und eine Bibliothek mit Übungsvideos, passen die
-        Vereinspläne von Nolio am besten. Wenn nicht, erledigt das der
-        Vereinsbereich von OpenAthlete kostenlos, mit Gruppen, einer gemeinsamen
+        Vereinspläne von Nolio am besten. Wenn nicht, erledigt das ein Verein
+        auf OpenAthlete, den ein Supporter führt und dem die anderen Coaches und
+        Mitglieder kostenlos beitreten, mit Gruppen, einer gemeinsamen
         Bibliothek und dem Bahntraining am Dienstag schon im Kalender jedes
         Mitglieds. Eine selbst gehostete Instanz ist eine Option, wenn jemand im
         Verein gern einen Server betreibt.

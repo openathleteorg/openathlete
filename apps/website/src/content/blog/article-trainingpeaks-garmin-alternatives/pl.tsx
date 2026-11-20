@@ -203,23 +203,25 @@ export function ContentPl() {
       <p>
         Nasz projekt, więc oceniaj odpowiednio. Jest open source (AGPL), można
         go za darmo hostować samodzielnie albo korzystać z wersji hostowanej
-        przez nas we Francji. W wersji hostowanej każda funkcja jest darmowa,
-        łącznie z trenowaniem do 5 sportowców; Supporter, od 5&nbsp;€
-        miesięcznie lub 50&nbsp;€ rocznie, dodaje nieograniczoną liczbę
+        przez nas we Francji. W wersji hostowanej wszystko, czego potrzebujesz
+        do treningu, jest darmowe, łącznie z trenowaniem do 5 sportowców;
+        Supporter, od 5&nbsp;€ miesięcznie lub 50&nbsp;€ rocznie, finansuje
+        projekt i dodaje Lab, wcześniejszy dostęp do nowych funkcji,
+        zaawansowane narzędzia trenerskie i kluby, nieograniczoną liczbę
         trenowanych sportowców i AI na naszych kluczach (
-        <Link href="/pl/pricing">cennik</Link>). Kluby dostają darmową
-        przestrzeń klubową bez limitu sportowców: grupy z ich trenerami, wspólną
-        bibliotekę, cotygodniowe treningi klubowe i plany kopiowane na całą
-        grupę. Zaplanowane treningi trafiają na zegarki Garmin, Suunto i COROS;
-        aktywności przychodzą z tych trzech oraz z Polar i Stravy. Obciążenie
-        treningowe to TRIMP z tętna z session-RPE obok, a kondycja, zmęczenie i
-        forma są prognozowane na podstawie zaplanowanych treningów. AI jest
-        opcjonalne i działa na Twoim własnym kluczu albo w ramach limitu
-        Supportera.
+        <Link href="/pl/pricing">cennik</Link>). Klub zakłada Supporter, a
+        członkowie dołączają za darmo, bez limitu sportowców: grupy z ich
+        trenerami, wspólna biblioteka, cotygodniowe treningi klubowe i plany
+        kopiowane na całą grupę. Zaplanowane treningi trafiają na zegarki
+        Garmin, Suunto i COROS; aktywności przychodzą z tych trzech oraz z Polar
+        i Stravy. Obciążenie treningowe to TRIMP z tętna z session-RPE obok, a
+        kondycja, zmęczenie i forma są prognozowane na podstawie zaplanowanych
+        treningów. AI jest opcjonalne i działa na Twoim własnym kluczu albo w
+        ramach limitu Supportera.
       </p>
       <p>
         Ograniczenia są realne. Nie ma marketplace do sprzedaży planów, nie ma
-        rozliczeń klubowych (przestrzeń klubowa jest darmowa, ale składki
+        rozliczeń klubowych (dołączenie do klubu jest darmowe, ale składki
         członkowskie obsługuje się poza OpenAthlete), nie ma aplikacji do
         treningu indoor i nie ma wysyłania treningów na zegarki Polar. Analiza
         jest płytsza niż w intervals.icu, a projekt jest młody i tworzy go jeden

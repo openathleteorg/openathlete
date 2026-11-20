@@ -93,22 +93,23 @@ export function ContentDe() {
 
       <h2>Zwei Wege, einen Verein mit OpenAthlete zu führen</h2>
       <p>
-        OpenAthlete hat einen Vereinsbereich. Er ist auf unseren Servern
-        kostenlos, ohne Athletenlimit, und ein Verein, der lieber einen eigenen
-        Server nutzt, bekommt dieselben Funktionen, wenn er OpenAthlete dort
-        installiert.
+        OpenAthlete hat einen Vereinsbereich. Auf unseren Servern eröffnet ein
+        Supporter den Verein, Mitglieder und Coaches treten kostenlos bei, ohne
+        Athletenlimit, und ein Verein, der lieber einen eigenen Server nutzt,
+        bekommt dieselben Funktionen, wenn er OpenAthlete dort installiert.
       </p>
       <p>
-        <strong>Ein Vereinsbereich, auf unseren Servern.</strong> Ein Coach legt
-        den Verein unter Einstellungen &gt; Vereine an und gibt jedem Mitglied
-        eine Rolle: Inhaber, Admin, Coach, Assistent oder Athlet. Jeder Coach
-        des Vereins erreicht die Athleten des Vereins, und diese Athleten zählen
-        nicht zur Grenze von fünf Athleten eines kostenlosen Coach-Kontos. Die
-        Mitglieder kommen über eine Liste, die du importierst (eingefügt oder
-        als CSV aus der Vereinstabelle, mit Gruppen), über einen Beitrittscode
-        oder über Links, die ablaufen. Jede Gruppe, nach Pace oder Niveau, hat
-        ihre eigenen Coaches, und die Vereinsbibliothek enthält die Workouts und
-        Ordner, die alle Coaches des Vereins nutzen.
+        <strong>Ein Vereinsbereich, auf unseren Servern.</strong> Ein Coach mit
+        Supporter-Plan legt den Verein unter Einstellungen &gt; Vereine an und
+        gibt jedem Mitglied eine Rolle: Inhaber, Admin, Coach, Assistent oder
+        Athlet. Jeder Coach des Vereins erreicht die Athleten des Vereins, und
+        diese Athleten zählen nicht zur Grenze von fünf Athleten eines
+        kostenlosen Coach-Kontos. Die Mitglieder kommen über eine Liste, die du
+        importierst (eingefügt oder als CSV aus der Vereinstabelle, mit
+        Gruppen), über einen Beitrittscode oder über Links, die ablaufen. Jede
+        Gruppe, nach Pace oder Niveau, hat ihre eigenen Coaches, und die
+        Vereinsbibliothek enthält die Workouts und Ordner, die alle Coaches des
+        Vereins nutzen.
       </p>
       <p>
         Um für eine Gruppe zu planen, kopierst du eine Einheit, einen Tag oder

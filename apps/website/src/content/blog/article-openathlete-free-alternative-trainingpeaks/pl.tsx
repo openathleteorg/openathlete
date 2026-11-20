@@ -113,16 +113,18 @@ export function ContentPl() {
 
       <h2>OpenAthlete</h2>
       <p>
-        Na naszych serwerach każda funkcja jest darmowa: kalendarz, kreator
-        treningów, zaplanowane treningi wysyłane na Garmin, Suunto i COROS,
-        obciążenie treningowe i prowadzenie do pięciu zawodników. Opcjonalny
-        plan Supporter (od {q('oaMonth')} miesięcznie albo {q('oaYear')}{' '}
-        rocznie) dodaje AI na naszych kluczach i nieograniczoną liczbę
-        prowadzonych zawodników, i nic więcej. Kod jest na licencji AGPL-3.0,
-        więc możesz też uruchomić go na własnym serwerze za darmo i bez limitów.
-        Kluby również dostają darmową przestrzeń klubową bez limitu zawodników:
-        grupy z własnymi trenerami, wspólną bibliotekę treningów, cotygodniowe
-        treningi klubowe i plany kopiowane do całej grupy.
+        Na naszych serwerach wszystko, czego potrzebujesz do treningu, jest
+        darmowe: kalendarz, kreator treningów, zaplanowane treningi wysyłane na
+        Garmin, Suunto i COROS, obciążenie treningowe i prowadzenie do pięciu
+        zawodników. Opcjonalny plan Supporter (od {q('oaMonth')} miesięcznie
+        albo {q('oaYear')} rocznie) finansuje projekt i dodaje Lab, wcześniejszy
+        dostęp do nowych funkcji, zaawansowane narzędzia trenerskie i kluby, AI
+        na naszych kluczach i nieograniczoną liczbę prowadzonych zawodników. Kod
+        jest na licencji AGPL-3.0, więc możesz też uruchomić go na własnym
+        serwerze za darmo i bez limitów. Klub zakłada Supporter, a członkowie
+        dołączają za darmo, bez limitu zawodników: grupy z własnymi trenerami,
+        wspólna biblioteka treningów, cotygodniowe treningi klubowe i plany
+        kopiowane do całej grupy.
       </p>
       <p>
         Obciążenie treningowe to TRIMP Banistra liczony z tętna, z session RPE
@@ -194,8 +196,8 @@ export function ContentPl() {
         Surge dla amerykańskiej drużyny szkolnej lub klubowej z prostymi,
         stałymi cenami. Wybierz OpenAthlete, jeśli chcesz treningów na Garmin,
         Suunto albo COROS bez płacenia, stałej ceny dla trenera, AI na własnym
-        kluczu, darmowej przestrzeni klubowej albo kodu, który możesz hostować
-        sam.
+        kluczu, klubu, do którego twoi zawodnicy dołączają za darmo, albo kodu,
+        który możesz hostować sam.
       </p>
 
       <h2>Przenoszenie historii</h2>

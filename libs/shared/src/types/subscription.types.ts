@@ -44,7 +44,7 @@ export enum SubscriptionStatus {
  * Version (date) of the terms of sale on the website. Change it with the
  * terms: each new subscription records the version its customer accepted.
  */
-export const TERMS_OF_SALE_VERSION = '2026-11-16';
+export const TERMS_OF_SALE_VERSION = '2026-11-20';
 
 /**
  * Where the count of Supporters is headed: enough to cover the costs and

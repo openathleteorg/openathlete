@@ -73,11 +73,11 @@ export function ContentNl() {
         <strong>Coaching.</strong> Een coach plant rechtstreeks in de kalender
         van elke atleet, hergebruikt sjablonen en ziet wat er echt gedaan is.
         Een atleet kan meer dan één coach hebben, en er is een groepschat. Tot
-        vijf atleten coachen is gratis. Clubs krijgen een gratis clubruimte, met
-        groepen en hun coaches, een gedeelde workoutbibliotheek, wekelijkse
-        clubtrainingen en plannen die naar een hele groep worden gekopieerd;
-        atleten die een coach via een club begeleidt, tellen niet mee voor die
-        limiet.
+        vijf atleten coachen is gratis. Een club wordt geopend door een
+        Supporter, en leden en coaches doen gratis mee; de club heeft groepen en
+        hun coaches, een gedeelde workoutbibliotheek, wekelijkse clubtrainingen
+        en plannen die naar een hele groep worden gekopieerd, en atleten die een
+        coach via een club begeleidt, tellen niet mee voor die limiet.
       </p>
       <p>
         <strong>AI, als je dat wilt.</strong> Er draait niets voordat je
@@ -102,8 +102,8 @@ export function ContentNl() {
           gestuurd. Beide zijn alleen een bron van activiteiten.
         </li>
         <li>
-          Er is geen clubfacturatie: de clubruimte is gratis, en contributie
-          wordt buiten OpenAthlete geregeld.
+          Er is geen clubfacturatie: lid worden van een club is gratis, en
+          contributie wordt buiten OpenAthlete geregeld.
         </li>
         <li>
           Het voorspelt geen blessures. Het legt pijn vast wanneer atleten die
@@ -119,12 +119,14 @@ export function ContentNl() {
 
       <h2>Hoe het betaald wordt</h2>
       <p>
-        Elke functie is gratis in de gehoste versie. Het Supporter-abonnement,
-        vanaf € 5 per maand of € 50 per jaar, voegt twee dingen toe: AI die op
-        de sleutels van OpenAthlete draait, binnen een wekelijks tegoed voor
-        redelijk gebruik dat elke maandag opnieuw begint, en coaching voor meer
-        dan vijf atleten. Zelf hosten is gratis, zonder limieten. Details staan
-        op de <Link href="/nl/pricing">prijspagina</Link>.
+        Alles wat je nodig hebt om te trainen is gratis in de gehoste versie.
+        Het Supporter-abonnement, vanaf € 5 per maand of € 50 per jaar,
+        financiert het project en voegt als bedankje het Lab toe, eerdere
+        toegang tot nieuwe functies, de geavanceerde coachtools en clubs,
+        coaching voor meer dan vijf atleten en AI die op de sleutels van
+        OpenAthlete draait, binnen een wekelijks tegoed voor redelijk gebruik
+        dat elke maandag opnieuw begint. Zelf hosten is gratis, zonder limieten.
+        Details staan op de <Link href="/nl/pricing">prijspagina</Link>.
       </p>
       <p>
         De gehoste API en database draaien bij OVH in Frankrijk, en de webapp

@@ -72,11 +72,11 @@ export function ContentPl() {
         <strong>Coaching.</strong> Trener planuje bezpośrednio w kalendarzu
         każdego zawodnika, korzysta z szablonów i widzi, co faktycznie zostało
         zrobione. Zawodnik może mieć więcej niż jednego trenera, jest też czat
-        grupowy. Prowadzenie do pięciu zawodników jest bezpłatne. Kluby dostają
-        bezpłatną przestrzeń klubową z grupami i ich trenerami, wspólną
-        biblioteką treningów, cotygodniowymi treningami klubowymi i planami
-        kopiowanymi na całą grupę; zawodnicy, których trener prowadzi przez
-        klub, nie wliczają się do tego limitu.
+        grupowy. Prowadzenie do pięciu zawodników jest bezpłatne. Klub zakłada
+        Supporter, a członkowie i trenerzy dołączają bezpłatnie; klub ma grupy z
+        ich trenerami, wspólną bibliotekę treningów, cotygodniowe treningi
+        klubowe i plany kopiowane na całą grupę, a zawodnicy, których trener
+        prowadzi przez klub, nie wliczają się do tego limitu.
       </p>
       <p>
         <strong>AI, jeśli chcesz.</strong> Nic nie działa, dopóki się nie
@@ -100,7 +100,7 @@ export function ContentPl() {
           wyłącznie jako źródło aktywności.
         </li>
         <li>
-          Nie ma rozliczeń klubowych: przestrzeń klubowa jest bezpłatna, a
+          Nie ma rozliczeń klubowych: dołączenie do klubu jest bezpłatne, a
           składki członkowskie obsługuje się poza OpenAthlete.
         </li>
         <li>
@@ -116,12 +116,14 @@ export function ContentPl() {
 
       <h2>Jak jest finansowany</h2>
       <p>
-        Wszystkie funkcje są bezpłatne w wersji hostowanej. Plan Supporter, od 5
-        € miesięcznie lub 50 € rocznie, dodaje dwie rzeczy: AI działające na
-        kluczach OpenAthlete, w ramach tygodniowego limitu na rozsądne
-        użytkowanie, który odnawia się w każdy poniedziałek, oraz prowadzenie
-        więcej niż pięciu zawodników. Self-hosting jest bezpłatny i bez
-        ograniczeń. Szczegóły znajdziesz na{' '}
+        Wszystko, czego potrzebujesz do treningu, jest bezpłatne w wersji
+        hostowanej. Plan Supporter, od 5 € miesięcznie lub 50 € rocznie,
+        finansuje projekt, a w podziękowaniu dodaje Lab, wcześniejszy dostęp do
+        nowych funkcji, zaawansowane narzędzia trenerskie i kluby, prowadzenie
+        więcej niż pięciu zawodników oraz AI działające na kluczach OpenAthlete,
+        w ramach tygodniowego limitu na rozsądne użytkowanie, który odnawia się
+        w każdy poniedziałek. Self-hosting jest bezpłatny i bez ograniczeń.
+        Szczegóły znajdziesz na{' '}
         <Link href="/pl/pricing">stronie z cennikiem</Link>.
       </p>
       <p>

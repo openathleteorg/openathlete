@@ -209,24 +209,26 @@ export function ContentFr() {
       <h3>OpenAthlete</h3>
       <p>
         Le nôtre, jugez en conséquence. Il est open source (AGPL), gratuit à
-        auto-héberger, ou hébergé par nos soins en France. Toutes les fonctions
-        sont gratuites sur la version hébergée, coaching jusqu&apos;à 5 athlètes
-        compris&nbsp;; la formule Supporter, à partir de 5&nbsp;€ par mois ou
-        50&nbsp;€ par an, ajoute les athlètes illimités et l&apos;IA sur nos
-        clés (<Link href="/fr/pricing">tarifs</Link>). Les clubs ont un espace
-        club gratuit, sans limite d&apos;athlètes&nbsp;: groupes avec leurs
-        coachs, bibliothèque partagée, séances de club hebdomadaires et plans
-        copiés à tout un groupe. Les séances programmées partent vers les
-        montres Garmin, Suunto et COROS&nbsp;; les activités arrivent de ces
-        trois marques, de Polar et de Strava. La charge d&apos;entraînement
-        repose sur le TRIMP (fréquence cardiaque), avec le RPE de séance à côté,
-        et la forme, la fatigue et la fraîcheur sont projetées sur les séances
-        prévues. L&apos;IA est facultative et tourne sur votre propre clé ou sur
-        le quota Supporter.
+        auto-héberger, ou hébergé par nos soins en France. Tout ce qu&apos;il
+        faut pour s&apos;entraîner est gratuit sur la version hébergée, coaching
+        jusqu&apos;à 5 athlètes compris&nbsp;; la formule Supporter, à partir de
+        5&nbsp;€ par mois ou 50&nbsp;€ par an, finance le projet et ajoute le
+        Lab, l&apos;accès anticipé aux nouveautés, les outils coach avancés et
+        les clubs, les athlètes illimités et l&apos;IA sur nos clés (
+        <Link href="/fr/pricing">tarifs</Link>). Un club est ouvert par un
+        Supporter et ses membres le rejoignent gratuitement, sans limite
+        d&apos;athlètes&nbsp;: groupes avec leurs coachs, bibliothèque partagée,
+        séances de club hebdomadaires et plans copiés à tout un groupe. Les
+        séances programmées partent vers les montres Garmin, Suunto et
+        COROS&nbsp;; les activités arrivent de ces trois marques, de Polar et de
+        Strava. La charge d&apos;entraînement repose sur le TRIMP (fréquence
+        cardiaque), avec le RPE de séance à côté, et la forme, la fatigue et la
+        fraîcheur sont projetées sur les séances prévues. L&apos;IA est
+        facultative et tourne sur votre propre clé ou sur le quota Supporter.
       </p>
       <p>
         Les limites sont réelles. Pas de marketplace pour vendre des plans, pas
-        de facturation au club (l&apos;espace club est gratuit, mais les
+        de facturation au club (rejoindre un club est gratuit, mais les
         cotisations se gèrent en dehors d&apos;OpenAthlete), pas
         d&apos;application home trainer, pas d&apos;envoi de séances vers les
         montres Polar. L&apos;analyse est moins poussée qu&apos;intervals.icu,

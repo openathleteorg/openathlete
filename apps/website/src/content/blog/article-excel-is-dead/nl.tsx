@@ -125,15 +125,16 @@ export function ContentNl() {
 
       <h2>Uitproberen zonder te betalen</h2>
       <p>
-        OpenAthlete is gratis voor coaches met maximaal vijf atleten, met alle
-        functies: kalender, workout-editor, trainingen die naar horloges van
-        Garmin, Suunto en COROS worden gestuurd, activiteiten die worden
-        geïmporteerd van die merken plus Polar en Strava, en trainingsbelasting
-        op basis van hartslag met session-RPE ernaast. Boven vijf atleten heft
-        Supporter, vanaf €&nbsp;50 per jaar, de limiet op. Je kunt het een maand
-        lang naast je spreadsheet gebruiken met een of twee atleten voordat je
-        beslist. De <Link href="/nl/coaches">pagina voor coaches</Link> laat
-        zien hoe de coachkant eruitziet.
+        OpenAthlete is gratis voor coaches met maximaal vijf atleten, met alles
+        wat je nodig hebt om ze te coachen: kalender, workout-editor, trainingen
+        die naar horloges van Garmin, Suunto en COROS worden gestuurd,
+        activiteiten die worden geïmporteerd van die merken plus Polar en
+        Strava, en trainingsbelasting op basis van hartslag met session-RPE
+        ernaast. Boven vijf atleten heft Supporter, vanaf €&nbsp;50 per jaar, de
+        limiet op. Je kunt het een maand lang naast je spreadsheet gebruiken met
+        een of twee atleten voordat je beslist. De{' '}
+        <Link href="/nl/coaches">pagina voor coaches</Link> laat zien hoe de
+        coachkant eruitziet.
       </p>
 
       <h2>Bron</h2>

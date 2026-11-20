@@ -11,7 +11,7 @@ import { generateMetadata as pageMetadata } from '../../metadata';
 type Props = { params: Promise<{ locale: string }> };
 
 // Update with the terms version accepted in the app; never the build date
-const LAST_UPDATED = '2026-11-16';
+const LAST_UPDATED = '2026-11-20';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export async function generateMetadata({ params }: Props) {
@@ -61,6 +61,10 @@ export default async function TermsOfSalePage({ params }: Props) {
                 <ul>
                   <li>{m.terms_offer_list_1()}</li>
                   <li>{m.terms_offer_list_2()}</li>
+                  <li>{m.terms_offer_list_3()}</li>
+                  <li>{m.terms_offer_list_4()}</li>
+                  <li>{m.terms_offer_list_5()}</li>
+                  <li>{m.terms_offer_list_6()}</li>
                 </ul>
                 <p>{m.terms_offer_note()}</p>
               </>

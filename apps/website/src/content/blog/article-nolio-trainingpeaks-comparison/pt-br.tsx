@@ -42,11 +42,13 @@ export function ContentPtBr() {
       <p>
         O <strong>OpenAthlete</strong> é grátis até cinco atletas. Acima disso,
         o plano Supporter, a partir de {q('oaYear')} por ano, tira o limite,
-        seja qual for o tamanho da assessoria, e ainda acrescenta IA com as
-        nossas chaves. A sincronização com o relógio é grátis para os atletas.
-        Hospedar no seu próprio servidor é grátis e sem limites. Os clubes têm
-        um espaço de clube gratuito, e os atletas que um treinador acompanha por
-        meio de um clube não contam entre os cinco.
+        seja qual for o tamanho da assessoria, e ainda acrescenta o Lab, o
+        acesso antecipado às novidades, as ferramentas avançadas de treinador,
+        ter um clube e IA com as nossas chaves. A sincronização com o relógio é
+        grátis para os atletas. Hospedar no seu próprio servidor é grátis e sem
+        limites. Um clube é aberto por um Supporter e membros e treinadores
+        entram de graça, e os atletas que um treinador acompanha por meio de um
+        clube não contam entre os cinco.
       </p>
 
       <table>
@@ -124,12 +126,13 @@ export function ContentPtBr() {
         algumas perguntas, e o esforço e qualquer dor relatada vão para um
         registro de lesões e para o seu painel. Pelo servidor MCP, Claude ou
         ChatGPT podem ler o treino de um atleta e planejar até 60 treinos no
-        calendário dele. Os clubes têm um espaço de clube gratuito sem limite de
-        atletas: grupos com seus treinadores, uma biblioteca compartilhada,
-        treinos semanais do clube que os atletas confirmam, e um treino, um dia
-        ou uma semana copiados para um grupo inteiro, adaptados às zonas de cada
-        um. O código é AGPL-3.0, então um clube também pode rodar a própria
-        instância, com login único (SSO) e cadastro só por convite.
+        calendário dele. Um clube é aberto por um Supporter e os membros entram
+        de graça, sem limite de atletas: grupos com seus treinadores, uma
+        biblioteca compartilhada, treinos semanais do clube que os atletas
+        confirmam, e um treino, um dia ou uma semana copiados para um grupo
+        inteiro, adaptados às zonas de cada um. O código é AGPL-3.0, então um
+        clube também pode rodar a própria instância, com login único (SSO) e
+        cadastro só por convite.
       </p>
 
       <h2>O que falta em cada um</h2>
@@ -159,10 +162,11 @@ export function ContentPtBr() {
       <p>
         Um clube com três treinadores e sessenta associados: se eles querem uma
         parceria com federação e uma biblioteca de vídeos de exercícios, os
-        planos de clube da Nolio servem melhor. Se não, o espaço de clube do
-        OpenAthlete resolve de graça, com grupos, uma biblioteca compartilhada e
-        a pista de terça já no calendário de cada associado. Uma instância
-        própria é uma opção se alguém do clube topar cuidar de um servidor.
+        planos de clube da Nolio servem melhor. Se não, um clube no OpenAthlete
+        resolve, aberto por um Supporter e gratuito para os outros treinadores e
+        associados, com grupos, uma biblioteca compartilhada e a pista de terça
+        já no calendário de cada associado. Uma instância própria é uma opção se
+        alguém do clube topar cuidar de um servidor.
       </p>
       <p>
         Um treinador que vende planilhas para atletas com quem nunca fala: fique

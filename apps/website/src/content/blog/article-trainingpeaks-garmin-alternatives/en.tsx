@@ -185,21 +185,23 @@ export function ContentEn() {
       <h3>OpenAthlete</h3>
       <p>
         Ours, so judge accordingly. It is open source (AGPL), free to self-host,
-        or hosted by us in France. Every feature is free on the hosted version,
-        coaching up to 5 athletes included; Supporter, from €5 a month or €50 a
-        year, adds unlimited coached athletes and AI on our keys (
-        <Link href="/pricing">pricing</Link>). Clubs get a free club space with
-        no athlete limit: groups with their coaches, a shared library, weekly
-        club sessions and plans copied to a whole group. Planned sessions go to
-        Garmin, Suunto and COROS watches; activities come in from those three
-        plus Polar and Strava. Training load is TRIMP from heart rate with
-        session RPE alongside, and fitness, fatigue and form are projected over
-        the sessions you have planned. AI is optional and runs on your own key
-        or the Supporter allowance.
+        or hosted by us in France. Everything you need to train is free on the
+        hosted version, coaching up to 5 athletes included; Supporter, from €5 a
+        month or €50 a year, funds the project and adds the Lab, early access to
+        new features, advanced coach tools and clubs, unlimited coached athletes
+        and AI on our keys (<Link href="/pricing">pricing</Link>). A club is
+        opened by a Supporter and members join free, with no athlete limit:
+        groups with their coaches, a shared library, weekly club sessions and
+        plans copied to a whole group. Planned sessions go to Garmin, Suunto and
+        COROS watches; activities come in from those three plus Polar and
+        Strava. Training load is TRIMP from heart rate with session RPE
+        alongside, and fitness, fatigue and form are projected over the sessions
+        you have planned. AI is optional and runs on your own key or the
+        Supporter allowance.
       </p>
       <p>
         The limits are real. There is no marketplace for selling plans, no club
-        billing (the club space is free, but membership fees are handled outside
+        billing (joining a club is free, but membership fees are handled outside
         OpenAthlete), no indoor training app and no workouts sent to Polar
         watches. The analysis is shallower than intervals.icu, and the project
         is young and built by one developer. Our answer to &quot;what if you

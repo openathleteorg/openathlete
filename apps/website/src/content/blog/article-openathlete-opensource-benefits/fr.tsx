@@ -130,12 +130,13 @@ export function ContentFr() {
 
       <h2>Si vous préférez ne pas gérer de serveur</h2>
       <p>
-        La version hébergée est gratuite, avec toutes les fonctionnalités. Son
-        API et sa base de données tournent chez OVH, en France, et l'application
-        web est servie par Vercel. L'offre Supporter (à partir de 5 € par mois
-        ou 50 € par an) ajoute l'IA sur les clés d'OpenAthlete et le suivi de
-        plus de cinq athlètes, et elle aide à payer les serveurs. Les raisons du
-        projet sont détaillées sur la{' '}
+        Tout ce qu'il faut pour s'entraîner est gratuit sur la version hébergée.
+        Son API et sa base de données tournent chez OVH, en France, et
+        l'application web est servie par Vercel. L'offre Supporter (à partir de
+        5 € par mois ou 50 € par an) aide à payer les serveurs et, en
+        remerciement, ajoute le Lab, l'accès anticipé aux nouveautés, les outils
+        coach avancés et les clubs, l'IA sur les clés d'OpenAthlete et le suivi
+        de plus de cinq athlètes. Les raisons du projet sont détaillées sur la{' '}
         <Link href="/fr/open-source">page open source</Link>.
       </p>
     </div>

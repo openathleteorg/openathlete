@@ -72,11 +72,11 @@ export function ContentPtBr() {
         <strong>Assessoria.</strong> O treinador planeja direto no calendário de
         cada atleta, reaproveita modelos e vê o que foi feito de verdade. Um
         atleta pode ter mais de um treinador, e existe um chat em grupo.
-        Acompanhar até cinco atletas é grátis. Os clubes têm um espaço de clube
-        gratuito, com grupos e seus treinadores, uma biblioteca de treinos
-        compartilhada, treinos semanais do clube e planos copiados para um grupo
-        inteiro; os atletas que um treinador acompanha por meio de um clube não
-        contam nesse limite.
+        Acompanhar até cinco atletas é grátis. Um clube é aberto por um
+        Supporter, e membros e treinadores entram de graça; ele tem grupos e
+        seus treinadores, uma biblioteca de treinos compartilhada, treinos
+        semanais do clube e planos copiados para um grupo inteiro, e os atletas
+        que um treinador acompanha por meio de um clube não contam nesse limite.
       </p>
       <p>
         <strong>IA, se você quiser.</strong> Nada roda sem o seu consentimento,
@@ -101,7 +101,7 @@ export function ContentPtBr() {
           Strava. Os dois são apenas fontes de atividades.
         </li>
         <li>
-          Não há cobrança para clubes: o espaço de clube é gratuito, e as
+          Não há cobrança para clubes: entrar num clube é gratuito, e as
           mensalidades são geridas fora do OpenAthlete.
         </li>
         <li>
@@ -117,12 +117,14 @@ export function ContentPtBr() {
 
       <h2>Como ele se paga</h2>
       <p>
-        Todos os recursos são gratuitos na versão hospedada. O plano Supporter,
-        a partir de 5 € por mês ou 50 € por ano, acrescenta duas coisas: IA
-        rodando nas chaves do OpenAthlete, com uma cota semanal para uso
-        razoável que se renova toda segunda-feira, e acompanhar mais de cinco
-        atletas. A auto-hospedagem é gratuita e sem limites. Os detalhes estão
-        na <Link href="/pt-br/pricing">página de preços</Link>.
+        Tudo o que você precisa para treinar é gratuito na versão hospedada. O
+        plano Supporter, a partir de 5 € por mês ou 50 € por ano, financia o
+        projeto e, como agradecimento, acrescenta o Lab, o acesso antecipado às
+        novidades, as ferramentas avançadas de treinador e os clubes, acompanhar
+        mais de cinco atletas e IA rodando nas chaves do OpenAthlete, com uma
+        cota semanal para uso razoável que se renova toda segunda-feira. A
+        auto-hospedagem é gratuita e sem limites. Os detalhes estão na{' '}
+        <Link href="/pt-br/pricing">página de preços</Link>.
       </p>
       <p>
         A API e o banco de dados da versão hospedada rodam na OVH, na França, e

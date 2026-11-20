@@ -20,6 +20,7 @@ import {
   type CostCategory,
   MONTHLY_COSTS,
   SHIPPED,
+  type ShippedItem,
   costName,
   shippedTitle,
 } from '@/content/transparency';
@@ -45,6 +46,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { FEATURES, earlyAccessEnd } from '@openathlete/shared';
+
 import { generateMetadata as pageMetadata } from '../../metadata';
 
 type Props = { params: Promise<{ locale: string }> };
@@ -55,6 +58,16 @@ export const revalidate = 3600;
 const CONTRIBUTORS_URL = `${GITHUB_URL}/graphs/contributors`;
 const GOOD_FIRST_ISSUES_URL = `${GITHUB_URL}/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22`;
 const SHIPPED_SHOWN = 6;
+
+/**
+ * The day a shipped feature opens to everyone, while Supporters have it
+ * first (FEATURES); null otherwise
+ */
+function earlyAccessUntil(item: ShippedItem): string | null {
+  if (!item.feature) return null;
+  const end = earlyAccessEnd(FEATURES[item.feature]);
+  return end && Date.now() < Date.parse(`${end}T00:00:00Z`) ? end : null;
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
 export async function generateMetadata({ params }: Props) {
@@ -532,8 +545,15 @@ export default async function TransparencyPage({ params }: Props) {
                     >
                       {day(item.date)}
                     </time>
-                    <span className="flex-1 font-medium">
+                    <span className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1 font-medium">
                       {shippedTitle(item, locale)}
+                      {earlyAccessUntil(item) && (
+                        <span className="rounded-full bg-orchid/15 px-2.5 py-0.5 text-[0.78rem] font-medium text-ink">
+                          {m.transparency_early_access({
+                            date: day(earlyAccessUntil(item) as string),
+                          })}
+                        </span>
+                      )}
                     </span>
                     <ArrowRight className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 sm:block" />
                   </Link>

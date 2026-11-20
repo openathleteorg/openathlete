@@ -234,6 +234,7 @@ export function PricingPlans({
           <ul className="relative mt-3 grid gap-3 [&_svg]:text-mint">
             <Feature>{m.plans_supporter_1({}, { locale: ml })}</Feature>
             <Feature>{m.plans_supporter_2({}, { locale: ml })}</Feature>
+            <Feature>{m.plans_supporter_5({}, { locale: ml })}</Feature>
             <Feature>{m.plans_supporter_3({}, { locale: ml })}</Feature>
             <Feature>{m.plans_supporter_4({}, { locale: ml })}</Feature>
           </ul>

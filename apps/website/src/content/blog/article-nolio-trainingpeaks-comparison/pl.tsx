@@ -44,11 +44,13 @@ export function ContentPl() {
       <p>
         <strong>OpenAthlete</strong> jest darmowy do pięciu zawodników. Powyżej
         tej liczby plan Supporter, od {q('oaYear')} rocznie, znosi limit
-        niezależnie od liczby zawodników, a do tego dodaje AI na naszych
-        kluczach. Synchronizacja z zegarkiem jest dla zawodników darmowa.
-        Samodzielny hosting jest darmowy i bez limitów. Kluby dostają darmową
-        przestrzeń klubową, a zawodnicy, do których trener dociera przez klub,
-        nie wliczają się do tych pięciu.
+        niezależnie od liczby zawodników, a do tego dodaje Lab, wcześniejszy
+        dostęp do nowych funkcji, zaawansowane narzędzia trenerskie, możliwość
+        założenia klubu i AI na naszych kluczach. Synchronizacja z zegarkiem
+        jest dla zawodników darmowa. Samodzielny hosting jest darmowy i bez
+        limitów. Klub zakłada Supporter, a członkowie i trenerzy dołączają za
+        darmo; zawodnicy, do których trener dociera przez klub, nie wliczają się
+        do tych pięciu.
       </p>
 
       <table>
@@ -128,13 +130,13 @@ export function ContentPl() {
         kilka pytań, a zgłoszony wysiłek i ewentualny ból trafiają do dziennika
         kontuzji i na twój pulpit. Przez serwer MCP Claude albo ChatGPT mogą
         odczytać treningi zawodnika i zaplanować do 60 treningów w jego
-        kalendarzu. Kluby dostają darmową przestrzeń klubową bez limitu
-        zawodników: grupy z własnymi trenerami, wspólną bibliotekę, cotygodniowe
-        treningi klubowe, na które zawodnicy odpowiadają, oraz trening, dzień
-        albo tydzień skopiowany do całej grupy i dopasowany do stref każdego
-        zawodnika. Kod jest na licencji AGPL-3.0, więc klub może też uruchomić
-        własną instancję z logowaniem jednokrotnym (SSO) i rejestracją wyłącznie
-        na zaproszenie.
+        kalendarzu. Klub zakłada Supporter, a członkowie dołączają za darmo, bez
+        limitu zawodników: grupy z własnymi trenerami, wspólna biblioteka,
+        cotygodniowe treningi klubowe, na które zawodnicy odpowiadają, oraz
+        trening, dzień albo tydzień skopiowany do całej grupy i dopasowany do
+        stref każdego zawodnika. Kod jest na licencji AGPL-3.0, więc klub może
+        też uruchomić własną instancję z logowaniem jednokrotnym (SSO) i
+        rejestracją wyłącznie na zaproszenie.
       </p>
 
       <h2>Czego każdemu brakuje</h2>
@@ -166,8 +168,9 @@ export function ContentPl() {
       <p>
         Klub z trzema trenerami i sześćdziesięcioma członkami: jeśli chcą
         partnera federacyjnego i biblioteki filmów z ćwiczeniami, najlepiej
-        pasują plany klubowe Nolio. Jeśli nie, przestrzeń klubowa OpenAthlete
-        załatwia sprawę za darmo, z grupami, wspólną biblioteką i wtorkowym
+        pasują plany klubowe Nolio. Jeśli nie, sprawę załatwia klub w
+        OpenAthlete, założony przez Supportera i darmowy dla pozostałych
+        trenerów i członków, z grupami, wspólną biblioteką i wtorkowym
         treningiem na bieżni już w kalendarzu każdego członka. Samodzielnie
         hostowana instancja to opcja, jeśli ktoś w klubie chętnie zajmie się
         serwerem.

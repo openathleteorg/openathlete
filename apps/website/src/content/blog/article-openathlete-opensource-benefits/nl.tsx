@@ -124,13 +124,14 @@ export function ContentNl() {
 
       <h2>Als je liever geen server beheert</h2>
       <p>
-        De gehoste versie is gratis, met alle functies. De API en database
-        draaien bij OVH in Frankrijk en de webapp wordt geleverd door Vercel.
-        Het Supporter-abonnement (vanaf €&nbsp;5 per maand of €&nbsp;50 per
-        jaar) voegt AI op de sleutels van OpenAthlete toe en coaching voor meer
-        dan vijf atleten, en het helpt de servers te betalen. Meer over de
-        gedachte achter het project lees je op de{' '}
-        <Link href="/nl/open-source">open-sourcepagina</Link>.
+        Alles wat je nodig hebt om te trainen is gratis in de gehoste versie. De
+        API en database draaien bij OVH in Frankrijk en de webapp wordt geleverd
+        door Vercel. Het Supporter-abonnement (vanaf €&nbsp;5 per maand of
+        €&nbsp;50 per jaar) helpt de servers te betalen en voegt als bedankje
+        het Lab toe, eerdere toegang tot nieuwe functies, de geavanceerde
+        coachtools en clubs, AI op de sleutels van OpenAthlete en coaching voor
+        meer dan vijf atleten. Meer over de gedachte achter het project lees je
+        op de <Link href="/nl/open-source">open-sourcepagina</Link>.
       </p>
     </div>
   );
