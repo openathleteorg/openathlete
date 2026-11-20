@@ -3,6 +3,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { AuthModule } from '../auth';
 import { CoreModule } from '../core/core.module';
 import { NotificationModule } from '../notification/notification.module';
+import { SubscriptionModule } from '../subscription/subscription.module';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { ActivityAlertSettingsController } from './controllers/activity-alert-settings.controller';
 import { EventCommentsController } from './controllers/event-comments.controller';
@@ -22,6 +23,7 @@ import { MessageService } from './services/message.service';
     forwardRef(() => CoreModule),
     NotificationModule,
     WebSocketModule,
+    forwardRef(() => SubscriptionModule),
   ],
   controllers: [
     MessagesController,

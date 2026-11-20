@@ -9,6 +9,7 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { AccountDeletionService } from 'src/modules/auth/services/account-deletion.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 import { StripeService } from 'src/modules/subscription/services/stripe.service';
 
 import { AthleteGroupService } from './athlete-group.service';
@@ -36,9 +37,14 @@ describe('clubs (PostgreSQL)', () => {
     prisma = new PrismaService({ datasourceUrl: databaseUrl });
     await prisma.$connect();
     clubs = new ClubService(prisma);
-    joinLinks = new ClubJoinLinkService(prisma, {
-      get: () => 'http://localhost',
-    } as unknown as ConfigService<ApiEnvSchemaType, true>);
+    joinLinks = new ClubJoinLinkService(
+      prisma,
+      {
+        get: () => 'http://localhost',
+      } as unknown as ConfigService<ApiEnvSchemaType, true>,
+      // An instance without billing: every club takes members
+      { clubIsOpen: async () => true } as unknown as FeatureAccessService,
+    );
     groups = new AthleteGroupService(prisma);
     invitations = new ClubInvitationService(
       prisma,

@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 
 import {
+  Feature,
   type PendingQuestionnaire,
   type Questionnaire,
   type QuestionnaireForm,
@@ -40,9 +41,14 @@ import {
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
 import { QuestionnaireResponseService } from './services/questionnaire-response.service';
 import { QuestionnaireService } from './services/questionnaire.service';
+
+/** Active (not archived) questionnaires a coach has without coach tools */
+const FREE_ACTIVE_QUESTIONNAIRES = 1;
 
 @ApiTags('Questionnaires')
 @ApiBearerAuth()
@@ -52,7 +58,25 @@ export class QuestionnaireController {
   constructor(
     private readonly questionnaires: QuestionnaireService,
     private readonly responses: QuestionnaireResponseService,
+    private readonly features: FeatureAccessService,
+    private readonly prisma: PrismaService,
   ) {}
+
+  /**
+   * One active questionnaire is free; a second one is a coach tool. Those
+   * already active keep being sent whatever the plan.
+   */
+  private async assertMayActivate(user: AuthUser): Promise<void> {
+    const active = await this.prisma.questionnaire.count({
+      where: { coachUserId: user.userId, archivedAt: null },
+    });
+    if (active >= FREE_ACTIVE_QUESTIONNAIRES) {
+      await this.features.assertAsCoach(
+        user.userId,
+        Feature.COACH_QUESTIONNAIRES,
+      );
+    }
+  }
 
   @Get()
   @ApiOperation({
@@ -78,11 +102,12 @@ export class QuestionnaireController {
   })
   @ApiResponse({ status: 201, description: 'The questionnaire' })
   @ApiResponse({ status: 400, description: 'Invalid questionnaire' })
-  create(
+  async create(
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(questionnaireInputSchema))
     body: QuestionnaireInput,
   ): Promise<Questionnaire> {
+    await this.assertMayActivate(user);
     return this.questionnaires.create(user, body);
   }
 
@@ -201,10 +226,11 @@ export class QuestionnaireController {
   @ApiOperation({ summary: 'Bring an archived questionnaire back' })
   @ApiParam({ name: 'questionnaireId', type: Number })
   @ApiResponse({ status: 200, description: 'The questionnaire' })
-  restore(
+  async restore(
     @JwtUser() user: AuthUser,
     @Param('questionnaireId', ParseIntPipe) questionnaireId: number,
   ): Promise<Questionnaire> {
+    await this.assertMayActivate(user);
     return this.questionnaires.restore(user, questionnaireId);
   }
 

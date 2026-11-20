@@ -3132,5 +3132,7 @@
   "lab_teaser_climb_label": "Klimsnelheid bij {slope} %",
   "lab_teaser_weeks": "Laatste {weeks} weken",
   "lab_overview_open": "Bekijk het Lab",
-  "lab_teaser_stable": "Stabiel"
+  "lab_teaser_stable": "Stabiel",
+  "club_closed_staff": "Deze club neemt voorlopig geen nieuwe leden of trainingen aan: de eigenaar is geen Supporter meer. Alles wat al gepland is, loopt door.",
+  "club_closed_join": "Deze club neemt voorlopig geen nieuwe leden aan. Vraag het de trainer."
 }

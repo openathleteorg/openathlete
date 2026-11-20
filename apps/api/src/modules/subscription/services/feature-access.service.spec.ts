@@ -40,8 +40,51 @@ function build({
     entitlements: (subscription: { userId: number }): OfferEntitlements =>
       OFFERS[offers[subscription.userId]],
   } as unknown as SubscriptionService;
+  // FREE_COACH coaches athlete 100 in a Supporter's club, athlete 200 in
+  // a free owner's club, and is staff of the first club only
+  const links = [
+    {
+      userId: FREE_COACH,
+      athleteId: 100,
+      clubId: CLUB_OF_SUPPORTER,
+      athlete: { userId: 1100 },
+    },
+    {
+      userId: FREE_COACH,
+      athleteId: 200,
+      clubId: CLUB_OF_FREE_OWNER,
+      athlete: { userId: 1200 },
+    },
+  ];
   const prisma = {
+    coachAthlete: {
+      findMany: jest.fn(
+        async ({
+          where,
+        }: {
+          where: {
+            userId: number;
+            OR: {
+              athleteId?: { in: number[] };
+              athlete?: { userId: { in: number[] } };
+            }[];
+          };
+        }) =>
+          links.filter(
+            (link) =>
+              link.userId === where.userId &&
+              where.OR.some(
+                (clause) =>
+                  clause.athleteId?.in.includes(link.athleteId) ||
+                  clause.athlete?.userId.in.includes(link.athlete.userId),
+              ),
+          ),
+      ),
+    },
     clubMember: {
+      findMany: jest.fn(async ({ where }: { where: { userId: number } }) =>
+        where.userId === FREE_COACH ? [{ clubId: CLUB_OF_SUPPORTER }] : [],
+      ),
       findFirst: jest.fn(
         async ({ where }: { where: { clubId: number; role: ClubRole } }) =>
           ({
@@ -127,5 +170,38 @@ describe('FeatureAccessService', () => {
     expect(Math.abs(build().service.now().getTime() - Date.now())).toBeLessThan(
       1000,
     );
+  });
+
+  it('gives coach tools for athletes reached through a Supporter owner’s club', async () => {
+    const { service } = build();
+    const can = (athletes: {
+      athleteIds?: number[];
+      athleteUserIds?: number[];
+    }) => service.canAsCoach(FREE_COACH, Feature.COACH_THRESHOLDS, athletes);
+    expect(await can({ athleteIds: [100] })).toBe(true);
+    expect(await can({ athleteUserIds: [1100] })).toBe(true);
+    // Every athlete must be covered
+    expect(await can({ athleteIds: [100, 200] })).toBe(false);
+    expect(await can({ athleteIds: [300] })).toBe(false);
+    // The whole dashboard: staff of a Supporter owner's club
+    expect(await can({})).toBe(true);
+    expect(await service.canAsCoach(OWNER_FREE, Feature.COACH_COLUMNS)).toBe(
+      false,
+    );
+    // The app shows the tools unlocked to such staff
+    const map = await service.accessMap(FREE_COACH);
+    expect(map[Feature.COACH_COLUMNS].available).toBe(true);
+    expect(map[Feature.LAB].available).toBe(false);
+  });
+
+  it('opens a club to new members only under a Supporter owner', async () => {
+    expect(await build().service.clubIsOpen(CLUB_OF_SUPPORTER)).toBe(true);
+    expect(await build().service.clubIsOpen(CLUB_OF_FREE_OWNER)).toBe(false);
+    expect(
+      await build({ billing: false }).service.clubIsOpen(CLUB_OF_FREE_OWNER),
+    ).toBe(true);
+    await expect(
+      build().service.assertClubOpen(CLUB_OF_FREE_OWNER),
+    ).rejects.toThrow(ForbiddenException);
   });
 });

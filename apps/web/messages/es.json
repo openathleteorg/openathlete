@@ -3132,5 +3132,7 @@
   "lab_teaser_climb_label": "Velocidad de ascenso al {slope} %",
   "lab_teaser_weeks": "Últimas {weeks} semanas",
   "lab_overview_open": "Ver el Laboratorio",
-  "lab_teaser_stable": "Estable"
+  "lab_teaser_stable": "Estable",
+  "club_closed_staff": "Este club no admite nuevos miembros ni sesiones por ahora: su propietario ya no es Supporter. Todo lo que ya está planificado sigue en marcha.",
+  "club_closed_join": "Este club no acepta nuevos miembros por ahora. Pregunta a su entrenador."
 }

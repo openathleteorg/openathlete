@@ -1,3 +1,5 @@
+import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
+import { SupporterMark } from '@/components/supporter-perks/locks';
 import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/ui/loader';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +16,7 @@ import {
 } from 'react';
 
 import {
+  Feature,
   type STORED_FILE_PURPOSE,
   imageIdsIn,
   imageRef,
@@ -42,7 +45,8 @@ export function ImageTextarea({
 }: P) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { enabled, upload, isUploading } = useImageUpload(
+  const paywall = useFeaturePaywall();
+  const { enabled, locked, upload, isUploading } = useImageUpload(
     purpose,
     messageThreadId,
   );
@@ -132,6 +136,21 @@ export function ImageTextarea({
           <span className="text-xs text-muted-foreground">
             {m.image_paste_hint()}
           </span>
+        </div>
+      )}
+      {locked && (
+        <div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => paywall.open(Feature.IMAGES, 'image_textarea')}
+            data-images-locked
+          >
+            <ImagePlus className="size-4" />
+            {m.image_add()}
+            <SupporterMark />
+          </Button>
         </div>
       )}
       {images.length > 0 && (

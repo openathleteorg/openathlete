@@ -1,11 +1,12 @@
 import { StoredImage } from '@/components/images';
+import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
 import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/ui/loader';
 import { Textarea } from '@/components/ui/textarea';
 import { useImageUpload } from '@/hooks/use-image-upload';
 import { m } from '@/paraglide/messages';
 import { imageFiles } from '@/utils/image-resize';
-import { ImagePlus, Send, X } from 'lucide-react';
+import { ImagePlus, Lock, Send, X } from 'lucide-react';
 import {
   type ClipboardEvent,
   KeyboardEvent,
@@ -14,7 +15,7 @@ import {
   useState,
 } from 'react';
 
-import { STORED_FILE_PURPOSE, imageRef } from '@openathlete/shared';
+import { Feature, STORED_FILE_PURPOSE, imageRef } from '@openathlete/shared';
 
 interface ChatInputProps {
   threadId: number;
@@ -33,8 +34,10 @@ export function ChatInput({
   const [message, setMessage] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const paywall = useFeaturePaywall();
   const {
     enabled: imagesEnabled,
+    locked: imagesLocked,
     upload,
     isUploading,
   } = useImageUpload(STORED_FILE_PURPOSE.MESSAGE, threadId);
@@ -117,6 +120,25 @@ export function ChatInput({
         </ul>
       )}
       <div className="flex gap-2 items-end">
+        {allowImages && imagesLocked && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => paywall.open(Feature.IMAGES, 'messages')}
+            aria-label={m.image_add()}
+            title={m.image_add()}
+            className="relative h-[60px] w-11 flex-shrink-0"
+            data-images-locked
+          >
+            <ImagePlus className="h-5 w-5" />
+            <Lock
+              aria-hidden
+              data-supporter-lock
+              className="absolute right-1.5 bottom-3 size-3 text-muted-foreground"
+            />
+          </Button>
+        )}
         {canAttach && (
           <>
             <input

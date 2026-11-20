@@ -1,8 +1,11 @@
 import { ClubAPI, useCreateClubMutation, useMyClubsQuery } from '@/api/club';
 import { clubRoleLabel } from '@/components/clubs/club-role';
 import { NameDialog } from '@/components/clubs/name-dialog';
+import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
+import { SupporterMark } from '@/components/supporter-perks/locks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useFeature } from '@/hooks/use-feature';
 import { m } from '@/paraglide/messages';
 import { clubJoinPath, clubPath } from '@/routes/paths';
 import { ChevronRight } from 'lucide-react';
@@ -10,7 +13,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { CLUB_NAME_MAX } from '@openathlete/shared';
+import { CLUB_NAME_MAX, Feature } from '@openathlete/shared';
 
 import {
   SettingsEmpty,
@@ -29,6 +32,9 @@ export function ClubsTab() {
   const { data: clubs, isPending } = useMyClubsQuery();
   const create = useCreateClubMutation();
   const [creating, setCreating] = useState(false);
+  // Owning a club is a Supporter perk; joining one stays free
+  const clubsPerk = useFeature(Feature.CLUBS);
+  const paywall = useFeaturePaywall();
   const [code, setCode] = useState('');
   const [resolving, setResolving] = useState(false);
   // The code stands for the club's athlete link: its page shows who will
@@ -53,9 +59,22 @@ export function ClubsTab() {
     <div className="space-y-8">
       <SettingsSection
         action={
-          <Button size="sm" onClick={() => setCreating(true)}>
-            {m.club_create()}
-          </Button>
+          clubsPerk.hidden ? undefined : (
+            <Button
+              size="sm"
+              onClick={() =>
+                clubsPerk.available
+                  ? setCreating(true)
+                  : paywall.open(Feature.CLUBS, 'clubs')
+              }
+              data-club-create
+            >
+              {m.club_create()}
+              {clubsPerk.locked && (
+                <SupporterMark className="text-primary-foreground/80" />
+              )}
+            </Button>
+          )
         }
       >
         {isPending ? (

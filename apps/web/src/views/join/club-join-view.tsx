@@ -48,6 +48,25 @@ function InvalidLink() {
   );
 }
 
+/** A club that takes no new members for now; the reason is the club's */
+function ClubClosed({ info }: { info: ClubJoinLinkInfoDto }) {
+  return (
+    <Shell>
+      <div className="space-y-3" data-club-join-closed>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {info.clubName}
+        </h1>
+        <p className="text-base text-muted-foreground">
+          {m.club_closed_join()}
+        </p>
+      </div>
+      <Button asChild variant="outline" className="h-11">
+        <Link to="/">{m.join_link_open_app()}</Link>
+      </Button>
+    </Shell>
+  );
+}
+
 /** What joining means: the staff who will see an athlete's training */
 function Summary({ info }: { info: ClubJoinLinkInfoDto }) {
   const asAthlete = info.role === 'ATHLETE';
@@ -96,6 +115,7 @@ function ConfirmJoin({ token }: { token: string }) {
   ) {
     return <InvalidLink />;
   }
+  if (!data.acceptsMembers) return <ClubClosed info={data} />;
 
   const join = () =>
     accept.mutate(token, {
@@ -137,11 +157,12 @@ function Invitation({ token }: { token: string }) {
 
   // Kept through sign-up or login, then spent by the dashboard
   useEffect(() => {
-    if (data) rememberClubJoinToken(token);
+    if (data?.acceptsMembers) rememberClubJoinToken(token);
   }, [data, token]);
 
   if (isLoading) return <LoadingScreen />;
   if (isError || !data) return <InvalidLink />;
+  if (!data.acceptsMembers) return <ClubClosed info={data} />;
 
   return (
     <Shell>

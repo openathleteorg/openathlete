@@ -25,6 +25,7 @@ import {
 
 import { InvitationStatus } from '@openathlete/database';
 import {
+  Feature,
   MetricThresholdDto,
   MetricThresholdParamsDto,
   MetricThresholdsQueryDto,
@@ -37,6 +38,7 @@ import {
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { CoachInvitationService } from 'src/modules/auth/services/coach-invitation.service';
+import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
 import { CoachService } from '../services/coach.service';
 import { MetricThresholdService } from '../services/metric-threshold.service';
@@ -48,6 +50,7 @@ export class CoachController {
     private readonly coachService: CoachService,
     private coachInvitationService: CoachInvitationService,
     private readonly thresholds: MetricThresholdService,
+    private readonly features: FeatureAccessService,
   ) {}
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -167,7 +170,7 @@ export class CoachController {
     status: 401,
     description: 'Unauthorized - invalid or missing authentication token',
   })
-  getDashboard(
+  async getDashboard(
     @JwtUser() user: AuthUser,
     @Query('start') start?: string,
     @Query('end') end?: string,
@@ -175,8 +178,12 @@ export class CoachController {
   ) {
     const period =
       start && end ? { start: new Date(start), end: new Date(end) } : undefined;
+    // Comparing is a coach tool: without it the dashboard answers alone
+    const comparePrevious =
+      compare === 'previous' &&
+      (await this.features.canAsCoach(user.userId, Feature.COACH_COMPARE));
     return this.coachService.getCoachDashboard(user, period, {
-      comparePrevious: compare === 'previous',
+      comparePrevious,
     });
   }
 
@@ -206,11 +213,15 @@ export class CoachController {
   })
   @ApiResponse({ status: 200, description: 'The thresholds set' })
   @ApiResponse({ status: 403, description: 'Not an athlete the user coaches' })
-  setThresholds(
+  async setThresholds(
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(setMetricThresholdsDtoSchema))
     dto: SetMetricThresholdsDto,
   ): Promise<MetricThresholdDto[]> {
+    // Thresholds already set keep notifying; setting new ones is the perk
+    await this.features.assertAsCoach(user.userId, Feature.COACH_THRESHOLDS, {
+      athleteIds: dto.athleteIds,
+    });
     return this.thresholds.set(user, dto);
   }
 

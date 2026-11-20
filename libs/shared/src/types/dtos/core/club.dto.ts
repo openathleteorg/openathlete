@@ -90,6 +90,11 @@ export type ClubMemberDto = z.infer<typeof clubMemberSchema>;
 
 export const clubDetailSchema = clubSummarySchema.extend({
   members: z.array(clubMemberSchema),
+  /**
+   * False when the owner is not a Supporter on an instance with billing:
+   * the club keeps running, but takes no new members or sessions
+   */
+  acceptsMembers: z.boolean(),
 });
 export type ClubDetailDto = z.infer<typeof clubDetailSchema>;
 
@@ -180,8 +185,13 @@ export const clubJoinLinkInfoSchema = z.object({
   clubName: z.string(),
   role: z.enum(['ATHLETE', 'COACH']),
   staff: z.array(z.object({ name: z.string(), role: clubRoleSchema })),
+  /** False when the club takes no new members for now (CLUB_CLOSED) */
+  acceptsMembers: z.boolean(),
 });
 export type ClubJoinLinkInfoDto = z.infer<typeof clubJoinLinkInfoSchema>;
+
+/** Error code of joining a club that takes no new members for now */
+export const CLUB_CLOSED_ERROR = 'CLUB_CLOSED';
 
 export const acceptClubJoinLinkResponseSchema = z.object({
   clubId: z.number(),

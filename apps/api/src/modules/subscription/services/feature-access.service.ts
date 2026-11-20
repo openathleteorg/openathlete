@@ -115,10 +115,103 @@ export class FeatureAccessService {
     }
   }
 
+  /**
+   * A coach tool the user may use on these athletes: with their own rights,
+   * or for athletes they reach only through clubs whose owner is a
+   * Supporter. Without athletes (a whole dashboard): their own rights, or
+   * staff of such a club.
+   */
+  async canAsCoach(
+    userId: number,
+    feature: Feature,
+    athletes: { athleteIds?: number[]; athleteUserIds?: number[] } = {},
+  ): Promise<boolean> {
+    const own = await this.access(userId, feature);
+    if (own.available) return true;
+    if (own.reason !== 'locked') return false;
+
+    const ids = athletes.athleteIds ?? [];
+    const userIds = athletes.athleteUserIds ?? [];
+    if (ids.length === 0 && userIds.length === 0) {
+      const staffOf = await this.prisma.clubMember.findMany({
+        where: { userId, role: { not: ClubRole.ATHLETE } },
+        select: { clubId: true },
+      });
+      for (const { clubId } of staffOf) {
+        if ((await this.clubPerks(clubId)).coachTools) return true;
+      }
+      return false;
+    }
+
+    const links = await this.prisma.coachAthlete.findMany({
+      where: {
+        userId,
+        clubId: { not: null },
+        OR: [
+          ...(ids.length ? [{ athleteId: { in: ids } }] : []),
+          ...(userIds.length ? [{ athlete: { userId: { in: userIds } } }] : []),
+        ],
+      },
+      select: {
+        athleteId: true,
+        clubId: true,
+        athlete: { select: { userId: true } },
+      },
+    });
+    const clubs = new Map<number, boolean>();
+    const covered = new Set<string>();
+    for (const link of links) {
+      const clubId = link.clubId as number;
+      if (!clubs.has(clubId)) {
+        clubs.set(clubId, (await this.clubPerks(clubId)).coachTools);
+      }
+      if (clubs.get(clubId)) {
+        covered.add(`a${link.athleteId}`);
+        covered.add(`u${link.athlete.userId}`);
+      }
+    }
+    return (
+      ids.every((id) => covered.has(`a${id}`)) &&
+      userIds.every((id) => covered.has(`u${id}`))
+    );
+  }
+
+  /** canAsCoach, or the 403 the app turns into the paywall */
+  async assertAsCoach(
+    userId: number,
+    feature: Feature,
+    athletes: { athleteIds?: number[]; athleteUserIds?: number[] } = {},
+  ): Promise<void> {
+    if (!(await this.canAsCoach(userId, feature, athletes))) {
+      throw featureLockedException(feature);
+    }
+  }
+
+  /**
+   * Whether a club may grow: new members, invitations, join links and
+   * sessions need a Supporter owner. What the club has keeps running.
+   */
+  async clubIsOpen(clubId: number): Promise<boolean> {
+    if (!this.stripeService.billingEnabled) return true;
+    return (await this.clubPerks(clubId)).supporterPerks;
+  }
+
+  /** clubIsOpen, or the 403 the app turns into the Clubs paywall */
+  async assertClubOpen(clubId: number): Promise<void> {
+    if (!(await this.clubIsOpen(clubId))) {
+      throw featureLockedException(Feature.CLUBS);
+    }
+  }
+
   /** Every feature for the user, as the app reads it */
   async accessMap(userId: number): Promise<FeatureAccessMap> {
     const billingEnabled = this.stripeService.billingEnabled;
     const perks = billingEnabled ? await this.perksOf(userId) : NO_PERKS;
+    // Staff of a club whose owner is a Supporter get the coach tools there:
+    // the app shows them unlocked, the API checks each athlete
+    if (billingEnabled && !perks.coachTools) {
+      perks.coachTools = await this.canAsCoach(userId, Feature.COACH_COLUMNS);
+    }
     return featureAccessMap({ billingEnabled, perks, now: this.now() });
   }
 

@@ -325,9 +325,12 @@ function SessionDialog({
 export function ClubSessionsSection({
   clubId,
   canManage,
+  canCreate = canManage,
 }: {
   clubId: number;
   canManage: boolean;
+  /** New sessions need a Supporter owner; the planned ones keep going */
+  canCreate?: boolean;
 }) {
   const { data: sessions } = useClubSessionsQuery(clubId, true);
   const cancel = useCancelClubSessionOccurrenceMutation(clubId);
@@ -341,7 +344,7 @@ export function ClubSessionsSection({
       title={m.club_sessions_title()}
       description={m.club_sessions_description()}
       action={
-        canManage ? (
+        canCreate ? (
           <Button
             size="sm"
             onClick={() => setDialog('new')}

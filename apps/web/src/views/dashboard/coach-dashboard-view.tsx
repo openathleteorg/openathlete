@@ -18,6 +18,8 @@ import { summarizeGroup } from '@/components/coach-dashboard/group-summary';
 import { ThresholdsDialog } from '@/components/coach-dashboard/thresholds-dialog';
 import { useCoachDashboardSettings } from '@/components/coach-dashboard/use-coach-dashboard-settings';
 import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
+import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
+import { SupporterMark } from '@/components/supporter-perks/locks';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +40,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { useFeature } from '@/hooks/use-feature';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { cn } from '@/utils/shadcn';
@@ -58,6 +61,7 @@ import {
   COACH_DASHBOARD_COLUMNS,
   CoachDashboardAthleteRowDto,
   CoachDashboardColumn,
+  Feature,
 } from '@openathlete/shared';
 
 type Row = CoachDashboardAthleteRowDto;
@@ -334,11 +338,14 @@ export function CoachDashboardView() {
   const [period, setPeriod] = useState<PeriodType>('week');
   const { start, end } = getPeriodDates(period);
   const [comparePrevious, setComparePrevious] = useState(false);
+  const columnsTool = useFeature(Feature.COACH_COLUMNS);
+  const compareTool = useFeature(Feature.COACH_COMPARE);
+  const paywall = useFeaturePaywall();
   const { data, isLoading } = useCoachDashboardQuery(
     start,
     end,
     undefined,
-    comparePrevious,
+    comparePrevious && compareTool.available,
   );
   const { settings, updateSettings } = useCoachDashboardSettings();
   // Kept in the order of the full list, whatever the order of the clicks
@@ -398,28 +405,43 @@ export function CoachDashboardView() {
               </SelectContent>
             </Select>
           )}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" data-coach-columns>
-                <Columns3 className="h-4 w-4" />
-                {m.coach_columns()}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-64 space-y-1">
-              {COACH_DASHBOARD_COLUMNS.map((column) => (
-                <label
-                  key={column}
-                  className="flex min-h-9 cursor-pointer items-center gap-2 text-sm"
-                >
-                  <Checkbox
-                    checked={settings.columns.includes(column)}
-                    onCheckedChange={() => toggleColumn(column)}
-                  />
-                  {columnLabel(column)}
-                </label>
-              ))}
-            </PopoverContent>
-          </Popover>
+          {columnsTool.locked ? (
+            // The columns already chosen stay; choosing is a coach tool
+            <Button
+              variant="outline"
+              data-coach-columns
+              onClick={() =>
+                paywall.open(Feature.COACH_COLUMNS, 'coach_dashboard')
+              }
+            >
+              <Columns3 className="h-4 w-4" />
+              {m.coach_columns()}
+              <SupporterMark />
+            </Button>
+          ) : columnsTool.hidden ? null : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" data-coach-columns>
+                  <Columns3 className="h-4 w-4" />
+                  {m.coach_columns()}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 space-y-1">
+                {COACH_DASHBOARD_COLUMNS.map((column) => (
+                  <label
+                    key={column}
+                    className="flex min-h-9 cursor-pointer items-center gap-2 text-sm"
+                  >
+                    <Checkbox
+                      checked={settings.columns.includes(column)}
+                      onCheckedChange={() => toggleColumn(column)}
+                    />
+                    {columnLabel(column)}
+                  </label>
+                ))}
+              </PopoverContent>
+            </Popover>
+          )}
           <Button
             variant="outline"
             onClick={() => setEditingThresholds(true)}
@@ -451,24 +473,43 @@ export function CoachDashboardView() {
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <label className="flex items-center gap-2 text-sm">
-          <Switch
-            checked={comparePrevious}
-            onCheckedChange={setComparePrevious}
-            data-compare-previous
-          />
-          {m.coach_compare_previous()}
-        </label>
+        {!compareTool.hidden && (
+          <label className="flex items-center gap-2 text-sm">
+            <Switch
+              checked={comparePrevious && compareTool.available}
+              onCheckedChange={(next) =>
+                compareTool.available
+                  ? setComparePrevious(next)
+                  : paywall.open(Feature.COACH_COMPARE, 'coach_dashboard')
+              }
+              data-compare-previous
+            />
+            {m.coach_compare_previous()}
+            {compareTool.locked && <SupporterMark />}
+          </label>
+        )}
         {picked.size > 0 && (
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              disabled={picked.size < 2}
-              onClick={() => setComparing(true)}
-              data-compare-athletes-button
-            >
-              {m.coach_compare_athletes({ count: picked.size })}
-            </Button>
+            {!compareTool.hidden && (
+              <Button
+                size="sm"
+                disabled={picked.size < 2}
+                onClick={() =>
+                  compareTool.available
+                    ? setComparing(true)
+                    : paywall.open(
+                        Feature.COACH_COMPARE,
+                        'coach_compare_athletes',
+                      )
+                }
+                data-compare-athletes-button
+              >
+                {m.coach_compare_athletes({ count: picked.size })}
+                {compareTool.locked && (
+                  <SupporterMark className="text-primary-foreground/80" />
+                )}
+              </Button>
+            )}
             <Button
               size="sm"
               variant="ghost"

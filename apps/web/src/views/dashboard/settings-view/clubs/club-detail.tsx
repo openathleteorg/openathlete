@@ -10,6 +10,7 @@ import { clubRoleLabel } from '@/components/clubs/club-role';
 import { GroupsManager } from '@/components/clubs/groups-manager';
 import { NameDialog } from '@/components/clubs/name-dialog';
 import { ConfirmAction } from '@/components/confirm-action';
+import { LockedPanel } from '@/components/supporter-perks/locks';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,6 +32,7 @@ import {
   CLUB_NAME_MAX,
   ClubMemberDto,
   ClubRole,
+  Feature,
   isClubAdmin,
   isClubCoach,
   isClubStaff,
@@ -77,6 +79,8 @@ export function ClubDetail({ clubId }: { clubId: number }) {
   const failed = () => toast.error(m.club_save_failed());
 
   const role = club?.role;
+  // The club keeps running without a Supporter owner, but does not grow
+  const acceptsMembers = club?.acceptsMembers ?? true;
   const staff = useMemo(
     () => club?.members.filter((member) => isClubStaff(member.role)) ?? [],
     [club],
@@ -219,6 +223,17 @@ export function ClubDetail({ clubId }: { clubId: number }) {
           <p className="text-sm text-muted-foreground">{club.description}</p>
         )}
       </div>
+      {!acceptsMembers && role === 'OWNER' && (
+        <LockedPanel feature={Feature.CLUBS} place="club_detail" />
+      )}
+      {!acceptsMembers && role && role !== 'OWNER' && isClubStaff(role) && (
+        <p
+          className="rounded-xl bg-muted px-4 py-3 text-sm text-pretty"
+          data-club-closed
+        >
+          {m.club_closed_staff()}
+        </p>
+      )}
 
       <SettingsSection
         title={m.club_staff_title()}
@@ -265,11 +280,19 @@ export function ClubDetail({ clubId }: { clubId: number }) {
       )}
 
       {isClubStaff(role) && (
-        <ClubSessionsSection clubId={clubId} canManage={isClubCoach(role)} />
+        <ClubSessionsSection
+          clubId={clubId}
+          canManage={isClubCoach(role)}
+          canCreate={isClubCoach(role) && acceptsMembers}
+        />
       )}
 
-      {isClubAdmin(role) && <ClubJoinLinksSection clubId={clubId} />}
-      {isClubAdmin(role) && <ClubInvitationsSection clubId={clubId} />}
+      {isClubAdmin(role) && acceptsMembers && (
+        <ClubJoinLinksSection clubId={clubId} />
+      )}
+      {isClubAdmin(role) && acceptsMembers && (
+        <ClubInvitationsSection clubId={clubId} />
+      )}
 
       <SettingsSection title={m.club_settings_title()}>
         <SettingsPanel>

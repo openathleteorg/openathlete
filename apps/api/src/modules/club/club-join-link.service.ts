@@ -14,6 +14,7 @@ import { ClubRole, Prisma } from '@openathlete/database';
 import {
   AcceptClubJoinLinkResponseDto,
   ApiEnvSchemaType,
+  CLUB_CLOSED_ERROR,
   CLUB_JOIN_CODE_ALPHABET,
   ClubJoinLinkInfoDto,
   ClubJoinLinkKind,
@@ -26,6 +27,7 @@ import {
 import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { coachDisplayName } from 'src/modules/auth/services/coach-join-link.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
 import { lockClubAccess, syncClubAccess } from './club-access';
 import { openClubInvitationWhere, openClubLinkWhere } from './club-join-token';
@@ -53,6 +55,7 @@ export class ClubJoinLinkService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService<ApiEnvSchemaType, true>,
+    private readonly features: FeatureAccessService,
     @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
@@ -277,6 +280,7 @@ export class ClubJoinLinkService {
     return {
       clubName: club.name,
       role,
+      acceptsMembers: await this.features.clubIsOpen(club.clubId),
       // The athlete is about to share their training with these people
       staff: club.members.map((member) => ({
         name: coachDisplayName(member.user.firstName, member.user.lastName),
@@ -290,6 +294,9 @@ export class ClubJoinLinkService {
     token: string,
   ): Promise<AcceptClubJoinLinkResponseDto> {
     const { club, role, groupId, invitationId } = await this.findByToken(token);
+    // A club whose owner is no longer a Supporter keeps its members but
+    // takes no new ones; the athlete is not told why
+    const open = await this.features.clubIsOpen(club.clubId);
 
     const result = await this.prisma.$transaction(async (tx) => {
       // Serializes a double submit, so the check below sees the first one
@@ -309,6 +316,13 @@ export class ClubJoinLinkService {
       // Opening the link again, or the other link, changes nothing: roles
       // change through the admins
       if (existing) return { role: existing.role, alreadyMember: true };
+      if (!open) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          code: CLUB_CLOSED_ERROR,
+          message: 'The club takes no new members for now',
+        });
+      }
 
       if (role === ClubRole.ATHLETE) {
         const athlete = await tx.athlete.findUnique({
