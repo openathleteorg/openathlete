@@ -1420,7 +1420,7 @@
   "delete_account_app_store_warning": "Your App Store subscription keeps renewing until you cancel it in your App Store settings.",
   "paywall_ai_own_key": "Use my own AI key for free",
   "subscription_free_title": "Free plan",
-  "subscription_free_description": "Every feature, with AI on your own key and up to {count} coached athletes.",
+  "subscription_free_description": "Everything you need to train, with AI on your own key and up to {count} coached athletes.",
   "subscription_supporter_thanks": "Thank you for supporting OpenAthlete!",
   "subscription_wall_title": "Supporter wall",
   "subscription_wall_description": "The transparency page of the website thanks the Supporters who agree, by first name or a name of their choice. Never your full name, your email or what you give.",

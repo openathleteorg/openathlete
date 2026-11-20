@@ -1420,7 +1420,7 @@
   "delete_account_app_store_warning": "Il tuo abbonamento App Store continua a rinnovarsi finché non lo annulli nelle impostazioni dell'App Store.",
   "paywall_ai_own_key": "Usa gratis la mia chiave IA",
   "subscription_free_title": "Piano gratuito",
-  "subscription_free_description": "Tutte le funzionalità, con l'IA sulla tua chiave e fino a {count} atleti allenati.",
+  "subscription_free_description": "Tutto ciò che serve per allenarsi, con l'IA sulla tua chiave e fino a {count} atleti seguiti.",
   "subscription_supporter_thanks": "Grazie per sostenere OpenAthlete!",
   "subscription_wall_title": "Muro dei Supporter",
   "subscription_wall_description": "La pagina Trasparenza del sito ringrazia i Supporter che lo accettano, con il nome o un nome a scelta. Mai il nome completo, l'email o quanto doni.",
