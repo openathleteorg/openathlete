@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const sessionRpe: LearnTerm = {
@@ -16,6 +18,8 @@ export const sessionRpe: LearnTerm = {
     it: 'RPE di seduta',
     'pt-br': 'PSE da sessão',
     de: 'Session-RPE',
+    pl: 'Session RPE',
+    nl: 'Session RPE',
   },
   title: {
     en: 'Session RPE: definition, formula, example',
@@ -24,6 +28,8 @@ export const sessionRpe: LearnTerm = {
     it: 'Cos’è l’RPE di seduta? Definizione, formula, esempio',
     'pt-br': 'O que é a PSE da sessão? Definição, fórmula e exemplo',
     de: 'Was ist die Session-RPE? Definition, Formel, Beispiel',
+    pl: 'Czym jest session RPE? Definicja, wzór, przykład',
+    nl: 'Wat is session RPE? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'Session RPE (Foster’s sRPE) measures training load as effort from 0 to 10 times minutes. The formula, a worked week, monotony and strain, and its limits.',
@@ -33,6 +39,8 @@ export const sessionRpe: LearnTerm = {
     'pt-br':
       'A PSE da sessão (sRPE de Foster) mede a carga como esforço de 0 a 10 vezes os minutos. A fórmula, uma semana de exemplo, a monotonia e os limites.',
     de: 'Die Session-RPE (sRPE nach Foster) misst die Belastung als Anstrengung von 0 bis 10 mal Minuten. Formel, Beispielwoche, Monotonie, Strain und Grenzen.',
+    pl: 'Session RPE (sRPE Fostera) mierzy obciążenie jako wysiłek od 0 do 10 razy minuty. Wzór, przykładowy tydzień, monotonia, strain i ograniczenia.',
+    nl: 'Session RPE (sRPE volgens Foster) meet belasting als inspanning van 0 tot 10 maal minuten. Formule, voorbeeldweek, monotonie, strain en beperkingen.',
   },
   definition: {
     en: 'Session RPE is a training load measure that multiplies how hard the whole session felt, rated from 0 to 10, by its duration in minutes.',
@@ -42,6 +50,8 @@ export const sessionRpe: LearnTerm = {
     'pt-br':
       'A PSE da sessão é uma medida de carga de treino que multiplica o quanto a sessão inteira pareceu dura, numa nota de 0 a 10, pela duração em minutos.',
     de: 'Die Session-RPE ist eine Messgröße für Trainingsbelastung, die multipliziert, wie hart sich die gesamte Einheit angefühlt hat (bewertet von 0 bis 10), mit ihrer Dauer in Minuten.',
+    pl: 'Session RPE to miara obciążenia treningowego, która mnoży to, jak ciężki wydawał się cały trening w ocenie od 0 do 10, przez jego czas trwania w minutach.',
+    nl: 'Session RPE is een maat voor trainingsbelasting die vermenigvuldigt hoe zwaar de hele training voelde, gescoord van 0 tot 10, met de duur in minuten.',
   },
   aliases: {
     en: ['sRPE', 'Foster method', 'Session rating of perceived exertion'],
@@ -50,6 +60,8 @@ export const sessionRpe: LearnTerm = {
     it: ['sRPE', 'Metodo di Foster', 'Sforzo percepito di seduta'],
     'pt-br': ['sRPE', 'RPE da sessão', 'Método de Foster'],
     de: ['sRPE', 'Foster-Methode', 'Empfundene Anstrengung der Einheit'],
+    pl: ['sRPE', 'Skala RPE', 'Metoda Fostera', 'Subiektywna ocena wysiłku'],
+    nl: ['sRPE', 'RPE-schaal', 'Methode van Foster', 'Ervaren inspanning'],
   },
   faq: {
     en: [
@@ -154,6 +166,40 @@ export const sessionRpe: LearnTerm = {
           'Es gibt keine absolute Schwelle: Die Einheiten sind willkürlich und hängen davon ab, wie du bewertest. Vergleiche jede Woche mit deinen eigenen letzten Wochen; ein plötzlicher Anstieg um 30 % oder mehr verdient Aufmerksamkeit.',
       },
     ],
+    pl: [
+      {
+        question: 'Kiedy oceniać session RPE?',
+        answer:
+          'Protokół Fostera zakłada ocenę około 30 minut po treningu, żeby ostatni wysiłek nie dominował. Ocena później tego samego dnia też działa, pod warunkiem że zawsze oceniasz cały trening i robisz to w ten sam sposób.',
+      },
+      {
+        question: 'Czy session RPE jest równie dobre jak tętno?',
+        answer:
+          'Dla całkowitego obciążenia badania na ogół pokazują dobrą zgodność z metodami opartymi na tętnie, a do tego session RPE obejmuje siłownię, sprinty i zbiegi, których tętno nie wyłapuje. Jest subiektywne, więc najlepiej używać go obok miary obiektywnej, takiej jak TRIMP.',
+      },
+      {
+        question: 'Jakie obciążenie session RPE jest wysokie?',
+        answer:
+          'Nie ma bezwzględnego progu: jednostki są umowne i zależą od tego, jak oceniasz. Porównuj każdy tydzień z własnymi ostatnimi tygodniami; nagły wzrost o 30 % lub więcej warto zauważyć.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Wanneer geef ik mijn session RPE?',
+        answer:
+          'Fosters protocol vraagt om de score ongeveer 30 minuten na de training, zodat de laatste inspanning niet overheerst. Later op dezelfde dag scoren werkt ook, zolang je altijd de hele training scoort en het steeds op dezelfde manier doet.',
+      },
+      {
+        question: 'Is session RPE net zo goed als hartslag?',
+        answer:
+          'Voor de totale belasting komt het in studies meestal goed overeen met hartslagmethoden, en het dekt ook krachttraining, sprints en bergaf lopen die hartslag mist. Het is subjectief, dus je gebruikt het het best naast een objectieve maat zoals TRIMP.',
+      },
+      {
+        question: 'Wat is een hoge session RPE-belasting?',
+        answer:
+          'Er is geen absolute grens: de eenheden zijn willekeurig en hangen af van hoe jij scoort. Vergelijk elke week met je eigen recente weken; een plotselinge stijging van 30% of meer is het opmerken waard.',
+      },
+    ],
   },
   related: ['trimp', 'ctl-atl-tsb', 'hrv'],
   links: [
@@ -192,5 +238,7 @@ export const sessionRpe: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleCognitiveLoad: BlogPost = {
@@ -16,6 +18,8 @@ export const articleCognitiveLoad: BlogPost = {
       it: 'Carico cognitivo negli sport di endurance e fatica mentale',
       'pt-br': 'Carga cognitiva nos esportes de endurance e fadiga mental',
       de: 'Kognitive Belastung im Ausdauersport: Was mentale Ermüdung bewirkt',
+      pl: 'Obciążenie poznawcze w sportach wytrzymałościowych: co robi zmęczenie psychiczne',
+      nl: 'Cognitieve belasting in de duursport: wat mentale vermoeidheid doet',
     },
     description: {
       en: 'Mental fatigue raises perceived effort without changing heart rate. What the studies show, how strong the evidence is, and how to plan around it.',
@@ -25,6 +29,8 @@ export const articleCognitiveLoad: BlogPost = {
       'pt-br':
         'A fadiga mental aumenta a percepção de esforço sem mudar o batimento. O que os estudos mostram, quão sólida é a evidência e como planejar.',
       de: 'Mentale Ermüdung erhöht die gefühlte Anstrengung, ohne die Herzfrequenz zu ändern. Was Studien zeigen, wie belastbar sie sind und wie du planst.',
+      pl: 'Zmęczenie psychiczne podnosi odczuwany wysiłek bez zmiany tętna. Co pokazują badania, jak mocne są dowody i jak planować z tym w głowie.',
+      nl: 'Mentale vermoeidheid verhoogt de ervaren inspanning zonder de hartslag te veranderen. Wat studies laten zien, hoe sterk het bewijs is en hoe je eromheen plant.',
     },
     excerpt: {
       en: 'A draining day at work can make a threshold session feel harder without touching your heart rate. The research, its limits, and what to change in your week.',
@@ -34,6 +40,8 @@ export const articleCognitiveLoad: BlogPost = {
       'pt-br':
         'Um dia exaustivo no trabalho pode deixar um treino de limiar mais difícil sem mexer na frequência cardíaca. A pesquisa, seus limites e o que mudar na sua semana.',
       de: 'Ein zermürbender Arbeitstag kann eine Schwelleneinheit härter wirken lassen, ohne die Herzfrequenz zu verändern. Die Forschung, ihre Grenzen und was du an deiner Woche änderst.',
+      pl: 'Wyczerpujący dzień w pracy może sprawić, że trening progowy wyda się cięższy, choć tętno się nie zmieni. Badania, ich ograniczenia i co zmienić w Twoim tygodniu.',
+      nl: 'Een slopende werkdag kan een drempeltraining zwaarder laten voelen zonder dat je hartslag verandert. Het onderzoek, de grenzen ervan en wat je aan je week verandert.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleCognitiveLoad: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleHybridCoaching: BlogPost = {
@@ -16,6 +18,8 @@ export const articleHybridCoaching: BlogPost = {
       it: "Coaching ibrido: seguire più atleti con l'aiuto dell'IA",
       'pt-br': 'Coaching híbrido: atender mais alunos com ajuda da IA',
       de: 'Hybrides Coaching: mit KI mehr Athleten betreuen',
+      pl: 'Trenowanie hybrydowe: jak prowadzić więcej zawodników z pomocą AI',
+      nl: 'Hybride coaching: meer atleten begeleiden met AI',
     },
     description: {
       en: 'What an endurance coach can hand to software and AI, what stays human, how to price your time, and a weekly routine that holds as the roster grows.',
@@ -25,6 +29,8 @@ export const articleHybridCoaching: BlogPost = {
       'pt-br':
         'O que um treinador de endurance pode delegar ao software e à IA, o que continua humano, como precificar e organizar a semana.',
       de: 'Was ein Ausdauer-Coach an Software und KI abgeben kann, was menschlich bleibt, wie du deine Zeit bepreist und eine Wochenroutine, die mit mehr Athleten mitwächst.',
+      pl: 'Co trener sportów wytrzymałościowych może oddać oprogramowaniu i AI, co zostaje ludzkie, jak wycenić swój czas i tygodniowa rutyna, która wytrzymuje rosnącą liczbę zawodników.',
+      nl: 'Wat een duursportcoach kan overlaten aan software en AI, wat menselijk blijft, hoe je je tijd prijst, en een weekroutine die standhoudt als je groeit.',
     },
     excerpt: {
       en: 'Measure where your coaching hours go, hand the clerical part to software and AI drafts, and keep your time for judgment. Plus a way to price it.',
@@ -34,6 +40,8 @@ export const articleHybridCoaching: BlogPost = {
       'pt-br':
         'Meça para onde vão suas horas de treinador, deixe a parte burocrática com o software e os rascunhos da IA, e guarde seu tempo para o julgamento. E como precificar.',
       de: 'Miss, wo deine Coaching-Stunden bleiben, gib die Schreibarbeit an Software und KI-Entwürfe ab und behalte deine Zeit für das Urteilsvermögen. Dazu ein Weg, das zu bepreisen.',
+      pl: 'Zmierz, na co idą twoje godziny trenerskie, oddaj pracę biurową oprogramowaniu i szkicom AI, a swój czas zachowaj na osąd. Do tego sposób, jak to wycenić.',
+      nl: 'Meet waar je coachinguren blijven, geef het klerkenwerk aan software en AI-concepten, en houd je tijd voor je oordeel. Plus een manier om er een prijs op te zetten.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleHybridCoaching: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

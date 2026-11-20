@@ -4,7 +4,16 @@
  */
 import type { RunningDistance } from '../../src/lib/training-plans/specs';
 
-export const PLAN_LOCALES = ['en', 'fr', 'es', 'it', 'pt-br', 'de'] as const;
+export const PLAN_LOCALES = [
+  'en',
+  'fr',
+  'es',
+  'it',
+  'pt-br',
+  'de',
+  'pl',
+  'nl',
+] as const;
 export type PlanLocale = (typeof PLAN_LOCALES)[number];
 
 export type PhaseKey = 'base' | 'build' | 'specific' | 'taper';
@@ -898,6 +907,278 @@ const de: PlanTexts = {
     `${v.weeks} Wochen, ${v.runs} Läufe pro Woche, um ${de.distance[v.d].article} in ${v.time} zu laufen (${v.pace}/km). Ausgelegt für eine VMA (maximale aerobe Geschwindigkeit) von etwa ${v.vma} km/h. Die erste Woche umfasst rund ${v.firstKm} km, die umfangreichste ${v.peakKm} km, und der längste Lauf dauert ${v.longest}. Jede Einheit hat ihre Zielvorgaben: ein Anteil der VMA für lockere Läufe und Intervalle, dein Zieltempo für die Einheiten im Renntempo.`,
 };
 
+/** Polish noun forms after a number: 1 tydzień, 2 tygodnie, 5 tygodni. */
+const plPlural = (n: number, one: string, few: string, many: string) => {
+  if (n === 1) return one;
+  const tens = n % 100;
+  return n % 10 >= 2 && n % 10 <= 4 && (tens < 12 || tens > 14) ? few : many;
+};
+
+// Polish: decimal comma, a space before % as in German, ty-form
+const plAtGoal: Record<RunningDistance, string> = {
+  '10k': 'w tempie startowym na 10 km',
+  'half-marathon': 'w tempie półmaratońskim',
+  marathon: 'w tempie maratońskim',
+};
+
+const pl: PlanTexts = {
+  vma: 'VMA',
+  decimal: ',',
+  pct: (lo, hi) => `${lo}–${hi} % VMA`,
+  atPct: (lo, hi) => `w tempie ${lo}–${hi} % VMA`,
+  atGoal: (d, pace) => `${plAtGoal[d]} (${pace})`,
+  hm: hmFormat,
+  sec: (s) => secFormat(s, ' ', ' s'),
+  distance: {
+    '10k': { title: '10 km', lower: '10 km', article: '10 km' },
+    'half-marathon': {
+      title: 'Półmaraton',
+      lower: 'półmaraton',
+      article: 'półmaraton',
+    },
+    marathon: { title: 'Maraton', lower: 'maraton', article: 'maraton' },
+  },
+  goalPaceName: {
+    '10k': 'tempo startowe na 10 km',
+    'half-marathon': 'tempo półmaratońskie',
+    marathon: 'tempo maratońskie',
+  },
+  steps: {
+    warmup: 'Rozgrzewka',
+    cooldown: 'Schłodzenie',
+    easy: 'Spokojnie',
+    jog: 'Trucht',
+    stride: 'Przebieżka',
+    fast: 'Szybko',
+    threshold: 'Próg',
+    tempo: 'Tempo',
+    goal: 'Tempo startowe',
+  },
+  names: {
+    easy: 'Spokojny bieg',
+    easyStrides: 'Spokojny bieg + przebieżki',
+    recovery: 'Bieg regeneracyjny',
+    long: 'Długie wybieganie',
+    longFinish: 'Długie wybieganie z szybką końcówką',
+    longGoal: 'Długie wybieganie z tempem maratońskim',
+    fartlek: 'Fartlek',
+    vmaShort: 'Interwały 30/30',
+    vma: 'Interwały VMA',
+    vmaLong: 'Długie interwały',
+    threshold: 'Bieg progowy',
+    tempo: 'Bieg tempowy',
+    sharpen: 'Spokojny bieg z tempem startowym',
+  },
+  raceName: (d) => `Dzień startu: ${pl.distance[d].lower}`,
+  desc: {
+    easy: (p) => `${p.dur} spokojnie (${p.pct}).`,
+    easyStrides: (p) =>
+      `${p.dur} spokojnie (${p.pct}), potem ${p.reps} × 20 s przebieżki: szybko, ale na luzie, z powrotem marszem.`,
+    recovery: (p) => `${p.dur} bardzo spokojnie (${p.pct}). Może być wolniej.`,
+    long: (p) => `${p.dur} w spokojnym, równym tempie (${p.pct}).`,
+    longFinish: (p) =>
+      `${p.dur} łącznie: spokojnie (${p.pct}), a ostatnie ${p.rep} ${p.at}.`,
+    longGoal: (p) =>
+      `${p.dur} łącznie, w tym ${p.reps} × ${p.rep} ${p.at} z ${p.between} spokojnego biegu pomiędzy. Reszta spokojnie (${p.pct}).`,
+    fartlek: (p) =>
+      `${p.wu} rozgrzewki, ${p.reps} × (${p.rep} szybko ${p.at} / ${p.rec} spokojnie), ${p.cd} schłodzenia.`,
+    vmaShort: (p) =>
+      `${p.wu} rozgrzewki, ${p.reps} × (30 s ${p.at} / 30 s truchtu), ${p.cd} schłodzenia.`,
+    vma: (p) =>
+      `${p.wu} rozgrzewki, ${p.reps} × ${p.rep} ${p.at}, przerwa ${p.rec} truchtem, ${p.cd} schłodzenia.`,
+    vmaLong: (p) =>
+      `${p.wu} rozgrzewki, ${p.reps} × ${p.rep} ${p.at}, przerwa ${p.rec} truchtem, ${p.cd} schłodzenia.`,
+    threshold: (p) =>
+      p.reps > 1
+        ? `${p.wu} rozgrzewki, ${p.reps} × ${p.rep} na progu (${p.pct}), przerwa ${p.rec} truchtem, ${p.cd} schłodzenia.`
+        : `${p.wu} rozgrzewki, ${p.rep} na progu (${p.pct}), ${p.cd} schłodzenia.`,
+    tempo: (p) =>
+      `${p.wu} rozgrzewki, ${p.dur} w mocnym, równym tempie (${p.pct}), ${p.cd} schłodzenia.`,
+    goalPace: (p) =>
+      `${p.wu} rozgrzewki, ${p.reps} × ${p.rep} ${p.at}, przerwa ${p.rec} truchtem, ${p.cd} schłodzenia.`,
+    sharpen: (p) =>
+      `${p.dur} spokojnie, a w drugiej połowie ${p.reps} × ${p.rep} ${p.at}.`,
+    race: (p) =>
+      `Dzień startu. Od początku biegnij ${p.at} i trzymaj je; przyspiesz dopiero na ostatnich kilometrach, jeśli nogi pozwolą.`,
+  },
+  fuelTip:
+    'Pij po drodze i weź żele, których użyjesz na starcie, żeby je przetestować.',
+  weekTheme: {
+    base: 'Baza',
+    build: 'Budowanie',
+    light: 'Lżejszy tydzień',
+    peak: 'Najcięższy tydzień',
+    specific: 'Tempo startowe',
+    taper: 'Tapering',
+    race: 'Tydzień startowy',
+  },
+  cycleName: (phase, d) =>
+    ({
+      base: 'Baza',
+      build: 'Budowanie',
+      specific:
+        d === '10k'
+          ? 'VMA i tempo na 10 km'
+          : d === 'half-marathon'
+            ? 'Tempo półmaratońskie'
+            : 'Tempo maratońskie',
+      taper: 'Tapering',
+    })[phase],
+  cycleDesc: (phase, d, light) => {
+    const lighter = light.length
+      ? ` ${light.length > 1 ? 'Tygodnie' : 'Tydzień'} ${list(light, 'i')} ${light.length > 1 ? 'są lżejsze' : 'jest lżejszy'}, żeby organizm przyswoił trening.`
+      : '';
+    switch (phase) {
+      case 'base':
+        return `Spokojny kilometraż, krótkie szybkie odcinki i przebieżki. Długie wybieganie co tydzień trochę się wydłuża.${lighter}`;
+      case 'build':
+        return `Interwały VMA i praca na progu, coraz dłuższe długie wybiegania.${lighter}`;
+      case 'specific':
+        if (d === '10k')
+          return `Interwały VMA i odcinki w tempie startowym na 10 km: najtrudniejszy blok planu.${lighter}`;
+        if (d === 'half-marathon')
+          return `Tempo półmaratońskie w jednostce w środku tygodnia i na końcu długich wybiegań.${lighter}`;
+        return `Tempo maratońskie w długich wybieganiach i w blokach w środku tygodnia: najcięższe tygodnie planu.${lighter}`;
+      case 'taper':
+        return 'Mniejszy kilometraż i trochę intensywności, żeby nogi nie straciły szybkości: na start przychodzisz ze świeżymi nogami.';
+    }
+  },
+  planName: (d, time, weeks) =>
+    `${pl.distance[d].title} w ${time}: plan na ${weeks} ${plPlural(weeks, 'tydzień', 'tygodnie', 'tygodni')}`,
+  planGoal: (d, time) => `Przebiec ${pl.distance[d].article} w ${time}`,
+  planDesc: (v) =>
+    `${v.weeks} ${plPlural(v.weeks, 'tydzień', 'tygodnie', 'tygodni')}, ${v.runs} ${plPlural(v.runs, 'bieg', 'biegi', 'biegów')} w tygodniu, żeby przebiec ${pl.distance[v.d].article} w ${v.time} (${v.pace}/km). Rozpisany pod VMA (maksymalną prędkość tlenową) około ${v.vma} km/h. Pierwszy tydzień to około ${v.firstKm} km, najcięższy dochodzi do ${v.peakKm} km, a najdłuższy bieg trwa ${v.longest}. Każda jednostka ma swoje cele: procent VMA dla spokojnych biegów i interwałów, Twoje tempo docelowe dla pracy w tempie startowym.`,
+};
+
+// Dutch: decimal comma, no space before % (Taalunie), je-form
+const nl: PlanTexts = {
+  vma: 'VMA',
+  decimal: ',',
+  pct: (lo, hi) => `${lo}–${hi}% VMA`,
+  atPct: (lo, hi) => `op ${lo}–${hi}% VMA`,
+  atGoal: (d, pace) => `op ${nl.goalPaceName[d]} (${pace})`,
+  hm: hmFormat,
+  sec: (s) => secFormat(s, ' ', ' s'),
+  distance: {
+    '10k': { title: '10 km', lower: '10 km', article: '10 km' },
+    'half-marathon': {
+      title: 'Halve marathon',
+      lower: 'halve marathon',
+      article: 'een halve marathon',
+    },
+    marathon: {
+      title: 'Marathon',
+      lower: 'marathon',
+      article: 'een marathon',
+    },
+  },
+  goalPaceName: {
+    '10k': '10 km-tempo',
+    'half-marathon': 'halvemarathontempo',
+    marathon: 'marathontempo',
+  },
+  steps: {
+    warmup: 'Warming-up',
+    cooldown: 'Cooling-down',
+    easy: 'Rustig',
+    jog: 'Dribbelen',
+    stride: 'Versnelling',
+    fast: 'Snel',
+    threshold: 'Drempel',
+    tempo: 'Tempo',
+    goal: 'Wedstrijdtempo',
+  },
+  names: {
+    easy: 'Rustige duurloop',
+    easyStrides: 'Rustige duurloop + versnellingen',
+    recovery: 'Herstelloop',
+    long: 'Lange duurloop',
+    longFinish: 'Lange duurloop met snelle finish',
+    longGoal: 'Lange duurloop met marathontempo',
+    fartlek: 'Fartlek',
+    vmaShort: '30/30-intervallen',
+    vma: 'VMA-intervallen',
+    vmaLong: 'Lange intervallen',
+    threshold: 'Drempeltraining',
+    tempo: 'Tempoloop',
+    sharpen: 'Rustige duurloop met wedstrijdtempo',
+  },
+  raceName: (d) => `Wedstrijddag: ${nl.distance[d].lower}`,
+  desc: {
+    easy: (p) => `${p.dur} rustig (${p.pct}).`,
+    easyStrides: (p) =>
+      `${p.dur} rustig (${p.pct}), daarna ${p.reps} versnellingen van 20 s: snel maar ontspannen, wandelend terug.`,
+    recovery: (p) => `${p.dur} heel rustig (${p.pct}). Langzamer mag ook.`,
+    long: (p) => `${p.dur} in een rustig, gelijkmatig tempo (${p.pct}).`,
+    longFinish: (p) =>
+      `${p.dur} in totaal: rustig (${p.pct}), dan de laatste ${p.rep} ${p.at}.`,
+    longGoal: (p) =>
+      `${p.dur} in totaal, waarvan ${p.reps} × ${p.rep} ${p.at} met ${p.between} rustig ertussen. De rest rustig (${p.pct}).`,
+    fartlek: (p) =>
+      `${p.wu} warming-up, ${p.reps} × (${p.rep} snel ${p.at} / ${p.rec} rustig), ${p.cd} cooling-down.`,
+    vmaShort: (p) =>
+      `${p.wu} warming-up, ${p.reps} × (30 s ${p.at} / 30 s dribbelen), ${p.cd} cooling-down.`,
+    vma: (p) =>
+      `${p.wu} warming-up, ${p.reps} × ${p.rep} ${p.at} met ${p.rec} dribbelpauze, ${p.cd} cooling-down.`,
+    vmaLong: (p) =>
+      `${p.wu} warming-up, ${p.reps} × ${p.rep} ${p.at} met ${p.rec} dribbelpauze, ${p.cd} cooling-down.`,
+    threshold: (p) =>
+      p.reps > 1
+        ? `${p.wu} warming-up, ${p.reps} × ${p.rep} op drempeltempo (${p.pct}) met ${p.rec} dribbelpauze, ${p.cd} cooling-down.`
+        : `${p.wu} warming-up, ${p.rep} op drempeltempo (${p.pct}), ${p.cd} cooling-down.`,
+    tempo: (p) =>
+      `${p.wu} warming-up, ${p.dur} stevig (${p.pct}), ${p.cd} cooling-down.`,
+    goalPace: (p) =>
+      `${p.wu} warming-up, ${p.reps} × ${p.rep} ${p.at} met ${p.rec} dribbelpauze, ${p.cd} cooling-down.`,
+    sharpen: (p) =>
+      `${p.dur} rustig, met ${p.reps} × ${p.rep} ${p.at} in de tweede helft.`,
+    race: (p) =>
+      `Wedstrijddag. Loop vanaf de start ${p.at} en houd dat vast; versnel pas in de laatste kilometers als je benen het toelaten.`,
+  },
+  fuelTip:
+    'Drink onderweg en neem de gels die je op wedstrijddag gebruikt, om ze te testen.',
+  weekTheme: {
+    base: 'Basis',
+    build: 'Opbouw',
+    light: 'Rustigere week',
+    peak: 'Zwaarste week',
+    specific: 'Wedstrijdtempo',
+    taper: 'Taperen',
+    race: 'Wedstrijdweek',
+  },
+  cycleName: (phase, d) =>
+    ({
+      base: 'Basis',
+      build: 'Opbouw',
+      specific: d === '10k' ? 'VMA en 10 km-tempo' : cap(nl.goalPaceName[d]),
+      taper: 'Taperen',
+    })[phase],
+  cycleDesc: (phase, d, light) => {
+    const lighter = light.length
+      ? ` ${light.length > 1 ? 'Weken' : 'Week'} ${list(light, 'en')} ${light.length > 1 ? 'zijn' : 'is'} lichter, zodat je de training kunt verwerken.`
+      : '';
+    switch (phase) {
+      case 'base':
+        return `Rustige omvang, korte snelle herhalingen en versnellingen. De lange duurloop wordt elke week iets langer.${lighter}`;
+      case 'build':
+        return `VMA-intervallen en drempeltraining, langere lange duurlopen.${lighter}`;
+      case 'specific':
+        if (d === '10k')
+          return `VMA-intervallen en herhalingen op 10 km-tempo: het zwaarste blok van het schema.${lighter}`;
+        if (d === 'half-marathon')
+          return `Halvemarathontempo in de training midden in de week en aan het eind van de lange duurlopen.${lighter}`;
+        return `Marathontempo in de lange duurlopen en in blokken doordeweeks: de zwaarste weken van het schema.${lighter}`;
+      case 'taper':
+        return 'Minder omvang, een beetje intensiteit om scherp te blijven: zo sta je fris aan de start.';
+    }
+  },
+  planName: (d, time, weeks) =>
+    `${nl.distance[d].title} in ${time}: trainingsschema van ${weeks} weken`,
+  planGoal: (d, time) => `${cap(nl.distance[d].article)} lopen in ${time}`,
+  planDesc: (v) =>
+    `${v.weeks} weken, ${v.runs} looptrainingen per week, om ${nl.distance[v.d].article} te lopen in ${v.time} (${v.pace}/km). Geschreven voor een VMA (maximale aerobe snelheid) van ongeveer ${v.vma} km/u. Week 1 is ongeveer ${v.firstKm} km, de zwaarste week komt uit op ${v.peakKm} km en de langste duurloop duurt ${v.longest}. Elke training heeft zijn eigen doelen: een percentage van je VMA voor rustige duurlopen en intervallen, je doeltempo voor de trainingen op wedstrijdtempo.`,
+};
+
 export const TEXTS: Record<PlanLocale, PlanTexts> = {
   en,
   fr,
@@ -905,6 +1186,8 @@ export const TEXTS: Record<PlanLocale, PlanTexts> = {
   it,
   'pt-br': pt,
   de,
+  pl,
+  nl,
 };
 
 /** Name of a goal-pace session: "Marathon pace", "Allure spécifique semi". */

@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const vo2max: LearnTerm = {
@@ -16,6 +18,8 @@ export const vo2max: LearnTerm = {
     it: 'VO2max',
     'pt-br': 'VO2máx',
     de: 'VO2max',
+    pl: 'VO2max',
+    nl: 'VO2max',
   },
   title: {
     en: 'VO2max: definition, formula, example',
@@ -24,6 +28,8 @@ export const vo2max: LearnTerm = {
     it: 'Cos’è il VO2max? Definizione, formula, esempio',
     'pt-br': 'O que é VO2máx? Definição, fórmula e exemplo',
     de: 'VO2max: Definition, Formel, Beispiel',
+    pl: 'Czym jest VO2max? Definicja, wzór, przykład',
+    nl: 'Wat is VO2max? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'VO2max is the most oxygen your body can use per minute. How it is measured in a lab, estimated with the Cooper test or a watch, and how it relates to VMA.',
@@ -33,6 +39,8 @@ export const vo2max: LearnTerm = {
     'pt-br':
       'O VO2máx é o máximo de oxigênio que o corpo usa por minuto. Como medir em laboratório, estimar com o teste de Cooper ou o relógio, e a relação com a VAM.',
     de: 'VO2max ist die maximale Sauerstoffmenge, die dein Körper pro Minute nutzen kann. Messung im Labor, Schätzung per Cooper-Test oder Uhr und Bezug zur VMA.',
+    pl: 'VO2max to maksymalna ilość tlenu, jaką organizm wykorzystuje na minutę. Pomiar w laboratorium, szacowanie testem Coopera lub zegarkiem i związek z VMA.',
+    nl: 'VO2max is de maximale hoeveelheid zuurstof die je lichaam per minuut gebruikt. Meting in het lab, schatting via Coopertest of horloge, en de link met VMA.',
   },
   definition: {
     en: 'VO2max is the maximum rate at which your body can take up and use oxygen during exercise, usually expressed in millilitres per kilogram of body weight per minute (ml/kg/min).',
@@ -42,6 +50,8 @@ export const vo2max: LearnTerm = {
     'pt-br':
       'O VO2máx é a quantidade máxima de oxigênio que o corpo consegue captar e usar por minuto durante o exercício, geralmente expressa em mililitros por quilo de peso corporal por minuto (ml/kg/min).',
     de: 'Die VO2max (maximale Sauerstoffaufnahme) ist die höchste Rate, mit der dein Körper bei Belastung Sauerstoff aufnehmen und verwerten kann, meist angegeben in Millilitern pro Kilogramm Körpergewicht und Minute (ml/kg/min).',
+    pl: 'VO2max (maksymalny pobór tlenu) to najwyższe tempo, w jakim organizm może pobierać i wykorzystywać tlen podczas wysiłku, zwykle wyrażane w mililitrach na kilogram masy ciała na minutę (ml/kg/min).',
+    nl: 'VO2max (maximale zuurstofopname) is de hoogste snelheid waarmee je lichaam tijdens inspanning zuurstof kan opnemen en gebruiken, meestal uitgedrukt in milliliter per kilogram lichaamsgewicht per minuut (ml/kg/min).',
   },
   aliases: {
     en: ['Maximal oxygen uptake', 'VO2 max', 'Aerobic capacity'],
@@ -54,6 +64,13 @@ export const vo2max: LearnTerm = {
     it: ['Massimo consumo di ossigeno', 'VO2 max'],
     'pt-br': ['Consumo máximo de oxigênio', 'VO2max', 'VO2 máx'],
     de: ['Maximale Sauerstoffaufnahme', 'VO2 max', 'Aerobe Kapazität'],
+    pl: [
+      'Maksymalny pobór tlenu',
+      'VO2 max',
+      'Pułap tlenowy',
+      'Wydolność tlenowa',
+    ],
+    nl: ['Maximale zuurstofopname', 'VO2 max', 'Aerobe capaciteit'],
   },
   faq: {
     en: [
@@ -158,6 +175,40 @@ export const vo2max: LearnTerm = {
           'Ja, besonders in den ersten Trainingsjahren. Intervalle von 3 bis 5 Minuten nahe der VMA und viel lockerer Umfang erhöhen sie beide. Mit wachsender Fitness werden die Zuwächse kleiner, und die Genetik bestimmt einen großen Teil der Obergrenze.',
       },
     ],
+    pl: [
+      {
+        question: 'Jakie VO2max jest dobre dla biegacza?',
+        answer:
+          'Niewytrenowani dorośli mają często 30–45 ml/kg/min, wytrenowani biegacze amatorzy 50–60, a elitarni biegacze długodystansowi 70–85, kobiety z czołówki nieco mniej. Powyżej pewnego poziomu biegaczy bardziej różnicuje ekonomia biegu i część VO2max, którą potrafią utrzymać, niż samo VO2max.',
+      },
+      {
+        question: 'Czy VO2max z zegarka jest dokładne?',
+        answer:
+          'Zegarki szacują VO2max z zależności między tętnem a prędkością lub mocą, za pomocą modeli, których producenci w pełni nie publikują. Przydają się do śledzenia trendu na przestrzeni tygodni, mniej do wartości bezwzględnej: upał, podbiegi i błędne tętno maksymalne przesuwają oszacowanie.',
+      },
+      {
+        question: 'Czy można zwiększyć VO2max?',
+        answer:
+          'Tak, zwłaszcza w pierwszych latach treningu. Podnoszą je zarówno interwały po 3–5 minut w okolicach VMA, jak i duża objętość spokojnego biegania. Postępy zwalniają wraz ze wzrostem formy, a geny wyznaczają dużą część sufitu.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Wat is een goede VO2max voor een loper?',
+        answer:
+          'Ongetrainde volwassenen meten vaak 30 tot 45 ml/kg/min, getrainde recreatieve lopers 50 tot 60, en mannelijke topatleten op de lange afstand 70 tot 85, vrouwelijke wat lager. Boven een bepaald niveau maken loopeconomie en het deel van je VO2max dat je kunt volhouden meer verschil tussen lopers dan de VO2max zelf.',
+      },
+      {
+        question: 'Klopt de VO2max van mijn horloge?',
+        answer:
+          'Horloges schatten de VO2max uit de relatie tussen je hartslag en je snelheid of vermogen, met modellen die de fabrikanten niet volledig publiceren. Ze zijn handig om een trend over weken te zien, minder voor een absolute waarde: hitte, heuvels en een verkeerde maximale hartslag verschuiven de schatting.',
+      },
+      {
+        question: 'Kun je je VO2max verhogen?',
+        answer:
+          'Ja, vooral in de eerste trainingsjaren. Intervallen van 3 tot 5 minuten rond je VMA en veel rustige kilometers verhogen hem allebei. De winst neemt af naarmate je fitter wordt, en genetica bepaalt een groot deel van het plafond.',
+      },
+    ],
   },
   related: ['vma', 'vdot', 'hrv', 'aerobic-decoupling'],
   links: ['/tools/vma', '/tools/race-predictor', '/tools/heart-rate-zones'],
@@ -196,5 +247,7 @@ export const vo2max: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

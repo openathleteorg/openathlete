@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const aerobicDecoupling: LearnTerm = {
@@ -16,6 +18,8 @@ export const aerobicDecoupling: LearnTerm = {
     it: 'Disaccoppiamento aerobico',
     'pt-br': 'Desacoplamento aeróbico',
     de: 'Aerobe Entkopplung',
+    pl: 'Rozprzężenie aerobowe',
+    nl: 'Aerobe ontkoppeling',
   },
   title: {
     en: 'Aerobic decoupling: definition, formula, example',
@@ -24,6 +28,8 @@ export const aerobicDecoupling: LearnTerm = {
     it: 'Cos’è il disaccoppiamento aerobico? Definizione e formula',
     'pt-br': 'O que é desacoplamento aeróbico? Definição, fórmula e exemplo',
     de: 'Aerobe Entkopplung: Definition, Formel und Beispiel',
+    pl: 'Czym jest rozprzężenie aerobowe? Definicja, wzór, przykład',
+    nl: 'Wat is aerobe ontkoppeling? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'Aerobic decoupling (Pa:HR, Pw:HR) measures how heart rate drifts against pace or power over a steady effort. Formula, the 5% rule and a worked example.',
@@ -33,6 +39,8 @@ export const aerobicDecoupling: LearnTerm = {
     'pt-br':
       'O desacoplamento aeróbico (Pa:HR, Pw:HR) mede quanto a frequência cardíaca deriva em relação ao pace ou à potência num esforço contínuo. Fórmula e exemplo.',
     de: 'Die aerobe Entkopplung (Pa:HR, Pw:HR) misst die Herzfrequenzdrift gegenüber Pace oder Leistung bei gleichmäßiger Belastung. Formel, 5-%-Regel, Beispiel.',
+    pl: 'Rozprzężenie aerobowe (Pa:HR, Pw:HR) mierzy dryf tętna względem tempa lub mocy podczas równego wysiłku. Wzór, reguła 5 % i przykład z liczbami.',
+    nl: 'Aerobe ontkoppeling (Pa:HR, Pw:HR) meet hoe je hartslag wegdrijft van tempo of vermogen bij een gelijkmatige inspanning. Formule, 5%-regel en voorbeeld.',
   },
   definition: {
     en: 'Aerobic decoupling is the percentage by which your output per heartbeat (pace or power divided by heart rate) falls from the first half to the second half of a steady effort, used as a marker of aerobic endurance.',
@@ -42,6 +50,8 @@ export const aerobicDecoupling: LearnTerm = {
     'pt-br':
       'O desacoplamento aeróbico é a porcentagem em que o seu rendimento por batimento (pace ou potência dividido pela frequência cardíaca) cai da primeira para a segunda metade de um esforço contínuo, usada como indicador de resistência aeróbica.',
     de: 'Die aerobe Entkopplung ist der prozentuale Rückgang deines Outputs pro Herzschlag (Pace oder Leistung geteilt durch Herzfrequenz) von der ersten zur zweiten Hälfte einer gleichmäßigen Belastung. Sie dient als Marker für die aerobe Ausdauer.',
+    pl: 'Rozprzężenie aerobowe to procentowy spadek Twojego outputu na jedno uderzenie serca (tempo lub moc podzielone przez tętno) między pierwszą a drugą połową równego wysiłku, używany jako wskaźnik wytrzymałości tlenowej.',
+    nl: 'Aerobe ontkoppeling is het percentage waarmee je output per hartslag (tempo of vermogen gedeeld door hartslag) daalt van de eerste naar de tweede helft van een gelijkmatige inspanning, gebruikt als maat voor je aerobe uithoudingsvermogen.',
   },
   aliases: {
     en: ['Pa:HR', 'Pw:HR', 'Cardiac drift', 'Heart rate drift'],
@@ -50,6 +60,14 @@ export const aerobicDecoupling: LearnTerm = {
     it: ['Pa:HR', 'Pw:HR', 'Deriva cardiaca'],
     'pt-br': ['Pa:HR', 'Pw:HR', 'Deriva cardíaca'],
     de: ['Pa:HR', 'Pw:HR', 'Kardiale Drift', 'Herzfrequenzdrift'],
+    pl: [
+      'Pa:HR',
+      'Pw:HR',
+      'Decoupling',
+      'Dryf tętna',
+      'Dryf sercowo-naczyniowy',
+    ],
+    nl: ['Pa:HR', 'Pw:HR', 'Decoupling', 'Hartslagdrift', 'Cardiale drift'],
   },
   faq: {
     en: [
@@ -157,6 +175,40 @@ export const aerobicDecoupling: LearnTerm = {
           'Bei langen Belastungen treibt die steigende Körpertemperatur die Herzfrequenz nach oben, während das pro Schlag gepumpte Blutvolumen sinkt, und der Flüssigkeitsverlust kommt hinzu. Hitze, Dehydrierung und fehlende Grundlagenausdauer verstärken die Drift.',
       },
     ],
+    pl: [
+      {
+        question: 'Jaki wynik rozprzężenia aerobowego jest dobry?',
+        answer:
+          'Poniżej 5 % na długim, równym biegu lub jeździe to zwykle znak, że Twoja wytrzymałość tlenowa pokrywa ten czas przy tej intensywności. Od 5 do 10 % widać pewien dryf, powyżej 10 % wysiłek był za długi, za mocny albo za gorący jak na Twoją obecną formę.',
+      },
+      {
+        question: 'Czy można mierzyć rozprzężenie na treningu interwałowym?',
+        answer:
+          'Nie. Rozprzężenie porównuje dwie połowy tego samego równego wysiłku. Interwały, pagórkowate biegi z postojami czy fartlek mieszają intensywności, a wynik mówi więcej o strukturze treningu niż o Twojej wytrzymałości. Użyj równego biegu lub jazdy trwającej co najmniej 20 minut, najlepiej godzinę lub dłużej.',
+      },
+      {
+        question: 'Dlaczego tętno rośnie nawet przy spokojnym tempie?',
+        answer:
+          'Przy długich wysiłkach rosnąca temperatura ciała podbija tętno, a objętość krwi wyrzucanej przy każdym uderzeniu serca spada. Do tego dochodzi utrata płynów. Upał, odwodnienie i brak bazy tlenowej powiększają dryf.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Wat is een goede waarde voor aerobe ontkoppeling?',
+        answer:
+          'Onder 5% bij een lange, gelijkmatige loop of rit is het gebruikelijke teken dat je aerobe uithoudingsvermogen die duur op die intensiteit aankan. Tussen 5 en 10% is er enige drift; boven 10% was de inspanning te lang, te zwaar of te warm voor je huidige conditie.',
+      },
+      {
+        question: 'Kan ik de ontkoppeling meten tijdens een intervaltraining?',
+        answer:
+          'Nee. Ontkoppeling vergelijkt twee helften van dezelfde gelijkmatige inspanning. Intervallen, heuvelachtige loopjes met stops of een fartlek mengen intensiteiten, en de uitkomst zegt meer over de opbouw van de training dan over je uithoudingsvermogen. Gebruik een gelijkmatige loop of rit van minstens 20 minuten, liefst een uur of langer.',
+      },
+      {
+        question: 'Waarom stijgt mijn hartslag zelfs bij een rustig tempo?',
+        answer:
+          'Bij lange inspanningen jaagt de stijgende lichaamstemperatuur je hartslag op terwijl het slagvolume, de hoeveelheid bloed per hartslag, daalt, en vochtverlies komt daar nog bij. Hitte, uitdroging en een gebrek aan duurvermogen maken de drift groter.',
+      },
+    ],
   },
   related: ['trimp', 'hrv', 'vo2max', 'ctl-atl-tsb'],
   links: [
@@ -188,5 +240,7 @@ export const aerobicDecoupling: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

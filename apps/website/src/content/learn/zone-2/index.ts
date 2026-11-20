@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const zone2: LearnTerm = {
@@ -16,6 +18,8 @@ export const zone2: LearnTerm = {
     it: 'Zona 2',
     'pt-br': 'Zona 2',
     de: 'Zone 2',
+    pl: 'Strefa 2',
+    nl: 'Zone 2',
   },
   title: {
     en: 'Zone 2: definition, formula, example',
@@ -24,6 +28,8 @@ export const zone2: LearnTerm = {
     it: 'Cos’è la zona 2? Definizione, formula, esempio',
     'pt-br': 'O que é a zona 2? Definição, fórmula e exemplo',
     de: 'Was ist Zone 2? Definition, Formel und Beispiel',
+    pl: 'Czym jest strefa 2? Definicja, wzór, przykład',
+    nl: 'Wat is zone 2? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'Zone 2 heart rate: the Karvonen formula (60–70% of heart rate reserve), a worked example in bpm, how to train in it and why percentage zones can mislead.',
@@ -33,6 +39,8 @@ export const zone2: LearnTerm = {
     'pt-br':
       'Zona 2 de frequência cardíaca: fórmula de Karvonen (60–70% da reserva), um exemplo em bpm, como treinar nela e por que as porcentagens enganam.',
     de: 'Zone 2 der Herzfrequenz: Karvonen-Formel (60–70 % der Reserve), ein Rechenbeispiel in bpm, Training in Zone 2 und warum Prozentzonen täuschen können.',
+    pl: 'Strefa 2 tętna: wzór Karvonena (60–70 % rezerwy tętna), przykład w bpm, jak w niej trenować i dlaczego strefy procentowe mogą wprowadzać w błąd.',
+    nl: 'Zone 2-hartslag: de formule van Karvonen (60–70% van de hartslagreserve), een rekenvoorbeeld in bpm, hoe je erin traint en waarom percentages misleiden.',
   },
   definition: {
     en: 'Zone 2 is the easy, steady intensity at or just below the first lactate threshold, usually set at 60 to 70% of heart rate reserve, where you can talk in full sentences and keep going for hours.',
@@ -42,6 +50,8 @@ export const zone2: LearnTerm = {
     'pt-br':
       'A zona 2 é a intensidade leve e constante no primeiro limiar de lactato ou logo abaixo, normalmente entre 60 e 70% da frequência cardíaca de reserva, em que você consegue falar frases completas e manter o esforço por horas.',
     de: 'Zone 2 ist die lockere, gleichmäßige Intensität an oder knapp unter der ersten Laktatschwelle, meist bei 60 bis 70 % der Herzfrequenzreserve angesetzt. Du kannst dabei in ganzen Sätzen sprechen und stundenlang weitermachen.',
+    pl: 'Strefa 2 to spokojna, równa intensywność na poziomie pierwszego progu mleczanowego lub tuż poniżej, zwykle ustalana na 60–70 % rezerwy tętna, przy której mówisz pełnymi zdaniami i możesz biec godzinami.',
+    nl: 'Zone 2 is de rustige, gelijkmatige intensiteit op of net onder de eerste lactaatdrempel, meestal vastgesteld op 60 tot 70% van de hartslagreserve, waarbij je in volzinnen kunt praten en urenlang door kunt gaan.',
   },
   aliases: {
     en: ['Zone 2 training', 'Easy run pace', 'Aerobic base'],
@@ -50,6 +60,14 @@ export const zone2: LearnTerm = {
     it: ['Allenamento in zona 2', 'Fondo lento', 'Corsa lenta'],
     'pt-br': ['Treino na zona 2', 'Rodagem leve', 'Base aeróbica'],
     de: ['Zone-2-Training', 'Grundlagenausdauer', 'GA1', 'Lockerer Dauerlauf'],
+    pl: [
+      'Trening w strefie 2',
+      'OWB1',
+      'Pierwszy zakres',
+      'Bieg spokojny',
+      'Baza tlenowa',
+    ],
+    nl: ['Zone 2-training', 'Rustige duurloop', 'Duurloop', 'Aerobe basis'],
   },
   faq: {
     en: [
@@ -155,6 +173,40 @@ export const zone2: LearnTerm = {
           'Nicht ganz. Die Herzfrequenz liegt bei gleicher Anstrengung auf dem Rad oft niedriger als beim Laufen, deshalb nutzen viele Athleten getrennte Zonen pro Sportart. Leg sie, wenn möglich, anhand einer in der jeweiligen Sportart gesehenen HFmax fest.',
       },
     ],
+    pl: [
+      {
+        question: 'W jakim tempie biega się w strefie 2?',
+        answer:
+          'Nie ma uniwersalnego tempa: to takie tempo, które danego dnia utrzymuje Twoje tętno w strefie. U większości biegaczy jest wyraźnie wolniejsze od tempa maratońskiego i zwalnia na podbiegach, w upale i przy zmęczeniu.',
+      },
+      {
+        question: 'Jaka część treningu powinna przypadać na strefę 2?',
+        answer:
+          'Badania elitarnych zawodników dyscyplin wytrzymałościowych pokazują, że większość czasu treningowego spędzają na niskiej intensywności, często około trzech czwartych lub więcej. Amatorom na początek wystarczy, by większość tygodniowego biegania była spokojna, a ciężkie treningi ograniczyć do jednego lub dwóch w tygodniu.',
+      },
+      {
+        question: 'Czy strefa 2 jest taka sama na rowerze i w biegu?',
+        answer:
+          'Nie do końca. Przy tym samym wysiłku tętno na rowerze jest często niższe niż w biegu, dlatego wielu sportowców używa osobnych stref dla każdej dyscypliny. Jeśli możesz, ustal je na podstawie tętna maksymalnego zarejestrowanego w danej dyscyplinie.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Op welk tempo loop je in zone 2?',
+        answer:
+          'Er is geen universeel tempo: het is het tempo dat je hartslag die dag in de zone houdt. Voor de meeste lopers is het duidelijk langzamer dan marathontempo, en het zakt op heuvels, in de hitte en als je moe bent.',
+      },
+      {
+        question: 'Hoeveel van mijn training moet in zone 2 zijn?',
+        answer:
+          'Studies bij topsporters in duursporten laten zien dat ze het grootste deel van hun trainingstijd op lage intensiteit doorbrengen, vaak zo’n driekwart of meer. Voor amateurs is een goed startpunt om het meeste van je wekelijkse looptijd rustig te houden en zware trainingen te beperken tot een of twee per week.',
+      },
+      {
+        question: 'Is zone 2 op de fiets hetzelfde als bij het hardlopen?',
+        answer:
+          'Niet precies. De hartslag bij dezelfde inspanning is op de fiets vaak lager dan bij het lopen, dus veel sporters gebruiken aparte zones per sport. Stel ze als het kan in op basis van een maximale hartslag die je in elke sport hebt gezien.',
+      },
+    ],
   },
   related: [
     'heart-rate-reserve',
@@ -199,5 +251,7 @@ export const zone2: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

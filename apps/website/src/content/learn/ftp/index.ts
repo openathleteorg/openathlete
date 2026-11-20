@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const ftp: LearnTerm = {
@@ -16,6 +18,8 @@ export const ftp: LearnTerm = {
     it: 'FTP (potenza di soglia funzionale)',
     'pt-br': 'FTP (potência de limiar funcional)',
     de: 'FTP (funktionelle Schwellenleistung)',
+    pl: 'FTP (funkcjonalna moc progowa)',
+    nl: 'FTP (functioneel drempelvermogen)',
   },
   title: {
     en: 'FTP (functional threshold power): definition, formula, example',
@@ -24,6 +28,8 @@ export const ftp: LearnTerm = {
     it: 'Cos’è l’FTP? Definizione, formula, esempio',
     'pt-br': 'O que é FTP? Definição, fórmula e exemplo',
     de: 'FTP (funktionelle Schwellenleistung): Definition, Formel',
+    pl: 'Czym jest FTP (funkcjonalna moc progowa)? Definicja, wzór',
+    nl: 'Wat is FTP (functional threshold power)? Definitie, formule',
   },
   description: {
     en: 'FTP is the power you can hold for about an hour. The 20-minute test, critical power and W′, power zones in watts, a worked example and the limits.',
@@ -33,6 +39,8 @@ export const ftp: LearnTerm = {
     'pt-br':
       'O FTP é a potência que você sustenta por cerca de uma hora. Teste de 20 minutos, potência crítica e W′, zonas em watts, exemplo e limites.',
     de: 'Die FTP ist die Leistung, die du etwa eine Stunde hältst: 20-Minuten-Test, kritische Leistung und W′, Leistungszonen in Watt, Beispiel und Grenzen.',
+    pl: 'FTP to moc, którą utrzymasz przez około godzinę. Test 20-minutowy, moc krytyczna i W′, strefy mocy w watach, przykład z liczbami i ograniczenia.',
+    nl: 'FTP is het vermogen dat je ongeveer een uur volhoudt. De 20-minutentest, kritisch vermogen en W′, vermogenszones in watt, een voorbeeld en de beperkingen.',
   },
   definition: {
     en: 'FTP (functional threshold power) is the highest power, in watts, that you can hold in a roughly steady state for about an hour, usually estimated as 95% of a 20-minute all-out effort.',
@@ -42,6 +50,8 @@ export const ftp: LearnTerm = {
     'pt-br':
       'O FTP (functional threshold power) é a maior potência, em watts, que você consegue sustentar de forma mais ou menos estável por cerca de uma hora, normalmente estimada como 95% de um esforço máximo de 20 minutos.',
     de: 'Die FTP (functional threshold power, funktionelle Schwellenleistung) ist die höchste Leistung in Watt, die du etwa eine Stunde lang annähernd konstant halten kannst, meist geschätzt als 95 % eines 20-minütigen Maximaltests.',
+    pl: 'FTP (functional threshold power, funkcjonalna moc progowa) to najwyższa moc w watach, jaką możesz utrzymać w mniej więcej stabilnym stanie przez około godzinę, zwykle szacowana jako 95 % mocy z 20-minutowego wysiłku na maksa.',
+    nl: 'FTP (functional threshold power, functioneel drempelvermogen) is het hoogste vermogen in watt dat je ongeveer een uur min of meer constant kunt volhouden, meestal geschat als 95% van een inspanning van 20 minuten voluit.',
   },
   aliases: {
     en: ['Functional threshold power', 'Critical power', 'CP', 'W′'],
@@ -50,6 +60,22 @@ export const ftp: LearnTerm = {
     it: ['Functional threshold power', 'Potenza critica', 'CP', 'W′'],
     'pt-br': ['Functional threshold power', 'Potência crítica', 'CP', 'W′'],
     de: ['Funktionelle Schwellenleistung', 'Kritische Leistung', 'CP', 'W′'],
+    pl: [
+      'Funkcjonalna moc progowa',
+      'Moc progowa',
+      'Moc krytyczna',
+      'CP',
+      'W′',
+      'Test FTP',
+    ],
+    nl: [
+      'Functioneel drempelvermogen',
+      'Drempelvermogen',
+      'Kritisch vermogen',
+      'CP',
+      'W′',
+      'FTP-test',
+    ],
   },
   faq: {
     en: [
@@ -154,6 +180,40 @@ export const ftp: LearnTerm = {
           'Für die meisten reicht es, während eines Trainingsblocks alle sechs bis acht Wochen zu testen, oder früher, wenn sich Schwelleneinheiten deutlich zu leicht anfühlen oder kaum noch zu schaffen sind.',
       },
     ],
+    pl: [
+      {
+        question: 'Jakie FTP jest dobre?',
+        answer:
+          'Same waty mówią niewiele, bo cięższy kolarz generuje więcej mocy. Porównuj waty na kilogram, a przede wszystkim porównuj się ze sobą: Twoje FTP z poprzedniego sezonu albo sprzed sześciu tygodni powie więcej niż jakakolwiek tabela.',
+      },
+      {
+        question: 'Czy FTP to to samo co moc krytyczna?',
+        answer:
+          'Nie. FTP to terenowe oszacowanie mocy, którą utrzymasz przez około godzinę; moc krytyczna to nachylenie prostej praca-czas z kilku maksymalnych wysiłków. Średnio często dzieli je kilka watów, ale u konkretnego kolarza różnica może sięgać 20 do 30 W.',
+      },
+      {
+        question: 'Jak często robić test FTP?',
+        answer:
+          'Dla większości osób wystarczy co sześć do ośmiu tygodni w trakcie bloku treningowego, albo wcześniej, gdy treningi progowe zaczynają być wyraźnie za łatwe lub niemożliwe do ukończenia.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Wat is een goede FTP?',
+        answer:
+          'Watts alleen zeggen weinig, want een zwaardere renner levert meer vermogen. Vergelijk watt per kilo, en vergelijk vooral met jezelf: je FTP van vorig seizoen of van zes weken geleden zegt meer dan welke tabel ook.',
+      },
+      {
+        question: 'Is FTP hetzelfde als kritisch vermogen?',
+        answer:
+          'Nee. FTP is een veldschatting van het vermogen dat je ongeveer een uur volhoudt; het kritisch vermogen is de helling van de arbeid-tijdlijn uit meerdere inspanningen voluit. Gemiddeld liggen ze vaak een paar watt uit elkaar, maar bij een individuele renner kan het verschil 20 tot 30 W zijn.',
+      },
+      {
+        question: 'Hoe vaak moet ik mijn FTP testen?',
+        answer:
+          'Voor de meeste mensen is elke zes tot acht weken tijdens een trainingsblok genoeg, of eerder als drempeltrainingen duidelijk te makkelijk of niet meer af te maken zijn.',
+      },
+    ],
   },
   related: [
     'critical-speed',
@@ -198,5 +258,7 @@ export const ftp: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

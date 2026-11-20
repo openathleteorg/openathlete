@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleSmartwatchIsntEnough: BlogPost = {
@@ -16,6 +18,8 @@ export const articleSmartwatchIsntEnough: BlogPost = {
       it: "Perché l'orologio non basta per guidare il tuo allenamento",
       'pt-br': 'Por que o seu relógio não basta para guiar o seu treino',
       de: 'Warum deine Sportuhr nicht reicht, um dein Training zu steuern',
+      pl: 'Dlaczego Twój zegarek nie wystarczy, żeby prowadzić Twój trening',
+      nl: 'Waarom je sporthorloge niet genoeg is om je training te sturen',
     },
     description: {
       en: "What a running watch measures well, what it only estimates, and the context it can't see: the plan, how a session felt, and your life.",
@@ -25,6 +29,8 @@ export const articleSmartwatchIsntEnough: BlogPost = {
       'pt-br':
         'O que o relógio mede bem, o que ele só estima e o contexto que ele não vê: a planilha, como você se sentiu e a sua vida.',
       de: 'Was eine Laufuhr gut misst, was sie nur schätzt und welchen Kontext sie nicht sieht: den Plan, wie sich eine Einheit angefühlt hat, und dein Leben.',
+      pl: 'Co zegarek biegowy dobrze mierzy, co tylko szacuje i jakiego kontekstu nie widzi: planu, tego, jak czułeś się na treningu, i Twojego życia.',
+      nl: 'Wat een hardloophorloge goed meet, wat het alleen schat en welke context het niet ziet: het schema, hoe een training voelde en je leven.',
     },
     excerpt: {
       en: 'Heart rate and GPS are measurements; recovery time and readiness scores are estimates. Use your watch for what it does well and add the context it lacks.',
@@ -34,6 +40,8 @@ export const articleSmartwatchIsntEnough: BlogPost = {
       'pt-br':
         'Frequência cardíaca e GPS são medições; tempo de recuperação e prontidão são estimativas. Use o relógio para o que ele faz bem e acrescente o contexto que falta.',
       de: 'Herzfrequenz und GPS sind Messwerte, Erholungszeit und Bereitschaftswerte sind Schätzungen. Nutze deine Uhr für das, was sie gut kann, und ergänze den Kontext, der ihr fehlt.',
+      pl: 'Tętno i GPS to pomiary, czas regeneracji i wskaźniki gotowości to szacunki. Używaj zegarka do tego, w czym jest dobry, i dodawaj kontekst, którego mu brakuje.',
+      nl: 'Hartslag en gps zijn metingen, hersteltijd en readiness-scores zijn schattingen. Gebruik je horloge waar het goed in is en voeg de context toe die het mist.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleSmartwatchIsntEnough: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

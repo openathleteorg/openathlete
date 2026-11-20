@@ -22,7 +22,8 @@ const geist = Geist({
   display: 'swap',
 });
 const geistMono = Geist_Mono({
-  subsets: ['latin'],
+  // latin-ext: Polish letters (ą, ł, ż) in mono labels
+  subsets: ['latin', 'latin-ext'],
   variable: '--font-geist-mono',
   display: 'swap',
 });

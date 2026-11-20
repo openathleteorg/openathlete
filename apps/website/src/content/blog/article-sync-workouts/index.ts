@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleSyncWorkouts: BlogPost = {
@@ -17,6 +19,8 @@ export const articleSyncWorkouts: BlogPost = {
       it: 'Come inviare allenamenti strutturati a Garmin, COROS e Suunto',
       'pt-br': 'Como mandar treinos estruturados para Garmin, COROS e Suunto',
       de: 'Strukturierte Workouts an Garmin, COROS und Suunto senden',
+      pl: 'Wysyłanie ustrukturyzowanych treningów na zegarki Garmin, COROS i Suunto',
+      nl: 'Gestructureerde trainingen naar Garmin, COROS en Suunto sturen',
     },
     description: {
       en: 'What reaches each watch, where to find it, why Polar and Strava get no workouts, and a checklist for when a workout is not on your watch.',
@@ -26,6 +30,8 @@ export const articleSyncWorkouts: BlogPost = {
       'pt-br':
         'O que chega a cada relógio, onde encontrar, por que Polar e Strava não recebem treinos e o que conferir quando um treino não aparece.',
       de: 'Was auf jeder Uhr ankommt, wo du es findest, warum Polar und Strava keine Workouts erhalten, und eine Checkliste, wenn ein Workout nicht auf deiner Uhr ist.',
+      pl: 'Co trafia na każdy zegarek, gdzie to znaleźć, dlaczego Polar i Strava nie otrzymują treningów, i lista kontrolna, gdy treningu nie ma na zegarku.',
+      nl: 'Wat er op elk horloge aankomt, waar je het vindt, waarom Polar en Strava geen trainingen ontvangen, en een checklist als een training niet op je horloge staat.',
     },
     excerpt: {
       en: 'Garmin, COROS and Suunto accept workouts from other apps; Polar and Strava do not. How each one shows the session, and what to check when it is missing.',
@@ -35,6 +41,8 @@ export const articleSyncWorkouts: BlogPost = {
       'pt-br':
         'Garmin, COROS e Suunto aceitam treinos de outros apps; Polar e Strava não. Como cada um mostra o treino e o que conferir quando ele não aparece.',
       de: 'Garmin, COROS und Suunto nehmen Workouts aus anderen Apps an, Polar und Strava nicht. Wie jede Marke die Einheit anzeigt und was du prüfst, wenn sie fehlt.',
+      pl: 'Garmin, COROS i Suunto przyjmują treningi z innych aplikacji, Polar i Strava nie. Jak każda marka pokazuje trening i co sprawdzić, gdy go brakuje.',
+      nl: 'Garmin, COROS en Suunto accepteren trainingen uit andere apps, Polar en Strava niet. Hoe elk merk de training toont en wat je controleert als hij ontbreekt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -53,4 +61,6 @@ export const articleSyncWorkouts: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

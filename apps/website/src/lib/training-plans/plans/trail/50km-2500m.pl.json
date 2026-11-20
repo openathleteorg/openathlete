@@ -1,0 +1,3960 @@
+{
+  "plan": {
+    "name": "Trail 50 km, 2500 m przewyższenia: plan na 16 tygodni",
+    "description": "Plan na 16 tygodni do biegu trailowego na 50 km z około 2500 m przewyższenia: 4 lub 5 biegów w tygodniu plus opcjonalny trening siłowy. Podbiegi, podbiegi progowe, szybki marsz z kijami i technika zbiegania. Długie wybieganie rośnie do 4h i 2000 m przewyższenia, z lżejszym tygodniem co 3–4 tygodnie i 2 tygodniami taperingu. W weekendy pojawiają się długie wybiegania dzień po dniu.",
+    "goal": "Ukończyć bieg trailowy na 50 km z 2500 m przewyższenia",
+    "sportType": "TRAIL_RUNNING",
+    "distance": 50000,
+    "duration": 16,
+    "timeTarget": null,
+    "elevationGainRange": {
+      "min": 2000,
+      "max": 3000
+    }
+  },
+  "cycles": [
+    {
+      "name": "Baza",
+      "description": "Spokojny kilometraż, krótkie podbiegi i pierwsze ćwiczenia zbiegania. Długie wybieganie wydłuża się o 10–15 minut na tydzień. Tydzień 4 jest lżejszy.",
+      "phase": "BASE",
+      "color": "#3b82f6",
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min, w domu, bez sprzętu. 3 rundy: 12 wejść na krzesło lub stabilny stopień na nogę, 10 przysiadów wykrocznych na nogę, 15 powolnych wspięć na palce na stopniu (3 sekundy opuszczania), 30 s stania na jednej nodze z zamkniętymi oczami na nogę, 30 s deski bokiem na stronę. Na zbiegach obrywają mięśnie czworogłowe, a na nierównym terenie stawy skokowe: to tania polisa ubezpieczeniowa.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Podbiegi",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki do podnóża podbiegu o nachyleniu 8–12 %, potem 6 × 1'30 pod górę na 88–93 % HRmax, na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Przy krótkich wysiłkach tętno rośnie z opóźnieniem: pod koniec każdego powtórzenia celuj w górną granicę zakresu, a ostatnie zrób tak samo dobrze jak pierwsze.",
+              "goalDuration": 3060,
+              "goalDistance": 7000,
+              "goalElevationGain": 160,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "50 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h30 po szlakach z około 500 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 5400,
+              "goalDistance": 10000,
+              "goalElevationGain": 500,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Spokojny bieg w terenie",
+              "sport": "TRAIL_RUNNING",
+              "description": "45 min spokojnie po szlakach, około 150 m przewyższenia. Tętno 65–75 % HRmax; strome odcinki podchodź bez wyrzutów sumienia.",
+              "goalDuration": 2700,
+              "goalDistance": 6000,
+              "goalElevationGain": 150,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 2,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min, w domu, bez sprzętu. 3 rundy: 12 wejść na krzesło lub stabilny stopień na nogę, 10 przysiadów wykrocznych na nogę, 15 powolnych wspięć na palce na stopniu (3 sekundy opuszczania), 30 s stania na jednej nodze z zamkniętymi oczami na nogę, 30 s deski bokiem na stronę. Na zbiegach obrywają mięśnie czworogłowe, a na nierównym terenie stawy skokowe: to tania polisa ubezpieczeniowa.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "30/30 po płaskim",
+              "sport": "RUNNING",
+              "description": "20 min rozgrzewki, potem 2 × (8 × 30\" szybko / 30\" truchtu), 3 min spokojnie między seriami, 10 min schłodzenia. Szybko = 95–100 % VMA, trucht = 60 %. Po płaskim albo na stadionie.",
+              "goalDuration": 2940,
+              "goalDistance": 8000,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Szybko"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Trucht"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "INTERVAL_REST",
+                    "durationType": "TIME",
+                    "durationValue": 180,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Szybko"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Trucht"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "50 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami. Na koniec 6 × 20\" przebieżki, z powrotem marszem.",
+              "goalDuration": 3360,
+              "goalDistance": 8500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h45 po szlakach z około 650 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 6300,
+              "goalDistance": 11000,
+              "goalElevationGain": 650,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Spokojny bieg w terenie",
+              "sport": "TRAIL_RUNNING",
+              "description": "55 min spokojnie po szlakach, około 200 m przewyższenia. Tętno 65–75 % HRmax; strome odcinki podchodź bez wyrzutów sumienia.",
+              "goalDuration": 3300,
+              "goalDistance": 7000,
+              "goalElevationGain": 200,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 3,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min, w domu, bez sprzętu. 3 rundy: 12 wejść na krzesło lub stabilny stopień na nogę, 10 przysiadów wykrocznych na nogę, 15 powolnych wspięć na palce na stopniu (3 sekundy opuszczania), 30 s stania na jednej nodze z zamkniętymi oczami na nogę, 30 s deski bokiem na stronę. Na zbiegach obrywają mięśnie czworogłowe, a na nierównym terenie stawy skokowe: to tania polisa ubezpieczeniowa.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Podbiegi",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki do podnóża podbiegu o nachyleniu 8–12 %, potem 8 × 1'30 pod górę na 88–93 % HRmax, na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Przy krótkich wysiłkach tętno rośnie z opóźnieniem: pod koniec każdego powtórzenia celuj w górną granicę zakresu, a ostatnie zrób tak samo dobrze jak pierwsze.",
+              "goalDuration": 3480,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Bieg progowy po płaskim",
+              "sport": "RUNNING",
+              "description": "15 min rozgrzewki, 3 × 8' w tempie 82–87 % VMA (mocno, ale pod kontrolą, mówisz już tylko pojedyncze słowa) z 2 min spokojnie pomiędzy, 10 min schłodzenia.",
+              "goalDuration": 3300,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h po szlakach z około 800 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut. Weź kije i używaj ich na każdym długim podejściu.",
+              "goalDuration": 7200,
+              "goalDistance": 12000,
+              "goalElevationGain": 800,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Technika zbiegania",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min spokojnie do technicznego zbiegu (korzenie, kamienie, 10–20 %). 6 × 1' w dół z kontrolowanym wysiłkiem (RPE 5/10), na przerwę podejście marszem. Szybkie, krótkie kroki, wzrok 3–4 metry przed sobą, ręce szeroko dla równowagi, stopy lądują pod biodrami. Szybkość przyjdzie później: dziś chodzi o kroki, którym ufasz. 10 min spokojnie na koniec.",
+              "goalDuration": 2880,
+              "goalDistance": 6500,
+              "goalElevationGain": 140,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Zbieg, krótkie szybkie kroki"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Podejście marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 4,
+          "theme": "Lżejszy tydzień",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "20 min, w domu, bez sprzętu. 3 rundy: 12 wejść na krzesło lub stabilny stopień na nogę, 10 przysiadów wykrocznych na nogę, 15 powolnych wspięć na palce na stopniu (3 sekundy opuszczania), 30 s stania na jednej nodze z zamkniętymi oczami na nogę, 30 s deski bokiem na stronę. Na zbiegach obrywają mięśnie czworogłowe, a na nierównym terenie stawy skokowe: to tania polisa ubezpieczeniowa.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "45 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami. Na koniec 6 × 20\" przebieżki, z powrotem marszem.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Podbiegi",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki do podnóża podbiegu o nachyleniu 8–12 %, potem 6 × 1' pod górę na 88–93 % HRmax, na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Przy krótkich wysiłkach tętno rośnie z opóźnieniem: pod koniec każdego powtórzenia celuj w górną granicę zakresu, a ostatnie zrób tak samo dobrze jak pierwsze.",
+              "goalDuration": 2700,
+              "goalDistance": 6500,
+              "goalElevationGain": 120,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h30 po szlakach z około 500 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 5400,
+              "goalDistance": 10000,
+              "goalElevationGain": 500,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Spokojny bieg w terenie",
+              "sport": "TRAIL_RUNNING",
+              "description": "45 min spokojnie po szlakach, około 150 m przewyższenia. Tętno 65–75 % HRmax; strome odcinki podchodź bez wyrzutów sumienia.",
+              "goalDuration": 2700,
+              "goalDistance": 6000,
+              "goalElevationGain": 150,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Budowanie",
+      "description": "Dłuższe podbiegi i podbiegi progowe, szybki marsz z kijami, więcej przewyższenia w długim wybieganiu. Tydzień 8 jest lżejszy, żeby trening mógł się utrwalić.",
+      "phase": "SPECIFIC",
+      "color": "#10b981",
+      "weeks": [
+        {
+          "weekNumber": 5,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Podbiegi",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki do podnóża podbiegu o nachyleniu 8–12 %, potem 8 × 2' pod górę na 90–95 % HRmax, na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Przy krótkich wysiłkach tętno rośnie z opóźnieniem: pod koniec każdego powtórzenia celuj w górną granicę zakresu, a ostatnie zrób tak samo dobrze jak pierwsze.",
+              "goalDuration": 3960,
+              "goalDistance": 8500,
+              "goalElevationGain": 250,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "40 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 2400,
+              "goalDistance": 6000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Technika zbiegania",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min spokojnie do technicznego zbiegu (korzenie, kamienie, 10–20 %). 8 × 1' w dół z kontrolowanym wysiłkiem (RPE 5/10), na przerwę podejście marszem. Szybkie, krótkie kroki, wzrok 3–4 metry przed sobą, ręce szeroko dla równowagi, stopy lądują pod biodrami. Szybkość przyjdzie później: dziś chodzi o kroki, którym ufasz. 10 min spokojnie na koniec.",
+              "goalDuration": 3240,
+              "goalDistance": 7500,
+              "goalElevationGain": 170,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Zbieg, krótkie szybkie kroki"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Podejście marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h15 po szlakach z około 1000 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 8100,
+              "goalDistance": 12500,
+              "goalElevationGain": 1000,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 8100,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Długie wybieganie dzień po dniu (dzień 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Drugie długie wybieganie z rzędu, na zmęczonych nogach: właśnie o to chodzi. 1h15 po szlakach z około 400 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 4500,
+              "goalDistance": 8500,
+              "goalElevationGain": 400,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4500,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 6,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Długi podbieg progowy",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki, potem 3 × 8' równo pod górę na 82–87 % HRmax, na długim, podbiegalnym wzniesieniu (5–10 %). Na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Jeśli nachylenie zmusza Cię do marszu, maszeruj, ale trzymaj tętno w zakresie.",
+              "goalDuration": 4140,
+              "goalDistance": 8500,
+              "goalElevationGain": 280,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "45 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Interwały VMA",
+              "sport": "RUNNING",
+              "description": "20 min rozgrzewki, 6 × 3' w tempie 90–95 % VMA z 2' truchtu na przerwę, 10 min schłodzenia. Po płaskim: im wyżej masz sufit, tym łatwiej idzie każdy podbieg.",
+              "goalDuration": 3600,
+              "goalDistance": 10500,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h30 po szlakach z około 1200 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut. Weź kije i używaj ich na każdym długim podejściu.",
+              "goalDuration": 9000,
+              "goalDistance": 13000,
+              "goalElevationGain": 1200,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 9000,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Długie wybieganie dzień po dniu (dzień 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Drugie długie wybieganie z rzędu, na zmęczonych nogach: właśnie o to chodzi. 1h20 po szlakach z około 500 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 4800,
+              "goalDistance": 8500,
+              "goalElevationGain": 500,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 7,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Podbiegi",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki do podnóża podbiegu o nachyleniu 8–12 %, potem 10 × 2' pod górę na 90–95 % HRmax, na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Przy krótkich wysiłkach tętno rośnie z opóźnieniem: pod koniec każdego powtórzenia celuj w górną granicę zakresu, a ostatnie zrób tak samo dobrze jak pierwsze.",
+              "goalDuration": 4500,
+              "goalDistance": 9500,
+              "goalElevationGain": 300,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 10,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "45 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Szybki marsz z kijami",
+              "sport": "TRAIL_RUNNING",
+              "description": "15 min rozgrzewki, potem 5 × 6' szybkiego marszu pod najbardziej stromą górkę, jaką masz w okolicy (15 % i więcej), z kijami, na 75–85 % HRmax. Krótkie kroki, mocne odepchnięcie kijami, a łagodniejsze odcinki podbiegaj. Spokojne zejście między powtórzeniami. Tak podchodzi większość zawodników w dniu startu: warto to ćwiczyć.",
+              "goalDuration": 4500,
+              "goalDistance": 8500,
+              "goalElevationGain": 400,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.75,
+                              "targetMax": 0.85,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Szybki marsz, kije"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 240,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h45 po szlakach z około 1400 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut. Weź kije i używaj ich na każdym długim podejściu.",
+              "goalDuration": 9900,
+              "goalDistance": 13500,
+              "goalElevationGain": 1400,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 9900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Długie wybieganie dzień po dniu (dzień 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Drugie długie wybieganie z rzędu, na zmęczonych nogach: właśnie o to chodzi. 1h30 po szlakach z około 600 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 5400,
+              "goalDistance": 9000,
+              "goalElevationGain": 600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 8,
+          "theme": "Lżejszy tydzień",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "20 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "45 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami. Na koniec 6 × 20\" przebieżki, z powrotem marszem.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Długi podbieg progowy",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki, potem 2 × 8' równo pod górę na 82–87 % HRmax, na długim, podbiegalnym wzniesieniu (5–10 %). Na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Jeśli nachylenie zmusza Cię do marszu, maszeruj, ale trzymaj tętno w zakresie.",
+              "goalDuration": 3360,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h45 po szlakach z około 700 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 6300,
+              "goalDistance": 10500,
+              "goalElevationGain": 700,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Spokojny bieg w terenie",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h spokojnie po szlakach, około 300 m przewyższenia. Tętno 65–75 % HRmax; strome odcinki podchodź bez wyrzutów sumienia.",
+              "goalDuration": 3600,
+              "goalDistance": 7000,
+              "goalElevationGain": 300,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Przygotowanie specjalne",
+      "description": "Najcięższe tygodnie: długie wybieganie dochodzi do 4h i 2000 m przewyższenia, z odcinkami w intensywności startowej. Sobota i niedziela to długie wybiegania dzień po dniu, żeby nauczyć się biegać na zmęczonych nogach. Tydzień 12 jest lżejszy.",
+      "phase": "SPECIFIC",
+      "color": "#f59e0b",
+      "weeks": [
+        {
+          "weekNumber": 9,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Długi podbieg progowy",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki, potem 3 × 10' równo pod górę na 82–87 % HRmax, na długim, podbiegalnym wzniesieniu (5–10 %). Na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Jeśli nachylenie zmusza Cię do marszu, maszeruj, ale trzymaj tętno w zakresie.",
+              "goalDuration": 4680,
+              "goalDistance": 9500,
+              "goalElevationGain": 340,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "45 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Technika zbiegania",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min spokojnie do technicznego zbiegu (korzenie, kamienie, 10–20 %). 8 × 1'15 w dół z kontrolowanym wysiłkiem (RPE 5/10), na przerwę podejście marszem. Szybkie, krótkie kroki, wzrok 3–4 metry przed sobą, ręce szeroko dla równowagi, stopy lądują pod biodrami. Szybkość przyjdzie później: dziś chodzi o kroki, którym ufasz. 10 min spokojnie na koniec.",
+              "goalDuration": 3600,
+              "goalDistance": 8000,
+              "goalElevationGain": 190,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 75,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Zbieg, krótkie szybkie kroki"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Podejście marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "3h po szlakach z około 1600 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut. Weź kije i używaj ich na każdym długim podejściu.",
+              "goalDuration": 10800,
+              "goalDistance": 14000,
+              "goalElevationGain": 1600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 10800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Długie wybieganie dzień po dniu (dzień 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Drugie długie wybieganie z rzędu, na zmęczonych nogach: właśnie o to chodzi. 1h45 po szlakach z około 700 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 6300,
+              "goalDistance": 10500,
+              "goalElevationGain": 700,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 10,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Podbiegi",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki do podnóża podbiegu o nachyleniu 8–12 %, potem 8 × 2'30 pod górę na 90–95 % HRmax, na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Przy krótkich wysiłkach tętno rośnie z opóźnieniem: pod koniec każdego powtórzenia celuj w górną granicę zakresu, a ostatnie zrób tak samo dobrze jak pierwsze.",
+              "goalDuration": 4440,
+              "goalDistance": 9500,
+              "goalElevationGain": 300,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "50 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Bieg progowy po płaskim",
+              "sport": "RUNNING",
+              "description": "15 min rozgrzewki, 2 × 12' w tempie 82–87 % VMA (mocno, ale pod kontrolą, mówisz już tylko pojedyncze słowa) z 2 min spokojnie pomiędzy, 10 min schłodzenia.",
+              "goalDuration": 3180,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 720,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "3h30 po szlakach z około 1800 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut. Ostatnie 30 min biegnij z intensywnością startową (75–82 % HRmax).",
+              "goalDuration": 12600,
+              "goalDistance": 17000,
+              "goalElevationGain": 1800,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 10800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.75,
+                        "targetMax": 0.82,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ],
+                    "name": "Intensywność startowa"
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Długie wybieganie dzień po dniu (dzień 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Drugie długie wybieganie z rzędu, na zmęczonych nogach: właśnie o to chodzi. 1h45 po szlakach z około 800 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 6300,
+              "goalDistance": 9500,
+              "goalElevationGain": 800,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 11,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Długi podbieg progowy",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki, potem 4 × 10' równo pod górę na 82–87 % HRmax, na długim, podbiegalnym wzniesieniu (5–10 %). Na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Jeśli nachylenie zmusza Cię do marszu, maszeruj, ale trzymaj tętno w zakresie.",
+              "goalDuration": 5640,
+              "goalDistance": 11500,
+              "goalElevationGain": 440,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "50 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Szybki marsz z kijami",
+              "sport": "TRAIL_RUNNING",
+              "description": "15 min rozgrzewki, potem 6 × 6' szybkiego marszu pod najbardziej stromą górkę, jaką masz w okolicy (15 % i więcej), z kijami, na 75–85 % HRmax. Krótkie kroki, mocne odepchnięcie kijami, a łagodniejsze odcinki podbiegaj. Spokojne zejście między powtórzeniami. Tak podchodzi większość zawodników w dniu startu: warto to ćwiczyć.",
+              "goalDuration": 5100,
+              "goalDistance": 9500,
+              "goalElevationGain": 470,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.75,
+                              "targetMax": 0.85,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Szybki marsz, kije"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 240,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "3h15 po szlakach z około 1700 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut. Weź kije i używaj ich na każdym długim podejściu.",
+              "goalDuration": 11700,
+              "goalDistance": 15500,
+              "goalElevationGain": 1700,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 11700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Długie wybieganie dzień po dniu (dzień 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Drugie długie wybieganie z rzędu, na zmęczonych nogach: właśnie o to chodzi. 2h po szlakach z około 900 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 7200,
+              "goalDistance": 11000,
+              "goalElevationGain": 900,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 12,
+          "theme": "Lżejszy tydzień",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "20 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "45 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami. Na koniec 6 × 20\" przebieżki, z powrotem marszem.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Podbiegi",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki do podnóża podbiegu o nachyleniu 8–12 %, potem 6 × 2' pod górę na 90–95 % HRmax, na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Przy krótkich wysiłkach tętno rośnie z opóźnieniem: pod koniec każdego powtórzenia celuj w górną granicę zakresu, a ostatnie zrób tak samo dobrze jak pierwsze.",
+              "goalDuration": 3420,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h po szlakach z około 900 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 7200,
+              "goalDistance": 11000,
+              "goalElevationGain": 900,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Spokojny bieg w terenie",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h spokojnie po szlakach, około 300 m przewyższenia. Tętno 65–75 % HRmax; strome odcinki podchodź bez wyrzutów sumienia.",
+              "goalDuration": 3600,
+              "goalDistance": 7000,
+              "goalElevationGain": 300,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 13,
+          "theme": "Najcięższy tydzień",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Długi podbieg progowy",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki, potem 3 × 12' równo pod górę na 82–87 % HRmax, na długim, podbiegalnym wzniesieniu (5–10 %). Na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Jeśli nachylenie zmusza Cię do marszu, maszeruj, ale trzymaj tętno w zakresie.",
+              "goalDuration": 5220,
+              "goalDistance": 10500,
+              "goalElevationGain": 400,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 720,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 420,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "50 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Technika zbiegania",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min spokojnie do technicznego zbiegu (korzenie, kamienie, 10–20 %). 8 × 1'15 w dół z kontrolowanym wysiłkiem (RPE 5/10), na przerwę podejście marszem. Szybkie, krótkie kroki, wzrok 3–4 metry przed sobą, ręce szeroko dla równowagi, stopy lądują pod biodrami. Szybkość przyjdzie później: dziś chodzi o kroki, którym ufasz. 10 min spokojnie na koniec.",
+              "goalDuration": 3600,
+              "goalDistance": 8000,
+              "goalElevationGain": 190,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 75,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Zbieg, krótkie szybkie kroki"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Podejście marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "4h po szlakach z około 2000 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut. Weź kije i używaj ich na każdym długim podejściu. Ostatnie 40 min biegnij z intensywnością startową (75–82 % HRmax).",
+              "goalDuration": 14400,
+              "goalDistance": 20000,
+              "goalElevationGain": 2000,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 12000,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.75,
+                        "targetMax": 0.82,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ],
+                    "name": "Intensywność startowa"
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Długie wybieganie dzień po dniu (dzień 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Drugie długie wybieganie z rzędu, na zmęczonych nogach: właśnie o to chodzi. 2h po szlakach z około 1000 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 7200,
+              "goalDistance": 10000,
+              "goalElevationGain": 1000,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 14,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Trening siłowy pod trail (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rundy: 8 powolnych przysiadów na jednej nodze ze stopnia na nogę (5 sekund opuszczania: właśnie tak zbiegi obciążają mięśnie czworogłowe), 12 wejść na stopień z wyskokiem na nogę, 20 wspięć na palce jednej nogi na nogę, 10 martwych ciągów na jednej nodze na nogę, 45 s deski. W lżejszym tygodniu tylko 2 rundy.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Podbiegi",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki do podnóża podbiegu o nachyleniu 8–12 %, potem 8 × 2'30 pod górę na 90–95 % HRmax, na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Przy krótkich wysiłkach tętno rośnie z opóźnieniem: pod koniec każdego powtórzenia celuj w górną granicę zakresu, a ostatnie zrób tak samo dobrze jak pierwsze.",
+              "goalDuration": 4440,
+              "goalDistance": 9500,
+              "goalElevationGain": 300,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "45 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Bieg progowy po płaskim",
+              "sport": "RUNNING",
+              "description": "15 min rozgrzewki, 2 × 12' w tempie 82–87 % VMA (mocno, ale pod kontrolą, mówisz już tylko pojedyncze słowa) z 2 min spokojnie pomiędzy, 10 min schłodzenia.",
+              "goalDuration": 3180,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 720,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Próba generalna",
+              "sport": "TRAIL_RUNNING",
+              "description": "3h30 po szlakach z około 1800 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut. Ubierz się jak na start, weź ten sam plecak i to samo jedzenie: w dniu startu nic nowego.",
+              "goalDuration": 12600,
+              "goalDistance": 17000,
+              "goalElevationGain": 1800,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 12600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Długie wybieganie dzień po dniu (dzień 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Drugie długie wybieganie z rzędu, na zmęczonych nogach: właśnie o to chodzi. 1h30 po szlakach z około 600 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 5400,
+              "goalDistance": 9000,
+              "goalElevationGain": 600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tapering",
+      "description": "Dwa tygodnie na odzyskanie świeżości: kilometraż spada o mniej więcej jedną trzecią, potem o połowę, a kilka krótkich akcentów utrzymuje szybkość w nogach. Nic nowego, dużo snu.",
+      "phase": "TAPER",
+      "color": "#6366f1",
+      "weeks": [
+        {
+          "weekNumber": 15,
+          "theme": "Tapering",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Mobilność i stawy skokowe (opcjonalnie)",
+              "sport": "STRENGTH",
+              "description": "20 min mobilności: krążenia stóp i rozciąganie łydek, otwieranie bioder, 2 × 30 s stania na jednej nodze na nogę. Nic, po czym przed startem złapiesz zakwasy.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 2,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Długi podbieg progowy",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki, potem 3 × 8' równo pod górę na 82–87 % HRmax, na długim, podbiegalnym wzniesieniu (5–10 %). Na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Jeśli nachylenie zmusza Cię do marszu, maszeruj, ale trzymaj tętno w zakresie.",
+              "goalDuration": 4140,
+              "goalDistance": 8500,
+              "goalElevationGain": 280,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "40 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 2400,
+              "goalDistance": 6000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "45 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami. Na koniec 6 × 20\" przebieżki, z powrotem marszem.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Długie wybieganie z przewyższeniem",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h15 po szlakach z około 1000 m przewyższenia, na 65–75 % HRmax. Płaskie odcinki i łagodne podbiegi biegnij, wszystko powyżej 15 % pokonuj szybkim marszem i ćwicz jedzenie co 30–40 minut.",
+              "goalDuration": 8100,
+              "goalDistance": 12500,
+              "goalElevationGain": 1000,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 8100,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Spokojny bieg w terenie",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h spokojnie po szlakach, około 300 m przewyższenia. Tętno 65–75 % HRmax; strome odcinki podchodź bez wyrzutów sumienia.",
+              "goalDuration": 3600,
+              "goalDistance": 7000,
+              "goalElevationGain": 300,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 16,
+          "theme": "Tydzień startowy",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Podbiegi",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rozgrzewki do podnóża podbiegu o nachyleniu 8–12 %, potem 6 × 1'30 pod górę na 88–93 % HRmax, na przerwę zbieg truchtem albo marszem. 10 min schłodzenia. Przy krótkich wysiłkach tętno rośnie z opóźnieniem: pod koniec każdego powtórzenia celuj w górną granicę zakresu, a ostatnie zrób tak samo dobrze jak pierwsze.",
+              "goalDuration": 3060,
+              "goalDistance": 7000,
+              "goalElevationGain": 160,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Pod górę"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Zbieg truchtem/marszem"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "35 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami.",
+              "goalDuration": 2100,
+              "goalDistance": 5500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Spokojny bieg",
+              "sport": "RUNNING",
+              "description": "30 min spokojnie po płaskim lub pagórkowatym terenie, 62–70 % VMA. Musisz móc rozmawiać pełnymi zdaniami. Na koniec 6 × 20\" przebieżki, z powrotem marszem.",
+              "goalDuration": 2160,
+              "goalDistance": 5500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Rozruch",
+              "sport": "RUNNING",
+              "description": "20 min bardzo spokojnie z 4 krótkimi przebieżkami. Sprawdź sprzęt, przypnij numer startowy, idź wcześnie spać.",
+              "goalDuration": 1260,
+              "goalDistance": 3000,
+              "goalElevationGain": null,
+              "goalRpe": 2,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.68,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 7
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 70,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Dzień startu: trail 50 km",
+              "sport": "TRAIL_RUNNING",
+              "description": "50 km, około 2500 m przewyższenia. Zacznij wolniej, niż podpowiada Ci ciało: podbiegi na 75–82 % HRmax, jedz i pij od pierwszej godziny i zachowaj siły w nogach na ostatnie zbiegi.",
+              "goalDuration": 32400,
+              "goalDistance": 50000,
+              "goalElevationGain": 2500,
+              "goalRpe": 9,
+              "workout": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

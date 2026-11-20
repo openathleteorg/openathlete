@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleCoachAthleteCommunication: BlogPost = {
@@ -16,6 +18,8 @@ export const articleCoachAthleteCommunication: BlogPost = {
       it: 'Comunicazione allenatore-atleta: un check-in settimanale efficace',
       'pt-br': 'Comunicação treinador-aluno: um check-in semanal que funciona',
       de: 'Kommunikation zwischen Coach und Athlet: der Wochen-Check-in',
+      pl: 'Komunikacja trener–zawodnik: cotygodniowe podsumowanie, które działa',
+      nl: 'Communicatie tussen coach en atleet: een wekelijkse check-in die werkt',
     },
     description: {
       en: 'Where each kind of message belongs, a four-line weekly check-in, using session RPE as a conversation, and how to handle a bad race remotely.',
@@ -25,6 +29,8 @@ export const articleCoachAthleteCommunication: BlogPost = {
       'pt-br':
         'Onde fica cada tipo de mensagem, um check-in semanal em quatro linhas, o RPE como conversa e como lidar com uma prova ruim a distância.',
       de: 'Wohin welche Nachricht gehört, ein Wochen-Check-in in vier Zeilen, RPE als Gesprächsanlass und wie du aus der Ferne mit einem verpatzten Wettkampf umgehst.',
+      pl: 'Gdzie trafia każdy rodzaj wiadomości, cotygodniowe podsumowanie w czterech linijkach, RPE jako punkt wyjścia do rozmowy i jak zdalnie poradzić sobie z nieudanym startem.',
+      nl: 'Waar elk soort bericht thuishoort, een wekelijkse check-in in vier regels, session-RPE als gesprek en hoe je op afstand omgaat met een slechte wedstrijd.',
     },
     excerpt: {
       en: 'Coaches and athletes often disagree on how hard a session was. A simple structure for messages, check-ins and feedback closes the gap.',
@@ -34,6 +40,8 @@ export const articleCoachAthleteCommunication: BlogPost = {
       'pt-br':
         'Treinadores e alunos muitas vezes discordam sobre o quanto um treino foi duro. Uma estrutura simples de mensagens, check-ins e feedback reduz essa diferença.',
       de: 'Coaches und Athleten sind sich oft uneinig, wie hart eine Einheit war. Eine einfache Struktur für Nachrichten, Check-ins und Feedback schließt diese Lücke.',
+      pl: 'Trenerzy i zawodnicy często różnie oceniają, jak ciężka była jednostka. Prosta struktura wiadomości, podsumowań i informacji zwrotnej zmniejsza tę różnicę.',
+      nl: 'Coaches en atleten zijn het vaak oneens over hoe zwaar een training was. Een eenvoudige structuur voor berichten, check-ins en feedback dicht dat gat.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleCoachAthleteCommunication: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

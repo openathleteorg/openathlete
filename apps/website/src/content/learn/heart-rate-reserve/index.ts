@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const heartRateReserve: LearnTerm = {
@@ -16,6 +18,8 @@ export const heartRateReserve: LearnTerm = {
     it: 'Frequenza cardiaca di riserva',
     'pt-br': 'Frequência cardíaca de reserva',
     de: 'Herzfrequenzreserve',
+    pl: 'Rezerwa tętna',
+    nl: 'Hartslagreserve',
   },
   title: {
     en: 'Heart rate reserve: definition, formula, example',
@@ -24,6 +28,8 @@ export const heartRateReserve: LearnTerm = {
     it: 'Frequenza cardiaca di riserva: definizione, formula, esempio',
     'pt-br': 'Frequência cardíaca de reserva: definição, fórmula e exemplo',
     de: 'Herzfrequenzreserve: Definition, Formel und Beispiel',
+    pl: 'Czym jest rezerwa tętna? Definicja, wzór Karvonena, przykład',
+    nl: 'Wat is hartslagreserve? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'Heart rate reserve is max minus resting heart rate. The Karvonen formula, the five zones in bpm and a worked example, with what the method misses.',
@@ -33,6 +39,8 @@ export const heartRateReserve: LearnTerm = {
     'pt-br':
       'A frequência cardíaca de reserva é a máxima menos a de repouso. Fórmula de Karvonen, as cinco zonas em bpm e um exemplo de cálculo.',
     de: 'Die Herzfrequenzreserve ist HFmax minus Ruhepuls. Die Karvonen-Formel, die fünf Zonen in bpm und ein Rechenbeispiel, plus das, was die Methode übersieht.',
+    pl: 'Rezerwa tętna to HRmax minus tętno spoczynkowe. Wzór Karvonena, pięć stref w bpm, przykład z liczbami i to, czego ta metoda nie widzi.',
+    nl: 'De hartslagreserve is je maximale hartslag min je rusthartslag. De formule van Karvonen, de vijf zones in bpm, een rekenvoorbeeld en wat de methode mist.',
   },
   definition: {
     en: 'Heart rate reserve is the difference between your maximum and resting heart rate, used by the Karvonen method to set training intensities as a share of that range rather than of maximum heart rate alone.',
@@ -42,6 +50,8 @@ export const heartRateReserve: LearnTerm = {
     'pt-br':
       'A frequência cardíaca de reserva é a diferença entre a sua frequência cardíaca máxima e a de repouso, usada pelo método de Karvonen para definir as intensidades de treino como fração dessa faixa, e não só da máxima.',
     de: 'Die Herzfrequenzreserve ist die Differenz zwischen deiner maximalen Herzfrequenz und deinem Ruhepuls. Die Karvonen-Methode nutzt sie, um Trainingsintensitäten als Anteil dieses Bereichs statt nur als Anteil der HFmax festzulegen.',
+    pl: 'Rezerwa tętna to różnica między Twoim tętnem maksymalnym a spoczynkowym; metoda Karvonena używa jej, by wyznaczać intensywność treningu jako część tego zakresu, a nie tylko jako procent tętna maksymalnego.',
+    nl: 'De hartslagreserve is het verschil tussen je maximale hartslag en je rusthartslag; de methode van Karvonen gebruikt haar om trainingsintensiteit uit te drukken als deel van dat bereik in plaats van alleen als percentage van je maximale hartslag.',
   },
   aliases: {
     en: ['HRR', 'Karvonen formula', 'Karvonen method'],
@@ -50,6 +60,13 @@ export const heartRateReserve: LearnTerm = {
     it: ['FCR', 'Formula di Karvonen', 'Metodo di Karvonen'],
     'pt-br': ['FCR', 'Fórmula de Karvonen', 'Método de Karvonen'],
     de: ['HFR', 'Karvonen-Formel', 'Karvonen-Methode', 'HRR'],
+    pl: ['HRR', 'Wzór Karvonena', 'Metoda Karvonena', 'Rezerwa tętna serca'],
+    nl: [
+      'HRR',
+      'Formule van Karvonen',
+      'Karvonen-methode',
+      'Hartslagreservemethode',
+    ],
   },
   faq: {
     en: [
@@ -155,6 +172,42 @@ export const heartRateReserve: LearnTerm = {
           'Ja, solange du ihn konsequent verwendest. Uhren melden oft den niedrigsten Wert im Schlaf, ein paar Schläge unter einer Messung morgens im Bett. Dadurch wird die Reserve etwas größer und die Zonen liegen etwas höher.',
       },
     ],
+    pl: [
+      {
+        question: 'Jaka jest normalna rezerwa tętna?',
+        answer:
+          'Zależy od wieku i wytrenowania. 30-latek z tętnem spoczynkowym 60 i maksymalnym 190 ma rezerwę 130 uderzeń. Trening wytrzymałościowy obniża tętno spoczynkowe, więc rezerwa zwykle rośnie wraz z formą, a tętno maksymalne powoli spada z wiekiem.',
+      },
+      {
+        question:
+          'Czy metoda Karvonena jest lepsza niż procent tętna maksymalnego?',
+        answer:
+          'Zwykle jest bardziej indywidualna, bo uwzględnia tętno spoczynkowe, a procent rezerwy dokładniej odpowiada procentowi rezerwy poboru tlenu. Obie metody nadal opierają się na stałych procentach. Jeśli znasz swoje tętno progowe, strefy oparte na nim są dokładniejsze od obu.',
+      },
+      {
+        question: 'Czy używać tętna spoczynkowego, które pokazuje zegarek?',
+        answer:
+          'Możesz, o ile robisz to konsekwentnie. Zegarki często podają najniższą wartość ze snu, o kilka uderzeń niższą niż poranny pomiar w łóżku, przez co rezerwa wychodzi nieco większa, a strefy nieco wyższe.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Wat is een normale hartslagreserve?',
+        answer:
+          'Dat hangt af van leeftijd en conditie. Een dertigjarige met een rusthartslag van 60 en een maximum van 190 heeft een reserve van 130 slagen. Duurtraining verlaagt je rusthartslag, dus de reserve groeit meestal mee met je conditie, terwijl je maximale hartslag met de jaren langzaam daalt.',
+      },
+      {
+        question:
+          'Is Karvonen beter dan een percentage van je maximale hartslag?',
+        answer:
+          'Meestal is het persoonlijker, omdat het rekening houdt met je rusthartslag, en een percentage van de reserve volgt een percentage van de zuurstofopnamereserve beter. Beide gebruiken nog steeds vaste percentages. Ken je je drempelhartslag, dan zijn zones op basis daarvan nauwkeuriger dan allebei.',
+      },
+      {
+        question: 'Moet ik de rusthartslag van mijn horloge gebruiken?',
+        answer:
+          'Dat kan, zolang je het consequent doet. Horloges geven vaak de laagste waarde tijdens je slaap, een paar slagen onder een ochtendmeting in bed, waardoor de reserve iets groter en de zones iets hoger uitvallen.',
+      },
+    ],
   },
   related: [
     'zone-2',
@@ -193,5 +246,7 @@ export const heartRateReserve: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

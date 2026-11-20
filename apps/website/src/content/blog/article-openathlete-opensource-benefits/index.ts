@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleOpenathleteOpensourceBenefits: BlogPost = {
@@ -16,6 +18,8 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
       it: 'Software di allenamento open source: di chi sono i tuoi dati?',
       'pt-br': 'Software de treino de código aberto: de quem são seus dados?',
       de: 'Open-Source-Trainingssoftware: Wem gehören deine Trainingsdaten?',
+      pl: 'Oprogramowanie treningowe open source: do kogo należą Twoje dane treningowe?',
+      nl: 'Opensource-trainingssoftware: van wie zijn je trainingsgegevens?',
     },
     description: {
       en: "Today's Plan closed, Garmin bought TrainingPeaks. What data export really gives you, why OpenAthlete uses the AGPL, and what self-hosting costs.",
@@ -25,6 +29,8 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
       'pt-br':
         "O Today's Plan fechou e a Garmin comprou o TrainingPeaks. O que uma exportação entrega, por que a AGPL e quanto custa a auto-hospedagem.",
       de: 'Today’s Plan ist eingestellt, Garmin hat TrainingPeaks gekauft. Was ein Datenexport wirklich bringt, warum OpenAthlete die AGPL nutzt und was Selbst-Hosting kostet.',
+      pl: 'Today’s Plan zamknięto, Garmin kupił TrainingPeaks. Co naprawdę daje eksport danych, dlaczego OpenAthlete korzysta z AGPL i ile kosztuje self-hosting.',
+      nl: 'Today’s Plan is gestopt, Garmin heeft TrainingPeaks gekocht. Wat een data-export je echt oplevert, waarom OpenAthlete de AGPL gebruikt en wat zelf hosten kost.',
     },
     excerpt: {
       en: 'Your training history is only as durable as the platform holding it. What open source, the AGPL and self-hosting change, and what they do not.',
@@ -34,6 +40,8 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
       'pt-br':
         'O seu histórico de treino dura o mesmo que a plataforma que o guarda. O que o código aberto, a AGPL e a auto-hospedagem mudam, e o que não mudam.',
       de: 'Deine Trainingshistorie ist nur so beständig wie die Plattform, auf der sie liegt. Was Open Source, die AGPL und Selbst-Hosting ändern und was nicht.',
+      pl: 'Twoja historia treningowa jest tylko tak trwała jak platforma, na której się znajduje. Co zmieniają open source, AGPL i self-hosting, a czego nie.',
+      nl: 'Je trainingsgeschiedenis is maar zo duurzaam als het platform waarop ze staat. Wat open source, de AGPL en zelf hosten veranderen, en wat niet.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

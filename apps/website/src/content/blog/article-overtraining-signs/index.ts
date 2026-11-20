@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleOvertrainingSigns: BlogPost = {
@@ -16,6 +18,8 @@ export const articleOvertrainingSigns: BlogPost = {
       it: '5 segnali di sovrallenamento, e quando è solo overreaching',
       'pt-br': '5 sinais de overtraining, e quando é só overreaching',
       de: '5 Anzeichen für Übertraining und wann es nur Overreaching ist',
+      pl: '5 oznak przetrenowania i kiedy to tylko przeciążenie',
+      nl: '5 signalen van overtraining, en wanneer het alleen overreaching is',
     },
     description: {
       en: 'Functional overreaching, non-functional overreaching or overtraining syndrome: the five signs to watch, what else causes them, and what to do.',
@@ -25,6 +29,8 @@ export const articleOvertrainingSigns: BlogPost = {
       'pt-br':
         'Overreaching funcional, não funcional ou síndrome de overtraining: os cinco sinais a observar, o que mais pode causá-los e o que fazer.',
       de: 'Funktionelles oder nicht funktionelles Overreaching oder Übertrainingssyndrom: die fünf Anzeichen, andere mögliche Ursachen und was du tun kannst.',
+      pl: 'Funkcjonalne lub niefunkcjonalne przeciążenie albo zespół przetrenowania: pięć oznak do obserwowania, inne możliwe przyczyny i co robić.',
+      nl: 'Functionele of niet-functionele overreaching of overtrainingssyndroom: de vijf signalen om op te letten, andere mogelijke oorzaken en wat je kunt doen.',
     },
     excerpt: {
       en: 'Real overtraining syndrome is rare. Most tired runners are overreached, ill or under-fuelled. Here is how to tell the states apart and what each one calls for.',
@@ -34,6 +40,8 @@ export const articleOvertrainingSigns: BlogPost = {
       'pt-br':
         'A síndrome de overtraining de verdade é rara. A maioria dos corredores cansados está em overreaching, doente ou comendo pouco. Veja como separar esses estados e o que cada um pede.',
       de: 'Ein echtes Übertrainingssyndrom ist selten. Die meisten müden Läufer sind im Overreaching, krank oder essen zu wenig. So unterscheidest du diese Zustände und erfährst, was jeder davon verlangt.',
+      pl: 'Prawdziwy zespół przetrenowania jest rzadki. Większość zmęczonych biegaczy jest przeciążona, chora albo za mało je. Jak rozróżnić te stany i czego każdy z nich wymaga.',
+      nl: 'Een echt overtrainingssyndroom is zeldzaam. De meeste vermoeide lopers zijn overbelast, ziek of eten te weinig. Zo houd je deze toestanden uit elkaar en weet je wat elk ervan vraagt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleOvertrainingSigns: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

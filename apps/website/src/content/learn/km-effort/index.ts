@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const kmEffort: LearnTerm = {
@@ -16,6 +18,8 @@ export const kmEffort: LearnTerm = {
     it: 'Km-sforzo',
     'pt-br': 'Km-esforço',
     de: 'Km-Effort',
+    pl: 'Km-effort',
+    nl: 'Km-effort',
   },
   title: {
     en: 'Km-effort: definition, formula, example',
@@ -24,6 +28,8 @@ export const kmEffort: LearnTerm = {
     it: 'Cos’è il km-sforzo? Definizione, formula, esempio',
     'pt-br': 'O que é km-esforço? Definição, fórmula e exemplo',
     de: 'Km-Effort (Leistungskilometer): Definition, Formel, Beispiel',
+    pl: 'Czym jest km-effort (kilometr wysiłkowy)? Definicja, wzór',
+    nl: 'Wat is km-effort (inspanningskilometer)? Definitie, formule',
   },
   description: {
     en: 'Km-effort adds climbing to distance: km + D+/100. How to calculate it, a trail race time prediction with Riegel’s formula, and where it misleads.',
@@ -33,6 +39,8 @@ export const kmEffort: LearnTerm = {
     'pt-br':
       'O km-esforço soma a subida à distância: km + D+/100. Como calcular, uma previsão de tempo de trail com a fórmula de Riegel e os limites.',
     de: 'Km-Effort rechnet Höhenmeter in die Distanz ein: km + Hm/100. So berechnest du ihn, Trail-Zielzeit mit der Riegel-Formel und wo er täuscht.',
+    pl: 'Km-effort wlicza przewyższenie w dystans: km + D+/100. Jak go policzyć, czas biegu górskiego ze wzoru Riegela i kiedy wprowadza w błąd.',
+    nl: 'Km-effort rekent hoogtemeters om naar afstand: km + D+/100. Zo bereken je het, een trailtijd met de formule van Riegel, en waar het misleidt.',
   },
   definition: {
     en: 'Km-effort is a trail running measure of course difficulty that adds one kilometre for every 100 metres of ascent: km-effort = distance in km + D+ in metres / 100.',
@@ -42,6 +50,8 @@ export const kmEffort: LearnTerm = {
     'pt-br':
       'O km-esforço é uma medida da dificuldade de um percurso de trail que soma um quilômetro a cada 100 metros de ganho de elevação: km-esforço = distância em km + D+ em metros / 100.',
     de: 'Km-Effort ist im Trailrunning ein Maß für die Schwierigkeit einer Strecke, das für je 100 Höhenmeter im Anstieg einen Kilometer addiert: km-Effort = Distanz in km + Höhenmeter in m / 100.',
+    pl: 'Km-effort to miara trudności trasy w biegach górskich, która za każde 100 metrów przewyższenia dodaje jeden kilometr: km-effort = dystans w km + przewyższenie w m / 100.',
+    nl: 'Km-effort is een maat voor de zwaarte van een trailparcours die voor elke 100 hoogtemeters stijging één kilometer optelt: km-effort = afstand in km + hoogtemeters in m / 100.',
   },
   aliases: {
     en: ['Kilometre-effort', 'Effort kilometres', 'km-e'],
@@ -50,6 +60,8 @@ export const kmEffort: LearnTerm = {
     it: ['Chilometro-sforzo', 'Km-effort'],
     'pt-br': ['Quilômetro-esforço', 'Km-effort'],
     de: ['Leistungskilometer', 'Kilometer-Effort', 'km-e'],
+    pl: ['Kilometr wysiłkowy', 'Kilometry wysiłkowe', 'Km-wysiłek', 'km-e'],
+    nl: ['Inspanningskilometer', 'Kilometer-effort', 'Effortkilometer', 'km-e'],
   },
   faq: {
     en: [
@@ -155,6 +167,40 @@ export const kmEffort: LearnTerm = {
           'Das hängt vom Gelände und von der Länge des Rennens ab. Nutze sie, um dich auf ähnlichen Strecken mit dir selbst zu vergleichen: Sinkt deine Pace pro km-Effort im Lauf eines Trainingsblocks auf vergleichbarem Terrain, wird deine Trailform besser.',
       },
     ],
+    pl: [
+      {
+        question: 'Czy km-effort uwzględnia zbiegi?',
+        answer:
+          'Nie. Typowy wzór dodaje tylko przewyższenie: km + D+ / 100. Zbiegi nie dają ani premii, ani kary, co jest jego główną słabością na trasach z długimi, stromymi zbiegami.',
+      },
+      {
+        question: 'Czy km-effort to to samo co indeks ITRA lub UTMB?',
+        answer:
+          'Nie. ITRA używa tej samej sumy dystansu i D+ / 100 do klasyfikowania biegów, ale indeks wydajności ITRA i UTMB Index to oceny biegaczy oparte na własnych modelach. Km-effort opisuje tylko trasę.',
+      },
+      {
+        question: 'Jakie tempo na km-effort jest dobre?',
+        answer:
+          'Zależy od terenu i długości biegu. Używaj go do porównywania się ze sobą na podobnych trasach: jeśli Twoje tempo na km-effort spada w trakcie bloku treningowego na porównywalnym terenie, Twoja forma w górach rośnie.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Telt km-effort de afdaling mee?',
+        answer:
+          'Nee. De gangbare formule telt alleen de stijging op: km + D+ / 100. Afdalingen leveren geen bonus en geen straf op, en dat is de grootste zwakte op parcoursen met lange, steile afdalingen.',
+      },
+      {
+        question: 'Is km-effort hetzelfde als de ITRA- of UTMB-index?',
+        answer:
+          'Nee. ITRA gebruikt dezelfde som van afstand plus D+ / 100 om wedstrijden in te delen, maar de ITRA-prestatie-index en de UTMB Index zijn scores van lopers, gebouwd op eigen modellen. Km-effort beschrijft alleen een parcours.',
+      },
+      {
+        question: 'Wat is een goed tempo per km-effort?',
+        answer:
+          'Dat hangt af van het terrein en de lengte van de wedstrijd. Gebruik het om jezelf te vergelijken op soortgelijke parcoursen: daalt je tempo per km-effort tijdens een trainingsblok op vergelijkbaar terrein, dan gaat je trailconditie vooruit.',
+      },
+    ],
   },
   related: ['grade-adjusted-pace', 'negative-split', 'critical-speed', 'vma'],
   links: [
@@ -176,5 +222,7 @@ export const kmEffort: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

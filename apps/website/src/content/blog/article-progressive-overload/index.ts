@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleProgressiveOverload: BlogPost = {
@@ -16,6 +18,8 @@ export const articleProgressiveOverload: BlogPost = {
       it: 'Sovraccarico progressivo nella corsa: progredire senza rompersi',
       'pt-br': 'Sobrecarga progressiva na corrida: evoluir sem se quebrar',
       de: 'Progressive Überlastung beim Laufen: steigern, ohne kaputtzugehen',
+      pl: 'Progresywne przeciążenie w bieganiu: rozwijaj się, nie łamiąc się',
+      nl: 'Progressieve overbelasting voor hardlopers: opbouwen zonder te breken',
     },
     description: {
       en: 'How to progress running sessions one lever at a time: a six-week threshold example, long run steps, easy days, lighter weeks and when to stop.',
@@ -25,6 +29,8 @@ export const articleProgressiveOverload: BlogPost = {
       'pt-br':
         'Como fazer seus treinos progredirem uma alavanca por vez: um exemplo de limiar em seis semanas, o longão, os dias leves e as regenerativas.',
       de: 'Laufeinheiten Hebel für Hebel steigern: ein Schwellenbeispiel über sechs Wochen, der lange Lauf, lockere Tage, Entlastungswochen und wann du aufhörst.',
+      pl: 'Jak rozwijać treningi biegowe dźwignia po dźwigni: przykład treningu progowego na sześć tygodni, długie wybieganie, spokojne dni, lżejsze tygodnie i kiedy przestać.',
+      nl: 'Je looptrainingen knop voor knop laten groeien: een drempelvoorbeeld over zes weken, de lange duurloop, rustige dagen, lichtere weken en wanneer je stopt.',
     },
     excerpt: {
       en: 'Adding kilometres is only one way to overload. Progress the sessions themselves, one lever at a time, keep the easy days easy, and know when holding a level is enough.',
@@ -34,6 +40,8 @@ export const articleProgressiveOverload: BlogPost = {
       'pt-br':
         'Somar quilômetros é só um jeito de sobrecarregar. Faça os próprios treinos progredirem, uma alavanca por vez, mantenha leves os dias leves e saiba quando basta segurar um nível.',
       de: 'Mehr Kilometer sind nur eine Form der Überlastung. Steigere die Einheiten selbst, einen Hebel nach dem anderen, halte lockere Tage locker und erkenne, wann es reicht, ein Niveau zu halten.',
+      pl: 'Dokładanie kilometrów to tylko jeden sposób przeciążania. Rozwijaj same treningi, jedną dźwignią naraz, utrzymuj spokojne dni spokojnymi i wiedz, kiedy wystarczy utrzymać poziom.',
+      nl: 'Meer kilometers is maar één manier van overbelasten. Laat de trainingen zelf groeien, één knop tegelijk, houd rustige dagen rustig en weet wanneer een niveau vasthouden genoeg is.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleProgressiveOverload: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

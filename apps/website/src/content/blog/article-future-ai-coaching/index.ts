@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleFutureAiCoaching: BlogPost = {
@@ -16,6 +18,8 @@ export const articleFutureAiCoaching: BlogPost = {
       it: "Il futuro dell'IA nel coaching: agenti, MCP e allenatore",
       'pt-br': 'O futuro da IA no treinamento: agentes, MCP e o treinador',
       de: 'Die Zukunft der KI im Coaching: Agenten, MCP und der Coach',
+      pl: 'Przyszłość AI w trenowaniu: agenci, MCP i trener',
+      nl: 'De toekomst van AI in coaching: agents, MCP en de coach',
     },
     description: {
       en: 'AI agents can now read a calendar and plan sessions through MCP. What that changes for coaches, what it does not, and where to keep the human.',
@@ -25,6 +29,8 @@ export const articleFutureAiCoaching: BlogPost = {
       'pt-br':
         'Com o MCP, agentes de IA já leem o calendário e planejam treinos. O que muda para os treinadores, o que não muda e onde manter a pessoa.',
       de: 'Mit MCP lesen KI-Agenten schon Kalender und planen Einheiten. Was sich für Coaches ändert, was nicht und wo der Mensch bleiben sollte.',
+      pl: 'Dzięki MCP agenci AI już czytają kalendarz i planują treningi. Co to zmienia dla trenerów, czego nie zmienia i gdzie zostawić człowieka.',
+      nl: 'Via MCP lezen AI-agents al de kalender en plannen ze trainingen. Wat dat verandert voor coaches, wat niet, en waar de mens moet blijven.',
     },
     excerpt: {
       en: 'Agents make the admin half of coaching much cheaper and leave the judgment half where it was. A measured look at MCP, its limits and the coach in the loop.',
@@ -34,6 +40,8 @@ export const articleFutureAiCoaching: BlogPost = {
       'pt-br':
         'Os agentes deixam a metade administrativa do treinamento muito mais barata e o julgamento onde estava. Um olhar ponderado sobre o MCP, seus limites e o treinador.',
       de: 'Agenten machen die administrative Hälfte des Coachings viel günstiger und lassen das Urteilsvermögen, wo es war. Ein nüchterner Blick auf MCP, seine Grenzen und den Coach.',
+      pl: 'Agenci sprawiają, że administracyjna połowa trenowania jest dużo tańsza, a osąd zostaje tam, gdzie był. Wyważone spojrzenie na MCP, jego ograniczenia i trenera w pętli.',
+      nl: 'Agents maken de administratieve helft van coaching veel goedkoper en laten het oordeel waar het was. Een nuchtere blik op MCP, de grenzen ervan en de coach in de loop.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleFutureAiCoaching: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

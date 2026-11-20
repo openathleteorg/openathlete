@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const article3: BlogPost = {
@@ -16,6 +18,8 @@ export const article3: BlogPost = {
       it: 'Infortuni nella corsa e carico: cosa dicono gli studi',
       'pt-br': 'Lesões na corrida e carga de treino: o que dizem os estudos',
       de: 'Laufverletzungen und Trainingsbelastung: Was die Studien sagen',
+      pl: 'Kontuzje biegowe a obciążenie treningowe: co mówią badania',
+      nl: 'Hardloopblessures en trainingsbelasting: wat het bewijs zegt',
     },
     description: {
       en: 'What research shows about training load and running injuries, why the acute:chronic workload ratio is contested, and what is still worth tracking.',
@@ -25,6 +29,8 @@ export const article3: BlogPost = {
       'pt-br':
         'O que a pesquisa mostra sobre carga e lesões na corrida, por que a relação aguda:crônica é contestada e o que ainda vale a pena acompanhar.',
       de: 'Was die Forschung über Trainingsbelastung und Laufverletzungen zeigt, warum die Acute:Chronic Workload Ratio umstritten ist und was sich trotzdem zu beobachten lohnt.',
+      pl: 'Co badania mówią o obciążeniu treningowym i kontuzjach biegowych, dlaczego wskaźnik obciążenia ostrego do przewlekłego budzi spory i co wciąż warto śledzić.',
+      nl: 'Wat onderzoek laat zien over trainingsbelasting en hardloopblessures, waarom de acute:chronische werkbelastingsratio omstreden is en wat nog steeds het volgen waard is.',
     },
     excerpt: {
       en: 'Sudden jumps in training probably raise injury risk, especially for beginners. Beyond that, the evidence is thinner than most training apps suggest, and the ACWR thresholds are not established.',
@@ -34,6 +40,8 @@ export const article3: BlogPost = {
       'pt-br':
         'Saltos bruscos no treino provavelmente aumentam o risco de lesão, principalmente para iniciantes. Fora isso, as evidências são mais fracas do que os apps sugerem, e os limites do ACWR não estão comprovados.',
       de: 'Plötzliche Sprünge im Training erhöhen wahrscheinlich das Verletzungsrisiko, vor allem bei Anfängern. Darüber hinaus ist die Studienlage dünner, als die meisten Trainings-Apps vermuten lassen, und die ACWR-Schwellenwerte sind nicht belegt.',
+      pl: 'Nagłe skoki w treningu prawdopodobnie zwiększają ryzyko kontuzji, zwłaszcza u początkujących. Poza tym dowody są słabsze, niż sugeruje większość aplikacji treningowych, a progi ACWR nie są ustalone.',
+      nl: 'Plotselinge sprongen in training verhogen waarschijnlijk het blessurerisico, vooral bij beginners. Verder is het bewijs dunner dan de meeste trainingsapps doen vermoeden, en de ACWR-drempels zijn niet vastgesteld.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const article3: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

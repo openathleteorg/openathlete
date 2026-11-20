@@ -45,8 +45,8 @@ export function formatNumber(
 }
 
 /**
- * The goal as runners write it: "3:45" in English, "3:45 h" in German,
- * "3h45" elsewhere; under the hour, "50:00" in English and "50 min"
+ * The goal as runners write it: "3:45" in English, Polish and Dutch,
+ * "3:45 h" in German, "3h45" elsewhere; under the hour, "50:00" in English and "50 min"
  * elsewhere.
  */
 export function goalLabel(slug: string, locale: ParaglideLocale): string {
@@ -54,7 +54,9 @@ export function goalLabel(slug: string, locale: ParaglideLocale): string {
     return locale === 'en' ? `${slug}:00` : `${slug}\u00a0min`;
   }
   const [hours, minutes] = slug.split('-');
-  if (locale === 'en') return `${hours}:${minutes}`;
+  if (locale === 'en' || locale === 'pl' || locale === 'nl') {
+    return `${hours}:${minutes}`;
+  }
   if (locale === 'de') return `${hours}:${minutes}\u00a0h`;
   return `${hours}h${minutes}`;
 }

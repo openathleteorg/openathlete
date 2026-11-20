@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleInjuryPrevention2: BlogPost = {
@@ -16,6 +18,8 @@ export const articleInjuryPrevention2: BlogPost = {
       it: 'Quanto aumentare il chilometraggio settimana dopo settimana',
       'pt-br': 'Quanto aumentar a quilometragem semana a semana',
       de: 'Laufumfang steigern: wie schnell, Woche für Woche',
+      pl: 'Jak szybko zwiększać kilometraż biegowy, tydzień po tygodniu',
+      nl: 'Hoe snel je je loopvolume opbouwt, week na week',
     },
     description: {
       en: 'Why the 10% rule fails, how to build running volume in steps with lighter weeks, and a 16-week example from 40 to 70 km per week.',
@@ -25,6 +29,8 @@ export const articleInjuryPrevention2: BlogPost = {
       'pt-br':
         'Por que a regra dos 10% falha, como subir o volume em degraus com semanas regenerativas e um exemplo de 16 semanas, de 40 a 70 km.',
       de: 'Warum die 10-Prozent-Regel versagt, wie du den Laufumfang in Stufen mit Entlastungswochen aufbaust, und ein 16-Wochen-Beispiel von 40 auf 70 km.',
+      pl: 'Dlaczego zasada 10 % zawodzi, jak budować objętość biegową stopniami z lżejszymi tygodniami i przykład na 16 tygodni od 40 do 70 km tygodniowo.',
+      nl: 'Waarom de 10%-regel faalt, hoe je loopvolume in stappen opbouwt met lichtere weken, en een voorbeeld van 16 weken van 40 naar 70 km per week.',
     },
     excerpt: {
       en: 'The 10% rule did not reduce injuries when it was tested, and it compounds into nonsense. Steps, plateaus and planned lighter weeks work better, with one change at a time.',
@@ -34,6 +40,8 @@ export const articleInjuryPrevention2: BlogPost = {
       'pt-br':
         'Quando foi testada, a regra dos 10% não reduziu lesões, e aplicada sem pausa ela dispara. Degraus, patamares e semanas regenerativas planejadas funcionam melhor, com uma novidade de cada vez.',
       de: 'Im Test hat die 10-Prozent-Regel Verletzungen nicht reduziert, und ohne Pause angewendet schaukelt sie sich auf. Besser funktionieren Stufen, Plateaus und geplante Entlastungswochen, mit immer nur einer Neuerung.',
+      pl: 'Przetestowana zasada 10 % nie zmniejszyła liczby kontuzji, a stosowana bez przerwy prowadzi do absurdu. Lepiej działają stopnie, okresy utrzymania i zaplanowane lżejsze tygodnie, z jedną nowością naraz.',
+      nl: 'Toen de 10%-regel werd getest, verminderde hij blessures niet, en zonder pauze toegepast loopt hij uit de hand. Stappen, plateaus en geplande lichtere weken werken beter, met één nieuw ding tegelijk.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleInjuryPrevention2: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

@@ -97,7 +97,7 @@ export function ContentEn() {
         and the Performance Management Chart, and if you sell plans, its
         marketplace puts them in front of buyers. The mobile apps are mature,
         and TrainingPeaks Virtual covers indoor riding. Since 22 July 2026 it
-        belongs to Garmin; what that may change is discussed in
+        belongs to Garmin; what that may change is discussed in{' '}
         <Link href="/blog/trainingpeaks-alternatives-after-garmin-acquisition">
           TrainingPeaks alternatives after the Garmin acquisition
         </Link>

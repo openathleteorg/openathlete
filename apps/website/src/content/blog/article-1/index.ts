@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const article1: BlogPost = {
@@ -16,6 +18,8 @@ export const article1: BlogPost = {
       it: "Cos'è OpenAthlete e perché esiste",
       'pt-br': 'O que é o OpenAthlete e por que ele existe',
       de: 'Was OpenAthlete ist und warum es das Projekt gibt',
+      pl: 'Czym jest OpenAthlete i dlaczego powstał',
+      nl: 'Wat OpenAthlete is en waarom het bestaat',
     },
     description: {
       en: 'An open-source training platform for endurance athletes and coaches: what it does today, what it does not do, and how it is paid for.',
@@ -25,6 +29,8 @@ export const article1: BlogPost = {
       'pt-br':
         'Uma plataforma de treino de código aberto para atletas de endurance e treinadores: o que ela faz, o que não faz e como se paga.',
       de: 'Eine Open-Source-Trainingsplattform für Ausdauersportler und Coaches: was sie heute kann, was sie nicht kann und wie sie finanziert wird.',
+      pl: 'Otwartoźródłowa platforma treningowa dla sportowców wytrzymałościowych i trenerów: co potrafi dziś, czego nie potrafi i jak jest finansowana.',
+      nl: 'Een opensourcetrainingsplatform voor duursporters en coaches: wat het vandaag kan, wat het niet kan en hoe het betaald wordt.',
     },
     excerpt: {
       en: 'OpenAthlete plans your training, talks to your watch and tracks load, for athletes and coaches. Here is why it was built and where its limits are.',
@@ -34,6 +40,8 @@ export const article1: BlogPost = {
       'pt-br':
         'O OpenAthlete planeja o seu treino, conversa com o seu relógio e acompanha a carga, para atletas e treinadores. Veja por que ele foi criado e onde estão os limites.',
       de: 'OpenAthlete plant dein Training, spricht mit deiner Uhr und verfolgt die Belastung, für Athleten und Coaches. Hier erfährst du, warum es entstanden ist und wo seine Grenzen liegen.',
+      pl: 'OpenAthlete planuje Twój trening, rozmawia z Twoim zegarkiem i śledzi obciążenie, dla zawodników i trenerów. Oto dlaczego powstał i gdzie są jego granice.',
+      nl: 'OpenAthlete plant je training, praat met je horloge en houdt de belasting bij, voor atleten en coaches. Hier lees je waarom het gebouwd is en waar de grenzen liggen.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const article1: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleYouthTalentDetection: BlogPost = {
@@ -16,6 +18,8 @@ export const articleYouthTalentDetection: BlogPost = {
       it: 'Giovani atleti di endurance: talento, sovraccarico e abbandono',
       'pt-br': 'Jovens atletas de endurance: talento, sobrecarga e abandono',
       de: 'Junge Ausdauersportler: Talent, Überlastung und Dropout',
+      pl: 'Młodzi sportowcy wytrzymałościowi: talent, przeciążenie i rezygnacja',
+      nl: 'Jonge duursporters: talent, overbelasting en uitval',
     },
     description: {
       en: 'Relative age, early maturation and early specialisation: what research says about youth talent, and how club coaches can track load and avoid dropout.',
@@ -25,6 +29,8 @@ export const articleYouthTalentDetection: BlogPost = {
       'pt-br':
         'Idade relativa, maturação e especialização precoce: o que a pesquisa diz sobre talento jovem e como evitar o abandono no clube.',
       de: 'Relativer Alterseffekt, frühe Reife und Spezialisierung: Was die Forschung über Nachwuchstalente sagt und wie Vereinstrainer Dropout vermeiden.',
+      pl: 'Względny efekt wieku, wczesne dojrzewanie i specjalizacja: co badania mówią o młodych talentach i jak trenerzy klubowi mogą zapobiegać rezygnacji ze sportu.',
+      nl: 'Relatief leeftijdseffect, vroege rijping en specialisatie: wat het onderzoek zegt over jong talent en hoe clubtrainers uitval voorkomen.',
     },
     excerpt: {
       en: 'Early results predict adult performance poorly. What the research on relative age and specialisation means for a coach working with teenagers.',
@@ -34,6 +40,8 @@ export const articleYouthTalentDetection: BlogPost = {
       'pt-br':
         'Resultados precoces dizem pouco sobre o desempenho adulto. O que a pesquisa sobre idade relativa e especialização significa para quem treina adolescentes.',
       de: 'Frühe Ergebnisse sagen die Leistung im Erwachsenenalter schlecht voraus. Was die Forschung zum relativen Alterseffekt und zur Spezialisierung für Trainer von Jugendlichen bedeutet.',
+      pl: 'Wczesne wyniki słabo przewidują poziom w wieku dorosłym. Co badania nad względnym efektem wieku i specjalizacją oznaczają dla trenerów młodzieży.',
+      nl: 'Vroege resultaten voorspellen de prestaties als volwassene slecht. Wat het onderzoek naar het relatieve leeftijdseffect en specialisatie betekent voor jeugdtrainers.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleYouthTalentDetection: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

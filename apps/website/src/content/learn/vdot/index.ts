@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const vdot: LearnTerm = {
@@ -16,6 +18,8 @@ export const vdot: LearnTerm = {
     it: 'VDOT',
     'pt-br': 'VDOT',
     de: 'VDOT',
+    pl: 'VDOT',
+    nl: 'VDOT',
   },
   title: {
     en: 'VDOT: definition, formula, example',
@@ -24,6 +28,8 @@ export const vdot: LearnTerm = {
     it: 'Cos’è il VDOT? Definizione, formula, esempio',
     'pt-br': 'O que é VDOT? Definição, fórmula e exemplo',
     de: 'VDOT: Definition, Formel, Beispiel',
+    pl: 'Czym jest VDOT? Definicja, wzór, przykład',
+    nl: 'Wat is VDOT? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'VDOT is Jack Daniels’ running fitness score from a race result. The Daniels-Gilbert formula, a 10K worked example and the training paces it gives.',
@@ -33,6 +39,8 @@ export const vdot: LearnTerm = {
     'pt-br':
       'O VDOT é o índice de Jack Daniels calculado a partir de um tempo de prova. Fórmula de Daniels e Gilbert, exemplo com 10 km e paces de treino.',
     de: 'VDOT ist der Leistungswert von Jack Daniels aus einer Wettkampfzeit. Die Formel von Daniels und Gilbert, ein 10-km-Beispiel und die Trainingspaces.',
+    pl: 'VDOT to wskaźnik formy biegowej Jacka Danielsa liczony z wyniku startu. Wzór Danielsa i Gilberta, przykład dla 10 km i wynikające z niego tempa treningowe.',
+    nl: 'VDOT is de loopvormscore van Jack Daniels, berekend uit een wedstrijdtijd. De formule van Daniels en Gilbert, een voorbeeld op 10 km en trainingstempo’s.',
   },
   definition: {
     en: 'VDOT is a running fitness score devised by Jack Daniels and Jimmy Gilbert: the VO2max that would explain a race result if your running economy were average, used to predict times at other distances and to set training paces.',
@@ -42,6 +50,8 @@ export const vdot: LearnTerm = {
     'pt-br':
       'O VDOT é um índice de nível na corrida criado por Jack Daniels e Jimmy Gilbert: o VO2máx que explicaria um tempo de prova se a sua economia de corrida fosse média, usado para prever tempos em outras distâncias e definir paces de treino.',
     de: 'VDOT ist ein Leistungswert für Läufer, entwickelt von Jack Daniels und Jimmy Gilbert: die VO2max, die ein Wettkampfergebnis bei durchschnittlicher Laufökonomie erklären würde. Er dient dazu, Zeiten auf anderen Distanzen vorherzusagen und Trainingspaces festzulegen.',
+    pl: 'VDOT to wskaźnik formy biegowej opracowany przez Jacka Danielsa i Jimmy’ego Gilberta: VO2max, które wyjaśniałoby wynik startu przy przeciętnej ekonomii biegu, używane do przewidywania czasów na innych dystansach i ustalania temp treningowych.',
+    nl: 'VDOT is een loopvormscore, ontwikkeld door Jack Daniels en Jimmy Gilbert: de VO2max die een wedstrijdresultaat zou verklaren bij een gemiddelde loopeconomie, gebruikt om tijden op andere afstanden te voorspellen en trainingstempo’s vast te stellen.',
   },
   aliases: {
     en: ['Daniels VDOT', 'V-dot-O2max', 'Pseudo VO2max'],
@@ -50,6 +60,18 @@ export const vdot: LearnTerm = {
     it: ['VDOT di Daniels', 'Pseudo VO2max'],
     'pt-br': ['VDOT de Daniels', 'Pseudo VO2máx'],
     de: ['VDOT nach Daniels', 'V-dot-O2max', 'Pseudo-VO2max'],
+    pl: [
+      'VDOT Danielsa',
+      'Kalkulator VDOT',
+      'Tabele Danielsa',
+      'Pseudo-VO2max',
+    ],
+    nl: [
+      'VDOT van Daniels',
+      'VDOT-calculator',
+      'Daniels-tabellen',
+      'Pseudo-VO2max',
+    ],
   },
   faq: {
     en: [
@@ -155,6 +177,40 @@ export const vdot: LearnTerm = {
           'Einen aktuellen, flachen Wettkampf zwischen 5 km und Halbmarathon, in dem du alles gegeben hast. Kürzere Belastungen hängen stark von der anaeroben Kapazität ab, und ein Marathon von Verpflegung und Hitze, beides verzerrt die Schätzung. Aktualisiere ihn nach jedem guten Wettkampf oder alle paar Monate.',
       },
     ],
+    pl: [
+      {
+        question: 'Czy VDOT to to samo co VO2max?',
+        answer:
+          'Nie. VO2max mierzy się w laboratorium na podstawie zużywanego tlenu. VDOT wyprowadza się z czasu startu i uwzględnia ekonomię biegu oraz to, jak dobrze utrzymujesz określoną część swojego maksimum. Dwóch biegaczy z tym samym VO2max może mieć bardzo różne VDOT.',
+      },
+      {
+        question: 'Jakie VDOT jest dobre?',
+        answer:
+          'To zależy od wieku, płci i doświadczenia. Dla orientacji: 10 km w 50:00 daje VDOT około 40, 10 km w 45:00 około 45, a 10 km w 40:00 około 52. Biegacze światowej klasy na długich dystansach mają VDOT w okolicach 80 i więcej.',
+      },
+      {
+        question: 'Na podstawie którego startu liczyć VDOT?',
+        answer:
+          'Niedawnego, płaskiego biegu na maksa, między 5 km a półmaratonem. Krótsze wysiłki opierają się na wydolności beztlenowej, a maraton zależy od odżywiania i upału, więc oba zniekształcają wynik. Aktualizuj VDOT po każdym dobrym starcie albo co kilka miesięcy.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Is VDOT hetzelfde als VO2max?',
+        answer:
+          'Nee. VO2max wordt in een lab gemeten aan de hand van de zuurstof die je verbruikt. VDOT wordt teruggerekend uit een wedstrijdtijd en verwerkt je loopeconomie en hoe goed je een deel van je maximum volhoudt. Twee lopers met dezelfde VO2max kunnen een heel verschillende VDOT hebben.',
+      },
+      {
+        question: 'Wat is een goede VDOT?',
+        answer:
+          'Dat hangt af van leeftijd, geslacht en ervaring. Ter referentie: een 10 km in 50:00 geeft een VDOT van ongeveer 40, een 10 km in 45:00 ongeveer 45 en een 10 km in 40:00 ongeveer 52. Langeafstandslopers van wereldklasse zitten rond de 80 en hoger.',
+      },
+      {
+        question: 'Welke wedstrijd gebruik ik om mijn VDOT te berekenen?',
+        answer:
+          'Een recente, vlakke wedstrijd waarin je alles gaf, tussen 5 km en de halve marathon. Kortere inspanningen leunen op anaerobe capaciteit, en een marathon hangt af van voeding en hitte, dus beide vertekenen de schatting. Werk hem bij na elke goede wedstrijd of om de paar maanden.',
+      },
+    ],
   },
   related: ['vo2max', 'vma', 'trimp', 'taper'],
   links: ['/pace-charts', '/tools/race-predictor', '/tools/vma'],
@@ -181,5 +237,7 @@ export const vdot: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

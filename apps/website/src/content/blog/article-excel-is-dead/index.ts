@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleExcelIsDead: BlogPost = {
@@ -17,6 +19,8 @@ export const articleExcelIsDead: BlogPost = {
       it: 'Allenare con un foglio Excel: quanto costa e quando cambiare',
       'pt-br': 'Assessoria na planilha de Excel: quanto custa e quando mudar',
       de: 'Coaching mit Excel: was es kostet und wann du wechseln solltest',
+      pl: 'Trenowanie z arkuszem Excela: ile to kosztuje i kiedy zmienić narzędzie',
+      nl: 'Coachen met een spreadsheet: wat het kost en wanneer je overstapt',
     },
     description: {
       en: 'Where a coaching spreadsheet works, where it starts to cost, how to track load in one with session RPE, and when software is worth it.',
@@ -26,6 +30,8 @@ export const articleExcelIsDead: BlogPost = {
       'pt-br':
         'Onde a planilha de treino funciona, onde começa a custar, como medir a carga com o RPE da sessão e quando vale trocar por um software.',
       de: 'Wo eine Trainingstabelle funktioniert, wo sie Aufwand kostet, wie du darin die Belastung mit Session-RPE erfasst und wann sich Software lohnt.',
+      pl: 'Kiedy arkusz trenerski się sprawdza, kiedy zaczyna kosztować, jak śledzić w nim obciążenie za pomocą session RPE i kiedy warto przejść na oprogramowanie.',
+      nl: 'Waar een coachingspreadsheet werkt, waar hij begint te kosten, hoe je er belasting in bijhoudt met session-RPE, en wanneer software de moeite waard is.',
     },
     excerpt: {
       en: 'Spreadsheets are fine for a few athletes. The costs show up in retyped workouts, copied results and plans that change. How to do it well, and when to stop.',
@@ -35,6 +41,8 @@ export const articleExcelIsDead: BlogPost = {
       'pt-br':
         'A planilha resolve para poucos atletas. Os custos aparecem com treinos redigitados, resultados copiados e planos que mudam. Como fazer direito e quando parar.',
       de: 'Für ein paar Athleten reicht eine Tabelle. Die Kosten zeigen sich bei abgetippten Workouts, kopierten Ergebnissen und Plänen, die sich ändern. Wie es gut geht und wann Schluss ist.',
+      pl: 'Arkusz wystarczy dla kilku zawodników. Koszty pojawiają się przy przepisywanych treningach, kopiowanych wynikach i zmieniających się planach. Jak robić to dobrze i kiedy przestać.',
+      nl: 'Voor een paar atleten volstaat een spreadsheet. De kosten zitten in overgetypte workouts, gekopieerde resultaten en plannen die veranderen. Hoe je het goed doet, en wanneer je stopt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -53,4 +61,6 @@ export const articleExcelIsDead: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleDigitalizingClubs: BlogPost = {
@@ -16,6 +18,8 @@ export const articleDigitalizingClubs: BlogPost = {
       it: "Organizzare l'allenamento in una società di corsa o triathlon",
       'pt-br': 'Como organizar os treinos de um clube de corrida ou triatlo',
       de: 'Das Training in einem Lauf- oder Triathlonverein organisieren',
+      pl: 'Jak zorganizować trening w klubie biegowym lub triathlonowym',
+      nl: 'Training organiseren in een hardloop- of triatlonclub',
     },
     description: {
       en: 'Groups by pace, one coach per group, sessions written once, health data handled with care, and the two ways a club can use OpenAthlete today.',
@@ -25,6 +29,8 @@ export const articleDigitalizingClubs: BlogPost = {
       'pt-br':
         'Grupos por pace, um treinador por grupo, treinos escritos uma vez, cuidado com dados de saúde e duas formas de usar o OpenAthlete no clube.',
       de: 'Gruppen nach Pace, ein Trainer pro Gruppe, Einheiten einmal geschrieben, Sorgfalt bei Gesundheitsdaten und zwei Wege, OpenAthlete im Verein zu nutzen.',
+      pl: 'Grupy według tempa, jeden trener na grupę, treningi pisane raz, ostrożność z danymi o zdrowiu i dwa sposoby, w jakie klub może dziś korzystać z OpenAthlete.',
+      nl: 'Groepen op tempo, één trainer per groep, trainingen één keer geschreven, zorgvuldig met gezondheidsgegevens, en twee manieren waarop een club OpenAthlete nu kan gebruiken.',
     },
     excerpt: {
       en: 'A practical structure for clubs with several volunteer coaches, and how the free OpenAthlete club space handles groups, a shared library and weekly club sessions.',
@@ -34,6 +40,8 @@ export const articleDigitalizingClubs: BlogPost = {
       'pt-br':
         'Uma estrutura prática para clubes com vários treinadores, e o que o espaço de clube gratuito do OpenAthlete oferece: grupos, biblioteca compartilhada e treinos do clube.',
       de: 'Eine praktische Struktur für Vereine mit mehreren Trainern und was der kostenlose Vereinsbereich von OpenAthlete bietet: Gruppen, gemeinsame Bibliothek und Vereinseinheiten.',
+      pl: 'Praktyczna struktura dla klubów z kilkoma trenerami wolontariuszami i to, jak bezpłatna przestrzeń klubowa OpenAthlete obsługuje grupy, wspólną bibliotekę i cotygodniowe treningi klubowe.',
+      nl: 'Een praktische structuur voor clubs met meerdere vrijwillige trainers, en hoe de gratis clubruimte van OpenAthlete groepen, een gedeelde bibliotheek en wekelijkse clubtrainingen regelt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleDigitalizingClubs: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

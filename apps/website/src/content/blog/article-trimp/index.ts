@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleTrimp: BlogPost = {
@@ -16,6 +18,8 @@ export const articleTrimp: BlogPost = {
       it: 'TRIMP: cos’è, formula di Banister ed esempio di calcolo',
       'pt-br': 'TRIMP: o que é, fórmula de Banister e como calcular',
       de: 'TRIMP: Was es ist, die Banister-Formel und wie du ihn berechnest',
+      pl: 'TRIMP: czym jest, wzór Banistera i jak go policzyć',
+      nl: 'TRIMP: wat het is, de formule van Banister en hoe je het berekent',
     },
     description: {
       en: "Banister's TRIMP with the 0.64/1.92 and 0.86/1.67 coefficients, a worked example, and where heart-rate load misleads you.",
@@ -25,6 +29,8 @@ export const articleTrimp: BlogPost = {
       'pt-br':
         'O TRIMP de Banister com os coeficientes 0,64/1,92 e 0,86/1,67, um exemplo de cálculo e onde a carga por frequência cardíaca engana.',
       de: 'Banisters TRIMP mit den Koeffizienten 0,64/1,92 und 0,86/1,67, ein Rechenbeispiel und wo die herzfrequenzbasierte Belastung täuscht.',
+      pl: 'TRIMP Banistera ze współczynnikami 0,64/1,92 i 0,86/1,67, przykład obliczeń i to, gdzie obciążenie liczone z tętna wprowadza w błąd.',
+      nl: 'Banisters TRIMP met de coëfficiënten 0,64/1,92 en 0,86/1,67, een rekenvoorbeeld en waar belasting op basis van hartslag je misleidt.',
     },
     excerpt: {
       en: 'How to compute Banister TRIMP by hand, why averaging heart rate underestimates interval sessions, and what heart rate cannot see.',
@@ -34,6 +40,8 @@ export const articleTrimp: BlogPost = {
       'pt-br':
         'Como calcular o TRIMP de Banister à mão, por que a frequência média subestima os tiros e o que a frequência cardíaca não enxerga.',
       de: 'Wie du den Banister-TRIMP von Hand berechnest, warum die Durchschnitts-HF Intervalle unterschätzt und was die Herzfrequenz nicht sieht.',
+      pl: 'Jak ręcznie policzyć TRIMP Banistera, dlaczego średnie tętno zaniża treningi interwałowe i czego tętno nie widzi.',
+      nl: 'Hoe je de Banister-TRIMP met de hand berekent, waarom de gemiddelde hartslag intervaltrainingen onderschat en wat hartslag niet ziet.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleTrimp: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

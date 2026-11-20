@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const polarizedTraining: LearnTerm = {
@@ -16,6 +18,8 @@ export const polarizedTraining: LearnTerm = {
     it: 'Allenamento polarizzato',
     'pt-br': 'Treino polarizado',
     de: 'Polarisiertes Training',
+    pl: 'Trening spolaryzowany',
+    nl: 'Gepolariseerd trainen',
   },
   title: {
     en: 'Polarized training: definition, formula, example',
@@ -24,6 +28,8 @@ export const polarizedTraining: LearnTerm = {
     it: 'Cos’è l’allenamento polarizzato? Definizione, formula, esempio',
     'pt-br': 'O que é treino polarizado? Definição, fórmula e exemplo',
     de: 'Polarisiertes Training: Definition, Formel, Beispiel',
+    pl: 'Czym jest trening spolaryzowany? Definicja, wzór, przykład',
+    nl: 'Wat is gepolariseerd trainen? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'Polarized training: the 80/20 intensity split, the three zones behind it, the polarization index with a worked example, and what the studies show.',
@@ -33,6 +39,8 @@ export const polarizedTraining: LearnTerm = {
     'pt-br':
       'Treino polarizado: a divisão 80/20, as três zonas, o índice de polarização com um exemplo calculado e o que os estudos mostram.',
     de: 'Polarisiertes Training: die 80/20-Verteilung der Intensität, die drei Zonen dahinter, der Polarisationsindex mit Rechenbeispiel und was die Studien zeigen.',
+    pl: 'Trening spolaryzowany: rozkład intensywności 80/20, trzy strefy, indeks polaryzacji z przykładem obliczeń i co pokazują badania.',
+    nl: 'Gepolariseerd trainen: de 80/20-verdeling van intensiteit, de drie zones erachter, de polarisatie-index met rekenvoorbeeld en wat de studies laten zien.',
   },
   definition: {
     en: 'Polarized training is a training intensity distribution in which most of the volume is done below the first threshold, a smaller share above the second threshold, and very little between the two.',
@@ -42,6 +50,8 @@ export const polarizedTraining: LearnTerm = {
     'pt-br':
       'Treino polarizado é uma distribuição de intensidade em que a maior parte do volume é feita abaixo do primeiro limiar, uma fatia menor acima do segundo e muito pouco entre os dois.',
     de: 'Polarisiertes Training ist eine Verteilung der Trainingsintensität, bei der der Großteil des Umfangs unterhalb der ersten Schwelle absolviert wird, ein kleinerer Anteil oberhalb der zweiten Schwelle und sehr wenig zwischen beiden.',
+    pl: 'Trening spolaryzowany to rozkład intensywności treningu, w którym większość objętości wykonuje się poniżej pierwszego progu, mniejszą część powyżej drugiego progu, a bardzo mało pomiędzy nimi.',
+    nl: 'Gepolariseerd trainen is een verdeling van de trainingsintensiteit waarbij het grootste deel van het volume onder de eerste drempel ligt, een kleiner deel boven de tweede drempel en heel weinig daartussen.',
   },
   aliases: {
     en: ['80/20 training', 'Polarised training', 'Polarization index'],
@@ -54,6 +64,18 @@ export const polarizedTraining: LearnTerm = {
     it: ['Allenamento 80/20', 'Indice di polarizzazione'],
     'pt-br': ['Treino 80/20', 'Índice de polarização'],
     de: ['80/20-Training', '80/20-Methode', 'Polarisationsindex'],
+    pl: [
+      'Trening 80/20',
+      'Metoda 80/20',
+      'Polaryzacja treningu',
+      'Indeks polaryzacji',
+    ],
+    nl: [
+      '80/20-training',
+      '80/20-methode',
+      'Polarized training',
+      'Polarisatie-index',
+    ],
   },
   faq: {
     en: [
@@ -159,6 +181,40 @@ export const polarizedTraining: LearnTerm = {
           'Die Studien wurden mit trainierten oder Spitzenathleten durchgeführt. Für einen Läufer mit drei oder vier Einheiten pro Woche ist überwiegend lockeres Laufen mit einer härteren Einheit ein sicherer Start; ob diese Einheit aus Intervallen oder Schwellentraining bestehen sollte, ist noch umstritten.',
       },
     ],
+    pl: [
+      {
+        question: 'Czy trening spolaryzowany to to samo co bieganie 80/20?',
+        answer:
+          'Mniej więcej. 80/20 to podział jednostek, który Seiler zaobserwował u zawodników z czołówki: około 80 % łatwych i 20 % ciężkich treningów. Trening spolaryzowany dodaje warunek: ciężka praca odbywa się powyżej drugiego progu, a między progami spędza się mało czasu.',
+      },
+      {
+        question: 'Czy w planie spolaryzowanym można biegać w strefie 2?',
+        answer:
+          'Tak, jeśli chodzi o strefę 2 z pięciostrefowego systemu zegarka: to spokojna wytrzymałość, która należy do strefy 1 modelu trzystrefowego. Plan spolaryzowany ogranicza środkową strefę modelu trzystrefowego, między dwoma progami.',
+      },
+      {
+        question: 'Czy trening spolaryzowany nadaje się dla początkujących?',
+        answer:
+          'Badania prowadzono na wytrenowanych lub elitarnych zawodnikach. Dla biegacza z trzema, czterema treningami w tygodniu bezpiecznym startem jest głównie spokojne bieganie z jedną mocniejszą jednostką; czy powinny to być interwały, czy praca progowa, wciąż jest przedmiotem dyskusji.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Is gepolariseerd trainen hetzelfde als 80/20-lopen?',
+        answer:
+          'Ongeveer. 80/20 is de verdeling van trainingen die Seiler bij topsporters zag: zo’n 80% rustige en 20% harde trainingen. Gepolariseerd voegt een voorwaarde toe: het harde werk ligt boven de tweede drempel, en je brengt weinig tijd door tussen de twee drempels.',
+      },
+      {
+        question: 'Mag je zone 2 trainen in een gepolariseerd schema?',
+        answer:
+          'Ja, als je zone 2 van een vijfzonesysteem op je horloge bedoelt: dat is rustige duur, en die hoort bij zone 1 van het driezonemodel. Wat een gepolariseerd schema kort houdt, is de middelste zone van het driezonemodel, tussen de twee drempels.',
+      },
+      {
+        question: 'Is gepolariseerd trainen geschikt voor beginners?',
+        answer:
+          'De studies zijn gedaan bij getrainde sporters en topsporters. Voor een loper met drie of vier trainingen per week is vooral rustig lopen met één zwaardere training een veilig begin; of die training uit intervallen of drempelwerk moet bestaan, is nog onderwerp van discussie.',
+      },
+    ],
   },
   related: [
     'zone-2',
@@ -202,5 +258,7 @@ export const polarizedTraining: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

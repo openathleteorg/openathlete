@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleSubjectiveScientific: BlogPost = {
@@ -16,6 +18,8 @@ export const articleSubjectiveScientific: BlogPost = {
       it: "Soggettivo ma scientifico: come l'RPE misura la fatica",
       'pt-br': 'Subjetivo, mas científico: como a RPE mede a fadiga',
       de: 'Subjektiv, aber wissenschaftlich: Wie das RPE Ermüdung misst',
+      pl: 'Subiektywne, ale naukowe: jak RPE mierzy zmęczenie',
+      nl: 'Subjectief, maar wetenschappelijk: hoe RPE vermoeidheid meet',
     },
     description: {
       en: "Borg's scales, Foster's session RPE and the evidence that self-reports track training load better than many lab markers. How to rate reliably.",
@@ -25,6 +29,8 @@ export const articleSubjectiveScientific: BlogPost = {
       'pt-br':
         'Escalas de Borg, RPE da sessão de Foster e por que a autoavaliação acompanha a carga melhor que muitos marcadores. Como dar a nota.',
       de: 'Borg-Skalen, Fosters Session-RPE und warum die Selbsteinschätzung die Belastung besser abbildet als viele Marker. So bewertest du richtig.',
+      pl: 'Skale Borga, session-RPE Fostera i dlaczego samoocena oddaje obciążenie lepiej niż wiele markerów. Jak oceniać poprawnie.',
+      nl: 'Borg-schalen, Fosters session-RPE en waarom zelfrapportage de belasting beter weergeeft dan veel markers. Zo scoor je goed.',
     },
     excerpt: {
       en: 'A number you make up yourself turns out to be one of the most sensitive fatigue measures there is, provided you rate it the same way every time.',
@@ -34,6 +40,8 @@ export const articleSubjectiveScientific: BlogPost = {
       'pt-br':
         'Um número que você mesmo inventa acaba sendo uma das medidas de fadiga mais sensíveis, desde que você dê a nota sempre do mesmo jeito.',
       de: 'Eine Zahl, die du dir selbst ausdenkst, ist eines der empfindlichsten Maße für Ermüdung, solange du immer auf dieselbe Weise bewertest.',
+      pl: 'Liczba, którą sam wymyślasz, jest jedną z najczulszych miar zmęczenia, o ile zawsze oceniasz w ten sam sposób.',
+      nl: 'Een getal dat je zelf verzint, is een van de gevoeligste maten voor vermoeidheid, zolang je altijd op dezelfde manier scoort.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleSubjectiveScientific: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

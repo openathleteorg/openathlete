@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleNolioTrainingpeaksComparison: BlogPost = {
@@ -17,6 +19,8 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
       it: 'Nolio, TrainingPeaks o OpenAthlete per allenatori (2026)',
       'pt-br': 'Nolio, TrainingPeaks ou OpenAthlete para treinadores (2026)',
       de: 'Nolio vs. TrainingPeaks vs. OpenAthlete für Coaches (2026)',
+      pl: 'Nolio vs TrainingPeaks vs OpenAthlete dla trenerów (2026)',
+      nl: 'Nolio vs TrainingPeaks vs OpenAthlete voor coaches (2026)',
     },
     description: {
       en: 'What a coach pays on Nolio, TrainingPeaks and OpenAthlete at 3, 10, 25 and 30 athletes, what each does best and what each lacks.',
@@ -26,6 +30,8 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
       'pt-br':
         'Quanto um treinador paga no Nolio, TrainingPeaks e OpenAthlete de 3 a 30 atletas, o que cada um faz melhor e o que falta.',
       de: 'Was ein Coach bei Nolio, TrainingPeaks und OpenAthlete für 3, 10, 25 und 30 Athleten zahlt, was jedes Tool am besten kann und was ihm fehlt.',
+      pl: 'Ile trener płaci w Nolio, TrainingPeaks i OpenAthlete przy 3, 10, 25 i 30 zawodnikach, w czym każde z nich jest najlepsze i czego mu brakuje.',
+      nl: 'Wat een coach betaalt bij Nolio, TrainingPeaks en OpenAthlete voor 3, 10, 25 en 30 atleten, waar elk het best in is en wat elk mist.',
     },
     excerpt: {
       en: 'Three pricing logics for coaches: per athlete, by tier, or flat. Dated list prices, strengths, gaps, and which one fits which coach.',
@@ -35,6 +41,8 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
       'pt-br':
         'Três lógicas de preço para treinadores: por atleta, por faixa ou fixo. Preços com data, pontos fortes, lacunas e para quem cada um serve.',
       de: 'Drei Preislogiken für Coaches: pro Athlet, nach Stufen oder pauschal. Listenpreise mit Datum, Stärken, Lücken und welches Tool zu welchem Coach passt.',
+      pl: 'Trzy logiki cenowe dla trenerów: za zawodnika, według progów albo ryczałtem. Ceny katalogowe z datą, mocne strony, braki i które narzędzie pasuje do jakiego trenera.',
+      nl: "Drie prijslogica's voor coaches: per atleet, per staffel of vast. Gedateerde catalogusprijzen, sterke punten, gaten, en welke bij welke coach past.",
     },
     author: {
       name: 'OpenAthlete Team',
@@ -53,4 +61,6 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };
