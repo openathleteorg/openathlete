@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { featureAccessMapSchema } from '../../features';
+import { Feature, featureAccessMapSchema } from '../../features';
 import {
   billingIntervalSchema,
   billingProviderSchema,
@@ -116,6 +116,8 @@ export const createCheckoutSessionDtoSchema = z.object({
   acceptTerms: z.literal(true).optional(),
   successUrl: z.string().url(),
   cancelUrl: z.string().url(),
+  /** The locked feature whose paywall led here, for the funnels */
+  feature: z.nativeEnum(Feature).optional(),
 });
 
 export type CreateCheckoutSessionDto = z.infer<

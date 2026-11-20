@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import {
   BillingInterval,
   FREE_PLAN_MAX_ATHLETES,
+  Feature,
   SubscriptionPlan,
   appleProductFor,
 } from '@openathlete/shared';
@@ -46,6 +47,8 @@ const APPLE_STANDARD_EULA =
 type OfferProps = {
   /** Where the offer was shown (PostHog) */
   analyticsSource: string;
+  /** The locked feature whose paywall shows the offer */
+  feature?: Feature;
   className?: string;
 };
 
@@ -164,8 +167,12 @@ export function TierPicker({
 
 function SupporterPerks() {
   const perks = [
+    m.supporter_perk_lab(),
+    m.supporter_perk_early_access(),
+    m.supporter_perk_coach_tools(),
     m.supporter_perk_athletes({ count: FREE_PLAN_MAX_ATHLETES }),
     m.supporter_perk_ai(),
+    m.supporter_perk_badge(),
     m.supporter_perk_project(),
   ];
   return (
@@ -183,7 +190,11 @@ function SupporterPerks() {
   );
 }
 
-function StripeSupporterOffer({ analyticsSource, className }: OfferProps) {
+function StripeSupporterOffer({
+  analyticsSource,
+  feature,
+  className,
+}: OfferProps) {
   const posthog = usePostHog();
   const createCheckout = useCreateCheckout();
   const [interval, setInterval] = useState(BillingInterval.YEAR);
@@ -205,12 +216,14 @@ function StripeSupporterOffer({ analyticsSource, className }: OfferProps) {
         acceptTerms: true,
         successUrl: `${settingsUrl}&success=true`,
         cancelUrl: `${settingsUrl}&canceled=true`,
+        feature,
       });
       posthog?.capture('subscription_upgrade_initiated', {
         plan: SubscriptionPlan.SUPPORTER,
         interval,
         amount_cents: amountCents,
         source: analyticsSource,
+        feature: feature ?? null,
       });
       window.location.href = url;
     } catch (error) {
@@ -218,6 +231,7 @@ function StripeSupporterOffer({ analyticsSource, className }: OfferProps) {
         plan: SubscriptionPlan.SUPPORTER,
         interval,
         source: analyticsSource,
+        feature: feature ?? null,
         error_code: analyticsErrorCodeFromUnknown(error),
       });
       toast.error(m.subscription_checkout_error());
@@ -285,7 +299,11 @@ function StripeSupporterOffer({ analyticsSource, className }: OfferProps) {
  * the auto-renewal terms, links to the terms of use and the privacy policy,
  * and a way to restore purchases (guideline 3.1.2).
  */
-function AppStoreSupporterOffer({ analyticsSource, className }: OfferProps) {
+function AppStoreSupporterOffer({
+  analyticsSource,
+  feature,
+  className,
+}: OfferProps) {
   const posthog = usePostHog();
   const purchase = useAppStorePurchase();
   const restore = useRestoreAppStorePurchases();
@@ -336,6 +354,7 @@ function AppStoreSupporterOffer({ analyticsSource, className }: OfferProps) {
       interval,
       amount_cents: amountCents,
       source: analyticsSource,
+      feature: feature ?? null,
       store: 'app_store',
     });
     try {
@@ -347,6 +366,7 @@ function AppStoreSupporterOffer({ analyticsSource, className }: OfferProps) {
         plan: SubscriptionPlan.SUPPORTER,
         interval,
         source: analyticsSource,
+        feature: feature ?? null,
         store: 'app_store',
         error_code: analyticsErrorCodeFromUnknown(error),
       });

@@ -632,6 +632,7 @@ export class SubscriptionController {
     await this.analytics?.capture(user.userId, 'checkout_started', {
       interval: dto.interval,
       amount_cents: amountCents,
+      feature: dto.feature ?? null,
     });
 
     return {
