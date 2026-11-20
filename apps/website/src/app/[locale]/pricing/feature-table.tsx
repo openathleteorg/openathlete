@@ -86,7 +86,9 @@ function groups(): Group[] {
           cells: [false, true, true],
         },
         { label: m.pricing_page_row_clubs(), cells: [false, true, true] },
-        { label: m.pricing_page_row_badge(), cells: [false, true, true] },
+        { label: m.pricing_page_row_themes(), cells: [false, true, true] },
+        // A self-hosted instance sells nothing: no one wears a badge there
+        { label: m.pricing_page_row_badge(), cells: [false, true, false] },
       ],
     },
     {
