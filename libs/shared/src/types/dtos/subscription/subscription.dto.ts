@@ -36,6 +36,10 @@ export const currentSubscriptionDtoSchema = z.object({
   billingEnabled: z.boolean(),
   /** The iOS app can sell subscriptions (App Store purchases are configured) */
   appStoreEnabled: z.boolean(),
+  /** The user agreed to appear on the Supporter wall of the website */
+  showOnSupporterWall: z.boolean(),
+  /** Name shown there instead of the first name */
+  wallName: z.string().nullable(),
 });
 
 export type CurrentSubscriptionDto = z.infer<
@@ -49,6 +53,46 @@ export const supporterCountDtoSchema = z.object({
 });
 
 export type SupporterCountDto = z.infer<typeof supporterCountDtoSchema>;
+
+/** Longest name a Supporter may show on the wall */
+export const SUPPORTER_WALL_NAME_MAX_LENGTH = 30;
+
+/**
+ * What the public transparency page of the website reads. Strict: no
+ * amount, no email and no full name may ever be added to it, since the
+ * revenue and the funding thresholds stay private.
+ */
+export const transparencyDtoSchema = z
+  .object({
+    supporters: supporterCountDtoSchema,
+    /**
+     * Progress of each funding tier, in whole percent of its own step (from
+     * the previous threshold to its own). Null when the thresholds are not
+     * configured.
+     */
+    tiers: z.array(z.number().int().min(0).max(100)).max(5).nullable(),
+    /** First names or chosen names of the Supporters who agreed, oldest first */
+    wall: z.array(z.string()),
+  })
+  .strict();
+
+export type TransparencyDto = z.infer<typeof transparencyDtoSchema>;
+
+/** Appear on the Supporter wall, under a chosen name or the first name */
+export const updateSupporterWallDtoSchema = z.object({
+  show: z.boolean(),
+  /** Empty or absent: the first name */
+  name: z
+    .string()
+    .trim()
+    .max(SUPPORTER_WALL_NAME_MAX_LENGTH)
+    .nullable()
+    .optional(),
+});
+
+export type UpdateSupporterWallDto = z.infer<
+  typeof updateSupporterWallDtoSchema
+>;
 
 /**
  * Create checkout session DTO

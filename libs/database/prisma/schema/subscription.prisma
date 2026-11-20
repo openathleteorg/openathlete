@@ -46,6 +46,10 @@ model Subscription {
   isFounder                  Boolean          @default(false) @map("is_founder")
   /// When the founder's subscription started
   founderSince               DateTime?        @map("founder_since")
+  /// The Supporter agreed to appear on the public wall of the transparency page
+  showOnSupporterWall        Boolean          @default(false) @map("show_on_supporter_wall")
+  /// Name shown on that wall instead of the first name; never the full name
+  wallName                   String?          @map("wall_name")
 
   // relationships
   user   User @relation(fields: [userId], references: [userId])

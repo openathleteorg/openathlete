@@ -148,6 +148,22 @@ export class SubscriptionService {
     });
   }
 
+  /** Shows or hides the user on the Supporter wall; an empty name: the first name */
+  async updateSupporterWall(
+    userId: number,
+    { show, name }: { show: boolean; name?: string | null },
+  ): Promise<Subscription> {
+    await this.getOrCreateSubscription(userId);
+    return this.prisma.subscription.update({
+      where: { userId },
+      data: {
+        showOnSupporterWall: show,
+        // Absent: keep the name chosen before
+        ...(name !== undefined && { wallName: name?.trim() || null }),
+      },
+    });
+  }
+
   /**
    * Ensure a Stripe customer exists for this user and persist its ID.
    * Useful for flows like opening the billing portal when the user never checked out yet.

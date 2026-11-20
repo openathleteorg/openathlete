@@ -497,6 +497,52 @@ export const ApiEnvSchema = z
         'Stripe webhook secret for verifying webhook requests (optional)',
       ),
 
+    // Funding tiers of the transparency page (optional, hosted instance only)
+    TRANSPARENCY_TIER_1_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_1_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Monthly revenue, in euros excluding VAT, at which funding tier 1 of the transparency page is reached. Only its progress is published. Unset (any tier): the page shows the Supporter count alone',
+      ),
+
+    TRANSPARENCY_TIER_2_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_2_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Monthly revenue, in euros excluding VAT, at which funding tier 2 of the transparency page is reached. Only its progress is published. Unset (any tier): the page shows the Supporter count alone',
+      ),
+
+    TRANSPARENCY_TIER_3_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_3_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Monthly revenue, in euros excluding VAT, at which funding tier 3 of the transparency page is reached. Only its progress is published. Unset (any tier): the page shows the Supporter count alone',
+      ),
+
+    TRANSPARENCY_TIER_4_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_4_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Monthly revenue, in euros excluding VAT, at which funding tier 4 of the transparency page is reached. Only its progress is published. Unset (any tier): the page shows the Supporter count alone',
+      ),
+
+    TRANSPARENCY_TIER_5_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_5_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Optional fifth funding tier of the transparency page, a small team, above tier 4. Unset: the page shows it as a horizon without progress',
+      ),
+
     // App Store in-app purchases (optional, hosted iOS app only)
     APPLE_IAP_APP_ID: z
       .string()
