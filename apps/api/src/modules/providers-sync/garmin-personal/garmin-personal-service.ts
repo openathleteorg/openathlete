@@ -13,6 +13,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { GarminPersonalConnection, Prisma } from '@openathlete/database';
 import {
@@ -27,6 +28,7 @@ import {
   garminPersonalStatusSchema,
 } from '@openathlete/shared';
 
+import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
 import { prepareManualFit } from '../../core/helpers/manual-fit-import';
 import { FitParserStrategy } from '../../core/helpers/strategies/fit-parser.strategy';
 import { PrismaService } from '../../prisma/services/prisma.service';
@@ -43,6 +45,8 @@ export const PERSONAL_QUEUE_TTL_MS = 5 * 60000;
 export interface PersonalJob extends GarminPersonalSync {
   connectionId: number;
   version: number;
+  /** The hourly sync: what it creates is new. Manual ranges are history */
+  automatic?: boolean;
 }
 const emptyResult = (): GarminPersonalResult => ({
   imported: 0,
@@ -89,6 +93,7 @@ export class GarminPersonalService {
     private readonly jobs: Queue<PersonalJob> | undefined,
     @Inject(forwardRef(() => QueueService))
     private readonly processing: QueueService,
+    @Optional() private readonly emitter?: EventEmitter2,
   ) {
     this.cipher = new GarminPersonalCipher(config.getOrThrow('HASH_PEPPER'));
   }
@@ -281,6 +286,7 @@ export class GarminPersonalService {
   async enqueue(
     userId: number,
     range: GarminPersonalSync,
+    automatic = false,
   ): Promise<GarminPersonalSyncResponse> {
     if (!this.jobs) throw new BadRequestException('PROVIDER_NOT_CONFIGURED');
     const athleteId = await this.athlete(userId);
@@ -311,7 +317,7 @@ export class GarminPersonalService {
     try {
       await this.jobs.add(
         'pull',
-        { connectionId: c.id, version: c.version, ...range },
+        { connectionId: c.id, version: c.version, ...range, automatic },
         {
           jobId,
           attempts: 3,
@@ -596,6 +602,9 @@ export class GarminPersonalService {
                         this.client.download(credentials, activity.activityId),
                       ),
                   );
+              // Like a webhook import: coach notice, weather, push and AI
+              // summary. A retry of an earlier run's processing stays quiet.
+              const isNew = job.automatic === true && saved.created;
               if (saved.item.skipReason) result.skipped++;
               else if (saved.item.needsReview) result.needsReview++;
               else if (saved.created) result.imported++;
@@ -605,10 +614,19 @@ export class GarminPersonalService {
                   const a = await this.prisma.eventActivity.findUniqueOrThrow({
                     where: { eventActivityId: saved.item.eventActivityId },
                   });
+                  if (isNew)
+                    this.emitter?.emit(
+                      CoachActivityNoticeEvent.SLUG,
+                      new CoachActivityNoticeEvent({
+                        eventId: a.eventId,
+                        kind: 'ACTIVITY',
+                        deliveryKey: `import:${a.eventId}`,
+                      }),
+                    );
                   await this.processing.addActivityProcessingJob(
                     a.eventActivityId,
                     a.eventId,
-                    true,
+                    !isNew,
                   );
                   await this.prisma.garminPersonalItem.update({
                     where: { id: saved.item.id },
