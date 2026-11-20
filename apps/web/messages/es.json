@@ -3128,12 +3128,8 @@
   "supporter_perk_early_access": "Las novedades 30 días antes que nadie",
   "supporter_perk_coach_tools": "Los clubes, la comparación de periodos y las herramientas avanzadas del entrenador",
   "supporter_perk_badge": "Una insignia Supporter, temas de color e imágenes en las notas",
-  "lab_teaser_efficiency_label": "Eficiencia de tus salidas regulares",
-  "lab_teaser_climb_label": "Velocidad de ascenso al {slope} %",
-  "lab_teaser_weeks": "Últimas {weeks} semanas",
   "lab_overview_open": "Ver el Laboratorio",
-  "lab_teaser_stable": "Estable",
-  "club_closed_staff": "Este club no admite nuevos miembros ni sesiones por ahora: su propietario ya no es Supporter. Todo lo que ya está planificado sigue en marcha.",
+  "club_closed_staff": "Este club no admite nuevos miembros por ahora. Consulta con su propietario.",
   "club_closed_join": "Este club no acepta nuevos miembros por ahora. Pregunta a su entrenador.",
   "accent_title": "Color de la app",
   "accent_description": "El color de los botones y los resaltados. Los modos claro y oscuro están en el menú de tu cuenta.",
@@ -3149,5 +3145,7 @@
   "supporter_badge_show": "Mostrar mi insignia",
   "supporter_badge_description": "Un pequeño corazón junto a tu nombre, para tus entrenadores, atletas, miembros de tus clubes y conversaciones.",
   "supporter_badge_save_failed": "No se pudo guardar la insignia.",
-  "club_closed_owner": "Tu club no admite nuevos miembros, invitaciones ni sesiones mientras no seas Supporter. Todo lo ya planificado sigue y tus miembros conservan su acceso."
+  "club_closed_owner": "Tu club no admite nuevos miembros, invitaciones ni sesiones mientras no seas Supporter. Todo lo ya planificado sigue y tus miembros conservan su acceso.",
+  "lab_teaser_progress": "{change} % en un año, tu mayor progreso",
+  "feature_locked_title": "{name} · Supporter"
 }

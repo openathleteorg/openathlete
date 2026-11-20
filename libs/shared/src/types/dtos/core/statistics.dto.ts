@@ -278,21 +278,21 @@ export type StatisticsEfficiencyDto = z.infer<
 >;
 
 /**
- * The one figure of the Lab a non-Supporter sees: real, computed for the
- * athlete, over the last 12 weeks. Null when there is nothing to show.
+ * The one figure of the Lab a non-Supporter sees: the capacity of the
+ * profile that progressed the most over the last twelve months against the
+ * twelve before, real and computed for the athlete. Null without progress.
  */
 export const labTeaserSchema = z
   .object({
-    /**
-     * efficiency: change of the efficiency factor of steady runs, as a
-     * fraction (0.04 = +4 %). climb: median vertical speed, in metres an
-     * hour, at `slope` percent.
-     */
-    kind: z.enum(['efficiency', 'climb']),
+    axis: z.enum(['climb', 'descent', 'critical', 'cost']),
+    /** m/h (climb, descent), m/s or W (critical), bpm (cost) */
     value: z.number(),
-    /** Percent of slope of a climb teaser, null otherwise */
-    slope: z.number().nullable(),
-    weeks: z.number().int().positive(),
+    /** Progress in percent, positive: better */
+    change: z.number(),
+    /** What critical output or cardiac cost is read against */
+    unit: z.enum(['speed', 'power']).nullable(),
+    /** Cardiac cost: the speed (km/h) or power (W) it is read at */
+    reference: z.number().nullable(),
   })
   .nullable();
 export type LabTeaserDto = z.infer<typeof labTeaserSchema>;

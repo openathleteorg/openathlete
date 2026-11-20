@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { BestRecordDto, RECORD_TYPE, SPORT_TYPE } from '@openathlete/shared';
-
+import type { BestRecordDto } from '../types/dtos/core/records.dto';
+import { RECORD_TYPE } from '../types/misc/core/record-type.enum';
+import { SPORT_TYPE } from '../types/misc/core/sport-type.enum';
 import {
   criticalFit,
   criticalSwimSpeed,

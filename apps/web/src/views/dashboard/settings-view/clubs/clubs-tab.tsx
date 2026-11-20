@@ -2,7 +2,7 @@ import { ClubAPI, useCreateClubMutation, useMyClubsQuery } from '@/api/club';
 import { clubRoleLabel } from '@/components/clubs/club-role';
 import { NameDialog } from '@/components/clubs/name-dialog';
 import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
-import { SupporterMark } from '@/components/supporter-perks/locks';
+import { ButtonLock } from '@/components/supporter-perks/locks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useFeature } from '@/hooks/use-feature';
@@ -70,9 +70,7 @@ export function ClubsTab() {
               data-club-create
             >
               {m.club_create()}
-              {clubsPerk.locked && (
-                <SupporterMark className="text-primary-foreground/80" />
-              )}
+              {clubsPerk.locked && <ButtonLock />}
             </Button>
           )
         }

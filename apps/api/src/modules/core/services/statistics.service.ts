@@ -16,7 +16,6 @@ import {
   GetStatisticsOverviewQueryDto,
   GetStatisticsSectionQueryDto,
   GetStatisticsTrendsQueryDto,
-  LabTeaserDto,
   SPORT_GROUPS,
   SPORT_TYPE,
   SportGroup,
@@ -34,7 +33,6 @@ import {
   StatisticsTotalsDto,
   StatisticsTrendsDto,
   StatisticsVolumeDto,
-  efficiencyTrendChange,
   statisticsGranularity,
 } from '@openathlete/shared';
 
@@ -52,21 +50,6 @@ import {
   toUtcDateKey,
 } from '../helpers/training-load';
 import { TrainingLoadService } from './training-load.service';
-
-/** Weeks the Lab teaser reads */
-const LAB_TEASER_WEEKS = 12;
-/** Sports whose efficiency the teaser quotes */
-const LAB_TEASER_RUNS = new Set<SPORT_TYPE>([
-  SPORT_TYPE.RUNNING,
-  SPORT_TYPE.TRAIL_RUNNING,
-  SPORT_TYPE.VIRTUAL_RUN,
-]);
-/** Smallest efficiency change the teaser quotes (0.5 %) */
-const LAB_TEASER_MIN_CHANGE = 0.005;
-/** Slope, in percent, from which a climb beats a flat efficiency line */
-const LAB_TEASER_MIN_SLOPE = 5;
-/** Activities a slope needs before the teaser quotes it */
-const LAB_TEASER_MIN_ACTIVITIES = 3;
 
 /** Above this, the load chart shows weeks: days are too many to draw */
 const LOAD_DAILY_MAX_DAYS = 400;
@@ -569,50 +552,6 @@ export class StatisticsService {
       }),
       hasWeight: weights.length > 0,
     };
-  }
-
-  /**
-   * The one Lab figure a non-Supporter sees, over the last 12 weeks: how
-   * the efficiency of steady runs moved, else how fast the athlete climbs
-   * on the steepest slope with enough activities. Null without either.
-   */
-  async getLabTeaser(
-    user: AuthUser,
-    { athleteId, sport }: { athleteId: number; sport: SPORT_TYPE },
-    now = new Date(),
-  ): Promise<LabTeaserDto> {
-    const weeks = LAB_TEASER_WEEKS;
-    const query = {
-      athleteId,
-      sport,
-      from: new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000),
-      to: now,
-    };
-    // The efficiency factor is a runner's figure (grade-adjusted pace)
-    const change = LAB_TEASER_RUNS.has(sport)
-      ? efficiencyTrendChange((await this.getEfficiency(user, query)).runs)
-      : null;
-    const efficiency = (value: number): LabTeaserDto => ({
-      kind: 'efficiency',
-      value,
-      slope: null,
-      weeks,
-    });
-    if (change !== null && Math.abs(change) >= LAB_TEASER_MIN_CHANGE) {
-      return efficiency(change);
-    }
-    // The steepest slope with enough activities: a real climb says more
-    // than a flat line, a flat line more than a gentle slope
-    const climb = (await this.getTerrain(user, query)).bins
-      .filter((bin) => bin.bin > 0 && bin.count >= LAB_TEASER_MIN_ACTIVITIES)
-      .sort((a, b) => b.bin - a.bin)[0];
-    const asClimb = (): LabTeaserDto =>
-      climb
-        ? { kind: 'climb', value: climb.median, slope: climb.bin, weeks }
-        : null;
-    if (climb && climb.bin >= LAB_TEASER_MIN_SLOPE) return asClimb();
-    if (change !== null) return efficiency(change);
-    return asClimb();
   }
 
   /** How efforts hold over time, by the length of the outing. */

@@ -3128,12 +3128,8 @@
   "supporter_perk_early_access": "Nowości 30 dni przed wszystkimi",
   "supporter_perk_coach_tools": "Kluby, porównanie okresów i zaawansowane narzędzia trenera",
   "supporter_perk_badge": "Odznaka Supportera, motywy kolorystyczne i obrazy w notatkach",
-  "lab_teaser_efficiency_label": "Efektywność Twoich równych biegów",
-  "lab_teaser_climb_label": "Prędkość wznoszenia przy {slope} %",
-  "lab_teaser_weeks": "Ostatnie {weeks} tygodni",
   "lab_overview_open": "Zobacz Laboratorium",
-  "lab_teaser_stable": "Stabilna",
-  "club_closed_staff": "Ten klub na razie nie przyjmuje nowych członków ani treningów: właściciel nie jest już Supporterem. Wszystko, co już zaplanowane, działa dalej.",
+  "club_closed_staff": "Ten klub na razie nie przyjmuje nowych członków. Porozmawiaj z właścicielem.",
   "club_closed_join": "Ten klub na razie nie przyjmuje nowych członków. Zapytaj trenera.",
   "accent_title": "Kolor aplikacji",
   "accent_description": "Kolor przycisków i wyróżnień. Tryb jasny i ciemny znajdziesz w menu konta.",
@@ -3149,5 +3145,7 @@
   "supporter_badge_show": "Pokaż moją odznakę",
   "supporter_badge_description": "Małe serce obok Twojego imienia, widoczne dla trenerów, zawodników, członków klubów i w rozmowach.",
   "supporter_badge_save_failed": "Nie udało się zapisać odznaki.",
-  "club_closed_owner": "Twój klub nie przyjmuje nowych członków, zaproszeń ani treningów, dopóki nie jesteś Supporterem. Wszystko, co już zaplanowane, działa dalej, a członkowie zachowują dostęp."
+  "club_closed_owner": "Twój klub nie przyjmuje nowych członków, zaproszeń ani treningów, dopóki nie jesteś Supporterem. Wszystko, co już zaplanowane, działa dalej, a członkowie zachowują dostęp.",
+  "lab_teaser_progress": "{change}% w ciągu roku, Twój największy postęp",
+  "feature_locked_title": "{name} · Supporter"
 }

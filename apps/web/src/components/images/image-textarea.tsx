@@ -1,5 +1,5 @@
 import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
-import { SupporterMark } from '@/components/supporter-perks/locks';
+import { ButtonLock } from '@/components/supporter-perks/locks';
 import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/ui/loader';
 import { Textarea } from '@/components/ui/textarea';
@@ -149,7 +149,7 @@ export function ImageTextarea({
           >
             <ImagePlus className="size-4" />
             {m.image_add()}
-            <SupporterMark />
+            <ButtonLock />
           </Button>
         </div>
       )}

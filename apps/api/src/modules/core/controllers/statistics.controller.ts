@@ -28,6 +28,7 @@ import { UserTypeGuard } from 'src/modules/auth';
 import { AuthUser, JwtUser } from 'src/modules/auth/decorators/user.decorator';
 import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
+import { LabTeaserService } from '../services/lab-teaser.service';
 import { StatisticsService } from '../services/statistics.service';
 
 @ApiTags('Statistics')
@@ -36,6 +37,7 @@ export class StatisticsController {
   constructor(
     private statisticsService: StatisticsService,
     private features: FeatureAccessService,
+    private labTeaser: LabTeaserService,
   ) {}
 
   /**
@@ -50,7 +52,7 @@ export class StatisticsController {
     if (await this.features.can(user.userId, Feature.LAB)) return read();
     return {
       locked: true,
-      teaser: await this.statisticsService.getLabTeaser(user, query),
+      teaser: await this.labTeaser.teaser(user, query),
     };
   }
 

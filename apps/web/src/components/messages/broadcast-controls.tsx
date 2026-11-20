@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useFeature } from '@/hooks/use-feature';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
-import { Clock, Lock, Megaphone } from 'lucide-react';
+import { Clock, Megaphone } from 'lucide-react';
 import { useState } from 'react';
 
 import { Feature } from '@openathlete/shared';
@@ -48,9 +48,14 @@ export function BroadcastControls({ compact = false }: { compact?: boolean }) {
         <Button
           variant={compact ? 'ghost' : 'outline'}
           size="icon"
-          className={cn('relative', size)}
+          className={cn(size)}
           aria-label={m.broadcast_title()}
-          title={m.broadcast_title()}
+          // An icon button keeps its shape: the lock is said, not drawn
+          title={
+            broadcast.locked
+              ? m.feature_locked_title({ name: m.broadcast_title() })
+              : m.broadcast_title()
+          }
           onClick={() =>
             broadcast.available
               ? setWriting(true)
@@ -59,13 +64,6 @@ export function BroadcastControls({ compact = false }: { compact?: boolean }) {
           data-broadcast-button
         >
           <Megaphone className="size-5" />
-          {broadcast.locked && (
-            <Lock
-              aria-hidden
-              data-supporter-lock
-              className="absolute right-1 bottom-1 size-3 text-muted-foreground"
-            />
-          )}
         </Button>
       )}
       <BroadcastMessageDialog

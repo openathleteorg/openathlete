@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useImageUpload } from '@/hooks/use-image-upload';
 import { m } from '@/paraglide/messages';
 import { imageFiles } from '@/utils/image-resize';
-import { ImagePlus, Lock, Send, X } from 'lucide-react';
+import { ImagePlus, Send, X } from 'lucide-react';
 import {
   type ClipboardEvent,
   KeyboardEvent,
@@ -127,16 +127,11 @@ export function ChatInput({
             size="icon"
             onClick={() => paywall.open(Feature.IMAGES, 'messages')}
             aria-label={m.image_add()}
-            title={m.image_add()}
-            className="relative h-[60px] w-11 flex-shrink-0"
+            title={m.feature_locked_title({ name: m.image_add() })}
+            className="h-[60px] w-11 flex-shrink-0"
             data-images-locked
           >
             <ImagePlus className="h-5 w-5" />
-            <Lock
-              aria-hidden
-              data-supporter-lock
-              className="absolute right-1.5 bottom-3 size-3 text-muted-foreground"
-            />
           </Button>
         )}
         {canAttach && (

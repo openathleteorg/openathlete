@@ -3128,12 +3128,8 @@
   "supporter_perk_early_access": "New features 30 days before everyone else",
   "supporter_perk_coach_tools": "Clubs, period comparisons and the advanced coach tools",
   "supporter_perk_badge": "A Supporter badge, colour themes and images in notes",
-  "lab_teaser_efficiency_label": "Efficiency of your steady runs",
-  "lab_teaser_climb_label": "Climbing speed at {slope} %",
-  "lab_teaser_weeks": "Last {weeks} weeks",
   "lab_overview_open": "See the Lab",
-  "lab_teaser_stable": "Stable",
-  "club_closed_staff": "This club takes no new members or sessions for now: its owner is no longer a Supporter. Everything already planned keeps running.",
+  "club_closed_staff": "This club isn't taking new members for now. Check with its owner.",
   "club_closed_join": "This club isn't taking new members for now. Ask its coach.",
   "accent_title": "App colour",
   "accent_description": "The colour of buttons and highlights. Light and dark mode are in your account menu.",
@@ -3149,5 +3145,7 @@
   "supporter_badge_show": "Show my badge",
   "supporter_badge_description": "A small heart next to your name, for your coaches, athletes, club members and conversations.",
   "supporter_badge_save_failed": "The badge could not be saved.",
-  "club_closed_owner": "Your club takes no new members, invitations or sessions while you are not a Supporter. Everything already planned keeps running, and your members keep their access."
+  "club_closed_owner": "Your club takes no new members, invitations or sessions while you are not a Supporter. Everything already planned keeps running, and your members keep their access.",
+  "lab_teaser_progress": "{change}% over a year, your strongest progress",
+  "feature_locked_title": "{name} · Supporter"
 }

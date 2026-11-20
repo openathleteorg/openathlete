@@ -3128,12 +3128,8 @@
   "supporter_perk_early_access": "Les nouveautés 30 jours avant tout le monde",
   "supporter_perk_coach_tools": "Les clubs, la comparaison de périodes et les outils avancés du coach",
   "supporter_perk_badge": "Un badge Supporter, des thèmes de couleur et les images dans les notes",
-  "lab_teaser_efficiency_label": "Efficacité de vos sorties régulières",
-  "lab_teaser_climb_label": "Vitesse ascensionnelle à {slope} %",
-  "lab_teaser_weeks": "{weeks} dernières semaines",
   "lab_overview_open": "Voir le Labo",
-  "lab_teaser_stable": "Stable",
-  "club_closed_staff": "Ce club n'accueille plus de nouveaux membres ni de nouvelles séances pour l'instant : son propriétaire n'est plus Supporter. Tout ce qui est déjà planifié continue.",
+  "club_closed_staff": "Ce club n'accueille pas de nouveaux membres pour le moment. Voyez avec son propriétaire.",
   "club_closed_join": "Ce club n'accepte pas de nouveaux membres pour l'instant. Demandez à son entraîneur.",
   "accent_title": "Couleur de l'application",
   "accent_description": "La couleur des boutons et des repères. Les modes clair et sombre sont dans le menu de votre compte.",
@@ -3149,5 +3145,7 @@
   "supporter_badge_show": "Afficher mon badge",
   "supporter_badge_description": "Un petit cœur à côté de votre nom, pour vos coachs, vos athlètes, les membres de vos clubs et vos conversations.",
   "supporter_badge_save_failed": "Le badge n'a pas pu être enregistré.",
-  "club_closed_owner": "Votre club n'accueille plus de nouveaux membres, d'invitations ni de séances tant que vous n'êtes pas Supporter. Tout ce qui est déjà planifié continue, et vos adhérents gardent leur accès."
+  "club_closed_owner": "Votre club n'accueille plus de nouveaux membres, d'invitations ni de séances tant que vous n'êtes pas Supporter. Tout ce qui est déjà planifié continue, et vos adhérents gardent leur accès.",
+  "lab_teaser_progress": "{change} % sur un an, votre plus forte progression",
+  "feature_locked_title": "{name} · Supporter"
 }

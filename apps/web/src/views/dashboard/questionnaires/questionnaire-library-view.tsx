@@ -9,7 +9,7 @@ import { formatShortDay } from '@/components/questionnaires/answer-format';
 import { questionnaireErrorMessage } from '@/components/questionnaires/questionnaire-errors';
 import { TemplateGallery } from '@/components/questionnaires/template-gallery';
 import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
-import { SupporterMark } from '@/components/supporter-perks/locks';
+import { ButtonLock } from '@/components/supporter-perks/locks';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -131,9 +131,7 @@ export function QuestionnaireLibraryView() {
         >
           <Plus />
           {m.questionnaire_create()}
-          {!mayActivate && tool.locked && (
-            <SupporterMark className="text-primary-foreground/80" />
-          )}
+          {!mayActivate && tool.locked && <ButtonLock />}
         </Button>
       </div>
       <p className="text-sm text-muted-foreground">

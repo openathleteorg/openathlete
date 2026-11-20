@@ -56,4 +56,5 @@ export * from './signup-attribution';
 export * from './workout-text';
 export * from './strength';
 export * from './questionnaire';
-export * from './efficiency-trend';
+export * from './critical-model';
+export * from './capacity-profile';

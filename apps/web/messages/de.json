@@ -3128,12 +3128,8 @@
   "supporter_perk_early_access": "Neue Funktionen 30 Tage vor allen anderen",
   "supporter_perk_coach_tools": "Vereine, Zeitraumvergleiche und die erweiterten Trainer-Werkzeuge",
   "supporter_perk_badge": "Ein Supporter-Abzeichen, Farbthemen und Bilder in Notizen",
-  "lab_teaser_efficiency_label": "Effizienz deiner gleichmäßigen Läufe",
-  "lab_teaser_climb_label": "Steiggeschwindigkeit bei {slope} %",
-  "lab_teaser_weeks": "Letzte {weeks} Wochen",
   "lab_overview_open": "Labor ansehen",
-  "lab_teaser_stable": "Stabil",
-  "club_closed_staff": "Dieser Verein nimmt vorerst keine neuen Mitglieder oder Einheiten an: Der Inhaber ist kein Supporter mehr. Alles bereits Geplante läuft weiter.",
+  "club_closed_staff": "Dieser Verein nimmt im Moment keine neuen Mitglieder auf. Sprich mit dem Inhaber.",
   "club_closed_join": "Dieser Verein nimmt vorerst keine neuen Mitglieder auf. Frag den Trainer.",
   "accent_title": "App-Farbe",
   "accent_description": "Die Farbe von Schaltflächen und Hervorhebungen. Hell- und Dunkelmodus findest du im Kontomenü.",
@@ -3149,5 +3145,7 @@
   "supporter_badge_show": "Mein Abzeichen zeigen",
   "supporter_badge_description": "Ein kleines Herz neben deinem Namen, für deine Trainer, Athleten, Vereinsmitglieder und Unterhaltungen.",
   "supporter_badge_save_failed": "Das Abzeichen konnte nicht gespeichert werden.",
-  "club_closed_owner": "Dein Verein nimmt keine neuen Mitglieder, Einladungen oder Einheiten an, solange du kein Supporter bist. Alles bereits Geplante läuft weiter, und deine Mitglieder behalten ihren Zugang."
+  "club_closed_owner": "Dein Verein nimmt keine neuen Mitglieder, Einladungen oder Einheiten an, solange du kein Supporter bist. Alles bereits Geplante läuft weiter, und deine Mitglieder behalten ihren Zugang.",
+  "lab_teaser_progress": "{change} % in einem Jahr, dein stärkster Fortschritt",
+  "feature_locked_title": "{name} · Supporter"
 }

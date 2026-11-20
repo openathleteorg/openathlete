@@ -20,7 +20,7 @@ import { ThresholdsDialog } from '@/components/coach-dashboard/thresholds-dialog
 import { useCoachDashboardSettings } from '@/components/coach-dashboard/use-coach-dashboard-settings';
 import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
 import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
-import { SupporterMark } from '@/components/supporter-perks/locks';
+import { ButtonLock, SupporterMark } from '@/components/supporter-perks/locks';
 import { SupporterBadge } from '@/components/supporter-perks/supporter-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -421,7 +421,7 @@ export function CoachDashboardView() {
             >
               <Columns3 className="h-4 w-4" />
               {m.coach_columns()}
-              <SupporterMark />
+              <ButtonLock />
             </Button>
           ) : columnsTool.hidden ? null : (
             <Popover>
@@ -510,9 +510,7 @@ export function CoachDashboardView() {
                 data-compare-athletes-button
               >
                 {m.coach_compare_athletes({ count: picked.size })}
-                {compareTool.locked && (
-                  <SupporterMark className="text-primary-foreground/80" />
-                )}
+                {compareTool.locked && <ButtonLock />}
               </Button>
             )}
             <Button

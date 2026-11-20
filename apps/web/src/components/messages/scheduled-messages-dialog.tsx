@@ -4,7 +4,7 @@ import {
   useUpdateScheduledMessageMutation,
 } from '@/api/messages';
 import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
-import { SupporterMark } from '@/components/supporter-perks/locks';
+import { ButtonLock } from '@/components/supporter-perks/locks';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -164,7 +164,7 @@ export function ScheduledMessagesDialog({
                         }
                       >
                         {m.edit()}
-                        {broadcast.locked && <SupporterMark />}
+                        {broadcast.locked && <ButtonLock />}
                       </Button>
                       <Button
                         variant="ghost"

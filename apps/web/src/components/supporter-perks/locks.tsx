@@ -30,6 +30,21 @@ export function SupporterMark({ className }: { className?: string }) {
   );
 }
 
+/**
+ * The lock inside a button: a small icon after the label, so the button
+ * keeps its shape. Menus, panels and labels use SupporterMark, with the word
+ */
+export function ButtonLock() {
+  return (
+    <Lock
+      role="img"
+      aria-label={m.feature_lock_label()}
+      data-supporter-lock
+      className="size-3.5 opacity-70"
+    />
+  );
+}
+
 /** "New · Supporters · for everyone on 20 Dec", at the entry of a feature */
 export function EarlyAccessChip({
   feature,
