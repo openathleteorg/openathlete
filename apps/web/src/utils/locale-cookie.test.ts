@@ -42,7 +42,7 @@ describe('locale cookie', () => {
   });
 
   it('ignores anything that is not a supported language', () => {
-    const doc = jar(['PARAGLIDE_LOCALE=nl']);
+    const doc = jar(['PARAGLIDE_LOCALE=sv']);
     adoptLegacyLocaleCookie(doc);
     expect(doc.cookie).not.toContain('OA_LOCALE');
   });
