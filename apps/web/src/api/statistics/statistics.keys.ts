@@ -12,5 +12,6 @@ export const statisticsKeys = {
   longRuns: 'StatisticsAPI.longRuns',
   intensity: 'StatisticsAPI.intensity',
   trends: 'StatisticsAPI.trends',
+  labTeaser: 'StatisticsAPI.labTeaser',
   load: 'StatisticsAPI.load',
 } as const;

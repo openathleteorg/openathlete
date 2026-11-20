@@ -3127,5 +3127,10 @@
   "supporter_perk_lab": "The Lab: capacities, trends and records year by year",
   "supporter_perk_early_access": "New features 30 days before everyone else",
   "supporter_perk_coach_tools": "Clubs, period comparisons and the advanced coach tools",
-  "supporter_perk_badge": "A Supporter badge, colour themes and images in notes"
+  "supporter_perk_badge": "A Supporter badge, colour themes and images in notes",
+  "lab_teaser_efficiency_label": "Efficiency of your steady runs",
+  "lab_teaser_climb_label": "Climbing speed at {slope} %",
+  "lab_teaser_weeks": "Last {weeks} weeks",
+  "lab_overview_open": "See the Lab",
+  "lab_teaser_stable": "Stable"
 }

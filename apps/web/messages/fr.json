@@ -3127,5 +3127,10 @@
   "supporter_perk_lab": "Le Labo : capacités, tendances et records année par année",
   "supporter_perk_early_access": "Les nouveautés 30 jours avant tout le monde",
   "supporter_perk_coach_tools": "Les clubs, la comparaison de périodes et les outils avancés du coach",
-  "supporter_perk_badge": "Un badge Supporter, des thèmes de couleur et les images dans les notes"
+  "supporter_perk_badge": "Un badge Supporter, des thèmes de couleur et les images dans les notes",
+  "lab_teaser_efficiency_label": "Efficacité de vos sorties régulières",
+  "lab_teaser_climb_label": "Vitesse ascensionnelle à {slope} %",
+  "lab_teaser_weeks": "{weeks} dernières semaines",
+  "lab_overview_open": "Voir le Labo",
+  "lab_teaser_stable": "Stable"
 }

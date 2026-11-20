@@ -12,10 +12,12 @@ import {
 
 import { SportType } from '@openathlete/database';
 import {
+  Feature,
   GetStatisticsFiltersQueryDto,
   GetStatisticsOverviewQueryDto,
   GetStatisticsSectionQueryDto,
   GetStatisticsTrendsQueryDto,
+  LabResponse,
   getStatisticsFiltersQuerySchema,
   getStatisticsOverviewQuerySchema,
   getStatisticsSectionQuerySchema,
@@ -24,13 +26,33 @@ import {
 
 import { UserTypeGuard } from 'src/modules/auth';
 import { AuthUser, JwtUser } from 'src/modules/auth/decorators/user.decorator';
+import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
 import { StatisticsService } from '../services/statistics.service';
 
 @ApiTags('Statistics')
 @Controller('statistics')
 export class StatisticsController {
-  constructor(private statisticsService: StatisticsService) {}
+  constructor(
+    private statisticsService: StatisticsService,
+    private features: FeatureAccessService,
+  ) {}
+
+  /**
+   * The Lab's data for those who have it; for the others, one real figure
+   * (the teaser), never the full data hidden by the app
+   */
+  private async lab<T>(
+    user: AuthUser,
+    query: GetStatisticsTrendsQueryDto,
+    read: () => Promise<T>,
+  ): Promise<LabResponse<T>> {
+    if (await this.features.can(user.userId, Feature.LAB)) return read();
+    return {
+      locked: true,
+      teaser: await this.statisticsService.getLabTeaser(user, query),
+    };
+  }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
@@ -217,7 +239,9 @@ export class StatisticsController {
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
   ) {
-    return this.statisticsService.getTerrain(user, query);
+    return this.lab(user, query, () =>
+      this.statisticsService.getTerrain(user, query),
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -240,7 +264,9 @@ export class StatisticsController {
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
   ) {
-    return this.statisticsService.getCardiacCost(user, query);
+    return this.lab(user, query, () =>
+      this.statisticsService.getCardiacCost(user, query),
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -286,7 +312,9 @@ export class StatisticsController {
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
   ) {
-    return this.statisticsService.getDurability(user, query);
+    return this.lab(user, query, () =>
+      this.statisticsService.getDurability(user, query),
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -331,7 +359,9 @@ export class StatisticsController {
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
   ) {
-    return this.statisticsService.getTrends(user, query);
+    return this.lab(user, query, () =>
+      this.statisticsService.getTrends(user, query),
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

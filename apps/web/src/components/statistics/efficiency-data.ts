@@ -1,4 +1,11 @@
-import { StatisticsEfficiencyDto } from '@openathlete/shared';
+import { SPORT_TYPE, StatisticsEfficiencyDto } from '@openathlete/shared';
+
+/** Efficiency figures are a runner's: grade-adjusted pace, running power */
+export const RUNNING_SPORTS: ReadonlySet<SPORT_TYPE> = new Set([
+  SPORT_TYPE.RUNNING,
+  SPORT_TYPE.TRAIL_RUNNING,
+  SPORT_TYPE.VIRTUAL_RUN,
+]);
 
 export type EfficiencyKind =
   'factor' | 'powerFactor' | 'effectiveness' | 'decoupling';

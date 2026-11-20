@@ -90,8 +90,13 @@ export function yearsSince(
  * Filters live in the URL: a view can be shared with a coach, and survives
  * going to an activity and coming back.
  */
+/** The views of the Lab: capacities and trends */
+export const LAB_VIEWS: readonly StatisticsView[] = ['capacities', 'trends'];
+
 export function useStatisticsFilters(
   firstActivityDate: Date | null | undefined,
+  /** Comparing periods is a Supporter perk: a shared ?compare= opens without */
+  canCompare = true,
 ): StatisticsFiltersState {
   const [params, setParams] = useSearchParams();
   const view = oneOf(STATISTICS_VIEWS, params.get('view'), 'overview');
@@ -115,11 +120,9 @@ export function useStatisticsFilters(
     !sport && groupParam && groupParam in SPORT_GROUPS
       ? (groupParam as SportGroup)
       : null;
-  const comparison = oneOf(
-    STATISTICS_COMPARISONS,
-    params.get('compare'),
-    'none',
-  );
+  const comparison = canCompare
+    ? oneOf(STATISTICS_COMPARISONS, params.get('compare'), 'none')
+    : 'none';
   const from = params.get('from');
   const to = params.get('to');
   // A day is enough: the period must not change at each render

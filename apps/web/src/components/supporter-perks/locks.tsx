@@ -64,6 +64,8 @@ interface PanelProps {
   preview?: ReactNode;
   /** A card the user may close, hidden for 30 days afterwards */
   dismissible?: boolean;
+  /** A second button, such as going to the locked view */
+  secondary?: { label: string; onClick: () => void };
   className?: string;
 }
 
@@ -76,6 +78,7 @@ export function LockedPanel({
   place,
   preview,
   dismissible,
+  secondary,
   className,
 }: PanelProps) {
   const paywall = useFeaturePaywall();
@@ -113,13 +116,25 @@ export function LockedPanel({
           {texts.body()}
         </p>
       </div>
-      <Button
-        size="sm"
-        className="h-11 md:h-8"
-        onClick={() => paywall.open(feature, place)}
-      >
-        {m.feature_gate_cta()}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          className="h-11 md:h-8"
+          onClick={() => paywall.open(feature, place)}
+        >
+          {m.feature_gate_cta()}
+        </Button>
+        {secondary && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-11 md:h-8"
+            onClick={secondary.onClick}
+          >
+            {secondary.label}
+          </Button>
+        )}
+      </div>
     </section>
   );
 }

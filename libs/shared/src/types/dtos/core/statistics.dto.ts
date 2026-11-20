@@ -277,6 +277,42 @@ export type StatisticsEfficiencyDto = z.infer<
   typeof statisticsEfficiencySchema
 >;
 
+/**
+ * The one figure of the Lab a non-Supporter sees: real, computed for the
+ * athlete, over the last 12 weeks. Null when there is nothing to show.
+ */
+export const labTeaserSchema = z
+  .object({
+    /**
+     * efficiency: change of the efficiency factor of steady runs, as a
+     * fraction (0.04 = +4 %). climb: median vertical speed, in metres an
+     * hour, at `slope` percent.
+     */
+    kind: z.enum(['efficiency', 'climb']),
+    value: z.number(),
+    /** Percent of slope of a climb teaser, null otherwise */
+    slope: z.number().nullable(),
+    weeks: z.number().int().positive(),
+  })
+  .nullable();
+export type LabTeaserDto = z.infer<typeof labTeaserSchema>;
+
+/** What a Lab endpoint answers a user who does not have the Lab */
+export const lockedStatisticsSchema = z.object({
+  locked: z.literal(true),
+  teaser: labTeaserSchema,
+});
+export type LockedStatisticsDto = z.infer<typeof lockedStatisticsSchema>;
+
+/** A Lab answer: the data, or the teaser when locked */
+export type LabResponse<T> = T | LockedStatisticsDto;
+
+export function isLockedStatistics<T extends object>(
+  data: LabResponse<T> | undefined,
+): data is LockedStatisticsDto {
+  return !!data && 'locked' in data && data.locked === true;
+}
+
 export const statisticsDurabilitySchema = z.object({
   /** How much the output dropped and the heart rate rose, by outing length */
   series: z.array(

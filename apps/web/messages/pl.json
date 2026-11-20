@@ -3127,5 +3127,10 @@
   "supporter_perk_lab": "Laboratorium: możliwości, trendy i rekordy rok po roku",
   "supporter_perk_early_access": "Nowości 30 dni przed wszystkimi",
   "supporter_perk_coach_tools": "Kluby, porównanie okresów i zaawansowane narzędzia trenera",
-  "supporter_perk_badge": "Odznaka Supportera, motywy kolorystyczne i obrazy w notatkach"
+  "supporter_perk_badge": "Odznaka Supportera, motywy kolorystyczne i obrazy w notatkach",
+  "lab_teaser_efficiency_label": "Efektywność Twoich równych biegów",
+  "lab_teaser_climb_label": "Prędkość wznoszenia przy {slope} %",
+  "lab_teaser_weeks": "Ostatnie {weeks} tygodni",
+  "lab_overview_open": "Zobacz Laboratorium",
+  "lab_teaser_stable": "Stabilna"
 }

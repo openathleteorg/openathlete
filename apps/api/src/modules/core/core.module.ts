@@ -6,6 +6,7 @@ import { OAuthTokensModule } from '../mcp/auth/oauth-tokens.module';
 import { MessagesModule } from '../messages/messages.module';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { QueueModule } from '../queue';
+import { SubscriptionModule } from '../subscription/subscription.module';
 import { EventController } from './controllers';
 import { ActivityDuplicatesController } from './controllers/activity-duplicates.controller';
 import { ActivityFeedbackController } from './controllers/activity-feedback.controller';
@@ -81,6 +82,7 @@ import { YearReviewService } from './services/year-review.service';
     forwardRef(() => MessagesModule),
     forwardRef(() => QueueModule),
     forwardRef(() => ProvidersSyncModule),
+    forwardRef(() => SubscriptionModule),
   ],
   controllers: [
     ExerciseController,

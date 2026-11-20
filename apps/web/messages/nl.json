@@ -3127,5 +3127,10 @@
   "supporter_perk_lab": "Het Lab: capaciteiten, trends en records per jaar",
   "supporter_perk_early_access": "Nieuwe functies 30 dagen voor iedereen",
   "supporter_perk_coach_tools": "Clubs, periodevergelijkingen en de geavanceerde trainerstools",
-  "supporter_perk_badge": "Een Supporter-badge, kleurthema's en afbeeldingen in notities"
+  "supporter_perk_badge": "Een Supporter-badge, kleurthema's en afbeeldingen in notities",
+  "lab_teaser_efficiency_label": "Efficiëntie van je rustige duurlopen",
+  "lab_teaser_climb_label": "Klimsnelheid bij {slope} %",
+  "lab_teaser_weeks": "Laatste {weeks} weken",
+  "lab_overview_open": "Bekijk het Lab",
+  "lab_teaser_stable": "Stabiel"
 }

@@ -34,6 +34,7 @@ import { RecordsYearsTable } from '@/components/records/records-years-table';
 import { TrainingPacesCard } from '@/components/records/training-paces-card';
 import { useDismissedSuspects } from '@/components/records/use-dismissed-suspects';
 import { SportSelect } from '@/components/sport-select/sport-select';
+import { FeatureGate, LockedPanel } from '@/components/supporter-perks/locks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { InsightBanner } from '@/components/ui/insight-banner';
@@ -50,6 +51,7 @@ import { toast } from 'sonner';
 
 import {
   CreateRecordExclusionDto,
+  Feature,
   RECORD_TYPE,
   SPORT_TYPE,
 } from '@openathlete/shared';
@@ -320,16 +322,27 @@ export function RecordsView({ athleteId }: P) {
                   onSelect={(position) => openRecord(metric, position)}
                 />
               </div>
-              <RecordsYearsTable
-                metric={metric}
-                sport={sport}
-                records={records}
-                history={history?.years ?? []}
-                years={years}
-                suspects={suspects}
-                dateFormat={dateFormat}
-                onSelect={(position) => openRecord(metric, position)}
-              />
+              {/* Records year by year are part of the Lab */}
+              <FeatureGate
+                feature={Feature.LAB}
+                place="records_years"
+                fallback={
+                  <div className="border-t p-3 md:p-4">
+                    <LockedPanel feature={Feature.LAB} place="records_years" />
+                  </div>
+                }
+              >
+                <RecordsYearsTable
+                  metric={metric}
+                  sport={sport}
+                  records={records}
+                  history={history?.years ?? []}
+                  years={years}
+                  suspects={suspects}
+                  dateFormat={dateFormat}
+                  onSelect={(position) => openRecord(metric, position)}
+                />
+              </FeatureGate>
               <p className="border-t px-4 py-2 text-xs text-muted-foreground">
                 {m.records_legend()}
               </p>

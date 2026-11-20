@@ -3127,5 +3127,10 @@
   "supporter_perk_lab": "Das Labor: Fähigkeiten, Trends und Rekorde Jahr für Jahr",
   "supporter_perk_early_access": "Neue Funktionen 30 Tage vor allen anderen",
   "supporter_perk_coach_tools": "Vereine, Zeitraumvergleiche und die erweiterten Trainer-Werkzeuge",
-  "supporter_perk_badge": "Ein Supporter-Abzeichen, Farbthemen und Bilder in Notizen"
+  "supporter_perk_badge": "Ein Supporter-Abzeichen, Farbthemen und Bilder in Notizen",
+  "lab_teaser_efficiency_label": "Effizienz deiner gleichmäßigen Läufe",
+  "lab_teaser_climb_label": "Steiggeschwindigkeit bei {slope} %",
+  "lab_teaser_weeks": "Letzte {weeks} Wochen",
+  "lab_overview_open": "Labor ansehen",
+  "lab_teaser_stable": "Stabil"
 }
