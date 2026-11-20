@@ -6,7 +6,9 @@
    "es": "Flexión y extensión isométrica del cuello",
    "it": "Flessione ed estensione isometrica del collo",
    "pt-BR": "Flexão e extensão isométrica do pescoço",
-   "de": "Statische Nackenbeugung und -streckung"
+   "de": "Statische Nackenbeugung und -streckung",
+   "pl": "Statyczne zginanie i prostowanie szyi",
+   "nl": "Statische nekflexie en -extensie"
   },
   "steps": {
    "en": [
@@ -50,6 +52,20 @@
     "Drück den Kopf gegen die Hände und spann die Nackenmuskulatur an.",
     "Lass den Kopf nicht nach vorn kippen. Halte die Spannung mindestens 30 Sekunden.",
     "Wiederhole die Übung mit den Händen am Hinterkopf und drück dagegen."
+   ],
+   "pl": [
+    "Stań lub usiądź z głową w pozycji neutralnej.",
+    "Połóż obie dłonie na czole.",
+    "Dociskaj głowę do dłoni i napnij mięśnie szyi.",
+    "Nie pozwól, by głowa przesunęła się do przodu. Utrzymaj napięcie przez co najmniej 30 sekund.",
+    "Powtórz z dłońmi z tyłu głowy, dociskając do nich głowę."
+   ],
+   "nl": [
+    "Ga staan of zitten met je hoofd in een neutrale houding.",
+    "Leg beide handen op je voorhoofd.",
+    "Duw je hoofd tegen je handen en span je nekspieren aan.",
+    "Laat je hoofd niet naar voren bewegen. Houd minstens 30 seconden vast.",
+    "Herhaal met je handen op je achterhoofd en duw ertegen."
    ]
   }
  },
@@ -60,7 +76,9 @@
    "es": "Flexión lateral isométrica del cuello",
    "it": "Flessione laterale isometrica del collo",
    "pt-BR": "Flexão lateral isométrica do pescoço",
-   "de": "Statische seitliche Nackenbeugung"
+   "de": "Statische seitliche Nackenbeugung",
+   "pl": "Statyczne boczne zginanie szyi",
+   "nl": "Statische zijwaartse nekflexie"
   },
   "steps": {
    "en": [
@@ -98,6 +116,18 @@
     "Leg die linke Hand oberhalb des Ohrs an die linke Kopfseite.",
     "Drück den Kopf gegen die Hand, ohne dass er sich bewegt.",
     "Wiederhole die Übung mit der rechten Hand auf der rechten Seite."
+   ],
+   "pl": [
+    "Stań lub usiądź z głową w pozycji neutralnej.",
+    "Połóż lewą dłoń na lewym boku głowy, nad uchem.",
+    "Dociskaj głowę do dłoni, nie pozwalając jej się poruszyć.",
+    "Powtórz z prawą dłonią po prawej stronie."
+   ],
+   "nl": [
+    "Ga staan of zitten met je hoofd in een neutrale houding.",
+    "Leg je linkerhand aan de linkerkant van je hoofd, boven je oor.",
+    "Duw je hoofd tegen je hand zonder dat het beweegt.",
+    "Herhaal met je rechterhand aan de rechterkant."
    ]
   }
  },
@@ -108,7 +138,9 @@
    "es": "Elevación posterior a un brazo en polea",
    "it": "Alzata posteriore a un braccio ai cavi",
    "pt-BR": "Elevação posterior unilateral no cabo",
-   "de": "Einarmiges vorgebeugtes Rear-Delt-Heben am Kabelzug"
+   "de": "Einarmiges vorgebeugtes Rear-Delt-Heben am Kabelzug",
+   "pl": "Wznosy jednorącz na tył barku w opadzie na wyciągu",
+   "nl": "Eenarmige voorovergebogen rear delt raise aan de kabel"
   },
   "steps": {
    "en": [
@@ -152,6 +184,20 @@
     "Heb den rechten Arm mit leicht gebeugtem Ellbogen seitlich an, bis er parallel zum Boden ist.",
     "Senk ihn langsam in die Ausgangsposition ab.",
     "Beende den Satz und wechsle dann den Arm."
+   ],
+   "pl": [
+    "Chwyć prawą ręką uchwyt dolnego wyciągu.",
+    "Pochyl się w biodrach, aż tułów będzie prawie równoległy do podłogi, kolana lekko ugięte, lewa dłoń na lewym udzie. Prawa ręka zwisa swobodnie, łokieć lekko ugięty.",
+    "Unieś prawą rękę bokiem, z lekko ugiętym łokciem, aż będzie równoległa do podłogi.",
+    "Powoli opuść ją do pozycji wyjściowej.",
+    "Dokończ serię, a potem zmień rękę."
+   ],
+   "nl": [
+    "Pak het handvat van de lage kabel met je rechterhand.",
+    "Buig vanuit je heupen naar voren tot je romp bijna parallel aan de vloer is, knieën licht gebogen, linkerhand op je linkerdij. Laat je rechterarm hangen met de elleboog licht gebogen.",
+    "Breng je rechterarm zijwaarts omhoog, elleboog licht gebogen, tot hij parallel aan de vloer is.",
+    "Laat hem langzaam terugzakken naar de beginpositie.",
+    "Maak de set af en wissel dan van arm."
    ]
   }
  },
@@ -162,7 +208,9 @@
    "es": "Círculos en la pared con fitball",
    "it": "Cerchi al muro con fitball",
    "pt-BR": "Círculos na parede com bola suíça",
-   "de": "Wandkreise mit Gymnastikball"
+   "de": "Wandkreise mit Gymnastikball",
+   "pl": "Krążenia piłką gimnastyczną przy ścianie",
+   "nl": "Muurcirkels met fitnessbal"
   },
   "steps": {
    "en": [
@@ -206,6 +254,20 @@
     "Halte den Arm gestreckt, den Ellbogen leicht gebeugt.",
     "Wechsle die Richtung der Kreise.",
     "Wechsle den Arm."
+   ],
+   "pl": [
+    "Stań prosto, stopy na szerokość barków.",
+    "Przytrzymaj lewą dłonią piłkę gimnastyczną przy ścianie na wysokości klatki piersiowej i zataczaj nią małe kółka.",
+    "Ręka pozostaje wyprostowana, z lekko ugiętym łokciem.",
+    "Zmień kierunek krążeń.",
+    "Zmień rękę."
+   ],
+   "nl": [
+    "Sta rechtop, voeten op schouderbreedte.",
+    "Houd met je linkerhand een fitnessbal op borsthoogte tegen de muur en rol hem in kleine cirkels.",
+    "Houd je arm gestrekt met een lichte buiging in de elleboog.",
+    "Draai de cirkels de andere kant op.",
+    "Wissel van arm."
    ]
   }
  },
@@ -216,7 +278,9 @@
    "es": "Contracción abdominal en cuadrupedia",
    "it": "Contrazione addominale in quadrupedia",
    "pt-BR": "Contração abdominal em quatro apoios",
-   "de": "Bauchnabel einziehen im Vierfüßlerstand"
+   "de": "Bauchnabel einziehen im Vierfüßlerstand",
+   "pl": "Wciąganie brzucha w klęku podpartym",
+   "nl": "Buik intrekken op handen en knieën"
   },
   "steps": {
    "en": [
@@ -254,6 +318,18 @@
     "Halte den Rücken gerade, Hüfte und Becken neutral.",
     "Zieh den Bauchnabel ein und spann die Bauchmuskeln an, ohne den Rücken zu bewegen.",
     "Halte die Spannung kurz und lös sie dann."
+   ],
+   "pl": [
+    "Uklęknij na macie w podporze na dłoniach i kolanach.",
+    "Utrzymuj płaskie plecy, a biodra i miednicę w pozycji neutralnej.",
+    "Wciągnij pępek i napnij mięśnie brzucha, nie poruszając plecami.",
+    "Przytrzymaj chwilę, a potem rozluźnij."
+   ],
+   "nl": [
+    "Ga op handen en knieën op een mat zitten.",
+    "Houd je rug plat en je heupen en bekken neutraal.",
+    "Trek je navel naar binnen en span je buikspieren aan zonder je rug te bewegen.",
+    "Houd even vast en ontspan dan."
    ]
   }
  },
@@ -264,7 +340,9 @@
    "es": "Press de hombros inclinado con mancuernas",
    "it": "Shoulder press su panca inclinata con manubri",
    "pt-BR": "Desenvolvimento inclinado com halteres",
-   "de": "Kurzhantel-Schulterdrücken auf der Schrägbank"
+   "de": "Kurzhantel-Schulterdrücken auf der Schrägbank",
+   "pl": "Wyciskanie hantli nad głowę na ławce skośnej",
+   "nl": "Schuine shoulder press met dumbbells"
   },
   "steps": {
    "en": [
@@ -302,6 +380,18 @@
     "Beug die Ellbogen und bring die Kurzhanteln auf Schulterhöhe: Das ist die Ausgangsposition.",
     "Spann den Bauch an und drück die Kurzhanteln über die Schultern nach oben.",
     "Senk sie langsam in die Ausgangsposition ab."
+   ],
+   "pl": [
+    "Połóż się na ławce skośnej, stopy płasko na podłodze, w każdej ręce hantel.",
+    "Ugnij łokcie i opuść hantle na wysokość barków: to pozycja wyjściowa.",
+    "Napnij mięśnie brzucha i wypchnij hantle w górę nad barki.",
+    "Powoli opuść je do pozycji wyjściowej."
+   ],
+   "nl": [
+    "Ga op een schuine bank liggen, voeten plat op de vloer, met een dumbbell in elke hand.",
+    "Buig je ellebogen en breng de dumbbells naar schouderhoogte: dit is de beginpositie.",
+    "Span je buikspieren aan en druk de dumbbells omhoog boven je schouders.",
+    "Laat ze langzaam terugzakken naar de beginpositie."
    ]
   }
  },
@@ -312,7 +402,9 @@
    "es": "Rotación interna de hombro en polea",
    "it": "Rotazione interna della spalla ai cavi",
    "pt-BR": "Rotação interna de ombro no cabo",
-   "de": "Schulterinnenrotation am Kabelzug"
+   "de": "Schulterinnenrotation am Kabelzug",
+   "pl": "Rotacja wewnętrzna barku na wyciągu",
+   "nl": "Interne schouderrotatie aan de kabel"
   },
   "steps": {
    "en": [
@@ -356,6 +448,20 @@
     "Dreh die Schulter nach innen und zieh das Kabel, bis dein Unterarm vor dem Bauch liegt.",
     "Kehr in die Ausgangsposition zurück.",
     "Wiederhole die Übung mit dem rechten Arm."
+   ],
+   "pl": [
+    "Usiądź na podłodze obok dolnego wyciągu.",
+    "Chwyć uchwyt lewą ręką, łokieć ugięty pod kątem 90°.",
+    "Obracaj bark do wewnątrz, przyciągając linkę, aż przedramię znajdzie się na wysokości brzucha.",
+    "Wróć do pozycji wyjściowej.",
+    "Powtórz prawą ręką."
+   ],
+   "nl": [
+    "Ga op de vloer zitten naast een lage kabel.",
+    "Pak het handvat met je linkerhand, elleboog in een hoek van 90°.",
+    "Draai je schouder naar binnen en trek de kabel tot je onderarm voor je buik ligt.",
+    "Keer terug naar de beginpositie.",
+    "Herhaal met je rechterarm."
    ]
   }
  },
@@ -366,7 +472,9 @@
    "es": "Press inclinado con banda elástica",
    "it": "Distensioni su panca inclinata con elastico",
    "pt-BR": "Supino inclinado com elástico",
-   "de": "Schrägbankdrücken mit Widerstandsband"
+   "de": "Schrägbankdrücken mit Widerstandsband",
+   "pl": "Wyciskanie na ławce skośnej z gumą oporową",
+   "nl": "Schuin bankdrukken met weerstandsband"
   },
   "steps": {
    "en": [
@@ -410,6 +518,20 @@
     "Halte in jeder Hand ein Bandende, die Hände auf Brusthöhe.",
     "Drück nach oben, bis die Arme ganz gestreckt sind.",
     "Kehr langsam in die Ausgangsposition zurück."
+   ],
+   "pl": [
+    "Zaczep gumę pewnie pod ławką, blisko głowy.",
+    "Połóż się na ławce, stopy płasko na podłodze dla stabilności.",
+    "Trzymaj w każdej dłoni jeden koniec gumy, dłonie na wysokości klatki piersiowej.",
+    "Wypychaj w górę, aż ręce będą całkowicie wyprostowane.",
+    "Powoli wróć do pozycji wyjściowej."
+   ],
+   "nl": [
+    "Maak de band stevig vast onder de bank, bij je hoofd.",
+    "Ga op de bank liggen met je voeten plat op de vloer voor stabiliteit.",
+    "Houd in elke hand een uiteinde van de band, handen op borsthoogte.",
+    "Druk omhoog tot je armen volledig gestrekt zijn.",
+    "Keer langzaam terug naar de beginpositie."
    ]
   }
  },
@@ -420,7 +542,9 @@
    "es": "Cruce con banda elástica",
    "it": "Croci con elastico",
    "pt-BR": "Crossover com elástico",
-   "de": "Crossover mit Widerstandsband"
+   "de": "Crossover mit Widerstandsband",
+   "pl": "Krzyżowanie ramion z gumą oporową",
+   "nl": "Crossover met weerstandsband"
   },
   "steps": {
    "en": [
@@ -464,6 +588,20 @@
     "Öffne die Arme auf mittlerer Brusthöhe zur Seite, die Handflächen zeigen nach vorn.",
     "Führ die Hände vor dem Körper zusammen.",
     "Halte kurz und kehr dann kontrolliert in die Ausgangsposition zurück."
+   ],
+   "pl": [
+    "Zaczep gumę o słupek i trzymaj w każdej dłoni jeden jej koniec.",
+    "Stań tyłem do słupka i zrób krok w przód, aż guma się napnie.",
+    "Rozłóż ręce na boki na wysokości środka klatki piersiowej, dłonie skierowane do przodu.",
+    "Złącz dłonie przed sobą.",
+    "Przytrzymaj chwilę, a potem pod kontrolą wróć do pozycji wyjściowej."
+   ],
+   "nl": [
+    "Maak een band vast aan een paal en houd in elke hand een uiteinde.",
+    "Ga met je rug naar de paal staan en stap naar voren tot de band op spanning staat.",
+    "Spreid je armen zijwaarts op middenborsthoogte, handpalmen naar voren.",
+    "Breng je handen voor je samen.",
+    "Houd even vast en keer dan gecontroleerd terug naar de beginpositie."
    ]
   }
  },
@@ -474,7 +612,9 @@
    "es": "Press de pecho en máquina",
    "it": "Chest press alla macchina",
    "pt-BR": "Supino máquina",
-   "de": "Brustpresse an der Maschine"
+   "de": "Brustpresse an der Maschine",
+   "pl": "Wyciskanie na maszynie siedząc",
+   "nl": "Chest press op de machine (zittend)"
   },
   "steps": {
    "en": [
@@ -512,6 +652,18 @@
     "Greif die Griffe und stell die Füße auf die Fußstütze.",
     "Drück gleichmäßig nach vorn, bis die Arme ganz gestreckt sind.",
     "Halte kurz inne und kehr dann langsam zurück."
+   ],
+   "pl": [
+    "Ustaw siedzisko tak, aby uchwyty były na wysokości klatki piersiowej.",
+    "Chwyć uchwyty i postaw stopy na podnóżku.",
+    "Równomiernie wypychaj uchwyty, aż ręce będą całkowicie wyprostowane.",
+    "Zatrzymaj się na chwilę, a potem powoli wróć."
+   ],
+   "nl": [
+    "Stel de zitting zo af dat de handvatten op borsthoogte zitten.",
+    "Pak de handvatten vast en zet je voeten op de voetsteun.",
+    "Duw gelijkmatig naar voren tot je armen volledig gestrekt zijn.",
+    "Houd even vast en keer dan langzaam terug."
    ]
   }
  },
@@ -522,7 +674,9 @@
    "es": "Flexiones asimétricas en Bosu",
    "it": "Piegamenti asimmetrici su Bosu",
    "pt-BR": "Flexão assimétrica no Bosu",
-   "de": "Versetzter Liegestütz auf dem Bosu"
+   "de": "Versetzter Liegestütz auf dem Bosu",
+   "pl": "Pompki z jedną ręką na BOSU",
+   "nl": "Asymmetrische push-up op de BOSU"
   },
   "steps": {
    "en": [
@@ -566,6 +720,20 @@
     "Spann den Bauch an und senk die Brust in Richtung Ball.",
     "Halte kurz inne und drück dich dann wieder hoch.",
     "Wechsle die Seite."
+   ],
+   "pl": [
+    "Połóż BOSU na podłodze kopułą do góry.",
+    "Przyjmij pozycję do pompki z jedną dłonią na kopule, a drugą na podłodze, ciało w linii prostej.",
+    "Napnij mięśnie brzucha i opuść klatkę piersiową w stronę piłki.",
+    "Zatrzymaj się na chwilę, a potem wypchnij się w górę.",
+    "Zmień stronę."
+   ],
+   "nl": [
+    "Leg de BOSU met de bolle kant naar boven op de vloer.",
+    "Ga in push-uphouding staan met één hand op de bol en de andere op de vloer, lichaam recht.",
+    "Span je buikspieren aan en laat je borst naar de bal zakken.",
+    "Houd even vast en duw jezelf weer omhoog.",
+    "Wissel van kant."
    ]
   }
  },
@@ -576,7 +744,9 @@
    "es": "Flexiones con agarre cerrado y abierto",
    "it": "Piegamenti a presa stretta e larga",
    "pt-BR": "Flexão com pegada fechada e aberta",
-   "de": "Enger und breiter Liegestütz"
+   "de": "Enger und breiter Liegestütz",
+   "pl": "Pompki wąskie i szerokie",
+   "nl": "Smalle en brede push-up"
   },
   "steps": {
    "en": [
@@ -626,6 +796,22 @@
     "Halte den Kopf in Verlängerung des Körpers und lass den Rücken weder durchhängen noch nach oben gehen.",
     "Senk dich kontrolliert wieder ab.",
     "Breiter Griff: Setz die Hände etwas weiter als schulterbreit auf und wiederhole die Übung."
+   ],
+   "pl": [
+    "Wąski chwyt: połóż się na brzuchu, stopy razem, palce stóp podwinięte.",
+    "Ułóż dłonie blisko siebie, tak aby kciuki i palce wskazujące tworzyły trójkąt.",
+    "Napnij mięśnie brzucha i wypchnij się w górę, aż ręce będą proste.",
+    "Utrzymuj głowę w linii z ciałem i nie pozwól, by plecy opadały lub się unosiły.",
+    "Pod kontrolą opuść się z powrotem.",
+    "Szeroki chwyt: ułóż dłonie nieco szerzej niż barki i powtórz."
+   ],
+   "nl": [
+    "Smalle greep: ga op je buik liggen, voeten bij elkaar, tenen ondergezet.",
+    "Zet je handen dicht bij elkaar zodat je duimen en wijsvingers een driehoek vormen.",
+    "Span je buikspieren aan en duw jezelf omhoog tot je armen gestrekt zijn.",
+    "Houd je hoofd in lijn met je lichaam en laat je rug niet doorzakken of omhoogkomen.",
+    "Laat jezelf gecontroleerd weer zakken.",
+    "Brede greep: zet je handen iets breder dan je schouders en herhaal."
    ]
   }
  },
@@ -636,7 +822,9 @@
    "es": "Flexiones con pies en fitball",
    "it": "Piegamenti con piedi su fitball",
    "pt-BR": "Flexão com pés na bola suíça",
-   "de": "Liegestütz mit Füßen auf dem Gymnastikball"
+   "de": "Liegestütz mit Füßen auf dem Gymnastikball",
+   "pl": "Pompki ze stopami na piłce gimnastycznej",
+   "nl": "Push-up met voeten op de fitnessbal"
   },
   "steps": {
    "en": [
@@ -674,6 +862,18 @@
     "Setz die Hände unter den Schultern auf den Boden und drück dich hoch, bis die Arme gestreckt sind.",
     "Halte oben kurz inne und finde dein Gleichgewicht.",
     "Senk die Brust langsam in Richtung Boden."
+   ],
+   "pl": [
+    "Oprzyj golenie i stopy na piłce gimnastycznej.",
+    "Postaw dłonie na podłodze pod barkami i wypchnij się w górę, aż ręce będą proste.",
+    "Zatrzymaj się w górnej pozycji i złap równowagę.",
+    "Powoli opuść klatkę piersiową w stronę podłogi."
+   ],
+   "nl": [
+    "Leg je scheenbenen en voeten op een fitnessbal.",
+    "Zet je handen op de vloer onder je schouders en duw jezelf omhoog tot je armen gestrekt zijn.",
+    "Houd even vast bovenaan en zoek je balans.",
+    "Laat je borst langzaam naar de vloer zakken."
    ]
   }
  },
@@ -684,7 +884,9 @@
    "es": "Remo al mentón con banda elástica",
    "it": "Tirata al mento con elastico",
    "pt-BR": "Remada alta com elástico",
-   "de": "Aufrechtes Rudern mit Widerstandsband"
+   "de": "Aufrechtes Rudern mit Widerstandsband",
+   "pl": "Podciąganie wzdłuż tułowia z gumą oporową",
+   "nl": "Upright row met weerstandsband"
   },
   "steps": {
    "en": [
@@ -722,6 +924,18 @@
     "Mit geradem Rücken und angespanntem Bauch ziehst du die Hände bis zu den Schlüsselbeinen hoch.",
     "Oben sollten deine Oberarme parallel zum Boden sein.",
     "Senk die Arme langsam ab."
+   ],
+   "pl": [
+    "Stań na gumie, uchwyty na wysokości górnej części ud.",
+    "Z prostymi plecami i napiętym brzuchem przyciągnij dłonie do obojczyków.",
+    "W górnej pozycji ramiona powinny być równoległe do podłogi.",
+    "Powoli opuść ręce."
+   ],
+   "nl": [
+    "Ga op de band staan, handvatten ter hoogte van je bovenbenen.",
+    "Trek met een rechte rug en aangespannen buik je handen omhoog naar je sleutelbeenderen.",
+    "Bovenaan moeten je bovenarmen parallel aan de vloer zijn.",
+    "Laat je armen langzaam zakken."
    ]
   }
  },
@@ -732,7 +946,9 @@
    "es": "Superman",
    "it": "Superman",
    "pt-BR": "Superman",
-   "de": "Superman"
+   "de": "Superman",
+   "pl": "Superman",
+   "nl": "Superman"
   },
   "steps": {
    "en": [
@@ -764,6 +980,16 @@
     "Leg dich auf den Bauch, die Arme nach vorn ausgestreckt.",
     "Heb Arme und Beine vom Boden ab und halte 2 Sekunden.",
     "Senk sie wieder auf den Boden ab."
+   ],
+   "pl": [
+    "Połóż się na brzuchu z rękami wyciągniętymi przed siebie.",
+    "Unieś ręce i nogi nad podłogę i przytrzymaj przez 2 sekundy.",
+    "Opuść je z powrotem na podłogę."
+   ],
+   "nl": [
+    "Ga op je buik liggen met je armen voor je uitgestrekt.",
+    "Til je armen en benen van de vloer en houd 2 seconden vast.",
+    "Laat ze weer op de vloer zakken."
    ]
   }
  },
@@ -774,7 +1000,9 @@
    "es": "Patada de glúteo de pie",
    "it": "Kickback glutei in piedi",
    "pt-BR": "Glúteo coice em pé",
-   "de": "Glute Kickback im Stand"
+   "de": "Glute Kickback im Stand",
+   "pl": "Wykop nogi w tył stojąc",
+   "nl": "Staande glute kickback"
   },
   "steps": {
    "en": [
@@ -812,6 +1040,18 @@
     "Steh auf einem Bein und heb das andere Bein nach hinten vom Boden ab.",
     "Senk es langsam ab und heb es wieder an, dabei spannst du den Po an.",
     "Wechsle das Bein."
+   ],
+   "pl": [
+    "Stań prosto, przytrzymując się słupka lub ławki dla równowagi, brzuch napięty.",
+    "Stojąc na jednej nodze, unieś drugą nogę w tył nad podłogę.",
+    "Powoli ją opuść i unieś ponownie, napinając pośladki.",
+    "Zmień nogę."
+   ],
+   "nl": [
+    "Sta rechtop en houd je vast aan een paal of bank voor balans, buikspieren aangespannen.",
+    "Sta op één been en til het andere been naar achteren van de vloer.",
+    "Laat het langzaam zakken en til het weer op, terwijl je je bilspieren aanspant.",
+    "Wissel van been."
    ]
   }
  },
@@ -822,7 +1062,9 @@
    "es": "Patada de glúteo en polea",
    "it": "Kickback glutei ai cavi",
    "pt-BR": "Glúteo coice no cabo",
-   "de": "Glute Kickback am Kabelzug"
+   "de": "Glute Kickback am Kabelzug",
+   "pl": "Wykop nogi w tył na wyciągu",
+   "nl": "Glute kickback aan de kabel"
   },
   "steps": {
    "en": [
@@ -860,6 +1102,18 @@
     "Stell dich mit dem Gesicht zum Gewichtsblock, die Knie leicht gebeugt, der Bauch angespannt.",
     "Führ das Bein langsam in einem Bogen so hoch wie möglich nach hinten.",
     "Kehr in die Ausgangsposition zurück und wechsle dann das Bein."
+   ],
+   "pl": [
+    "Przypnij opaskę na kostkę do dolnego wyciągu.",
+    "Stań przodem do stosu obciążenia, kolana lekko ugięte, brzuch napięty.",
+    "Powoli wykop nogę w tył po łuku, tak wysoko, jak potrafisz.",
+    "Wróć do pozycji wyjściowej, a potem zmień nogę."
+   ],
+   "nl": [
+    "Maak een enkelband vast aan een lage kabel.",
+    "Ga met je gezicht naar de gewichtenstapel staan, knieën licht gebogen, buikspieren aangespannen.",
+    "Trap je been langzaam in een boog zo hoog mogelijk naar achteren.",
+    "Keer terug naar de beginpositie en wissel dan van been."
    ]
   }
  },
@@ -870,7 +1124,9 @@
    "es": "Curl femoral de pie",
    "it": "Leg curl in piedi",
    "pt-BR": "Flexora em pé",
-   "de": "Beincurl stehend"
+   "de": "Beincurl stehend",
+   "pl": "Uginanie nogi stojąc na maszynie",
+   "nl": "Staande leg curl"
   },
   "steps": {
    "en": [
@@ -908,6 +1164,18 @@
     "Halte dich an den Griffen fest und spann den Bauch an.",
     "Beug das Knie langsam und zieh die Ferse Richtung Po.",
     "Kehr in die Ausgangsposition zurück und wechsle dann das Bein."
+   ],
+   "pl": [
+    "Ustaw tylny wałek tak, aby znajdował się tuż nad kostką.",
+    "Przytrzymaj się uchwytów dla stabilności i napnij mięśnie brzucha.",
+    "Powoli przyciągaj piętę w stronę pośladków.",
+    "Wróć do pozycji wyjściowej, a potem zmień nogę."
+   ],
+   "nl": [
+    "Stel het achterste kussen zo af dat het net boven je enkel zit.",
+    "Houd de handvatten vast voor steun en span je buikspieren aan.",
+    "Trek je hiel langzaam omhoog naar je billen.",
+    "Keer terug naar de beginpositie en wissel dan van been."
    ]
   }
  },
@@ -918,7 +1186,9 @@
    "es": "Zancadas caminando con mancuernas",
    "it": "Affondi camminati con manubri",
    "pt-BR": "Avanço caminhando com halteres",
-   "de": "Ausfallschritte gehend mit Kurzhanteln"
+   "de": "Ausfallschritte gehend mit Kurzhanteln",
+   "pl": "Wykroki w marszu z hantlami",
+   "nl": "Walking lunge met dumbbells"
   },
   "steps": {
    "en": [
@@ -962,6 +1232,20 @@
     "Senk das hintere Knie Richtung Boden, ohne ihn zu berühren, das vordere Knie ist um 90° gebeugt.",
     "Halte kurz inne und drück dich dann mit dem hinteren Fuß ab.",
     "Geh nach vorn durch und mach den Ausfallschritt mit dem anderen Bein."
+   ],
+   "pl": [
+    "Trzymaj w każdej ręce hantel, stopy około 20 cm od siebie, palce skierowane do przodu.",
+    "Zrób krok w przód do wykroku, brzuch napięty, tułów wyprostowany.",
+    "Opuść tylne kolano w stronę podłogi, przednie kolano ugięte pod kątem 90°, nie dotykając podłogi.",
+    "Zatrzymaj się na chwilę, a potem odepchnij się tylną stopą.",
+    "Przenieś nogę do przodu i wykonaj wykrok drugą nogą."
+   ],
+   "nl": [
+    "Houd een dumbbell in elke hand, voeten ongeveer 20 cm uit elkaar, tenen naar voren.",
+    "Stap naar voren in een lunge, buikspieren aangespannen en romp rechtop.",
+    "Laat je achterste knie naar de vloer zakken, voorste knie in 90°, zonder de vloer te raken.",
+    "Houd even vast en zet je af met je achterste voet.",
+    "Stap door en maak een lunge met het andere been."
    ]
   }
  },
@@ -972,7 +1256,9 @@
    "es": "Sentadilla lateral con barra",
    "it": "Squat laterale con bilanciere",
    "pt-BR": "Agachamento lateral com barra",
-   "de": "Seitliche Langhantel-Kniebeuge"
+   "de": "Seitliche Langhantel-Kniebeuge",
+   "pl": "Przysiad boczny ze sztangą",
+   "nl": "Zijwaartse squat met barbell"
   },
   "steps": {
    "en": [
@@ -1010,6 +1296,18 @@
     "Stell dich breit hin, der Fuß der Arbeitsseite ist nach außen gedreht.",
     "Beug Hüfte und Knie dieses Beins und verlager dein Gewicht nach unten zu dieser Seite, das andere Bein bleibt weitgehend gestreckt.",
     "Kehr in die Ausgangsposition zurück und wechsle dann die Seite."
+   ],
+   "pl": [
+    "Oprzyj sztangę na barkach, chwytając ją szeroko.",
+    "Stań w szerokim rozkroku, ze stopą nogi pracującej skierowaną na zewnątrz.",
+    "Ugnij biodro i kolano tej nogi, przenosząc ciężar ciała w dół w jej stronę; druga noga pozostaje prawie prosta.",
+    "Wróć do pozycji wyjściowej, a potem zmień stronę."
+   ],
+   "nl": [
+    "Leg een barbell op je schouders met een brede greep.",
+    "Neem een brede stand aan, met de voet van je werkende been naar buiten gedraaid.",
+    "Buig heup en knie van dat been om naar die kant te zakken, terwijl het andere been vrij gestrekt blijft.",
+    "Keer terug naar de beginpositie en wissel dan van kant."
    ]
   }
  },
@@ -1020,7 +1318,9 @@
    "es": "Prensa de piernas con pies juntos",
    "it": "Leg press a piedi stretti",
    "pt-BR": "Leg press com pés fechados",
-   "de": "Beinpresse mit enger Fußstellung"
+   "de": "Beinpresse mit enger Fußstellung",
+   "pl": "Wypychanie na suwnicy w wąskim rozstawie",
+   "nl": "Leg press met smalle voetstand"
   },
   "steps": {
    "en": [
@@ -1064,6 +1364,20 @@
     "Spann den Bauch an und beug die Knie, um das Gewicht so nah wie möglich an die Brust zu bringen.",
     "Halte kurz und drück dann langsam zurück in die Ausgangsposition.",
     "Streck die Knie oben nicht ganz durch."
+   ],
+   "pl": [
+    "Usiądź na suwnicy ze stopami na platformie około 15 cm od siebie, palce lekko skierowane na zewnątrz.",
+    "Chwyć boczne uchwyty i zwolnij blokady.",
+    "Napnij mięśnie brzucha i ugnij kolana, przyciągając ciężar jak najbliżej klatki piersiowej.",
+    "Przytrzymaj chwilę, a potem powoli wypchnij platformę do pozycji wyjściowej.",
+    "Nie blokuj kolan w górnej pozycji."
+   ],
+   "nl": [
+    "Ga in de leg press zitten met je voeten ongeveer 15 cm uit elkaar op het platform, tenen licht naar buiten.",
+    "Pak de zijhandvatten vast en ontgrendel de veiligheidsvergrendeling.",
+    "Span je buikspieren aan en buig je knieën om het gewicht zo dicht mogelijk naar je borst te brengen.",
+    "Houd even vast en duw dan langzaam terug naar de beginpositie.",
+    "Zet je knieën bovenaan niet op slot."
    ]
   }
  },
@@ -1074,7 +1388,9 @@
    "es": "Sentadilla sumo con mancuerna",
    "it": "Squat sumo con manubrio",
    "pt-BR": "Agachamento sumô com halter",
-   "de": "Kurzhantel-Sumo-Kniebeuge"
+   "de": "Kurzhantel-Sumo-Kniebeuge",
+   "pl": "Przysiad sumo z hantlem",
+   "nl": "Sumo squat met dumbbell"
   },
   "steps": {
    "en": [
@@ -1118,6 +1434,20 @@
     "Halte die Knie locker und den Rücken gerade.",
     "Geh in die Hocke, als würdest du dich auf einen Stuhl setzen, bis die Oberschenkel parallel zum Boden sind.",
     "Komm kontrolliert wieder hoch, die Füße bleiben flach auf dem Boden."
+   ],
+   "pl": [
+    "Stań ze stopami nieco szerzej niż barki, palce skierowane na zewnątrz pod kątem 45°.",
+    "Trzymaj jeden hantel oburącz przed sobą.",
+    "Kolana lekko ugięte, plecy proste.",
+    "Wykonaj przysiad, jak przy siadaniu na krześle, aż uda będą równoległe do podłogi.",
+    "Pod kontrolą wróć do góry, stopy płasko na podłodze."
+   ],
+   "nl": [
+    "Sta met je voeten iets breder dan je schouders, tenen 45° naar buiten.",
+    "Houd één dumbbell met beide handen voor je.",
+    "Houd je knieën licht gebogen en je rug recht.",
+    "Zak door alsof je op een stoel gaat zitten, tot je dijen parallel aan de vloer zijn.",
+    "Kom gecontroleerd weer omhoog, voeten plat op de vloer."
    ]
   }
  },
@@ -1128,7 +1458,9 @@
    "es": "Fondos en banco",
    "it": "Dip su panca",
    "pt-BR": "Mergulho no banco",
-   "de": "Bank-Dip"
+   "de": "Bank-Dip",
+   "pl": "Pompki w podporze tyłem między ławkami",
+   "nl": "Bench dip"
   },
   "steps": {
    "en": [
@@ -1178,6 +1510,22 @@
     "Greif die Bankkante und senk deinen Körper langsam ab, indem du die Ellbogen beugst.",
     "Halte kurz inne und drück dich dann wieder hoch.",
     "Beug die Ellbogen nicht weiter als 90°: Das belastet die Schultern."
+   ],
+   "pl": [
+    "Ustaw dwie ławki równolegle, około 1 m od siebie.",
+    "Usiądź na jednej ławce i oprzyj pięty na drugiej, nogi w powietrzu między nimi.",
+    "Skrzyżuj stopy dla stabilności.",
+    "Chwyć krawędź ławki i powoli opuszczaj ciało, uginając łokcie.",
+    "Zatrzymaj się na chwilę, a potem wypchnij się w górę.",
+    "Nie uginaj łokci bardziej niż do 90°: to obciąża barki."
+   ],
+   "nl": [
+    "Zet twee banken parallel, ongeveer 1 m uit elkaar.",
+    "Ga op de ene bank zitten en leg je hielen op de andere, benen zwevend ertussen.",
+    "Kruis je voeten voor steun.",
+    "Pak de rand van de bank vast en laat je lichaam langzaam zakken door je ellebogen te buigen.",
+    "Houd even vast en duw jezelf weer omhoog.",
+    "Buig je ellebogen niet verder dan 90°: dat belast je schouders."
    ]
   }
  },
@@ -1188,7 +1536,9 @@
    "es": "Extensión de tríceps sobre la cabeza a un brazo con mancuerna",
    "it": "Estensioni tricipiti sopra la testa a un braccio con manubrio",
    "pt-BR": "Tríceps francês unilateral com halter",
-   "de": "Einarmiges Kurzhantel-Trizepsstrecken über Kopf"
+   "de": "Einarmiges Kurzhantel-Trizepsstrecken über Kopf",
+   "pl": "Prostowanie ramienia jednorącz z hantlem nad głową",
+   "nl": "Eenarmige overhead tricepsextensie met dumbbell"
   },
   "steps": {
    "en": [
@@ -1226,6 +1576,18 @@
     "Halte eine Kurzhantel mit gebeugtem Ellbogen hinter dem Nacken.",
     "Streck den Arm langsam gerade über den Kopf und senk ihn dann wieder ab.",
     "Leg die freie Hand zur Stabilisierung quer über die Brust."
+   ],
+   "pl": [
+    "Usiądź na ławce, plecy proste, brzuch napięty.",
+    "Trzymaj hantel za karkiem, łokieć ugięty.",
+    "Powoli wyprostuj rękę nad głową, a potem opuść hantel z powrotem.",
+    "Wolną rękę połóż na klatce piersiowej dla stabilności."
+   ],
+   "nl": [
+    "Ga op een bank zitten, rug recht, buikspieren aangespannen.",
+    "Houd een dumbbell achter je nek, elleboog gebogen.",
+    "Strek je arm langzaam recht boven je hoofd en laat hem dan weer zakken.",
+    "Leg je vrije hand op je borst voor stabiliteit."
    ]
   }
  },
@@ -1236,7 +1598,9 @@
    "es": "Extensión de tríceps a un brazo de rodillas en polea",
    "it": "Estensione tricipite a un braccio in ginocchio ai cavi",
    "pt-BR": "Tríceps unilateral ajoelhado no cabo",
-   "de": "Einarmiges Trizepsstrecken kniend am Kabelzug"
+   "de": "Einarmiges Trizepsstrecken kniend am Kabelzug",
+   "pl": "Prostowanie ramienia jednorącz w klęku na wyciągu",
+   "nl": "Knielende eenarmige tricepsextensie aan de kabel"
   },
   "steps": {
    "en": [
@@ -1286,6 +1650,22 @@
     "Kehr langsam in die Ausgangsposition zurück.",
     "Beende den Satz und wechsle dann den Arm.",
     "Halte alles außer dem Arbeitsarm ruhig."
+   ],
+   "pl": [
+    "Przypnij pojedynczy uchwyt do górnego wyciągu.",
+    "Uklęknij na lewym kolanie, lewym bokiem do maszyny, prawe kolano ugięte, udo równoległe do podłogi.",
+    "Oprzyj prawe ramię o wewnętrzną stronę uda, tuż nad kolanem, i ściągaj linkę w dół w stronę podłogi lekkim łukiem.",
+    "Powoli wróć do pozycji wyjściowej.",
+    "Dokończ serię, a potem zmień rękę.",
+    "Poza pracującą ręką całe ciało pozostaje nieruchome."
+   ],
+   "nl": [
+    "Maak een enkel handvat vast aan een hoge kabel.",
+    "Kniel op je linkerknie, met je linkerzij naar de machine, rechterknie gebogen en je dij parallel aan de vloer.",
+    "Laat je rechterbovenarm tegen de binnenkant van je dij rusten, net boven de knie, en trek de kabel in een lichte boog naar de vloer.",
+    "Keer langzaam terug naar de beginpositie.",
+    "Maak de set af en wissel dan van arm.",
+    "Houd alles stil behalve de werkende arm."
    ]
   }
  },
@@ -1296,7 +1676,9 @@
    "es": "Extensión de tríceps acostado en polea",
    "it": "Estensioni tricipiti sdraiato ai cavi",
    "pt-BR": "Tríceps testa no cabo",
-   "de": "Trizepsstrecken liegend am Kabelzug"
+   "de": "Trizepsstrecken liegend am Kabelzug",
+   "pl": "Prostowanie ramion leżąc na wyciągu dolnym",
+   "nl": "Liggende tricepsextensie aan de lage kabel"
   },
   "steps": {
    "en": [
@@ -1340,6 +1722,20 @@
     "Greif das Seil mit zueinander zeigenden Handflächen, die Oberarme senkrecht, die Unterarme parallel zum Boden.",
     "Streck die Arme langsam nach oben und spann dabei den Trizeps an.",
     "Kehr in die Ausgangsposition zurück."
+   ],
+   "pl": [
+    "Przypnij linę do dolnego wyciągu stanowiska do wiosłowania siedząc.",
+    "Połóż się na plecach na ławce, głową w stronę stosu obciążenia.",
+    "Chwyć linę dłońmi zwróconymi do siebie, ramiona pionowo, przedramiona równolegle do podłogi.",
+    "Powoli prostuj ręce w górę, napinając tricepsy.",
+    "Wróć do pozycji wyjściowej."
+   ],
+   "nl": [
+    "Maak een touw vast aan de lage kabel van een station voor zittend roeien.",
+    "Ga op je rug op de bank liggen, hoofd naar de gewichtenstapel.",
+    "Pak het touw vast met je handpalmen naar elkaar toe, bovenarmen verticaal en onderarmen parallel aan de vloer.",
+    "Strek je armen langzaam omhoog en span je triceps aan.",
+    "Keer terug naar de beginpositie."
    ]
   }
  },
@@ -1350,7 +1746,9 @@
    "es": "Press francés con agarre invertido",
    "it": "French press presa inversa",
    "pt-BR": "Tríceps testa com pegada invertida",
-   "de": "Langhantel-Skull-Crusher im Untergriff"
+   "de": "Langhantel-Skull-Crusher im Untergriff",
+   "pl": "Wyciskanie francuskie leżąc ze sztangą podchwytem",
+   "nl": "Skull crusher met barbell in onderhandse greep"
   },
   "steps": {
    "en": [
@@ -1388,6 +1786,18 @@
     "Halte eine Langhantel im Untergriff.",
     "Führ die Arme hinter den Kopf zurück und halte sie dabei in einer geraden Linie.",
     "Beug nur die Ellbogen und senk und heb die Stange langsam."
+   ],
+   "pl": [
+    "Połóż się na plecach na ławce, głową przy jej końcu.",
+    "Trzymaj sztangę podchwytem.",
+    "Przenieś ręce do tyłu za głowę, utrzymując je w jednej linii.",
+    "Uginając tylko łokcie, powoli opuszczaj i podnoś sztangę."
+   ],
+   "nl": [
+    "Ga op je rug op een bank liggen, hoofd aan het uiteinde.",
+    "Houd een barbell vast met een onderhandse greep.",
+    "Breng je armen naar achteren voorbij je hoofd en houd ze in een rechte lijn.",
+    "Buig alleen in je ellebogen en laat de stang langzaam zakken en weer omhoogkomen."
    ]
   }
  },
@@ -1398,7 +1808,9 @@
    "es": "Curl martillo alterno con mancuernas",
    "it": "Curl a martello alternato con manubri",
    "pt-BR": "Rosca martelo alternada com halteres",
-   "de": "Kurzhantel-Hammercurl alternierend"
+   "de": "Kurzhantel-Hammercurl alternierend",
+   "pl": "Naprzemienne uginanie ramion z hantlami chwytem młotkowym",
+   "nl": "Afwisselende hammer curl met dumbbells"
   },
   "steps": {
    "en": [
@@ -1442,6 +1854,20 @@
     "Halte den Ellbogen fest am Körper und curl die linke Kurzhantel zur Schulter hoch.",
     "Senk sie ab und wiederhole die Bewegung mit dem rechten Arm.",
     "Dreh die Handgelenke nicht."
+   ],
+   "pl": [
+    "Stań w rozkroku na szerokość barków, kolana lekko ugięte, brzuch napięty.",
+    "Trzymaj w każdej ręce hantel, dłonie zwrócone do siebie, ręce wzdłuż ciała.",
+    "Trzymając łokieć przy boku, unieś lewy hantel w stronę barku.",
+    "Opuść go i powtórz prawą ręką.",
+    "Nie obracaj nadgarstków."
+   ],
+   "nl": [
+    "Sta met je voeten op schouderbreedte, knieën licht gebogen, buikspieren aangespannen.",
+    "Houd een dumbbell in elke hand, handpalmen naar elkaar toe, armen langs je zij.",
+    "Houd je elleboog tegen je zij en krul de linker dumbbell omhoog naar je schouder.",
+    "Laat hem zakken en herhaal met je rechterarm.",
+    "Draai je polsen niet."
    ]
   }
  },
@@ -1452,7 +1878,9 @@
    "es": "Curl inclinado con mancuernas",
    "it": "Curl su panca inclinata con manubri",
    "pt-BR": "Rosca inclinada com halteres",
-   "de": "Kurzhantelcurl auf der Schrägbank"
+   "de": "Kurzhantelcurl auf der Schrägbank",
+   "pl": "Uginanie ramion z hantlami siedząc na ławce skośnej",
+   "nl": "Zittende curl met dumbbells op de schuine bank"
   },
   "steps": {
    "en": [
@@ -1490,6 +1918,18 @@
     "Halte in jeder Hand eine Kurzhantel, die Handflächen nach oben, die Arme hängen seitlich.",
     "Halte die Handgelenke gerade und curl die Kurzhanteln zu den Schultern hoch.",
     "Spann beim Heben den Bizeps an."
+   ],
+   "pl": [
+    "Usiądź na ławce skośnej, stopy płasko na podłodze.",
+    "Trzymaj w każdej ręce hantel, dłonie skierowane do góry, ręce zwisają po bokach.",
+    "Z prostymi nadgarstkami unieś hantle do barków.",
+    "Podczas unoszenia napinaj bicepsy."
+   ],
+   "nl": [
+    "Ga op een schuine bank zitten, voeten plat op de vloer.",
+    "Houd een dumbbell in elke hand, handpalmen omhoog, armen hangend langs je zij.",
+    "Houd je polsen recht en krul de dumbbells omhoog naar je schouders.",
+    "Span je biceps aan terwijl je optilt."
    ]
   }
  },
@@ -1500,7 +1940,9 @@
    "es": "Curl acostado en polea alta",
    "it": "Curl sdraiato al cavo alto",
    "pt-BR": "Rosca deitado no cabo alto",
-   "de": "Hoher Curl liegend am Kabelzug"
+   "de": "Hoher Curl liegend am Kabelzug",
+   "pl": "Uginanie ramion leżąc na wyciągu górnym",
+   "nl": "Liggende curl aan de hoge kabel"
   },
   "steps": {
    "en": [
@@ -1544,6 +1986,20 @@
     "Greif die Stange mit den Handflächen nach oben und streck die Arme leicht schräg über dem Kopf ganz aus.",
     "Curl die Stange so weit wie möglich zu dir heran.",
     "Kehr langsam in die Ausgangsposition zurück."
+   ],
+   "pl": [
+    "Ustaw ławkę płaską obok stanowiska z wyciągiem i przypnij krótki drążek do górnego wyciągu.",
+    "Połóż się na plecach, głową w stronę stosu obciążenia.",
+    "Chwyć drążek podchwytem i całkowicie wyprostuj ręce, lekko skośnie nad głową.",
+    "Przyciągnij drążek w swoją stronę tak daleko, jak możesz.",
+    "Powoli wróć do pozycji wyjściowej."
+   ],
+   "nl": [
+    "Zet een vlakke bank naast een kabelstation en maak een korte stang vast aan de hoge kabel.",
+    "Ga op je rug liggen, hoofd naar de gewichtenstapel.",
+    "Pak de stang vast met je handpalmen omhoog en strek je armen volledig, licht schuin boven je hoofd.",
+    "Krul de stang zo ver mogelijk naar je toe.",
+    "Keer langzaam terug naar de beginpositie."
    ]
   }
  },
@@ -1554,7 +2010,9 @@
    "es": "Curl con barra boca abajo en banco alto",
    "it": "Curl con bilanciere prono su panca alta",
    "pt-BR": "Rosca com barra de bruços em banco alto",
-   "de": "Langhantelcurl in Bauchlage auf der hohen Bank"
+   "de": "Langhantelcurl in Bauchlage auf der hohen Bank",
+   "pl": "Uginanie ramion ze sztangą leżąc przodem na wysokiej ławce",
+   "nl": "Curl met barbell in buiklig op een hoge bank"
   },
   "steps": {
    "en": [
@@ -1592,6 +2050,18 @@
     "Halte eine Langhantel mit den Handflächen nach oben, die Hände etwa 30 cm auseinander.",
     "Curl die Stange aus den Richtung Boden gestreckten Armen in einem leichten Bogen zum Kopf hoch.",
     "Senk sie langsam in die Ausgangsposition ab."
+   ],
+   "pl": [
+    "Połóż się na brzuchu na wysokiej ławce, głową przy jej końcu, palcami stóp opierając się o podłogę.",
+    "Trzymaj sztangę podchwytem, dłonie około 30 cm od siebie.",
+    "Z rąk wyprostowanych w stronę podłogi unieś sztangę lekkim łukiem w stronę głowy.",
+    "Powoli opuść ją do pozycji wyjściowej."
+   ],
+   "nl": [
+    "Ga op je buik op een hoge bank liggen, hoofd aan het uiteinde, tenen op de vloer voor steun.",
+    "Houd een barbell vast met je handpalmen omhoog, handen ongeveer 30 cm uit elkaar.",
+    "Krul de stang vanuit gestrekte armen richting de vloer in een lichte boog omhoog naar je hoofd.",
+    "Laat hem langzaam terugzakken naar de beginpositie."
    ]
   }
  },
@@ -1602,7 +2072,9 @@
    "es": "Curl en banco Scott a un brazo con mancuerna",
    "it": "Curl alla panca Scott a un braccio con manubrio",
    "pt-BR": "Rosca Scott unilateral com halter",
-   "de": "Einarmiger Kurzhantel-Scottcurl"
+   "de": "Einarmiger Kurzhantel-Scottcurl",
+   "pl": "Uginanie ramienia jednorącz z hantlem na modlitewniku",
+   "nl": "Eenarmige preacher curl met dumbbell"
   },
   "steps": {
    "en": [
@@ -1652,6 +2124,22 @@
     "Halte kurz inne und senk sie dann wieder ab.",
     "Beende den Satz und wechsle dann den Arm.",
     "Beweg dich langsam und kontrolliert."
+   ],
+   "pl": [
+    "Ustaw siedzisko tak, aby ramię leżało płasko na podpórce.",
+    "Trzymaj hantel podchwytem, ręka całkowicie wyprostowana na podpórce.",
+    "Nie odrywając ramienia od podpórki, unieś hantel w stronę głowy.",
+    "Zatrzymaj się na chwilę, a potem opuść go z powrotem.",
+    "Dokończ serię, a potem zmień rękę.",
+    "Wykonuj ruch powoli i pod kontrolą."
+   ],
+   "nl": [
+    "Stel de zitting zo af dat je bovenarm plat op het kussen ligt.",
+    "Houd een dumbbell vast met je handpalm omhoog, arm volledig gestrekt op het kussen.",
+    "Houd je arm op het kussen en krul de dumbbell omhoog naar je hoofd.",
+    "Houd even vast en laat hem dan weer zakken.",
+    "Maak de set af en wissel dan van arm.",
+    "Beweeg langzaam en gecontroleerd."
    ]
   }
  },
@@ -1662,7 +2150,9 @@
    "es": "Curl invertido con disco",
    "it": "Curl presa inversa con disco",
    "pt-BR": "Rosca inversa com anilha",
-   "de": "Hantelscheiben-Curl im Obergriff"
+   "de": "Hantelscheiben-Curl im Obergriff",
+   "pl": "Uginanie ramion z talerzem nachwytem",
+   "nl": "Reverse curl met halterschijf"
   },
   "steps": {
    "en": [
@@ -1700,6 +2190,18 @@
     "Halte eine Hantelscheibe mit den Handflächen nach unten, die Hände auf 11 und 1 Uhr.",
     "Halte die Ellbogen am Körper und curl die Scheibe langsam zum Kopf hoch.",
     "Senk sie langsam in die Ausgangsposition ab."
+   ],
+   "pl": [
+    "Stań w rozkroku na szerokość barków, kolana lekko ugięte, brzuch napięty.",
+    "Trzymaj talerz nachwytem, dłonie na godzinie 11 i 1.",
+    "Trzymając łokcie przy bokach, powoli unoś talerz w stronę głowy.",
+    "Powoli opuść go do pozycji wyjściowej."
+   ],
+   "nl": [
+    "Sta met je voeten op schouderbreedte, knieën licht gebogen, buikspieren aangespannen.",
+    "Houd een halterschijf vast met je handpalmen naar beneden, handen op 11 en 1 uur.",
+    "Houd je ellebogen langs je zij en krul de schijf langzaam omhoog naar je hoofd.",
+    "Laat hem langzaam terugzakken naar de beginpositie."
    ]
   }
  },
@@ -1710,7 +2212,9 @@
    "es": "Curl con barra a un brazo",
    "it": "Curl con bilanciere a un braccio",
    "pt-BR": "Rosca unilateral com barra",
-   "de": "Einarmiger Langhantelcurl"
+   "de": "Einarmiger Langhantelcurl",
+   "pl": "Uginanie ramienia jednorącz ze sztangą",
+   "nl": "Eenarmige curl met barbell"
   },
   "steps": {
    "en": [
@@ -1760,6 +2264,22 @@
     "Curl die Stange hoch, bis der Unterarm den Bizeps berührt.",
     "Senk sie langsam ab und wechsle dann den Arm.",
     "Wenn die Olympiastange zu schwer ist, nimm eine leichtere Langhantel."
+   ],
+   "pl": [
+    "Stań w rozkroku na szerokość barków, kolana lekko ugięte.",
+    "Chwyć jedną ręką pustą sztangę olimpijską na środku, tak aby pozostała w równowadze.",
+    "Wolną rękę trzymaj wzdłuż ciała.",
+    "Unoś sztangę, aż przedramię zbliży się do bicepsa.",
+    "Powoli opuść, a potem zmień rękę.",
+    "Jeśli sztanga olimpijska jest za ciężka, użyj lżejszej sztangi."
+   ],
+   "nl": [
+    "Sta met je voeten op schouderbreedte, knieën licht gebogen.",
+    "Pak een lege olympische barbell met één hand in het midden vast, zodat hij in balans blijft.",
+    "Houd je vrije hand langs je zij.",
+    "Krul de stang omhoog tot je onderarm je biceps raakt.",
+    "Laat hem langzaam zakken en wissel dan van arm.",
+    "Is de olympische barbell te zwaar, gebruik dan een lichtere stang."
    ]
   }
  },
@@ -1770,7 +2290,9 @@
    "es": "Peso muerto con curl con barra",
    "it": "Stacco con curl con bilanciere",
    "pt-BR": "Levantamento terra com rosca com barra",
-   "de": "Langhantel-Kreuzheben mit Curl"
+   "de": "Langhantel-Kreuzheben mit Curl",
+   "pl": "Martwy ciąg ze sztangą z uginaniem ramion",
+   "nl": "Deadlift met barbell naar curl"
   },
   "steps": {
    "en": [
@@ -1826,6 +2348,24 @@
     "Curl die Stange beim Aufrichten zu den Schultern hoch.",
     "Senk die Stange wieder zu den Oberschenkeln ab.",
     "Ein Spiegel hilft dir, deine Technik zu kontrollieren."
+   ],
+   "pl": [
+    "Trzymaj sztangę łamaną lub prostą podchwytem.",
+    "Stań w rozkroku na szerokość barków, kolana lekko ugięte, brzuch napięty.",
+    "Sztanga zwisa przed udami, ręce wyprostowane.",
+    "Pochyl się w biodrach i opuść sztangę tuż nad podłogę.",
+    "Wracając do pozycji stojącej, unieś sztangę do barków, uginając ramiona.",
+    "Opuść sztangę z powrotem do ud.",
+    "Lustro pomoże ci kontrolować technikę."
+   ],
+   "nl": [
+    "Houd een EZ-bar of barbell vast met een onderhandse greep.",
+    "Sta met je voeten op schouderbreedte, knieën licht gebogen, buikspieren aangespannen.",
+    "Laat de stang voor je dijen hangen, armen gestrekt.",
+    "Buig vanuit je heupen en laat de stang zakken tot net boven de vloer.",
+    "Krul de stang naar je schouders terwijl je weer rechtop komt.",
+    "Laat de stang weer zakken naar je dijen.",
+    "Een spiegel helpt je om je techniek te controleren."
    ]
   }
  },
@@ -1836,7 +2376,9 @@
    "es": "Curl y extensión de tríceps de rodillas en fitball",
    "it": "Curl ed estensione tricipiti in ginocchio su fitball",
    "pt-BR": "Rosca e tríceps francês ajoelhado na bola suíça",
-   "de": "Curl und Überkopfstrecken kniend auf dem Gymnastikball"
+   "de": "Curl und Überkopfstrecken kniend auf dem Gymnastikball",
+   "pl": "Uginanie i prostowanie ramion nad głową w klęku na piłce gimnastycznej",
+   "nl": "Knielende curl en overhead extensie op de fitnessbal"
   },
   "steps": {
    "en": [
@@ -1886,6 +2428,22 @@
     "Senk die obere Kurzhantel wie beim Trizepsstrecken hinter den Kopf, während du den anderen Arm absenkst und wieder curlst.",
     "Kehr in die Ausgangsposition zurück und wechsle dann die Arme.",
     "Mach diese Übung nur, wenn du kniend auf dem Ball sicher die Balance halten kannst."
+   ],
+   "pl": [
+    "Trzymaj w każdej ręce hantel, dłonie skierowane do góry.",
+    "Uklęknij na piłce gimnastycznej, brzuch napięty, plecy proste.",
+    "Unieś jedną rękę nad głowę, a drugą trzymaj ugiętą.",
+    "Opuść uniesiony hantel za głowę, jak przy prostowaniu ramion na triceps, a jednocześnie opuść i ponownie ugnij drugą rękę.",
+    "Wróć do pozycji wyjściowej, a potem zmień ręce.",
+    "Wykonuj to ćwiczenie tylko wtedy, gdy potrafisz utrzymać równowagę w klęku na piłce."
+   ],
+   "nl": [
+    "Houd een dumbbell in elke hand, handpalmen omhoog.",
+    "Kniel op de fitnessbal, buikspieren aangespannen en rug recht.",
+    "Breng één arm boven je hoofd en houd de andere gebogen.",
+    "Laat de geheven dumbbell achter je hoofd zakken, zoals bij een tricepsextensie, terwijl je de andere arm laat zakken en weer krult.",
+    "Keer terug naar de beginpositie en wissel dan van arm.",
+    "Doe deze oefening alleen als je knielend op de bal je balans kunt houden."
    ]
   }
  },
@@ -1896,7 +2454,9 @@
    "es": "Zancada atrás con balón medicinal y movimiento de bolos",
    "it": "Affondo indietro con palla medica e movimento da bowling",
    "pt-BR": "Avanço para trás com bola medicinal e movimento de boliche",
-   "de": "Medizinball-Ausfallschritt rückwärts mit Bowlingbewegung"
+   "de": "Medizinball-Ausfallschritt rückwärts mit Bowlingbewegung",
+   "pl": "Wykrok w tył z piłką lekarską ruchem jak w kręglach",
+   "nl": "Reverse lunge met medicijnbal en bowlingbeweging"
   },
   "steps": {
    "en": [
@@ -1940,6 +2500,20 @@
     "Schwing den Ball beim Ausfallschritt nach unten und hinten, als würdest du bowlen.",
     "Führ den Arm zurück in die Ausgangsposition und wechsle dann das Bein.",
     "Beweg dich langsam und gleichmäßig."
+   ],
+   "pl": [
+    "Trzymaj piłkę lekarską w jednej dłoni na wysokości barku, dłoń skierowana do góry.",
+    "Zrób krok jedną nogą w tył do wykroku, przednia stopa stabilnie na podłodze, tylne kolano nad podłogą.",
+    "Podczas wykroku przenieś piłkę w dół i do tyłu, jak przy rzucie w kręglach.",
+    "Unieś rękę z powrotem do pozycji wyjściowej, a potem zmień nogę.",
+    "Wykonuj ruch powoli i płynnie."
+   ],
+   "nl": [
+    "Houd een medicijnbal in één hand op schouderhoogte, handpalm omhoog.",
+    "Stap met één voet naar achteren in een lunge, voorste voet stevig op de vloer, achterste knie van de vloer.",
+    "Zwaai de bal tijdens de lunge naar beneden en naar achteren, alsof je bowlt.",
+    "Breng je arm terug omhoog naar de beginpositie en wissel dan van been.",
+    "Beweeg langzaam en gelijkmatig."
    ]
   }
  },
@@ -1950,7 +2524,9 @@
    "es": "Zancada lateral con curl con mancuernas",
    "it": "Affondo laterale con curl con manubri",
    "pt-BR": "Avanço lateral com rosca com halteres",
-   "de": "Seitlicher Kurzhantel-Ausfallschritt mit Curl"
+   "de": "Seitlicher Kurzhantel-Ausfallschritt mit Curl",
+   "pl": "Wykrok w bok z uginaniem ramion z hantlami",
+   "nl": "Zijwaartse lunge naar curl met dumbbells"
   },
   "steps": {
    "en": [
@@ -1994,6 +2570,20 @@
     "Mach einen Schritt zur Seite und geh in den Ausfallschritt, indem du Hüfte und Knie beugst.",
     "Curl beim Ausfallschritt die Kurzhanteln zu den Schultern hoch.",
     "Kehr in die Ausgangsposition zurück und wechsle dann das Bein."
+   ],
+   "pl": [
+    "Trzymaj w każdej ręce hantel, dłonie skierowane do przodu.",
+    "Stań ze złączonymi stopami, plecy proste, brzuch napięty, ręce zwisają przed udami.",
+    "Zrób krok w bok i zejdź do wykroku, uginając biodro i kolano.",
+    "Podczas wykroku unieś hantle do barków.",
+    "Wróć do pozycji wyjściowej, a potem zmień nogę."
+   ],
+   "nl": [
+    "Houd een dumbbell in elke hand, handpalmen naar voren.",
+    "Sta met je voeten bij elkaar, rug recht, buikspieren aangespannen, armen hangend voor je dijen.",
+    "Stap opzij en zak door in een lunge door heup en knie te buigen.",
+    "Krul de dumbbells tijdens de lunge naar je schouders.",
+    "Keer terug naar de beginpositie en wissel dan van been."
    ]
   }
  },
@@ -2004,7 +2594,9 @@
    "es": "Elevación de talones con banda elástica",
    "it": "Calf raise con elastico",
    "pt-BR": "Elevação de panturrilha com elástico",
-   "de": "Wadenheben mit Widerstandsband"
+   "de": "Wadenheben mit Widerstandsband",
+   "pl": "Wspięcia na palce z gumą oporową",
+   "nl": "Kuitheffen met weerstandsband"
   },
   "steps": {
    "en": [
@@ -2036,6 +2628,16 @@
     "Stell dich mit den Fußballen auf das Band und bring die Griffe auf Schulterhöhe.",
     "Geh auf die Zehenspitzen, die Hände bleiben an den Schultern.",
     "Halte kurz inne und senk die Fersen dann wieder auf den Boden."
+   ],
+   "pl": [
+    "Stań przodostopiem na gumie i unieś uchwyty do barków.",
+    "Wespnij się na palce, dłonie pozostają przy barkach.",
+    "Zatrzymaj się na chwilę, a potem opuść pięty na podłogę."
+   ],
+   "nl": [
+    "Ga met de bal van je voeten op de band staan en breng de handvatten omhoog naar je schouders.",
+    "Kom op je tenen, handen blijven bij je schouders.",
+    "Houd even vast en laat dan je hielen naar de vloer zakken."
    ]
   }
  },
@@ -2046,7 +2648,9 @@
    "es": "Crunch con pies en fitball",
    "it": "Crunch con piedi su fitball",
    "pt-BR": "Crunch com pés na bola suíça",
-   "de": "Crunch mit Füßen auf dem Gymnastikball"
+   "de": "Crunch mit Füßen auf dem Gymnastikball",
+   "pl": "Spięcia brzucha ze stopami na piłce gimnastycznej",
+   "nl": "Crunch met voeten op de fitnessbal"
   },
   "steps": {
    "en": [
@@ -2090,6 +2694,20 @@
     "Lass den unteren Rücken am Boden und heb Kopf, Schultern und Brust an.",
     "Halte kurz inne, spann den Bauch an und senk dich dann wieder ab.",
     "Beweg dich langsam und kontrolliert."
+   ],
+   "pl": [
+    "Połóż się na plecach ze stopami opartymi na piłce gimnastycznej.",
+    "Skrzyżuj dłonie na klatce piersiowej lub ułóż je przy głowie.",
+    "Nie odrywając dolnej części pleców od podłogi, unieś głowę, barki i klatkę piersiową.",
+    "Zatrzymaj się na chwilę, napnij mięśnie brzucha, a potem opuść się z powrotem.",
+    "Wykonuj ruch powoli i pod kontrolą."
+   ],
+   "nl": [
+    "Ga op je rug liggen met je voeten op een fitnessbal.",
+    "Kruis je handen over je borst of leg ze naast je hoofd.",
+    "Houd je onderrug op de vloer en til je hoofd, schouders en borst op.",
+    "Houd even vast en span je buikspieren aan, laat je dan weer zakken.",
+    "Beweeg langzaam en gecontroleerd."
    ]
   }
  },
@@ -2100,7 +2718,9 @@
    "es": "Crunch oblicuo declinado",
    "it": "Crunch obliquo su panca declinata",
    "pt-BR": "Abdominal oblíquo declinado",
-   "de": "Schräger Crunch auf der Negativbank"
+   "de": "Schräger Crunch auf der Negativbank",
+   "pl": "Skośne spięcia brzucha na ławce ze skosem ujemnym",
+   "nl": "Schuine crunch op de declinebank"
   },
   "steps": {
    "en": [
@@ -2144,6 +2764,20 @@
     "Roll Schultern und Brust nach oben und führ dabei den linken Ellbogen zum rechten Knie.",
     "Halte kurz inne und senk dich dann wieder ab.",
     "Leg dich ganz zurück und führ dann den rechten Ellbogen zum linken Knie."
+   ],
+   "pl": [
+    "Połóż się na plecach na ławce ze skosem ujemnym, stopy zablokowane pod wałkami.",
+    "Skrzyżuj dłonie na klatce piersiowej lub ułóż je przy głowie.",
+    "Unieś barki i klatkę piersiową, kierując lewy łokieć do prawego kolana.",
+    "Zatrzymaj się na chwilę, a potem opuść się z powrotem.",
+    "Połóż się całkowicie, a następnie skieruj prawy łokieć do lewego kolana."
+   ],
+   "nl": [
+    "Ga op je rug op een declinebank liggen, voeten vastgezet onder de kussens.",
+    "Kruis je handen over je borst of leg ze naast je hoofd.",
+    "Krul je schouders en borst omhoog en breng je linkerelleboog naar je rechterknie.",
+    "Houd even vast en laat je dan weer zakken.",
+    "Ga helemaal terug liggen en breng dan je rechterelleboog naar je linkerknie."
    ]
   }
  }
