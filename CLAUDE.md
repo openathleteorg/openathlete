@@ -82,6 +82,17 @@ Behaviour changes come with tests at the lowest level that can catch the regress
 - **Dates**: store and bucket in UTC (`core/helpers/training-load.ts`). Tests run in several timezones.
 - **Comments**: explain why, not what. Match the density of the surrounding code.
 
+## Supporter perks and early access
+
+`FEATURES` (`libs/shared/src/types/features.ts`) lists what depends on the user's rights: permanent perks (`supporter`, `coachTools`) and Supporter early access. `featureAccess()` decides, the API sends its answer in `CurrentSubscriptionDto.features`, the app reads it with `useFeature`.
+
+- Every new user-facing feature of some size goes into `FEATURES` with `earlyAccess: { since: <day it reaches the hosted instance> }`, and is wrapped with `useFeature` / `<FeatureGate>` in the web app and `@RequireFeature` in the API. Set `since` on the day of the deploy, not of the merge. After 30 days it is everyone's; a test asks to remove the field 60 days later.
+- Never gated: bug fixes, data reliability, device sync and imports, export, calendar and planning basics, sending workouts to watches, activity analysis, training load, security, accessibility, translations, the MCP tools and anything the transparency page lists as free forever.
+- Without Stripe, every feature is available, with no lock, chip or Supporter mention. An E2E test checks it on the Docker images.
+- A lock stops creating or changing, never what already runs: scheduled messages still go out, saved thresholds and columns stay.
+- The server withholds locked data (a `teaser` instead) unless the rule says `serverEnforced: false`.
+- The Android app sells nothing: it hides locked entries and early access from non-Supporters, without mentioning Supporter.
+
 ## Git
 
 - Conventional commits: `type(scope): summary` (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`). The body explains the why and the user-visible effect.

@@ -53,7 +53,8 @@ export const TERMS_OF_SALE_VERSION = '2026-11-16';
 export const SUPPORTER_GOAL = 100;
 
 /**
- * Feature names that can be restricted
+ * AI features on the instance keys (hostedAi). Supporter perks and early
+ * access are in FEATURES (features.ts).
  */
 export enum FeatureName {
   AI_GENERATION = 'ai-generation',

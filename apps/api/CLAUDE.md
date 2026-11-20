@@ -24,6 +24,7 @@ The same image runs as the HTTP API and as the background worker. Which BullMQ p
   - parse ids with `ParseIntPipe`, using `{ optional: true }` for optional query params;
   - document with `@ApiOperation` and `@ApiResponse`.
 - **Authorization**: get the user's ability (`this.abilities.getFor({ user })`) and filter queries with `accessibleBy(ability, 'read').Event`. A coach reads their athletes' data through the same rules, so never filter by `athleteId` alone.
+- **Supporter perks**: guard an endpoint with `@RequireFeature(Feature.X)` and `FeatureAccessGuard`, or call `FeatureAccessService.assert(userId, feature, { clubId })` when a club's owner decides. A locked read returns `{ locked: true, teaser }`, a locked write a 403 `FEATURE_LOCKED`. Nothing is locked without Stripe.
 - **Errors**: throw Nest HTTP exceptions (`NotFoundException`, `BadRequestException`...). A plain `Error` becomes a 500.
 - **Rate limits**: a global default applies. Auth and public write endpoints use the presets in `common/security/rate-limits.ts`. Webhooks and `/health` use `@SkipThrottle()`.
 - **Long work**:

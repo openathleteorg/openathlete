@@ -266,6 +266,7 @@ export class SubscriptionController {
       appStoreEnabled: this.appleStoreService.enabled,
       showOnSupporterWall: subscription.showOnSupporterWall,
       wallName: subscription.wallName,
+      features: await this.featureAccessService.accessMap(userId),
     };
   }
 

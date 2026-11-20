@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { featureAccessMapSchema } from '../../features';
 import {
   billingIntervalSchema,
   billingProviderSchema,
@@ -40,6 +41,8 @@ export const currentSubscriptionDtoSchema = z.object({
   showOnSupporterWall: z.boolean(),
   /** Name shown there instead of the first name */
   wallName: z.string().nullable(),
+  /** What the user may use of FEATURES today, decided by the server's clock */
+  features: featureAccessMapSchema,
 });
 
 export type CurrentSubscriptionDto = z.infer<

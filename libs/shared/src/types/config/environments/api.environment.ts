@@ -474,6 +474,17 @@ export const ApiEnvSchema = z
       .default('redis://localhost:6379/0')
       .describe('Redis connection URL for queue and caching'),
 
+    FEATURES_CLOCK: z
+      .string()
+      .regex(
+        /^\d{4}-\d{2}-\d{2}$/,
+        'FEATURES_CLOCK must be a date (YYYY-MM-DD)',
+      )
+      .optional()
+      .describe(
+        'Testing only: the day the Supporter feature registry takes as today (early access). Without Stripe it changes nothing',
+      ),
+
     // Stripe (optional, required for subscription features)
     STRIPE_SECRET_KEY: z
       .string()

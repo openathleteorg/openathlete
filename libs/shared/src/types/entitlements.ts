@@ -45,6 +45,10 @@ export interface OfferEntitlements {
   weeklyReview: boolean;
   /** AI race analyses (not built yet) */
   raceAnalysis: boolean;
+  /** Supporter perks of FEATURES: the Lab, comparisons, clubs, images, themes, early access */
+  supporterPerks: boolean;
+  /** Advanced coach tools of FEATURES; in a club, the owner's rights count */
+  coachTools: boolean;
 }
 
 const free: OfferEntitlements = {
@@ -60,6 +64,8 @@ const free: OfferEntitlements = {
   hostedAi: false,
   weeklyReview: false,
   raceAnalysis: false,
+  supporterPerks: false,
+  coachTools: false,
 };
 
 export const OFFERS: Record<Offer, OfferEntitlements> = {
@@ -79,6 +85,9 @@ export const OFFERS: Record<Offer, OfferEntitlements> = {
     hostedAi: true,
     weeklyReview: true,
     raceAnalysis: true,
+    supporterPerks: true,
+    // Like unlimited athletes: until the Coach offer is on sale
+    coachTools: true,
   },
   [Offer.COACH]: {
     ...free,
@@ -91,6 +100,8 @@ export const OFFERS: Record<Offer, OfferEntitlements> = {
     hostedAi: true,
     weeklyReview: true,
     raceAnalysis: true,
+    supporterPerks: true,
+    coachTools: true,
   },
   [Offer.COACH_PRO]: {
     ...free,
@@ -108,6 +119,8 @@ export const OFFERS: Record<Offer, OfferEntitlements> = {
     hostedAi: true,
     weeklyReview: true,
     raceAnalysis: true,
+    supporterPerks: true,
+    coachTools: true,
   },
   [Offer.CLUB]: {
     ...free,
@@ -119,6 +132,8 @@ export const OFFERS: Record<Offer, OfferEntitlements> = {
     maxClubAthletes: 100,
     maxClubStaff: null,
     hostedAi: true,
+    // For the club's staff, in the club; the athletes get nothing more
+    coachTools: true,
   },
   [Offer.CLUB_PLUS]: {
     ...free,
@@ -130,6 +145,8 @@ export const OFFERS: Record<Offer, OfferEntitlements> = {
     maxClubAthletes: 250,
     maxClubStaff: null,
     hostedAi: true,
+    // For the club's staff, in the club; the athletes get nothing more
+    coachTools: true,
   },
   [Offer.COACH_SEAT]: {
     ...free,
@@ -141,6 +158,7 @@ export const OFFERS: Record<Offer, OfferEntitlements> = {
     hostedAi: true,
     weeklyReview: true,
     raceAnalysis: true,
+    supporterPerks: true,
   },
 };
 
