@@ -44,8 +44,16 @@ export class StripeService implements OnApplicationBootstrap {
   ) {
     const secretKey = this.configService.get('STRIPE_SECRET_KEY');
     if (secretKey) {
+      // Tests point the client at stripe-mock; production never sets it
+      const apiUrl = this.configService.get('STRIPE_API_URL');
+      const target = apiUrl ? new URL(apiUrl) : null;
       this.client = new Stripe(secretKey, {
         apiVersion: '2025-11-17.clover',
+        ...(target && {
+          host: target.hostname,
+          port: target.port || undefined,
+          protocol: target.protocol.replace(':', '') as 'http' | 'https',
+        }),
       });
     } else {
       // Billing is optional: self-hosted instances run without Stripe.

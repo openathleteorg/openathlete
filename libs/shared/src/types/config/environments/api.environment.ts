@@ -491,6 +491,14 @@ export const ApiEnvSchema = z
       .optional()
       .describe('Stripe secret key for payment processing (optional)'),
 
+    STRIPE_API_URL: z
+      .string()
+      .url('STRIPE_API_URL must be a URL')
+      .optional()
+      .describe(
+        'Testing only: the Stripe API to call instead of api.stripe.com (stripe-mock in the E2E stack)',
+      ),
+
     STRIPE_PRICE_SUPPORTER_MONTHLY: z
       .string()
       .optional()

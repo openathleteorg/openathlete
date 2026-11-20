@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-import { AUTH_FILE, WEB_URL } from './support/env';
+import { AUTH_FILE, BILLING_WEB_URL, WEB_URL } from './support/env';
 
 const isCI = Boolean(process.env.CI);
 
@@ -41,6 +41,22 @@ export default defineConfig({
         storageState: AUTH_FILE,
       },
       dependencies: ['setup'],
+    },
+    {
+      // An instance with billing (stripe-mock): Supporter perks are locked
+      // for free accounts. Its own web app and API, same database
+      name: 'billing',
+      testMatch: /tests\/billing\/.*\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'], baseURL: BILLING_WEB_URL },
+    },
+    {
+      name: 'billing-mobile',
+      testMatch: /tests\/billing\/.*\.spec\.ts$/,
+      use: {
+        ...devices['iPhone 13'],
+        browserName: 'chromium',
+        baseURL: BILLING_WEB_URL,
+      },
     },
     {
       // The same phone tests on an Android phone: its own viewport, screen
