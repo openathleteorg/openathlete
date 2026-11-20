@@ -29,7 +29,14 @@ import {
   localePath,
   localizedUrl,
 } from '@/utils/locales';
-import { Code2, Heart, KeyRound, Server, Sparkles } from 'lucide-react';
+import {
+  ArrowRight,
+  Code2,
+  Heart,
+  KeyRound,
+  Server,
+  Sparkles,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import { generateMetadata as pageMetadata } from '../../metadata';
@@ -318,6 +325,13 @@ export default async function PricingPage({ params }: Props) {
               </RevealItem>
             ))}
           </RevealGroup>
+          <Link
+            href={localePath(locale, '/transparency')}
+            className="mt-6 inline-flex items-center gap-1.5 font-medium hover:text-sky-strong"
+          >
+            {m.pricing_page_where_link()}
+            <ArrowRight className="size-4" />
+          </Link>
 
           <Reveal className="mt-10">
             <div className="flex flex-col items-start gap-6 rounded-3xl bg-[#fff6c2] p-7 sm:flex-row sm:items-center sm:p-9">
