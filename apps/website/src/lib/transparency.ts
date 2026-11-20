@@ -9,15 +9,15 @@ import {
 /** Same lifetime as the API's own cache */
 export const TRANSPARENCY_REVALIDATE_SECONDS = 3600;
 
-/**
- * Supporter count, tier progress and wall from the hosted API. Null when it
- * cannot be reached or answers something else (a build without network,
- * an instance that sells nothing): the page then leaves those blocks out.
- */
-export async function fetchTransparency(): Promise<TransparencyDto | null> {
+/** After a failure: the page is rebuilt within a minute, not an hour */
+const RETRY_REVALIDATE_SECONDS = 60;
+
+async function loadTransparency(
+  revalidate: number,
+): Promise<TransparencyDto | null> {
   try {
     const response = await fetch(`${API_URL}/transparency`, {
-      next: { revalidate: TRANSPARENCY_REVALIDATE_SECONDS },
+      next: { revalidate },
       signal: AbortSignal.timeout(5000),
     });
     if (!response.ok) return null;
@@ -26,6 +26,21 @@ export async function fetchTransparency(): Promise<TransparencyDto | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Supporter count, tier progress and wall from the hosted API. Null when it
+ * cannot be reached or answers something else (a build without network,
+ * an instance that sells nothing): the page then leaves those blocks out.
+ * Next caches only successful responses, but the page itself keeps the
+ * shortest lifetime of its fetches: the retry makes a page rendered without
+ * the figures (say, built before the API was deployed) try again soon.
+ */
+export async function fetchTransparency(): Promise<TransparencyDto | null> {
+  return (
+    (await loadTransparency(TRANSPARENCY_REVALIDATE_SECONDS)) ??
+    (await loadTransparency(RETRY_REVALIDATE_SECONDS))
+  );
 }
 
 const CONTRIBUTORS_API = GITHUB_URL.replace(
