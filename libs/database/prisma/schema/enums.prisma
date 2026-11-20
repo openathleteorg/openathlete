@@ -443,6 +443,8 @@ enum UserLanguage {
   ES
   PT_BR
   DE
+  PL
+  NL
 
   @@map("user_language")
 }

@@ -102,6 +102,44 @@ const translations = {
       'Diese Nachrichten wurden gebündelt, damit du nicht für jede einzelne Nachricht eine E-Mail bekommst.',
     from: (senderName: string, time: string) => `Von ${senderName} — ${time}`,
   },
+  PL: {
+    subject: 'Nowe wiadomości w Twojej skrzynce OpenAthlete',
+    title: 'Nowe wiadomości w Twojej skrzynce',
+    preview: (count: number) => {
+      if (count <= 1) return 'Nowa wiadomość w rozmowie';
+      const few =
+        count % 10 >= 2 &&
+        count % 10 <= 4 &&
+        (count % 100 < 12 || count % 100 > 14);
+      return few
+        ? `${count} nowe wiadomości w rozmowie`
+        : `${count} nowych wiadomości w rozmowie`;
+    },
+    intro: (threadTitle?: string | null) =>
+      threadTitle
+        ? `Masz nowe wiadomości w rozmowie „${threadTitle}” w OpenAthlete.`
+        : 'Masz nowe wiadomości w jednej ze swoich rozmów w OpenAthlete.',
+    openInbox: 'Otwórz skrzynkę',
+    footerNote:
+      'Te wiadomości zostały zebrane razem, aby nie przychodził osobny e-mail o każdej z nich.',
+    from: (senderName: string, time: string) => `Od ${senderName} — ${time}`,
+  },
+  NL: {
+    subject: 'Nieuwe berichten in je OpenAthlete-inbox',
+    title: 'Nieuwe berichten in je inbox',
+    preview: (count: number) =>
+      count > 1
+        ? `${count} nieuwe berichten in een gesprek`
+        : 'Nieuw bericht in een gesprek',
+    intro: (threadTitle?: string | null) =>
+      threadTitle
+        ? `Je hebt nieuwe berichten ontvangen in het gesprek ‘${threadTitle}’ op OpenAthlete.`
+        : 'Je hebt nieuwe berichten ontvangen in een van je gesprekken op OpenAthlete.',
+    openInbox: 'Inbox openen',
+    footerNote:
+      'Deze berichten zijn gebundeld, zodat je niet voor elk bericht apart een e-mail krijgt.',
+    from: (senderName: string, time: string) => `Van ${senderName} — ${time}`,
+  },
 } as const;
 
 const dateLocales: Record<EmailLanguage, string> = {
@@ -111,6 +149,8 @@ const dateLocales: Record<EmailLanguage, string> = {
   IT: 'it-IT',
   PT_BR: 'pt-BR',
   DE: 'de-DE',
+  PL: 'pl-PL',
+  NL: 'nl-NL',
 };
 
 export function messageThreadNotificationSubject(

@@ -53,6 +53,47 @@ describe('push notification translations', () => {
     });
   });
 
+  it('writes activity feedback in Polish and Dutch', () => {
+    expect(
+      getPushNotificationTranslation('activity_processed', Language.PL, {
+        hasQuestions: false,
+      }),
+    ).toEqual({
+      title: 'Aktywność przetworzona',
+      body: 'Twoja aktywność została przeanalizowana.',
+    });
+    expect(
+      getPushNotificationTranslation('activity_processed', Language.NL, {
+        hasQuestions: true,
+      }),
+    ).toEqual({
+      title: 'Activiteit verwerkt',
+      body: 'Je activiteit is geanalyseerd en er staan feedbackvragen voor je klaar.',
+    });
+  });
+
+  it('writes the next-day reminder in Polish, with its plural forms', () => {
+    expect(trainingReminderNotification(Language.PL, ['Bieganie'])).toEqual({
+      title: 'Jutro',
+      body: 'Bieganie',
+    });
+    expect(
+      trainingReminderNotification(Language.PL, ['Bieganie', 'Pływanie']).body,
+    ).toBe('2 treningi: Bieganie, Pływanie');
+    expect(
+      trainingReminderNotification(Language.PL, ['A', 'B', 'C', 'D', 'E']).body,
+    ).toBe('5 treningów: A, B, C, D, E');
+  });
+
+  it('writes the next-day reminder in Dutch', () => {
+    expect(
+      trainingReminderNotification(Language.NL, ['Hardlopen', 'Zwemmen']),
+    ).toEqual({
+      title: 'Morgen',
+      body: '2 trainingen: Hardlopen, Zwemmen',
+    });
+  });
+
   it('tells an athlete, in every language, that a questionnaire waits', () => {
     for (const language of Object.values(Language)) {
       const { title, body } = questionnaireNotification(

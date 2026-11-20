@@ -50,6 +50,19 @@ describe('NotificationService.sendEmail language', () => {
     expect(sent().html).toContain('<html lang="de">');
   });
 
+  it.each([
+    ['PL', 'pl'],
+    ['NL', 'nl'],
+  ] as const)(
+    'writes in the language of a %s recipient',
+    async (language, lang) => {
+      const { sendInvitation, sent } = setup({ language });
+      await sendInvitation();
+      expect(sent().subject).toBe(subjects[language]);
+      expect(sent().html).toContain(`<html lang="${lang}">`);
+    },
+  );
+
   it("uses the payload's language when the recipient has no account", async () => {
     const { sendInvitation, sent } = setup(null);
     await sendInvitation('ES');

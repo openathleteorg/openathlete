@@ -61,6 +61,26 @@ const translations = {
     ignore:
       'Wenn du die Verbindung absichtlich entfernt hast, kannst du diese E-Mail ignorieren.',
   },
+  PL: {
+    subject: (p: string) => `Synchronizacja z ${p} została zatrzymana`,
+    preview: 'Nowe treningi już do nas nie trafiają.',
+    body: (p: string, since: string) =>
+      `Od ${since} OpenAthlete nie otrzymuje Twoich treningów z ${p}: dostęp został odrzucony lub usunięty na Twoim koncie ${p}.`,
+    fix: 'Połącz je ponownie, aby wznowić synchronizację. Zaimportowane już treningi zostają na miejscu.',
+    button: (p: string) => `Połącz ponownie ${p}`,
+    ignore:
+      'Jeśli usunięcie połączenia było zamierzone, możesz zignorować tę wiadomość.',
+  },
+  NL: {
+    subject: (p: string) => `Je ${p}-synchronisatie is gestopt`,
+    preview: 'Nieuwe trainingen komen niet meer binnen.',
+    body: (p: string, since: string) =>
+      `Sinds ${since} ontvangt OpenAthlete je ${p}-trainingen niet meer: de toegang is geweigerd of ingetrokken in je ${p}-account.`,
+    fix: 'Koppel het opnieuw om verder te gaan waar het stopte. Al geïmporteerde trainingen blijven gewoon staan.',
+    button: (p: string) => `${p} opnieuw koppelen`,
+    ignore:
+      'Heb je de koppeling bewust verwijderd? Dan kun je deze e-mail negeren.',
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 export function buildConnectionLostEmail(

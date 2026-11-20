@@ -7,6 +7,8 @@ const locales: Record<EmailLanguage, string> = {
   ES: 'es-ES',
   PT_BR: 'pt-BR',
   DE: 'de-DE',
+  PL: 'pl-PL',
+  NL: 'nl-NL',
 };
 
 export function formatNumber(
@@ -82,4 +84,22 @@ const providerNames: Record<string, string> = {
 
 export function providerName(provider: string) {
   return providerNames[provider] ?? provider;
+}
+
+/**
+ * Polish nouns take three forms after a number: 1 trening, 2 treningi,
+ * 5 treningów (and 12-14 like 5). `count` may be already formatted.
+ */
+export function polishPlural(
+  count: number | string,
+  one: string,
+  few: string,
+  many: string,
+) {
+  const n =
+    typeof count === 'number' ? count : Number(count.replace(/\D/g, ''));
+  if (n === 1) return one;
+  const tens = n % 100;
+  const units = n % 10;
+  return units >= 2 && units <= 4 && (tens < 12 || tens > 14) ? few : many;
 }

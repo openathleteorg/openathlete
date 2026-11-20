@@ -33,7 +33,7 @@ The same image runs as the HTTP API and as the background worker. Which BullMQ p
   - throw `UnrecoverableError` for failures a retry cannot fix;
   - clear any "in progress" state once the last attempt fails.
 - **Optional third parties** (Stripe, OpenAI, Brevo, Firebase): create the client on first use and throw `ServiceUnavailableException` when it is not configured. The API must boot with only `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET_KEY` and `HASH_PEPPER`.
-- **Emails**: templates in `modules/notification/emails/templates/` hold one translation block per language (`FR`, `EN`, `IT`, `ES`, `PT_BR`, `DE`). Send through the `SendEmailEvent`; `EmailTransportService` (Brevo) is a no-op without a key.
+- **Emails**: templates in `modules/notification/emails/templates/` hold one translation block per language (`FR`, `EN`, `IT`, `ES`, `PT_BR`, `DE`, `PL`, `NL`). Send through the `SendEmailEvent`; `EmailTransportService` (Brevo) is a no-op without a key.
 
 ## Data and deletion
 

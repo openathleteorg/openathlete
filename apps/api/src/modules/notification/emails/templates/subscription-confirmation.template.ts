@@ -108,6 +108,40 @@ const translations = {
     helpNote:
       'Fragen? Antworte auf diese E-Mail, wir melden uns schnell bei dir.',
   },
+  PL: {
+    title: 'Dziękujemy, że wspierasz OpenAthlete',
+    preview: 'Jesteś teraz Supporterem',
+    greeting: (name?: string) =>
+      name
+        ? `Cześć ${name}, dziękujemy, że wspierasz OpenAthlete.`
+        : 'Dziękujemy, że wspierasz OpenAthlete.',
+    perks:
+      'Jako Supporter możesz trenować dowolną liczbę zawodników, a AI jest wliczone co tydzień, w rozsądnym zakresie, bez własnego klucza.',
+    contribution: (price: string, yearly: boolean) =>
+      `Twoje wsparcie: ${price} ${yearly ? 'rocznie' : 'miesięcznie'}.`,
+    description:
+      'Twoje wsparcie finansuje otwarty i niezależny projekt. W każdej chwili możesz zarządzać płatnościami lub zrezygnować.',
+    buttonLabel: 'Zarządzaj subskrypcją',
+    helpNote:
+      'Masz pytania? Odpowiedz na tego e-maila, a szybko się odezwiemy.',
+  },
+  NL: {
+    title: 'Bedankt dat je OpenAthlete steunt',
+    preview: 'Je bent nu Supporter',
+    greeting: (name?: string) =>
+      name
+        ? `Hoi ${name}, bedankt dat je OpenAthlete steunt.`
+        : 'Bedankt dat je OpenAthlete steunt.',
+    perks:
+      'Als Supporter coach je zoveel atleten als je wilt, en AI is elke week inbegrepen, bij redelijk gebruik, zonder eigen sleutel.',
+    contribution: (price: string, yearly: boolean) =>
+      `Je steun: ${price} ${yearly ? 'per jaar' : 'per maand'}.`,
+    description:
+      'Met je steun financier je een open en onafhankelijk project. Je kunt je betaling op elk moment beheren of opzeggen.',
+    buttonLabel: 'Abonnement beheren',
+    helpNote:
+      'Vragen? Beantwoord deze e-mail en we nemen snel contact met je op.',
+  },
 } as const;
 
 const LOCALES: Record<EmailLanguage, string> = {
@@ -117,6 +151,8 @@ const LOCALES: Record<EmailLanguage, string> = {
   IT: 'it',
   PT_BR: 'pt-BR',
   DE: 'de',
+  PL: 'pl',
+  NL: 'nl',
 };
 
 export function buildSubscriptionConfirmationEmail({

@@ -105,6 +105,8 @@ describe('durations', () => {
   it('ends steps on the lap button, open, heart rate, calories or reps', () => {
     expect(first('- lap Z1').durationType).toBe(D.LAP_BUTTON);
     expect(first('- tour').durationType).toBe(D.LAP_BUTTON);
+    expect(first('- okrążenie').durationType).toBe(D.LAP_BUTTON);
+    expect(first('- ronde Z1').durationType).toBe(D.LAP_BUTTON);
     expect(first('- open').durationType).toBe(D.OPEN);
     expect(first('- hr<130')).toMatchObject({
       durationType: D.HR_BELOW,
@@ -127,6 +129,8 @@ describe('targets', () => {
       { targetType: T.ZONE, targetValue: 302 },
     ]);
     expect(first('- 10m Z3 FC').targets?.[0].targetValue).toBe(102);
+    expect(first('- 10m Z3 tętno').targets?.[0].targetValue).toBe(102);
+    expect(first('- 10m Z3 HS').targets?.[0].targetValue).toBe(102);
   });
 
   it('falls back on a zone type the athlete has', () => {
@@ -247,6 +251,12 @@ describe('labels, types and notes', () => {
     expect(first('- Aquecimento 10m').stepType).toBe(S.WARMUP);
     expect(first('- Aufwärmen 10m').stepType).toBe(S.WARMUP);
     expect(first('- Auslaufen 10m Z1').stepType).toBe(S.COOLDOWN);
+    expect(first('- Rozgrzewka 10m').stepType).toBe(S.WARMUP);
+    expect(first('- Schłodzenie 10m Z1').stepType).toBe(S.COOLDOWN);
+    expect(first('- Przerwa 2m Z1').stepType).toBe(S.INTERVAL_REST);
+    expect(first('- Warming-up 10m').stepType).toBe(S.WARMUP);
+    expect(first('- Uitlopen 10m Z1').stepType).toBe(S.COOLDOWN);
+    expect(first('- Dribbelpauze 2m Z1').stepType).toBe(S.INTERVAL_REST);
     expect(first('- 10m Z2 intensity=cooldown').stepType).toBe(S.COOLDOWN);
   });
 
@@ -445,7 +455,7 @@ describe('serialize', () => {
   const roundTrip = (
     text: string,
     context = run,
-    locale: 'en' | 'fr' | 'de' = 'en',
+    locale: 'en' | 'fr' | 'de' | 'pl' | 'nl' = 'en',
   ) => {
     const steps = only(text, context);
     const written = serializeWorkoutText(steps, { ...context, locale });
@@ -473,6 +483,12 @@ describe('serialize', () => {
     expect(
       roundTrip('- 10m Z2\n- 20m Z3 intensity=warmup\n- 5m Z1', run, 'de'),
     ).toBe('- 10m Z2\n- Aufwärmen 20m Z3\n- 5m Z1');
+    expect(
+      roundTrip('- 10m Z2\n- 20m Z3 intensity=warmup\n- 5m Z1', run, 'pl'),
+    ).toBe('- 10m Z2\n- Rozgrzewka 20m Z3\n- 5m Z1');
+    expect(
+      roundTrip('- 10m Z2\n- 20m Z3 intensity=cooldown\n- 5m Z1', run, 'nl'),
+    ).toBe('- 10m Z2\n- Cooling-down 20m Z3\n- 5m Z1');
   });
 
   it('keeps names, notes and every kind of target', () => {

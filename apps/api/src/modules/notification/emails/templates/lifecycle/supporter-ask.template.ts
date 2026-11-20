@@ -1,7 +1,7 @@
 import { type EmailLanguage, SUPPORTER_GOAL } from '@openathlete/shared';
 
 import { paragraph, signature } from '../../core/blocks';
-import { formatNumber } from '../../core/format';
+import { formatNumber, polishPlural } from '../../core/format';
 import { renderEmail } from '../../core/layout';
 import { LifecycleEmail, LifecycleEmailProps, greeting } from './common';
 
@@ -132,6 +132,49 @@ const translations = {
     ],
     noPressure:
       'Wenn es gerade nicht passt, kein Problem: Alles bleibt kostenlos, und ich frage nicht noch einmal.',
+  },
+  PL: {
+    subject: 'jedna prośba, tylko raz',
+    preview: 'OpenAthlete nie ma inwestorów ani reklam.',
+    since: (weeks: string, sessions: string) =>
+      `Twoje treningi trafiają do OpenAthlete od ${weeks} tygodni, łącznie ${sessions}. Piszę do Ciebie w tej sprawie tylko ten jeden raz.`,
+    sessions: (n: string) =>
+      `${n} ${polishPlural(n, 'trening', 'treningi', 'treningów')}`,
+    why: 'OpenAthlete nie ma inwestorów ani reklam i nie sprzedaje Twoich danych. Rozwijam go sam, a Supporterzy płacą za serwery, synchronizację zegarków i AI.',
+    count: (n: number, goal: string) =>
+      n === 0
+        ? `Cel: ${goal} Supporterów, tylu, by pokryć wszystkie koszty i dać projektowi więcej czasu.`
+        : n === 1
+          ? `Na razie robi to jedna osoba. Cel: ${goal}, tylu, by pokryć wszystkie koszty i dać projektowi więcej czasu.`
+          : `Na dziś jest ich ${n}. Cel: ${goal}, tylu, by pokryć wszystkie koszty i dać projektowi więcej czasu.`,
+    perks: [
+      'Supporter kosztuje kilka euro miesięcznie lub rocznie. Daje dostęp do AI bez własnego klucza, a trenerom nieograniczoną liczbę zawodników. ',
+      'Szczegóły znajdziesz tutaj',
+      '.',
+    ],
+    noPressure:
+      'Jeśli to nie jest dobry moment, nie ma problemu: wszystko zostaje darmowe i więcej nie zapytam.',
+  },
+  NL: {
+    subject: 'één verzoek, maar één keer',
+    preview: 'OpenAthlete heeft geen investeerders en geen advertenties.',
+    since: (weeks: string, sessions: string) =>
+      `Je trainingen komen al ${weeks} weken binnen in OpenAthlete, ${sessions} in totaal. Ik schrijf je hierover maar één keer.`,
+    sessions: (n: string) => `${n} trainingen`,
+    why: 'OpenAthlete heeft geen investeerders en geen advertenties, en verkoopt je gegevens niet. Ik bouw het in mijn eentje, en Supporters betalen de servers, de synchronisatie met horloges en de AI.',
+    count: (n: number, goal: string) =>
+      n === 0
+        ? `Het doel: ${goal} Supporters, genoeg om alles te dekken en het project meer tijd te geven.`
+        : n === 1
+          ? `Tot nu toe doet één persoon dat. Het doel: ${goal}, genoeg om alles te dekken en het project meer tijd te geven.`
+          : `Vandaag zijn het er ${n}. Het doel: ${goal}, genoeg om alles te dekken en het project meer tijd te geven.`,
+    perks: [
+      'Supporter kost een paar euro per maand of per jaar. Je krijgt er AI bij zonder eigen sleutel, en onbeperkt atleten voor coaches. ',
+      'Alle details vind je hier',
+      '.',
+    ],
+    noPressure:
+      'Komt het nu niet uit? Geen probleem: alles blijft gratis, en ik vraag het niet nog een keer.',
   },
 } satisfies Record<EmailLanguage, unknown>;
 

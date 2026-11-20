@@ -87,6 +87,30 @@ const translations: Record<Language, Copy> = {
       WEIGHT: 'Gewicht',
     },
   },
+  [Language.PL]: {
+    title: (athlete) => `${athlete}: wskaźnik do sprawdzenia`,
+    above: (metric, value, bound) => `${metric} ${value}, powyżej ${bound}`,
+    below: (metric, value, bound) => `${metric} ${value}, poniżej ${bound}`,
+    metrics: {
+      HR_REST: 'Tętno spoczynkowe',
+      HRV_LAST_NIGHT_AVG: 'Nocne HRV',
+      SLEEP_DURATION: 'Sen',
+      SLEEP_SCORE: 'Ocena snu',
+      WEIGHT: 'Waga',
+    },
+  },
+  [Language.NL]: {
+    title: (athlete) => `${athlete}: een waarde om naar te kijken`,
+    above: (metric, value, bound) => `${metric} ${value}, boven ${bound}`,
+    below: (metric, value, bound) => `${metric} ${value}, onder ${bound}`,
+    metrics: {
+      HR_REST: 'Rusthartslag',
+      HRV_LAST_NIGHT_AVG: 'Nachtelijke HRV',
+      SLEEP_DURATION: 'Slaap',
+      SLEEP_SCORE: 'Slaapscore',
+      WEIGHT: 'Gewicht',
+    },
+  },
 };
 
 const round = (value: number) =>

@@ -18,6 +18,7 @@ import {
   formatKm,
   formatNumber,
   formatWeekday,
+  polishPlural,
 } from '../../core/format';
 import { renderEmail } from '../../core/layout';
 import { LifecycleEmail, LifecycleEmailProps, greeting } from './common';
@@ -349,6 +350,113 @@ const translations = {
     supporters: (n: string, goal: string) =>
       `OpenAthlete lebt ohne Werbung und ohne Investoren, dank seiner Supporter: ${n} von einem Ziel von ${goal}.`,
     supportersLink: 'Mehr erfahren',
+  },
+  PL: {
+    subject: (figure: string) => `Twój tydzień: ${figure}`,
+    plannedFigure: (done: number, planned: number) =>
+      `${done} z ${planned} ${planned > 1 ? 'zaplanowanych treningów' : 'zaplanowanego treningu'}`,
+    sessions: (n: number) =>
+      `${n} ${polishPlural(n, 'trening', 'treningi', 'treningów')}`,
+    elevation: (m: string) => `${m} m przewyższenia`,
+    rest: 'tydzień odpoczynku',
+    preview: 'Miniony tydzień, Twoja forma i to, co przed Tobą.',
+    title: 'Twój tydzień',
+    past: 'Miniony tydzień',
+    labels: {
+      sessions: 'Treningi',
+      time: 'Czas',
+      distance: 'Dystans',
+      elevation: 'Przewyższenie',
+    },
+    doneOf: (done: string, planned: string) => `${done} z ${planned}`,
+    nothingDone: 'W zeszłym tygodniu nie zarejestrowano żadnego treningu.',
+    load: (trimp: string) => `Obciążenie: ${trimp} TRIMP.`,
+    more: (pct: string) => `O ${pct} % więcej niż tydzień wcześniej.`,
+    less: (pct: string) => `O ${pct} % mniej niż tydzień wcześniej.`,
+    same: 'Mniej więcej tyle samo co tydzień wcześniej.',
+    timeMore: (pct: string) =>
+      `O ${pct} % więcej czasu treningu niż tydzień wcześniej.`,
+    timeLess: (pct: string) =>
+      `O ${pct} % mniej czasu treningu niż tydzień wcześniej.`,
+    form: 'Twoja forma',
+    fitness: 'Kondycja (CTL)',
+    fatigue: 'Zmęczenie (ATL)',
+    status: {
+      fatigue: 'Duże zmęczenie',
+      balanced: 'Równowaga',
+      fresh: 'Pełna świeżość',
+    },
+    tsb: (status: string, tsb: string) =>
+      `${status}: forma (TSB) na poziomie ${tsb}.`,
+    trend: {
+      up: 'Zmęczenie rośnie: to był mocny tydzień.',
+      down: 'Zmęczenie spada: to był lżejszy tydzień.',
+      stable: 'Zmęczenie stabilne w porównaniu z poprzednim tygodniem.',
+    },
+    next: 'Nadchodzący tydzień',
+    nothingPlanned: 'Na razie nic nie zaplanowano.',
+    race: (name: string, days: number) =>
+      days === 1
+        ? `Najbliższy start: ${name}, jutro.`
+        : `Najbliższy start: ${name}, za ${days} dni.`,
+    see: 'Zobacz mój tydzień',
+    plan: 'Zaplanuj swój tydzień',
+    garmin: 'Analizy oparte częściowo na danych z urządzeń Garmin.',
+    supporters: (n: string, goal: string) =>
+      `OpenAthlete działa bez reklam i inwestorów, dzięki swoim Supporterom: ${n} przy celu ${goal}.`,
+    supportersLink: 'Dowiedz się więcej',
+  },
+  NL: {
+    subject: (figure: string) => `Je week: ${figure}`,
+    plannedFigure: (done: number, planned: number) =>
+      `${done} van ${planned} geplande ${planned > 1 ? 'trainingen' : 'training'}`,
+    sessions: (n: number) => (n === 1 ? '1 training' : `${n} trainingen`),
+    elevation: (m: string) => `${m} hoogtemeters`,
+    rest: 'een rustweek',
+    preview: 'Afgelopen week, je vorm en wat er komt.',
+    title: 'Je week',
+    past: 'Afgelopen week',
+    labels: {
+      sessions: 'Trainingen',
+      time: 'Tijd',
+      distance: 'Afstand',
+      elevation: 'Hoogtemeters',
+    },
+    doneOf: (done: string, planned: string) => `${done} van ${planned}`,
+    nothingDone: 'Afgelopen week is er geen training geregistreerd.',
+    load: (trimp: string) => `Belasting: ${trimp} TRIMP.`,
+    more: (pct: string) => `${pct}% meer dan de week ervoor.`,
+    less: (pct: string) => `${pct}% minder dan de week ervoor.`,
+    same: 'Ongeveer evenveel als de week ervoor.',
+    timeMore: (pct: string) => `${pct}% meer trainingstijd dan de week ervoor.`,
+    timeLess: (pct: string) =>
+      `${pct}% minder trainingstijd dan de week ervoor.`,
+    form: 'Je vorm',
+    fitness: 'Fitheid (CTL)',
+    fatigue: 'Vermoeidheid (ATL)',
+    status: {
+      fatigue: 'Hoge vermoeidheid',
+      balanced: 'In balans',
+      fresh: 'Heel fris',
+    },
+    tsb: (status: string, tsb: string) => `${status}: vorm (TSB) op ${tsb}.`,
+    trend: {
+      up: 'Vermoeidheid stijgt: het was een zware week.',
+      down: 'Vermoeidheid daalt: het was een lichtere week.',
+      stable: 'Vermoeidheid stabiel ten opzichte van de week ervoor.',
+    },
+    next: 'De komende week',
+    nothingPlanned: 'Nog niets gepland.',
+    race: (name: string, days: number) =>
+      days === 1
+        ? `Volgende wedstrijd: ${name}, morgen.`
+        : `Volgende wedstrijd: ${name}, over ${days} dagen.`,
+    see: 'Mijn week bekijken',
+    plan: 'Plan je week',
+    garmin: 'Inzichten deels afgeleid van gegevens van Garmin-apparaten.',
+    supporters: (n: string, goal: string) =>
+      `OpenAthlete draait zonder advertenties of investeerders, dankzij zijn Supporters: ${n} van een doel van ${goal}.`,
+    supportersLink: 'Meer weten',
   },
 } satisfies Record<EmailLanguage, unknown>;
 

@@ -29,5 +29,9 @@ export function greeting(language: EmailLanguage, name?: string) {
       return name ? `Olá, ${name},` : 'Olá,';
     case 'DE':
       return name ? `Hallo ${name},` : 'Hallo,';
+    case 'PL':
+      return name ? `Cześć ${name},` : 'Cześć,';
+    case 'NL':
+      return name ? `Hoi ${name},` : 'Hoi,';
   }
 }

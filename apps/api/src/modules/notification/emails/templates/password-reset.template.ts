@@ -70,6 +70,28 @@ const translations = {
     ignoreNote:
       'Falls du diese Anfrage nicht gestellt hast, kannst du diese E-Mail ignorieren.',
   },
+  PL: {
+    title: 'Zresetuj hasło',
+    preview: 'Zresetuj swoje hasło do OpenAthlete',
+    description:
+      'Otrzymaliśmy prośbę o zresetowanie Twojego hasła. Kliknij przycisk poniżej, aby ustawić nowe hasło.',
+    buttonLabel: 'Ustaw nowe hasło',
+    linkNote: (url: string) =>
+      `Jeśli przycisk nie działa, skopiuj ten link i wklej go w przeglądarce: ${url}`,
+    ignoreNote:
+      'Jeśli ta prośba nie pochodzi od Ciebie, możesz zignorować tę wiadomość.',
+  },
+  NL: {
+    title: 'Wachtwoord opnieuw instellen',
+    preview: 'Stel je OpenAthlete-wachtwoord opnieuw in',
+    description:
+      'We hebben een verzoek ontvangen om je wachtwoord opnieuw in te stellen. Klik op de knop hieronder om een nieuw wachtwoord te kiezen.',
+    buttonLabel: 'Nieuw wachtwoord kiezen',
+    linkNote: (url: string) =>
+      `Werkt de knop niet? Kopieer deze link en plak hem in je browser: ${url}`,
+    ignoreNote:
+      'Heb je dit verzoek niet gedaan? Dan kun je deze e-mail negeren.',
+  },
 } as const;
 
 export function buildPasswordResetEmail({

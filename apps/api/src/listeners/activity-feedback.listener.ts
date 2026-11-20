@@ -197,6 +197,8 @@ export class ActivityFeedbackListener {
           ES: 'Spanish',
           PT_BR: 'Portuguese (Brazil)',
           DE: 'German',
+          PL: 'Polish',
+          NL: 'Dutch',
         }[userLanguage] ?? 'English';
 
       const context = [
@@ -217,7 +219,7 @@ export class ActivityFeedbackListener {
         '',
         `=== LANGUAGE REQUIREMENT ===`,
         `IMPORTANT: Generate all questions and QCM option labels in ${targetLanguage} (${userLanguage}).`,
-        `Use ${({ French: 'tu', Italian: 'tu', Spanish: 'tú', English: 'you', 'Portuguese (Brazil)': 'você', German: 'du' } as Record<string, string>)[targetLanguage]} form, direct and friendly coaching style.`,
+        `Use ${({ French: 'tu', Italian: 'tu', Spanish: 'tú', English: 'you', 'Portuguese (Brazil)': 'você', German: 'du', Polish: 'ty', Dutch: 'je' } as Record<string, string>)[targetLanguage]} form, direct and friendly coaching style.`,
       ].join('\n');
 
       const { questions } = await this.aiService.generateObject(

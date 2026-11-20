@@ -8,6 +8,8 @@ export const emailLanguageSchema = z.enum([
   'ES',
   'PT_BR',
   'DE',
+  'PL',
+  'NL',
 ]);
 
 export type EmailLanguage = z.infer<typeof emailLanguageSchema>;
@@ -30,6 +32,8 @@ const emailSubjects: {
     IT: 'Entra nel tuo club su OpenAthlete',
     PT_BR: 'Entre no seu clube no OpenAthlete',
     DE: 'Tritt deinem Verein auf OpenAthlete bei',
+    PL: 'Dołącz do swojego klubu w OpenAthlete',
+    NL: 'Word lid van je club op OpenAthlete',
   },
   'password-reset': {
     ES: 'Restablece tu contraseña',
@@ -38,6 +42,8 @@ const emailSubjects: {
     IT: 'Reimposta la tua password',
     PT_BR: 'Redefina sua senha',
     DE: 'Setze dein Passwort zurück',
+    PL: 'Zresetuj swoje hasło',
+    NL: 'Stel je wachtwoord opnieuw in',
   },
   welcome: {
     ES: 'Tu cuenta de OpenAthlete',
@@ -46,6 +52,8 @@ const emailSubjects: {
     IT: 'Il tuo account OpenAthlete',
     PT_BR: 'Sua conta OpenAthlete',
     DE: 'Dein OpenAthlete-Konto',
+    PL: 'Twoje konto OpenAthlete',
+    NL: 'Je OpenAthlete-account',
   },
   'subscription-confirmation': {
     ES: 'Gracias por apoyar OpenAthlete',
@@ -54,6 +62,8 @@ const emailSubjects: {
     IT: 'Grazie per sostenere OpenAthlete',
     PT_BR: 'Agradecemos por apoiar o OpenAthlete',
     DE: 'Danke, dass du OpenAthlete unterstützt',
+    PL: 'Dziękujemy, że wspierasz OpenAthlete',
+    NL: 'Bedankt dat je OpenAthlete steunt',
   },
   'athlete-invitation': {
     ES: 'Invitación para unirte a OpenAthlete',
@@ -62,6 +72,8 @@ const emailSubjects: {
     IT: 'Invito a unirsi a OpenAthlete',
     PT_BR: 'Convite para entrar no OpenAthlete',
     DE: 'Einladung zu OpenAthlete',
+    PL: 'Zaproszenie do OpenAthlete',
+    NL: 'Uitnodiging voor OpenAthlete',
   },
   'athlete-invitation-existing': {
     ES: 'Nueva invitación de entrenador',
@@ -70,6 +82,8 @@ const emailSubjects: {
     IT: 'Nuovo invito da coach',
     PT_BR: 'Novo convite de treinador',
     DE: 'Neue Einladung von einem Coach',
+    PL: 'Nowe zaproszenie od trenera',
+    NL: 'Nieuwe uitnodiging van een coach',
   },
   'coach-invitation-new': {
     ES: 'Invitación para unirte a OpenAthlete',
@@ -78,6 +92,8 @@ const emailSubjects: {
     IT: 'Invito a unirsi a OpenAthlete',
     PT_BR: 'Convite para entrar no OpenAthlete',
     DE: 'Einladung zu OpenAthlete',
+    PL: 'Zaproszenie do OpenAthlete',
+    NL: 'Uitnodiging voor OpenAthlete',
   },
   'coach-invitation-existing': {
     ES: 'Nueva invitación de entrenador',
@@ -86,6 +102,8 @@ const emailSubjects: {
     IT: 'Nuovo invito da coach',
     PT_BR: 'Novo convite de treinador',
     DE: 'Neue Einladung von einem Coach',
+    PL: 'Nowe zaproszenie od trenera',
+    NL: 'Nieuwe uitnodiging van een coach',
   },
   'signup-notification': {
     ES: 'Nuevo registro de usuario',
@@ -94,6 +112,8 @@ const emailSubjects: {
     IT: 'Nuova registrazione utente',
     PT_BR: 'Novo cadastro de usuário',
     DE: 'Neue Registrierung',
+    PL: 'Nowa rejestracja użytkownika',
+    NL: 'Nieuwe gebruiker aangemeld',
   },
 } as const;
 

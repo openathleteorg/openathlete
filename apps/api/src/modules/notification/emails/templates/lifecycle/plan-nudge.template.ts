@@ -77,6 +77,30 @@ const translations = {
       ', von 5 km bis Marathon und Trail, landen mit einem Klick in deinem Kalender, abgestimmt auf deine Paces.',
     ],
   },
+  PL: {
+    subject: 'Dodaj swój najbliższy start',
+    preview: 'Albo zacznij od darmowego planu, dopasowanego do Twojego tempa.',
+    body: 'Od tygodnia Twoje treningi trafiają do OpenAthlete bez problemu. Na razie jednak w Twoim kalendarzu nic nie jest zaplanowane.',
+    race: 'Jeśli masz na oku jakiś start, dodaj go: OpenAthlete policzy pozostałe tygodnie, a Ty zbudujesz plan aż do dnia zawodów.',
+    button: 'Dodaj start',
+    plans: [
+      'Nie masz jeszcze celu? ',
+      'Nasze darmowe plany',
+      ', od 5 km po maraton i biegi trailowe, dodasz do kalendarza jednym kliknięciem, z tempami dopasowanymi do Ciebie.',
+    ],
+  },
+  NL: {
+    subject: 'Zet je volgende wedstrijd in de agenda',
+    preview: 'Of begin met een gratis schema, op jouw tempo.',
+    body: 'Je trainingen komen al een week goed binnen. Maar in je agenda staat nog niets gepland.',
+    race: 'Heb je een wedstrijd op het oog? Voeg hem toe: OpenAthlete telt de resterende weken, en jij bouwt je plan op tot de wedstrijddag.',
+    button: 'Wedstrijd toevoegen',
+    plans: [
+      'Nog geen doel? ',
+      'Onze gratis schema’s',
+      ', van 5 km tot marathon en trail, zet je met één klik in je agenda, afgestemd op jouw tempo’s.',
+    ],
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 export function buildPlanNudgeEmail(

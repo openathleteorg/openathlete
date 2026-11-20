@@ -57,6 +57,24 @@ const translations = {
     fallback:
       'Keine kompatible Uhr? Du kannst FIT- oder GPX-Dateien importieren oder deine Einheiten von Hand planen.',
   },
+  PL: {
+    subject: 'Twój zegarek nie jest jeszcze połączony',
+    preview: 'Minuta i Twoje treningi będą trafiać tu same.',
+    body: 'Twoje konto jest gotowe, ale nie połączono z nim jeszcze żadnego zegarka. Bez niego Twój kalendarz i obciążenie treningowe pozostaną puste.',
+    how: 'To zajmie minutę: Ustawienia, Połączenia, a potem Twoja marka.',
+    button: 'Połącz zegarek',
+    fallback:
+      'Nie masz zgodnego zegarka? Możesz zaimportować pliki FIT lub GPX albo zaplanować treningi ręcznie.',
+  },
+  NL: {
+    subject: 'Je horloge is nog niet gekoppeld',
+    preview: 'Eén minuut, en je trainingen komen vanzelf binnen.',
+    body: 'Je account is klaar, maar er is nog geen horloge aan gekoppeld. Zonder horloge blijven je agenda en je trainingsbelasting leeg.',
+    how: 'Het kost een minuut: Instellingen, Koppelingen en dan je merk.',
+    button: 'Koppel mijn horloge',
+    fallback:
+      'Geen compatibel horloge? Je kunt FIT- of GPX-bestanden importeren of je trainingen met de hand plannen.',
+  },
 };
 
 export function buildConnectReminderEmail(

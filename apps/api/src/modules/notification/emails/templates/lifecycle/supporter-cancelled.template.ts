@@ -53,6 +53,22 @@ const translations = {
     ask: 'Wenn du zwei Minuten hast: Was hat dich zum Aufhören bewogen? Der Preis, eine fehlende Funktion, etwas anderes? Eine Zeile als Antwort reicht völlig, ich lese jede Antwort.',
     free: 'Dein Konto und deine Daten bleiben erhalten, und alles funktioniert weiterhin kostenlos.',
   },
+  PL: {
+    subject: 'dziękuję, i jedno pytanie',
+    preview: 'Wystarczy mi jedna linijka odpowiedzi.',
+    thanks:
+      'Widzę, że Twoja subskrypcja Supporter została zakończona. Dziękuję za wspieranie OpenAthlete przez cały ten czas, to naprawdę miało znaczenie.',
+    ask: 'Jeśli masz dwie minuty: co było powodem rezygnacji? Cena, brakująca funkcja, coś innego? Wystarczy jedna linijka odpowiedzi, czytam każdą.',
+    free: 'Twoje konto i dane zostają, a wszystko dalej działa za darmo.',
+  },
+  NL: {
+    subject: 'bedankt, en een vraag',
+    preview: 'Eén regel als antwoord is genoeg.',
+    thanks:
+      'Ik zie dat je je Supporter-abonnement hebt beëindigd. Bedankt dat je OpenAthlete al die tijd hebt gesteund, dat betekende veel.',
+    ask: 'Heb je twee minuten? Waarom ben je gestopt? De prijs, een functie die ontbrak, iets anders? Eén regel als antwoord is genoeg, ik lees elk antwoord.',
+    free: 'Je account en je gegevens blijven bestaan, en alles blijft gratis werken.',
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 export function buildSupporterCancelledEmail(

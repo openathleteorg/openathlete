@@ -12,6 +12,7 @@ import {
   formatKm,
   formatMonthYear,
   formatNumber,
+  polishPlural,
 } from '../../core/format';
 import { renderEmail } from '../../core/layout';
 import { LifecycleEmail, LifecycleEmailProps, greeting } from './common';
@@ -127,6 +128,48 @@ const translations = {
     noRace:
       'Nächster Schritt: Trag deinen nächsten Wettkampf in den Kalender ein. OpenAthlete zählt die verbleibenden Wochen, und du kannst deinen Plan bis zum Wettkampftag aufbauen.',
     noRaceButton: 'Wettkampf hinzufügen',
+  },
+  PL: {
+    subject: (n: string, one: boolean) =>
+      one
+        ? 'Zaimportowano 1 trening'
+        : `Zaimportowano ${n} ${polishPlural(n, 'trening', 'treningi', 'treningów')}`,
+    preview: 'Twoje ostatnie cztery tygodnie w liczbach.',
+    arrived: (provider: string, n: string, since: string) =>
+      `Twoja historia z ${provider} już jest: ${n} (od: ${since}).`,
+    sessions: (n: string, one: boolean) =>
+      one
+        ? '1 trening'
+        : `${n} ${polishPlural(n, 'trening', 'treningi', 'treningów')}`,
+    lastWeeks: 'Twoje ostatnie cztery tygodnie:',
+    labels: ['Treningi', 'Dystans', 'Czas'],
+    race: (race: string, days: number) =>
+      days === 1
+        ? `Twój najbliższy start, ${race}, jest już jutro. Powodzenia!`
+        : `Twój najbliższy start, ${race}, za ${days} dni. Kalendarz już odlicza.`,
+    raceButton: 'Otwórz kalendarz',
+    noRace:
+      'Następny krok: dodaj swój najbliższy start do kalendarza. OpenAthlete policzy pozostałe tygodnie, a Ty zbudujesz plan aż do dnia zawodów.',
+    noRaceButton: 'Dodaj start',
+  },
+  NL: {
+    subject: (n: string, one: boolean) =>
+      one ? '1 training geïmporteerd' : `${n} trainingen geïmporteerd`,
+    preview: 'Je laatste vier weken in cijfers.',
+    arrived: (provider: string, n: string, since: string) =>
+      `Je ${provider}-geschiedenis is binnen: ${n} sinds ${since}.`,
+    sessions: (n: string, one: boolean) =>
+      one ? '1 training' : `${n} trainingen`,
+    lastWeeks: 'Je laatste vier weken:',
+    labels: ['Trainingen', 'Afstand', 'Tijd'],
+    race: (race: string, days: number) =>
+      days === 1
+        ? `Je volgende wedstrijd, ${race}, is morgen. Succes!`
+        : `Je volgende wedstrijd, ${race}, is over ${days} dagen. De agenda telt al af.`,
+    raceButton: 'Mijn agenda openen',
+    noRace:
+      'Volgende stap: zet je volgende wedstrijd in de agenda. OpenAthlete telt de resterende weken, en jij bouwt je plan op tot de wedstrijddag.',
+    noRaceButton: 'Wedstrijd toevoegen',
   },
 } satisfies Record<EmailLanguage, unknown>;
 
