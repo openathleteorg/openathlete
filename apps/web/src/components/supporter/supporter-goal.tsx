@@ -6,6 +6,8 @@ import { m } from '@/paraglide/messages';
 import { purchaseChannel } from '@/utils/capacitor';
 import { cn } from '@/utils/shadcn';
 
+import { SUPPORTER_GAUGE_FROM } from '@openathlete/shared';
+
 /** How far the Supporters are from the goal: true figures, no pressure */
 export function SupporterGauge({
   count,
@@ -16,6 +18,7 @@ export function SupporterGauge({
   goal: number;
   className?: string;
 }) {
+  if (count < SUPPORTER_GAUGE_FROM) return null;
   const percent = Math.min(100, Math.round((count / goal) * 100));
   return (
     <div className={cn('space-y-1', className)} data-supporter-gauge>

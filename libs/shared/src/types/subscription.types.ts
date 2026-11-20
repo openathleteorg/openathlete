@@ -53,6 +53,12 @@ export const TERMS_OF_SALE_VERSION = '2026-11-20';
 export const SUPPORTER_GOAL = 100;
 
 /**
+ * Supporters from which the app shows the gauge towards the goal: a gauge
+ * near empty says the project is fragile rather than inviting to join it.
+ */
+export const SUPPORTER_GAUGE_FROM = 25;
+
+/**
  * AI features on the instance keys (hostedAi). Supporter perks and early
  * access are in FEATURES (features.ts).
  */
