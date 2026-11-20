@@ -158,11 +158,11 @@ export function ProfileTab() {
       {athlete?.athleteId && (
         <SessionValidationSettingsCard athleteId={athlete.athleteId} />
       )}
+      <AccentThemeSettings />
       <TrainingProfileSection />
       {athlete?.athleteId && <TrainingRemindersSection />}
       <EmailPreferencesSection />
       <PrivacySection />
-      <AccentThemeSettings />
       {isCapacitor() && (
         <SettingsSection title={m.mobile_server_title()}>
           <SettingsPanel>

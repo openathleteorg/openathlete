@@ -64,6 +64,8 @@ interface PanelProps {
   preview?: ReactNode;
   /** A card the user may close, hidden for 30 days afterwards */
   dismissible?: boolean;
+  /** Replaces the feature's sentence when the place says more */
+  description?: string;
   /** A second button, such as going to the locked view */
   secondary?: { label: string; onClick: () => void };
   className?: string;
@@ -78,6 +80,7 @@ export function LockedPanel({
   place,
   preview,
   dismissible,
+  description,
   secondary,
   className,
 }: PanelProps) {
@@ -113,7 +116,7 @@ export function LockedPanel({
       <div className="space-y-1 pr-8">
         <h3 className="text-sm font-medium text-pretty">{texts.title()}</h3>
         <p className="text-sm text-pretty text-muted-foreground">
-          {texts.body()}
+          {description ?? texts.body()}
         </p>
       </div>
       <div className="flex flex-wrap gap-2">

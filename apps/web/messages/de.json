@@ -3148,5 +3148,6 @@
   "supporter_badge_title": "Supporter-Abzeichen",
   "supporter_badge_show": "Mein Abzeichen zeigen",
   "supporter_badge_description": "Ein kleines Herz neben deinem Namen, für deine Trainer, Athleten, Vereinsmitglieder und Unterhaltungen.",
-  "supporter_badge_save_failed": "Das Abzeichen konnte nicht gespeichert werden."
+  "supporter_badge_save_failed": "Das Abzeichen konnte nicht gespeichert werden.",
+  "club_closed_owner": "Dein Verein nimmt keine neuen Mitglieder, Einladungen oder Einheiten an, solange du kein Supporter bist. Alles bereits Geplante läuft weiter, und deine Mitglieder behalten ihren Zugang."
 }

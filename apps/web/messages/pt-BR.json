@@ -3148,5 +3148,6 @@
   "supporter_badge_title": "Selo Supporter",
   "supporter_badge_show": "Mostrar meu selo",
   "supporter_badge_description": "Um pequeno coração ao lado do seu nome, para seus treinadores, atletas, membros dos clubes e conversas.",
-  "supporter_badge_save_failed": "Não foi possível salvar o selo."
+  "supporter_badge_save_failed": "Não foi possível salvar o selo.",
+  "club_closed_owner": "Seu clube não aceita novos membros, convites nem sessões enquanto você não for Supporter. Tudo o que já está planejado continua e seus membros mantêm o acesso."
 }

@@ -3148,5 +3148,6 @@
   "supporter_badge_title": "Supporter badge",
   "supporter_badge_show": "Show my badge",
   "supporter_badge_description": "A small heart next to your name, for your coaches, athletes, club members and conversations.",
-  "supporter_badge_save_failed": "The badge could not be saved."
+  "supporter_badge_save_failed": "The badge could not be saved.",
+  "club_closed_owner": "Your club takes no new members, invitations or sessions while you are not a Supporter. Everything already planned keeps running, and your members keep their access."
 }

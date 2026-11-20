@@ -3148,5 +3148,6 @@
   "supporter_badge_title": "Odznaka Supportera",
   "supporter_badge_show": "Pokaż moją odznakę",
   "supporter_badge_description": "Małe serce obok Twojego imienia, widoczne dla trenerów, zawodników, członków klubów i w rozmowach.",
-  "supporter_badge_save_failed": "Nie udało się zapisać odznaki."
+  "supporter_badge_save_failed": "Nie udało się zapisać odznaki.",
+  "club_closed_owner": "Twój klub nie przyjmuje nowych członków, zaproszeń ani treningów, dopóki nie jesteś Supporterem. Wszystko, co już zaplanowane, działa dalej, a członkowie zachowują dostęp."
 }

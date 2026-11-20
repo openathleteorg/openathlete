@@ -230,7 +230,11 @@ export function ClubDetail({ clubId }: { clubId: number }) {
         )}
       </div>
       {!acceptsMembers && role === 'OWNER' && (
-        <LockedPanel feature={Feature.CLUBS} place="club_detail" />
+        <LockedPanel
+          feature={Feature.CLUBS}
+          place="club_detail"
+          description={m.club_closed_owner()}
+        />
       )}
       {!acceptsMembers && role && role !== 'OWNER' && isClubStaff(role) && (
         <p

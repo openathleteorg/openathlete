@@ -3148,5 +3148,6 @@
   "supporter_badge_title": "Supporter-badge",
   "supporter_badge_show": "Mijn badge tonen",
   "supporter_badge_description": "Een klein hartje naast je naam, voor je trainers, atleten, clubleden en gesprekken.",
-  "supporter_badge_save_failed": "De badge kon niet worden opgeslagen."
+  "supporter_badge_save_failed": "De badge kon niet worden opgeslagen.",
+  "club_closed_owner": "Je club neemt geen nieuwe leden, uitnodigingen of trainingen aan zolang je geen Supporter bent. Alles wat al gepland is loopt door en je leden houden hun toegang."
 }
