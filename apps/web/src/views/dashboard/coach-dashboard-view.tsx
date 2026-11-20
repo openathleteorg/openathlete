@@ -567,7 +567,8 @@ export function CoachDashboardView() {
                 {columns.map((column) => (
                   <col key={column} className="w-28" />
                 ))}
-                <col className="w-30" />
+                {/* Four 36px icon buttons and the cell padding */}
+                <col className="w-40" />
               </colgroup>
               <thead>
                 <tr className="border-b text-left text-xs text-muted-foreground">
