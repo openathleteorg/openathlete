@@ -12,6 +12,7 @@ import {
   TierPicker,
 } from '@/components/paywall/supporter-offer';
 import { SupporterGoal } from '@/components/supporter/supporter-goal';
+import { SupporterWallSettings } from '@/components/supporter/supporter-wall';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
@@ -277,6 +278,11 @@ export function SubscriptionSettingsPage() {
         )}
         <SupporterGoal />
       </SettingsSection>
+
+      <SupporterWallSettings
+        show={subscription.showOnSupporterWall}
+        wallName={subscription.wallName}
+      />
 
       {managesStripe && interval && !subscription.cancelAtPeriodEnd && (
         <ChangeContribution

@@ -8,6 +8,7 @@ import {
   CustomerPortalResponseDto,
   InvoiceDto,
   SupporterCountDto,
+  UpdateSupporterWallDto,
 } from '@openathlete/shared';
 
 export class SubscriptionAPI {
@@ -21,6 +22,16 @@ export class SubscriptionAPI {
   static async getSupporterCount(): Promise<SupporterCountDto> {
     const res = await client.get<SupporterCountDto>(
       routes.subscription.supporters,
+    );
+    return res.data;
+  }
+
+  static async updateSupporterWall(
+    data: UpdateSupporterWallDto,
+  ): Promise<CurrentSubscriptionDto> {
+    const res = await client.patch<CurrentSubscriptionDto>(
+      routes.subscription.wall,
+      data,
     );
     return res.data;
   }
