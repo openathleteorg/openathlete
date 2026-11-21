@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
-import { ChevronDown, Link2 } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Link2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -27,13 +27,28 @@ export function ActivityUploadWebhookRow({
 }: {
   connector: WebhookConnector;
 }) {
+  const query = useActivityUploadWebhookQuery(connector);
   const title =
     connector === 'rungap'
       ? m.webhook_upload_rungap_title()
       : m.webhook_upload_generic_title();
   return (
     <Collapsible data-connector-provider={connector}>
-      <SettingsRow title={title} leading={<Link2 className="m-2 size-6" />}>
+      <SettingsRow
+        title={title}
+        leading={<Link2 className="m-2 size-6" />}
+        description={
+          query.data &&
+          (query.data.enabled ? (
+            <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+              <CheckCircle2 className="size-3.5 shrink-0" />
+              {m.webhook_upload_active()}
+            </span>
+          ) : (
+            m.webhook_upload_inactive()
+          ))
+        }
+      >
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
@@ -46,14 +61,19 @@ export function ActivityUploadWebhookRow({
         </CollapsibleTrigger>
       </SettingsRow>
       <CollapsibleContent className="border-t bg-muted/30">
-        <WebhookUploadOptions connector={connector} />
+        <WebhookUploadOptions connector={connector} query={query} />
       </CollapsibleContent>
     </Collapsible>
   );
 }
 
-function WebhookUploadOptions({ connector }: { connector: WebhookConnector }) {
-  const query = useActivityUploadWebhookQuery(connector);
+function WebhookUploadOptions({
+  connector,
+  query,
+}: {
+  connector: WebhookConnector;
+  query: ReturnType<typeof useActivityUploadWebhookQuery>;
+}) {
   const [credentials, setCredentials] =
     useState<ActivityUploadWebhookCredentialsDto | null>(null);
   const generate = useGenerateActivityUploadWebhookMutation(
@@ -84,7 +104,6 @@ function WebhookUploadOptions({ connector }: { connector: WebhookConnector }) {
           ? m.webhook_upload_rungap_setup()
           : m.webhook_upload_description()}
       </p>
-      {enabled && <p className="text-sm">{m.webhook_upload_active()}</p>}
       {credentials && (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">

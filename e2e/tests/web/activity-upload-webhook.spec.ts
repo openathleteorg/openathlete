@@ -25,7 +25,9 @@ test('shows webhook credentials once and lets the athlete replace or revoke them
   await expect(generate.or(revoke)).toBeVisible();
   if (await revoke.isVisible()) await revoke.click();
 
+  await expect(section.getByText('Inactive', { exact: true })).toBeVisible();
   await generate.click();
+  await expect(section.getByText('Active', { exact: true })).toBeVisible();
   await expect(url).toBeVisible();
   await expect(passkey).toBeVisible();
   await expect(
@@ -37,10 +39,12 @@ test('shows webhook credentials once and lets the athlete replace or revoke them
   await expect(replace).toBeVisible();
 
   await page.reload();
+  await expect(section.getByText('Active', { exact: true })).toBeVisible();
   await expect(options).toHaveAttribute('aria-expanded', 'false');
   await options.click();
   await expect(url).toHaveCount(0);
   const generic = page.locator('[data-connector-provider="generic"]');
+  await expect(generic.getByText('Inactive', { exact: true })).toBeVisible();
   await generic
     .getByRole('button', { name: 'Webhook – Generic', exact: true })
     .click();
@@ -54,9 +58,12 @@ test('shows webhook credentials once and lets the athlete replace or revoke them
   await revoke.click();
   await expect(generate).toBeVisible();
   await expect(url).toHaveCount(0);
+  await expect(section.getByText('Inactive', { exact: true })).toBeVisible();
+  await expect(generic.getByText('Active', { exact: true })).toBeVisible();
   await generic.getByRole('button', { name: 'Revoke upload token' }).click();
   await expect(
     generic.getByRole('button', { name: 'Generate upload token' }),
   ).toBeVisible();
+  await expect(generic.getByText('Inactive', { exact: true })).toBeVisible();
   expect(problems).toEqual([]);
 });
