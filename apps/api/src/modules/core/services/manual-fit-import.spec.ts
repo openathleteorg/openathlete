@@ -324,15 +324,11 @@ describe('Manual FIT parsing', () => {
 });
 
 describe('Manual FIT ownership and persistence', () => {
-  test('binds import to authenticated user, writes atomically and queues without AI feedback', async () => {
+  afterEach(() => jest.restoreAllMocks());
+  test('binds import to authenticated user, writes atomically and queues an old activity as history', async () => {
     const { db, queue, service, emitter } = setup();
     const result = await service.import(athlete, fixture(), 'Test trail');
-    expect(emitter.emit).toHaveBeenCalledWith(
-      'coach.activity.notice',
-      expect.objectContaining({
-        payload: { eventId: 90, kind: 'ACTIVITY', deliveryKey: 'import:90' },
-      }),
-    );
+    expect(emitter.emit).not.toHaveBeenCalled();
     expect(db.athlete.findUnique).toHaveBeenCalledWith({
       where: { userId: 4 },
     });
@@ -353,6 +349,30 @@ describe('Manual FIT ownership and persistence', () => {
       alreadyImported: false,
       processingQueued: true,
     });
+  });
+  test('processes an activity of the last days as new and announces it', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2020-01-08T09:00:00Z'));
+    const { queue, service, emitter } = setup();
+    await service.import(athlete, fixture(), 'Test trail');
+    expect(emitter.emit).toHaveBeenCalledWith(
+      'coach.activity.notice',
+      expect.objectContaining({
+        payload: { eventId: 90, kind: 'ACTIVITY', deliveryKey: 'import:90' },
+      }),
+    );
+    expect(queue.addActivityProcessingJob).toHaveBeenCalledWith(80, 90, false);
+  });
+  test('the same recent file again stays quiet', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2020-01-03T09:00:00Z'));
+    const { db, queue, service, emitter } = setup();
+    db.eventActivity.findUnique.mockResolvedValue({
+      eventId: 90,
+      eventActivityId: 80,
+      event: { name: 'Original', startDate: new Date('2020-01-02T09:00:00Z') },
+    });
+    await service.import(athlete, fixture(), 'Test trail');
+    expect(emitter.emit).not.toHaveBeenCalled();
+    expect(queue.addActivityProcessingJob).toHaveBeenCalledWith(80, 90, true);
   });
   test('denies accounts without an athlete profile', async () => {
     const { db, service } = setup();

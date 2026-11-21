@@ -20,6 +20,7 @@ import {
 } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
+import { isRecentActivity } from 'src/common/constants/recent-activity.constant';
 import { streamUpdate } from 'src/modules/core/helpers/activity-corrections';
 
 import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
@@ -100,12 +101,6 @@ const GARMIN_USER_API = `https://${GARMIN_API_HOST}/partner-gateway/rest/user`;
  * days ago ("before min start time"). The hour of margin covers clock skew.
  */
 const BACKFILL_WINDOW_SECONDS = 31 * 24 * 60 * 60 - 3600;
-
-/**
- * Older activities come from a backfill: they are imported as history,
- * without coach notices or weather lookups.
- */
-const RECENT_ACTIVITY_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Permissions a Garmin user grants, stored in `scopes` with this prefix */
 const PERMISSIONS_PREFIX = 'permissions:';
@@ -998,9 +993,10 @@ export class GarminProviderService
     const newActivities = activities.filter(
       (activity) => !existingById.has(activity.externalId),
     );
-    const recentSince = Date.now() - RECENT_ACTIVITY_MS;
+    // Older activities come from a backfill: they are imported as history
+    const now = Date.now();
     const isRecent = (activity: ImportedActivity) =>
-      new Date(activity.startDate).getTime() >= recentSince;
+      isRecentActivity(new Date(activity.startDate), now);
     await this.queueService.addActivityImportJobs(
       account,
       newActivities.filter(isRecent),
