@@ -1227,7 +1227,7 @@
   "disconnected_from_provider": "Déconnecté de {provider}",
   "failed_to_initiate_connection": "Échec de l'initiation de la connexion",
   "failed_to_disconnect": "Échec de la déconnexion",
-  "webhook_upload_title": "Importer par webhook",
+  "webhook_upload_title": "Webhook",
   "webhook_upload_description": "Envoyez des activités FIT terminées depuis RunGap ou une autre application.",
   "webhook_upload_active": "Jeton d’importation actif",
   "webhook_upload_require_rungap": "Exiger une signature RunGap pour le nouveau jeton",

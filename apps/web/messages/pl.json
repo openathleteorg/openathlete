@@ -1227,7 +1227,7 @@
   "disconnected_from_provider": "Rozłączono z {provider}",
   "failed_to_initiate_connection": "Nie udało się zainicjować połączenia",
   "failed_to_disconnect": "Nie udało się rozłączyć",
-  "webhook_upload_title": "Prześlij przez webhook",
+  "webhook_upload_title": "Webhook",
   "webhook_upload_description": "Prześlij ukończone aktywności w formacie FIT z RunGap lub innej aplikacji.",
   "webhook_upload_active": "Token przesyłania jest aktywny",
   "webhook_upload_require_rungap": "Wymagaj podpisu RunGap dla nowego tokena",

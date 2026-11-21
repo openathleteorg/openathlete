@@ -1227,7 +1227,7 @@
   "disconnected_from_provider": "Disconnesso da {provider}",
   "failed_to_initiate_connection": "Impossibile avviare la connessione",
   "failed_to_disconnect": "Impossibile disconnettersi",
-  "webhook_upload_title": "Carica tramite webhook",
+  "webhook_upload_title": "Webhook",
   "webhook_upload_description": "Invia attività FIT completate da RunGap o da un’altra app.",
   "webhook_upload_active": "Token di caricamento attivo",
   "webhook_upload_require_rungap": "Richiedi una firma RunGap per il nuovo token",

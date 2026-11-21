@@ -1227,7 +1227,7 @@
   "disconnected_from_provider": "Verbinding met {provider} verbroken",
   "failed_to_initiate_connection": "Verbinding starten mislukt",
   "failed_to_disconnect": "Verbinding verbreken mislukt",
-  "webhook_upload_title": "Uploaden via webhook",
+  "webhook_upload_title": "Webhook",
   "webhook_upload_description": "Verstuur voltooide FIT-activiteiten vanuit RunGap of een andere app.",
   "webhook_upload_active": "Uploadtoken actief",
   "webhook_upload_require_rungap": "Vereis een RunGap-handtekening voor het nieuwe token",

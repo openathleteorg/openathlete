@@ -8,7 +8,7 @@ test('shows webhook credentials once and lets the athlete replace or revoke them
   const problems = trackPageProblems(page);
   await page.goto('/dashboard/settings?tab=connectors');
   const section = page.locator('[data-connector-provider="WEBHOOK"]');
-  const options = section.getByRole('button', { name: 'Upload by webhook' });
+  const options = section.getByRole('button', { name: 'Webhook', exact: true });
   await expect(options).toHaveAttribute('aria-expanded', 'false');
   await options.click();
   const signing = section.getByRole('checkbox', {

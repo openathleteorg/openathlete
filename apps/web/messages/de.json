@@ -1227,7 +1227,7 @@
   "disconnected_from_provider": "Verbindung zu {provider} getrennt",
   "failed_to_initiate_connection": "Verbindung konnte nicht hergestellt werden",
   "failed_to_disconnect": "Verbindung konnte nicht getrennt werden",
-  "webhook_upload_title": "Per Webhook hochladen",
+  "webhook_upload_title": "Webhook",
   "webhook_upload_description": "Sende abgeschlossene Aktivitäten als FIT-Datei aus RunGap oder einer anderen App.",
   "webhook_upload_active": "Upload-Token aktiv",
   "webhook_upload_require_rungap": "Für das neue Token eine RunGap-Signatur verlangen",
