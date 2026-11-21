@@ -17,11 +17,10 @@ const boundary = 'rungap-e2e-boundary';
 async function generate(
   request: APIRequestContext,
   accessToken: string,
-  runGapSignature: boolean,
+  connector: 'generic' | 'rungap',
 ) {
-  const response = await request.post(connection, {
+  const response = await request.post(`${connection}/${connector}`, {
     headers: apiHeaders(undefined, accessToken),
-    data: { runGapSignature },
   });
   expect(response.status(), await response.text()).toBe(200);
   expect(response.headers()['cache-control']).toBe('no-store');
@@ -71,22 +70,23 @@ test('queues signed RunGap deliveries for the token owner once', async ({
     createAthlete(request),
   ]);
   const headers = apiHeaders(undefined, athlete.accessToken);
-  expect((await request.get(connection)).status()).toBe(401);
-  expect(await (await request.get(connection, { headers })).json()).toEqual({
+  expect((await request.get(`${connection}/rungap`)).status()).toBe(401);
+  expect(
+    await (await request.get(`${connection}/rungap`, { headers })).json(),
+  ).toEqual({
     enabled: false,
-    runGapSignature: false,
   });
 
   const { url, token, passkey } = await generate(
     request,
     athlete.accessToken,
-    true,
+    'rungap',
   );
   expect(url).toBe(`${uploadUrl}/${token}`);
   expect(passkey).toBeTruthy();
-  const status = await request.get(connection, { headers });
+  const status = await request.get(`${connection}/rungap`, { headers });
   expect(status.headers()['cache-control']).toBe('no-store');
-  expect(await status.json()).toEqual({ enabled: true, runGapSignature: true });
+  expect(await status.json()).toEqual({ enabled: true });
 
   const signed = signedDelivery(passkey!);
   const tampered = Buffer.from(signed.data);
@@ -123,11 +123,13 @@ test('queues signed RunGap deliveries for the token owner once', async ({
     ).json(),
   ).toEqual([]);
 
-  const rotated = await generate(request, athlete.accessToken, true);
+  const rotated = await generate(request, athlete.accessToken, 'rungap');
   expect(rotated.token).not.toBe(token);
   expect(rotated.passkey).not.toBe(passkey);
   expect((await request.post(url, signed)).status()).toBe(401);
-  expect((await request.delete(connection, { headers })).status()).toBe(204);
+  expect(
+    (await request.delete(`${connection}/rungap`, { headers })).status(),
+  ).toBe(204);
   expect(
     (
       await request.post(rotated.url, signedDelivery(rotated.passkey!))
@@ -139,7 +141,7 @@ test('queues raw FIT with a bearer token and enforces the file size cap', async 
   request,
 }) => {
   const { accessToken } = await createAthlete(request);
-  const { token, passkey } = await generate(request, accessToken, false);
+  const { token, passkey } = await generate(request, accessToken, 'generic');
   expect(passkey).toBeNull();
 
   for (const size of [20 * 1024 * 1024 + 1, 22 * 1024 * 1024]) {
@@ -162,6 +164,46 @@ test('queues raw FIT with a bearer token and enforces the file size cap', async 
     .toMatchObject([
       { name: 'FIT activity', startDate: '2024-05-01T07:00:00.000Z' },
     ]);
+});
+
+test('rotates and revokes each connector independently', async ({
+  request,
+}) => {
+  const { accessToken } = await createAthlete(request);
+  const headers = apiHeaders(undefined, accessToken);
+  const generic = await generate(request, accessToken, 'generic');
+  const rungap = await generate(request, accessToken, 'rungap');
+  const signed = signedDelivery(rungap.passkey!);
+  const nextGeneric = await generate(request, accessToken, 'generic');
+  expect(
+    (await request.post(uploadUrl, rawDelivery(generic.token))).status(),
+  ).toBe(401);
+  expect((await request.post(rungap.url, signed)).status()).toBe(200);
+  expect(
+    (await request.delete(`${connection}/generic`, { headers })).status(),
+  ).toBe(204);
+  expect(
+    (await request.post(uploadUrl, rawDelivery(nextGeneric.token))).status(),
+  ).toBe(401);
+  expect((await request.post(rungap.url, signed)).status()).toBe(200);
+
+  const activeGeneric = await generate(request, accessToken, 'generic');
+  const nextRunGap = await generate(request, accessToken, 'rungap');
+  expect((await request.post(rungap.url, signed)).status()).toBe(401);
+  expect(
+    (await request.post(uploadUrl, rawDelivery(activeGeneric.token))).status(),
+  ).toBe(200);
+  expect(
+    (await request.delete(`${connection}/rungap`, { headers })).status(),
+  ).toBe(204);
+  expect(
+    (
+      await request.post(nextRunGap.url, signedDelivery(nextRunGap.passkey!))
+    ).status(),
+  ).toBe(401);
+  expect(
+    (await request.post(uploadUrl, rawDelivery(activeGeneric.token))).status(),
+  ).toBe(200);
 });
 
 test('rate limits the upload endpoint', async ({ request }) => {

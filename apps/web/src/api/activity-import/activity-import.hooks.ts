@@ -14,51 +14,56 @@ import {
   ImportedActivityDto,
   RemoveDuplicateActivitiesResponseDto,
   SPORT_TYPE,
+  WebhookConnector,
 } from '@openathlete/shared';
 
 import { ActivityImportAPI } from './activity-import.api';
 
-const webhookStatusKey = ['activity-import', 'webhook-connection'];
+const webhookStatusKey = (connector: WebhookConnector) => [
+  'activity-import',
+  'webhook-connection',
+  connector,
+];
 
-export function useActivityUploadWebhookQuery() {
+export function useActivityUploadWebhookQuery(connector: WebhookConnector) {
   return useQuery({
-    queryKey: webhookStatusKey,
-    queryFn: ActivityImportAPI.getWebhookStatus,
+    queryKey: webhookStatusKey(connector),
+    queryFn: () => ActivityImportAPI.getWebhookStatus(connector),
   });
 }
 
 export function useGenerateActivityUploadWebhookMutation(
+  connector: WebhookConnector,
   showCredentials: (credentials: ActivityUploadWebhookCredentialsDto) => void,
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (runGapSignature: boolean) => {
-      const credentials = await ActivityImportAPI.generateWebhook({
-        runGapSignature,
-      });
+    mutationFn: async () => {
+      const credentials = await ActivityImportAPI.generateWebhook(connector);
       // Only component state gets the one-time credentials.
       showCredentials(credentials);
-      return { enabled: true, runGapSignature };
+      return { enabled: true };
     },
     onSuccess: (status) => {
       queryClient.setQueryData<ActivityUploadWebhookStatusDto>(
-        webhookStatusKey,
+        webhookStatusKey(connector),
         status,
       );
     },
   });
 }
 
-export function useRevokeActivityUploadWebhookMutation() {
+export function useRevokeActivityUploadWebhookMutation(
+  connector: WebhookConnector,
+) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ActivityImportAPI.revokeWebhook,
+    mutationFn: () => ActivityImportAPI.revokeWebhook(connector),
     onSuccess: () => {
       queryClient.setQueryData<ActivityUploadWebhookStatusDto>(
-        webhookStatusKey,
+        webhookStatusKey(connector),
         {
           enabled: false,
-          runGapSignature: false,
         },
       );
     },

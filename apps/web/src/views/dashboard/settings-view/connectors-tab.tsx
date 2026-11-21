@@ -459,7 +459,12 @@ export function ConnectorsTab() {
               </Collapsible>
             );
           })}
-          {isAthlete && <ActivityUploadWebhookRow />}
+          {isAthlete && (
+            <>
+              <ActivityUploadWebhookRow connector="generic" />
+              <ActivityUploadWebhookRow connector="rungap" />
+            </>
+          )}
         </SettingsPanel>
       )}
 

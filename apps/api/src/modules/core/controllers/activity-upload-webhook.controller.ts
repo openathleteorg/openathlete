@@ -22,10 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
-import {
-  CreateActivityUploadWebhookDto,
-  createActivityUploadWebhookSchema,
-} from '@openathlete/shared';
+import { WebhookConnector, webhookConnectorSchema } from '@openathlete/shared';
 
 import { RATE_LIMITS } from '../../../common/security/rate-limits';
 import { JwtUser, UserTypeGuard } from '../../auth';
@@ -37,16 +34,20 @@ import { ActivityUploadWebhookService } from '../services/activity-upload-webhoo
 export class ActivityUploadWebhookController {
   constructor(private readonly service: ActivityUploadWebhookService) {}
 
-  @Get('connection')
+  @Get('connection/:connector')
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get your activity upload webhook status' })
   @Header('Cache-Control', 'no-store')
-  status(@JwtUser() user: AuthUser) {
-    return this.service.status(user.userId);
+  status(
+    @JwtUser() user: AuthUser,
+    @Param('connector', new ZodValidationPipe(webhookConnectorSchema))
+    connector: WebhookConnector,
+  ) {
+    return this.service.status(user.userId, connector);
   }
 
-  @Post('connection')
+  @Post('connection/:connector')
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Generate or replace your activity upload token' })
@@ -54,19 +55,23 @@ export class ActivityUploadWebhookController {
   @Header('Cache-Control', 'no-store')
   generate(
     @JwtUser() user: AuthUser,
-    @Body(new ZodValidationPipe(createActivityUploadWebhookSchema))
-    body: CreateActivityUploadWebhookDto,
+    @Param('connector', new ZodValidationPipe(webhookConnectorSchema))
+    connector: WebhookConnector,
   ) {
-    return this.service.generate(user.userId, body.runGapSignature);
+    return this.service.generate(user.userId, connector);
   }
 
-  @Delete('connection')
+  @Delete('connection/:connector')
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Revoke your activity upload token' })
   @HttpCode(204)
-  revoke(@JwtUser() user: AuthUser) {
-    return this.service.revoke(user.userId);
+  revoke(
+    @JwtUser() user: AuthUser,
+    @Param('connector', new ZodValidationPipe(webhookConnectorSchema))
+    connector: WebhookConnector,
+  ) {
+    return this.service.revoke(user.userId, connector);
   }
 
   @Post(['upload', 'upload/:token'])

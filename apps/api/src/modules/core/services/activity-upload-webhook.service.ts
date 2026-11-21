@@ -20,6 +20,7 @@ import {
   ActivityUploadWebhookStatusDto,
   ApiEnvSchemaType,
   MAX_ACTIVITY_FILE_BYTES,
+  WebhookConnector,
 } from '@openathlete/shared';
 
 import { ACTIVITY_WEBHOOK_UPLOAD_PATH } from '../../../common/security/payload-limits';
@@ -46,17 +47,20 @@ export class ActivityUploadWebhookService {
     );
   }
 
-  async status(userId: number): Promise<ActivityUploadWebhookStatusDto> {
+  async status(
+    userId: number,
+    connector: WebhookConnector,
+  ): Promise<ActivityUploadWebhookStatusDto> {
     const webhook = await this.prisma.activityUploadWebhook.findUnique({
-      where: { userId },
-      select: { encryptedPasskey: true },
+      where: { userId_connector: { userId, connector } },
+      select: { userId: true },
     });
-    return { enabled: !!webhook, runGapSignature: !!webhook?.encryptedPasskey };
+    return { enabled: !!webhook };
   }
 
   async generate(
     userId: number,
-    runGapSignature: boolean,
+    connector: WebhookConnector,
   ): Promise<ActivityUploadWebhookCredentialsDto> {
     const athlete = await this.prisma.athlete.findUnique({
       where: { userId },
@@ -65,16 +69,15 @@ export class ActivityUploadWebhookService {
     if (!athlete) throw new ForbiddenException();
 
     const token = TOKEN_PREFIX + randomBytes(32).toString('base64url');
-    const passkey = runGapSignature
-      ? randomBytes(32).toString('base64url')
-      : null;
+    const passkey =
+      connector === 'rungap' ? randomBytes(32).toString('base64url') : null;
     const credential = {
       tokenHash: hashToken(token),
       encryptedPasskey: passkey ? this.cipher.encrypt(passkey) : null,
     };
     await this.prisma.activityUploadWebhook.upsert({
-      where: { userId },
-      create: { userId, ...credential },
+      where: { userId_connector: { userId, connector } },
+      create: { userId, connector, ...credential },
       update: credential,
     });
     return {
@@ -84,8 +87,10 @@ export class ActivityUploadWebhookService {
     };
   }
 
-  async revoke(userId: number): Promise<void> {
-    await this.prisma.activityUploadWebhook.deleteMany({ where: { userId } });
+  async revoke(userId: number, connector: WebhookConnector): Promise<void> {
+    await this.prisma.activityUploadWebhook.deleteMany({
+      where: { userId, connector },
+    });
   }
 
   async receive(

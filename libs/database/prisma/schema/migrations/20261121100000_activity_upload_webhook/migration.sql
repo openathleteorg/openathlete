@@ -1,10 +1,15 @@
 -- CreateTable
 CREATE TABLE "activity_upload_webhook" (
     "user_id" INTEGER NOT NULL,
+    "connector" TEXT NOT NULL,
     "token_hash" TEXT NOT NULL,
     "encrypted_passkey" TEXT,
 
-    CONSTRAINT "activity_upload_webhook_pkey" PRIMARY KEY ("user_id")
+    CONSTRAINT "activity_upload_webhook_pkey" PRIMARY KEY ("user_id", "connector"),
+    CONSTRAINT "activity_upload_webhook_connector_passkey_check" CHECK (
+        ("connector" = 'generic' AND "encrypted_passkey" IS NULL) OR
+        ("connector" = 'rungap' AND "encrypted_passkey" IS NOT NULL)
+    )
 );
 
 -- CreateIndex

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ApiEnvSchemaType } from '@openathlete/shared';
+import { ApiEnvSchemaType, WebhookConnector } from '@openathlete/shared';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
@@ -17,24 +17,35 @@ const file = Buffer.from('FIT fixture bytes');
 const contentType = 'application/octet-stream';
 
 function setup() {
-  type Credential = { tokenHash: string; encryptedPasskey: string | null };
-  let row: (Credential & { userId: number }) | null = null;
+  type Credential = {
+    userId: number;
+    connector: WebhookConnector;
+    tokenHash: string;
+    encryptedPasskey: string | null;
+  };
+  const rows = new Map<WebhookConnector, Credential>();
   const webhook = {
     findUnique: jest.fn(
-      async ({ where }: { where: { userId?: number; tokenHash?: string } }) =>
-        row &&
-        (where.userId === row.userId || where.tokenHash === row.tokenHash)
-          ? row
-          : null,
+      async ({
+        where,
+      }: {
+        where: {
+          userId_connector?: { userId: number; connector: WebhookConnector };
+          tokenHash?: string;
+        };
+      }) =>
+        where.userId_connector
+          ? rows.get(where.userId_connector.connector)
+          : [...rows.values()].find((row) => row.tokenHash === where.tokenHash),
     ),
-    upsert: jest.fn(
-      async ({ create }: { create: Credential & { userId: number } }) => {
-        row = create;
+    upsert: jest.fn(async ({ create }: { create: Credential }) => {
+      rows.set(create.connector, create);
+    }),
+    deleteMany: jest.fn(
+      async ({ where }: { where: { connector: WebhookConnector } }) => {
+        rows.delete(where.connector);
       },
     ),
-    deleteMany: jest.fn(async () => {
-      row = null;
-    }),
   };
   const prisma = {
     activityUploadWebhook: webhook,
@@ -56,11 +67,10 @@ function setup() {
 describe('ActivityUploadWebhookService', () => {
   it('returns credentials on generation and stores a hash and encrypted passkey', async () => {
     const { service, webhook } = setup();
-    expect(await service.status(userId)).toEqual({
+    expect(await service.status(userId, 'rungap')).toEqual({
       enabled: false,
-      runGapSignature: false,
     });
-    const { url, token, passkey } = await service.generate(userId, true);
+    const { url, token, passkey } = await service.generate(userId, 'rungap');
     expect(url).toBe(
       `https://app.example/api/activity-import/webhook/upload/${token}`,
     );
@@ -70,16 +80,15 @@ describe('ActivityUploadWebhookService', () => {
     );
     expect(create.encryptedPasskey).toMatch(/^v1:/);
     expect(create.encryptedPasskey).not.toContain(passkey);
-    expect(await service.status(userId)).toEqual({
+    expect(await service.status(userId, 'rungap')).toEqual({
       enabled: true,
-      runGapSignature: true,
     });
   });
 
   it('looks up only the hash and rejects rotated and revoked credentials', async () => {
     const { service, webhook, queue } = setup();
-    const first = await service.generate(userId, false);
-    const replacement = await service.generate(userId, false);
+    const first = await service.generate(userId, 'generic');
+    const replacement = await service.generate(userId, 'generic');
     expect(replacement.token).not.toBe(first.token);
     await expect(
       service.receive(first.token, file, contentType, undefined),
@@ -101,7 +110,7 @@ describe('ActivityUploadWebhookService', () => {
       file,
       'FIT activity',
     );
-    await service.revoke(userId);
+    await service.revoke(userId, 'generic');
     await expect(
       service.receive(replacement.token, file, contentType, undefined),
     ).rejects.toBeInstanceOf(UnauthorizedException);
@@ -110,7 +119,7 @@ describe('ActivityUploadWebhookService', () => {
 
   it('requires a signature over the exact bytes when a passkey is set', async () => {
     const { service, queue } = setup();
-    const { token, passkey } = await service.generate(userId, true);
+    const { token, passkey } = await service.generate(userId, 'rungap');
     const signature = createHmac('sha256', passkey!).update(file).digest('hex');
     const wrongKey = createHmac('sha256', 'wrong-key')
       .update(file)
@@ -136,7 +145,7 @@ describe('ActivityUploadWebhookService', () => {
 
   it('returns a safe retryable response if the queue cannot accept the upload', async () => {
     const { service, queue } = setup();
-    const { token } = await service.generate(userId, false);
+    const { token } = await service.generate(userId, 'generic');
     queue.addWebhookFitImportJob.mockRejectedValue(
       new Error('Redis command details'),
     );

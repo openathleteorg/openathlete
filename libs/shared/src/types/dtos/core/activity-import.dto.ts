@@ -28,17 +28,11 @@ export type ImportTcxActivityFileDto = z.infer<
   typeof importTcxActivityFileDtoSchema
 >;
 
-export const createActivityUploadWebhookSchema = z
-  .object({ runGapSignature: z.boolean() })
-  .strict();
-
-export type CreateActivityUploadWebhookDto = z.infer<
-  typeof createActivityUploadWebhookSchema
->;
+export const webhookConnectorSchema = z.enum(['generic', 'rungap']);
+export type WebhookConnector = z.infer<typeof webhookConnectorSchema>;
 
 export interface ActivityUploadWebhookStatusDto {
   enabled: boolean;
-  runGapSignature: boolean;
 }
 
 export interface ActivityUploadWebhookCredentialsDto {

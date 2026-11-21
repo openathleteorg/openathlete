@@ -7,13 +7,13 @@ test('shows webhook credentials once and lets the athlete replace or revoke them
 }) => {
   const problems = trackPageProblems(page);
   await page.goto('/dashboard/settings?tab=connectors');
-  const section = page.locator('[data-connector-provider="WEBHOOK"]');
-  const options = section.getByRole('button', { name: 'Webhook', exact: true });
+  const section = page.locator('[data-connector-provider="rungap"]');
+  const options = section.getByRole('button', {
+    name: 'Webhook – RunGap',
+    exact: true,
+  });
   await expect(options).toHaveAttribute('aria-expanded', 'false');
   await options.click();
-  const signing = section.getByRole('checkbox', {
-    name: /Require a RunGap signature/,
-  });
   const generate = section.getByRole('button', {
     name: 'Generate upload token',
   });
@@ -25,7 +25,6 @@ test('shows webhook credentials once and lets the athlete replace or revoke them
   await expect(generate.or(revoke)).toBeVisible();
   if (await revoke.isVisible()) await revoke.click();
 
-  await signing.check();
   await generate.click();
   await expect(url).toBeVisible();
   await expect(passkey).toBeVisible();
@@ -40,17 +39,24 @@ test('shows webhook credentials once and lets the athlete replace or revoke them
   await page.reload();
   await expect(options).toHaveAttribute('aria-expanded', 'false');
   await options.click();
-  await expect(signing).toBeChecked();
   await expect(url).toHaveCount(0);
-  await signing.uncheck();
-  await replace.click();
+  const generic = page.locator('[data-connector-provider="generic"]');
+  await generic
+    .getByRole('button', { name: 'Webhook – Generic', exact: true })
+    .click();
+  await generic.getByRole('button', { name: 'Generate upload token' }).click();
   await expect(
-    section.getByText('Upload token', { exact: true }),
+    generic.getByText('Upload token', { exact: true }),
   ).toBeVisible();
-  await expect(passkey).toHaveCount(0);
-
+  await expect(generic.getByText('Passkey', { exact: true })).toHaveCount(0);
+  await replace.click();
+  await expect(passkey).toBeVisible();
   await revoke.click();
   await expect(generate).toBeVisible();
   await expect(url).toHaveCount(0);
+  await generic.getByRole('button', { name: 'Revoke upload token' }).click();
+  await expect(
+    generic.getByRole('button', { name: 'Generate upload token' }),
+  ).toBeVisible();
   expect(problems).toEqual([]);
 });

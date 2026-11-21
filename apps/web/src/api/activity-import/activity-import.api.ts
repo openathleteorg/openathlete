@@ -3,30 +3,29 @@ import client, { routes } from '@/utils/axios';
 import {
   ActivityUploadWebhookCredentialsDto,
   ActivityUploadWebhookStatusDto,
-  CreateActivityUploadWebhookDto,
   ImportedActivityDto,
   RemoveDuplicateActivitiesResponseDto,
   SPORT_TYPE,
+  WebhookConnector,
 } from '@openathlete/shared';
 
 export class ActivityImportAPI {
-  static async getWebhookStatus() {
+  static async getWebhookStatus(connector: WebhookConnector) {
     const res = await client.get<ActivityUploadWebhookStatusDto>(
-      routes.activityImport.webhookConnection,
+      routes.activityImport.webhookConnection(connector),
     );
     return res.data;
   }
 
-  static async generateWebhook(body: CreateActivityUploadWebhookDto) {
+  static async generateWebhook(connector: WebhookConnector) {
     const res = await client.post<ActivityUploadWebhookCredentialsDto>(
-      routes.activityImport.webhookConnection,
-      body,
+      routes.activityImport.webhookConnection(connector),
     );
     return res.data;
   }
 
-  static async revokeWebhook() {
-    await client.delete(routes.activityImport.webhookConnection);
+  static async revokeWebhook(connector: WebhookConnector) {
+    await client.delete(routes.activityImport.webhookConnection(connector));
   }
 
   /** One FIT file of a recorded activity, saved for the signed-in athlete. */

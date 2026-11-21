@@ -4,7 +4,6 @@ import {
   useRevokeActivityUploadWebhookMutation,
 } from '@/api/activity-import';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Collapsible,
   CollapsibleContent,
@@ -16,22 +15,30 @@ import { ChevronDown, Link2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { ActivityUploadWebhookCredentialsDto } from '@openathlete/shared';
+import {
+  ActivityUploadWebhookCredentialsDto,
+  WebhookConnector,
+} from '@openathlete/shared';
 
 import { SettingsCopyField, SettingsRow } from './settings-section';
 
-export function ActivityUploadWebhookRow() {
+export function ActivityUploadWebhookRow({
+  connector,
+}: {
+  connector: WebhookConnector;
+}) {
+  const title =
+    connector === 'rungap'
+      ? m.webhook_upload_rungap_title()
+      : m.webhook_upload_generic_title();
   return (
-    <Collapsible data-connector-provider="WEBHOOK">
-      <SettingsRow
-        title={m.webhook_upload_title()}
-        leading={<Link2 className="m-2 size-6" />}
-      >
+    <Collapsible data-connector-provider={connector}>
+      <SettingsRow title={title} leading={<Link2 className="m-2 size-6" />}>
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            aria-label={m.webhook_upload_title()}
+            aria-label={title}
             className="size-11 [&[data-state=open]>svg]:rotate-180"
           >
             <ChevronDown className="size-4 transition-transform" />
@@ -39,19 +46,21 @@ export function ActivityUploadWebhookRow() {
         </CollapsibleTrigger>
       </SettingsRow>
       <CollapsibleContent className="border-t bg-muted/30">
-        <WebhookUploadOptions />
+        <WebhookUploadOptions connector={connector} />
       </CollapsibleContent>
     </Collapsible>
   );
 }
 
-function WebhookUploadOptions() {
-  const query = useActivityUploadWebhookQuery();
+function WebhookUploadOptions({ connector }: { connector: WebhookConnector }) {
+  const query = useActivityUploadWebhookQuery(connector);
   const [credentials, setCredentials] =
     useState<ActivityUploadWebhookCredentialsDto | null>(null);
-  const [signingChoice, setSigningChoice] = useState<boolean>();
-  const generate = useGenerateActivityUploadWebhookMutation(setCredentials);
-  const revoke = useRevokeActivityUploadWebhookMutation();
+  const generate = useGenerateActivityUploadWebhookMutation(
+    connector,
+    setCredentials,
+  );
+  const revoke = useRevokeActivityUploadWebhookMutation(connector);
   const pending = generate.isPending || revoke.isPending;
 
   if (query.isPending) return <Skeleton className="m-4 h-9 w-40" />;
@@ -67,32 +76,20 @@ function WebhookUploadOptions() {
     );
   }
 
-  const { enabled, runGapSignature } = query.data;
-  const requireSignature = signingChoice ?? runGapSignature;
+  const { enabled } = query.data;
   return (
     <div className="space-y-3 px-4 py-3">
       <p className="text-sm text-muted-foreground">
-        {m.webhook_upload_description()}
+        {connector === 'rungap'
+          ? m.webhook_upload_rungap_setup()
+          : m.webhook_upload_description()}
       </p>
       {enabled && <p className="text-sm">{m.webhook_upload_active()}</p>}
-      <label className="flex min-h-11 items-center gap-2 text-sm">
-        <Checkbox
-          checked={requireSignature}
-          disabled={pending}
-          onCheckedChange={(checked) => setSigningChoice(checked === true)}
-        />
-        {m.webhook_upload_require_rungap()}
-      </label>
       {credentials && (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
             {m.webhook_upload_one_time()}
           </p>
-          {credentials.passkey && (
-            <p className="text-sm text-muted-foreground">
-              {m.webhook_upload_rungap_setup()}
-            </p>
-          )}
           <CredentialField
             label={m.webhook_upload_url()}
             value={credentials.url}
@@ -118,7 +115,7 @@ function WebhookUploadOptions() {
           variant="outline"
           disabled={pending}
           onClick={() =>
-            generate.mutate(requireSignature, {
+            generate.mutate(undefined, {
               onError: () => toast.error(m.failed_to_initiate_connection()),
             })
           }
