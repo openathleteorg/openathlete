@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { WEB_URL } from '../../support/env';
 import { trackPageProblems } from '../../support/page-health';
 
 test('shows webhook credentials once and lets the athlete replace or revoke them', async ({
@@ -49,6 +50,11 @@ test('shows webhook credentials once and lets the athlete replace or revoke them
     .getByRole('button', { name: 'Webhook – Generic', exact: true })
     .click();
   await generic.getByRole('button', { name: 'Generate upload token' }).click();
+  await expect(
+    generic.getByText(`${WEB_URL}/api/activity-import/webhook/upload`, {
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(
     generic.getByText('Upload token', { exact: true }),
   ).toBeVisible();

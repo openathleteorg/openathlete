@@ -111,7 +111,11 @@ function WebhookUploadOptions({
           </p>
           <CredentialField
             label={m.webhook_upload_url()}
-            value={credentials.url}
+            value={
+              connector === 'generic'
+                ? credentials.url.replace(`/${credentials.token}`, '')
+                : credentials.url
+            }
           />
           {credentials.passkey ? (
             <CredentialField

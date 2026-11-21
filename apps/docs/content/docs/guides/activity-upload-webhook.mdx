@@ -13,7 +13,7 @@ In OpenAthlete, open **Settings → Connectors**. Each webhook has its own crede
 
 ## Scripts and other FIT clients
 
-Open **Webhook – Generic** and select **Generate upload token**. Send one raw FIT file with an Authorization header. Use the base upload URL, which is the copied webhook URL with the final token segment removed.
+Open **Webhook – Generic** and select **Generate upload token**. Copy the webhook URL and the separate upload token. POST a raw FIT file to that URL with the token in the `Authorization: Bearer` header.
 
 ```bash
 curl -X POST 'https://api.openathlete.org/activity-import/webhook/upload' \
@@ -23,9 +23,8 @@ curl -X POST 'https://api.openathlete.org/activity-import/webhook/upload' \
 ```
 
 On a typical self-hosted instance the base URL is
-`https://<your domain>/api/activity-import/webhook/upload`. The copied URL
-with the token in its path also accepts raw FIT uploads. If you run your own
-reverse proxy, omit that path from request logs to keep the token private.
+`https://<your domain>/api/activity-import/webhook/upload`. If you run your own
+reverse proxy, exclude token-bearing RunGap URLs from request logs.
 
 Each file can be up to 20 MB. A `200` with `{"queued":true}` confirms
 acceptance for background import. A workout already saved by a connected
