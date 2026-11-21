@@ -4,6 +4,7 @@ import {
   computeRangeStats,
   defaultXAxis,
   indexRange,
+  routeRange,
   xSeries,
 } from './stream-range';
 
@@ -22,6 +23,35 @@ describe('indexRange', () => {
   it('is null when no sample is inside', () => {
     expect(indexRange(series, [11, 19])).toBeNull();
     expect(indexRange([], [0, 10])).toBeNull();
+  });
+});
+
+describe('routeRange', () => {
+  const chart = { time: [0, 0, 0, 0], distance: [0, 20, 40, 60] };
+  const route = {
+    latlng: Array.from({ length: 7 }, (_, i) => [40, 1 + i / 10000]),
+    time: [0, 0, 0, 0, 0, 0, 0],
+    distance: [0, 10, 20, 30, 40, 50, 60],
+  };
+
+  it('locates a climb by distance when GPX timestamps are all zero', () => {
+    expect(routeRange(chart, route, 1, 2)).toEqual([2, 4]);
+  });
+
+  it('prefers recording time when a stop repeats a distance', () => {
+    const timedChart = { ...chart, time: [0, 3, 5, 6] };
+    const timedRoute = {
+      ...route,
+      time: [0, 1, 2, 3, 4, 5, 6],
+      distance: [0, 10, 20, 20, 30, 40, 60],
+    };
+    expect(routeRange(timedChart, timedRoute, 1, 2)).toEqual([3, 5]);
+  });
+
+  it('skips the highlight when neither timeline nor distance can locate it', () => {
+    expect(
+      routeRange(chart, { ...route, distance: undefined }, 1, 2),
+    ).toBeNull();
   });
 });
 
