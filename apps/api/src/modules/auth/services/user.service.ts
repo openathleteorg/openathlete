@@ -720,6 +720,7 @@ export class UserService {
 
     if (data.targetRace && data.roles.includes('ATHLETE')) {
       await this.createTargetRace(
+        user.userId,
         athlete.athleteId,
         data.targetRace,
         updated.timeZone ?? 'UTC',
@@ -761,6 +762,7 @@ export class UserService {
    * day whatever the time zone.
    */
   private async createTargetRace(
+    userId: number,
     athleteId: number,
     race: TargetRaceDto,
     timeZone: string,
@@ -770,6 +772,7 @@ export class UserService {
     await this.prisma.event.create({
       data: {
         athleteId,
+        createdById: userId,
         type: 'COMPETITION',
         name: race.name ?? preset.name,
         startDate,

@@ -357,6 +357,7 @@ export class EventTemplateService {
         name: templateEvent.name,
         type: templateEvent.type,
         athleteId,
+        createdById: user.userId,
         [templateEvent.type.toLocaleLowerCase()]: {
           create: subEntityData,
         },
