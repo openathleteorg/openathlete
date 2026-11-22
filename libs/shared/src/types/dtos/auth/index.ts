@@ -14,3 +14,4 @@ export * from './person-name';
 export * from './signup-attribution.dto';
 export * from './training-profile.dto';
 export * from './coach-join-link.dto';
+export * from './push-token.dto';

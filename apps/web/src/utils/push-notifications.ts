@@ -1,12 +1,14 @@
 import { UserAPI } from '@/api/user/user.api';
 import { PushNotifications } from '@capacitor/push-notifications';
 
+import { PUSH_TOKEN_PATTERN } from '@openathlete/shared';
+
 import { getAccessToken } from './auth';
 import { isCapacitor } from './capacitor';
 
 let pendingToken: string | null = null;
 
-function validateAndDecodeToken(token: string): string | null {
+function decodeToken(token: string): string | null {
   if (/^[0-9A-Fa-f]{64}$/.test(token)) {
     console.error(
       '[PushNotifications] Received APNs token instead of FCM token, ignoring',
@@ -51,6 +53,16 @@ function validateAndDecodeToken(token: string): string | null {
   }
 
   return null;
+}
+
+/**
+ * The FCM token, decoded when the native side hands it over as hex or base64.
+ * A device token decoded this way gives binary bytes, a NUL among them, that
+ * the API refuses: it is dropped here.
+ */
+export function validateAndDecodeToken(token: string): string | null {
+  const decoded = decodeToken(token);
+  return decoded && PUSH_TOKEN_PATTERN.test(decoded) ? decoded : null;
 }
 
 async function handleFCMToken(token: string): Promise<void> {
