@@ -2202,6 +2202,8 @@
   "garmin_personal_skipped": "Nicht unterstützte Dateien übersprungen: {count}.",
   "person_name_invalid": "Nur Buchstaben, bis zu {max} Zeichen",
   "coach_notes": "Notizen",
+  "coach_calendar_export": "Kalender exportieren",
+  "coach_calendar_export_hint": "Alle für diese Athletin oder diesen Athleten geplanten Einträge (Einheiten, Wettkämpfe, Notizen) als JSON-Datei herunterladen",
   "coach_notes_of": "Notizen zu {firstName} {lastName}",
   "coach_notes_private_hint": "Nur du siehst diese Notizen, nie deine Athleten.",
   "coach_notes_new": "Neue Notiz",

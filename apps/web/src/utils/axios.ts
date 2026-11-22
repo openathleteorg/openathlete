@@ -234,6 +234,8 @@ export const routes = {
     },
     thresholds: '/coach/thresholds',
     threshold: (id: number) => `/coach/thresholds/${id}`,
+    calendarExport: (athleteId: number) =>
+      `/coach/athletes/${athleteId}/calendar-export`,
     getPendingInvitations: '/coach/invitations/pending',
     acceptInvitation: (invitationId: number) =>
       `/coach/invitations/${invitationId}/accept`,

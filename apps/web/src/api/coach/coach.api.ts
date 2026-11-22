@@ -22,6 +22,14 @@ export class CoachAPI {
     return res.data;
   }
 
+  /** The athlete's planned calendar as a JSON file, for the coach to keep */
+  static async exportCalendar(athleteId: number): Promise<Blob> {
+    const res = await client.get(routes.coach.calendarExport(athleteId), {
+      responseType: 'blob',
+    });
+    return res.data;
+  }
+
   static async getThresholds(): Promise<MetricThresholdDto[]> {
     return (await client.get(routes.coach.thresholds)).data;
   }

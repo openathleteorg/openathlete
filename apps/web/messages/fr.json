@@ -2202,6 +2202,8 @@
   "garmin_personal_skipped": "Fichiers non pris en charge ignorés : {count}.",
   "person_name_invalid": "Lettres uniquement, {max} caractères au plus",
   "coach_notes": "Notes",
+  "coach_calendar_export": "Exporter le calendrier",
+  "coach_calendar_export_hint": "Télécharger tous les événements planifiés pour cet athlète (séances, courses, notes) dans un fichier JSON",
   "coach_notes_of": "Notes sur {firstName} {lastName}",
   "coach_notes_private_hint": "Vous seul voyez ces notes, jamais vos athlètes.",
   "coach_notes_new": "Nouvelle note",

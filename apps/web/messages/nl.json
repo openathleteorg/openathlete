@@ -2202,6 +2202,8 @@
   "garmin_personal_skipped": "Niet-ondersteunde bestanden overgeslagen: {count}.",
   "person_name_invalid": "Alleen letters, maximaal {max} tekens",
   "coach_notes": "Notities",
+  "coach_calendar_export": "Kalender exporteren",
+  "coach_calendar_export_hint": "Download alle voor deze atleet geplande items (trainingen, wedstrijden, notities) als JSON-bestand",
   "coach_notes_of": "Notities over {firstName} {lastName}",
   "coach_notes_private_hint": "Alleen jij ziet deze notities, nooit je atleten.",
   "coach_notes_new": "Nieuwe notitie",

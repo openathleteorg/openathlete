@@ -2202,6 +2202,8 @@
   "garmin_personal_skipped": "Pominięte nieobsługiwane pliki: {count}.",
   "person_name_invalid": "Tylko litery, maksymalnie {max} znaków",
   "coach_notes": "Notatki",
+  "coach_calendar_export": "Eksportuj kalendarz",
+  "coach_calendar_export_hint": "Pobierz wszystkie wydarzenia zaplanowane dla tego zawodnika (treningi, zawody, notatki) jako plik JSON",
   "coach_notes_of": "Notatki o: {firstName} {lastName}",
   "coach_notes_private_hint": "Tylko Ty widzisz te notatki, nigdy Twoi zawodnicy.",
   "coach_notes_new": "Nowa notatka",
