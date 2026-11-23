@@ -22,16 +22,18 @@ Create one Application for the previews, separate from production:
 | Build pack | Docker Compose |
 | Base directory | `/` |
 | Docker Compose location | `/docker-compose.preview.yml` |
-| Domains, `web` | `https://preview.<domain>` (port 80, the default) |
+| Domains, `web` | `https://preview.<domain>:80`: write the port, Coolify does not read it from the Dockerfile or the labels and refuses the domain ("no internal port") without it |
 | Domains, `mailpit` | `https://mail.preview.<domain>:8025` |
-| Preview deployments | on (Advanced > Preview deployments), URL template `{{pr_id}}.{{domain}}` |
-| Advanced > Escape special characters in labels | **off**: the labels read `${COMPOSE_PROJECT_NAME}`, `${PREVIEW_BASIC_AUTH}` and the magic variables |
+| Preview deployments | on (Advanced > Preview deployments), URL template `pr-{{pr_id}}.{{domain}}`: keep `{{domain}}`, a fixed host would give `web` and `mailpit` the same address |
+| Advanced > Escape special characters in labels | **off**: the labels read `${COMPOSE_PROJECT_NAME}`, `${PREVIEW_BASIC_AUTH}` and the magic variables. Left on, Coolify writes them as `$${...}`, Traefik rejects the routers and every domain answers 503 although the containers are healthy |
 | Advanced > Docker compose > Predefined network | off (the default) |
 
 - With the template, pull request 12 is served at
-  `https://12.preview.<domain>` and its inbox at
-  `https://12.mail.preview.<domain>`. DNS needs `*.preview.<domain>` and
-  `*.mail.preview.<domain>` pointing at the server; Traefik gets one
+  `https://pr-12.preview.<domain>` and its inbox at
+  `https://pr-12.mail.preview.<domain>`. DNS needs `preview.<domain>`,
+  `mail.preview.<domain>`, `*.preview.<domain>` and `*.mail.preview.<domain>`
+  pointing at the server: the `*.mail` record hides `mail.preview.<domain>`
+  from the `*.preview` wildcard, so it needs its own record. Traefik gets one
   Let's Encrypt certificate per host.
 - The Application's own deployment runs the main branch at the main
   domains. It can stay stopped: pull request previews do not need it.
