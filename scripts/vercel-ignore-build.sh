@@ -36,6 +36,13 @@ case "${1:-}" in
     exit 1 ;;
 esac
 
+# The web app's previews come from Coolify, a full stack per pull request: on
+# Vercel it only builds for production
+if [ "${1:-}" = web ] && [ "${VERCEL_ENV:-}" = preview ]; then
+  echo "Web previews run on Coolify: skipping the Vercel preview build."
+  exit 0
+fi
+
 if [ -z "$previous" ]; then
   echo "No previous deployment: building."
   exit 1
