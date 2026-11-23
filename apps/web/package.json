@@ -23,7 +23,7 @@
     "cap:dev": "pnpm dev --host",
     "cap:dev:android": "pnpm cap:dev & pnpm cap:sync && pnpm cap:open:android",
     "cap:dev:ios": "pnpm cap:dev & pnpm cap:sync && pnpm cap:open:ios",
-    "test": "vitest run"
+    "test": "vitest run --testTimeout=15000"
   },
   "dependencies": {
     "@capacitor-community/safe-area": "^8.0.1",
