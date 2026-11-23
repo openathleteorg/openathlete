@@ -60,8 +60,8 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
       date: new Date(q.startDate.getTime() + p.timeSec * 1000),
     }));
 
-    // We fetch per point to respect spatial variability, but batch per day
-    // A more advanced version could cluster nearby points.
+    // One request per grid cell and day, shared by the points that fall in it
+    const cells = new Map<string, Promise<Hourly>>();
 
     const out: WeatherSample[] = new Array(pointsWithDate.length);
     for (let i = 0; i < pointsWithDate.length; i++) {
@@ -87,51 +87,13 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
         );
         const useArchive = daysDiff > 1;
 
-        // Archive API uses a different subdomain
-        const baseUrl = useArchive
-          ? 'https://archive-api.open-meteo.com/v1/archive'
-          : 'https://api.open-meteo.com/v1/forecast';
-        const url = new URL(baseUrl);
-        url.searchParams.set('latitude', item.lat.toString());
-        url.searchParams.set('longitude', item.lon.toString());
-        url.searchParams.set(
-          'hourly',
-          [
-            'temperature_2m',
-            'apparent_temperature',
-            'relative_humidity_2m',
-            'precipitation',
-            'rain',
-            'snowfall',
-            'cloudcover',
-            'windspeed_10m',
-            'windgusts_10m',
-            'shortwave_radiation',
-            'sunshine_duration',
-            'is_day',
-          ].join(','),
+        const hourly = await this.hourlyForCell(
+          cells,
+          useArchive,
+          day,
+          item.lat,
+          item.lon,
         );
-        url.searchParams.set('timezone', 'UTC');
-        url.searchParams.set('start_date', day);
-        url.searchParams.set('end_date', day);
-
-        let res: Response | undefined;
-        let attempt = 0;
-        while (attempt < 2) {
-          res = await fetch(url.toString());
-          if (res.ok) break;
-          if (res.status === 429) {
-            await new Promise((r) => setTimeout(r, 2000));
-            attempt++;
-            continue;
-          }
-          throw new Error(`HTTP ${res.status}`);
-        }
-        if (!res || !res.ok) throw new Error(`HTTP ${res?.status}`);
-        const data: unknown = await res.json();
-        const hourly: Hourly = (data as { hourly?: Hourly })?.hourly || {
-          time: [],
-        };
 
         // Convert point date to target hour in UTC
         const tIso = isoHourUtc(p.date);
@@ -246,4 +208,74 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
 
     return out;
   }
+
+  /**
+   * The hourly bundle of the grid cell around a point. Points come every
+   * 500 m and loops pass the same places again, while the weather models are
+   * no finer than a few kilometres: asking once per cell and day keeps a long
+   * activity from spending dozens of calls of Open-Meteo's free quota on
+   * identical answers.
+   */
+  private hourlyForCell(
+    cells: Map<string, Promise<Hourly>>,
+    archive: boolean,
+    day: string,
+    lat: number,
+    lon: number,
+  ): Promise<Hourly> {
+    const cellLat = (Math.round(lat / CELL_DEGREES) * CELL_DEGREES).toFixed(2);
+    const cellLon = (Math.round(lon / CELL_DEGREES) * CELL_DEGREES).toFixed(2);
+    const key = `${archive}|${day}|${cellLat}|${cellLon}`;
+    let hourly = cells.get(key);
+    if (!hourly) {
+      const url = new URL(
+        archive
+          ? 'https://archive-api.open-meteo.com/v1/archive'
+          : 'https://api.open-meteo.com/v1/forecast',
+      );
+      url.searchParams.set('latitude', cellLat);
+      url.searchParams.set('longitude', cellLon);
+      url.searchParams.set('hourly', HOURLY_VARIABLES.join(','));
+      url.searchParams.set('timezone', 'UTC');
+      url.searchParams.set('start_date', day);
+      url.searchParams.set('end_date', day);
+      hourly = this.request(url);
+      cells.set(key, hourly);
+    }
+    return hourly;
+  }
+
+  /** Busy (429) and unavailable (5xx) answers get one more try */
+  private async request(url: URL): Promise<Hourly> {
+    for (let attempt = 0; ; attempt++) {
+      const res = await fetch(url.toString());
+      if (res.ok) {
+        const data: unknown = await res.json();
+        return (data as { hourly?: Hourly })?.hourly || { time: [] };
+      }
+      if ((res.status !== 429 && res.status < 500) || attempt >= 1)
+        throw new Error(`HTTP ${res.status}`);
+      await new Promise((r) => setTimeout(r, this.retryDelayMs));
+    }
+  }
+
+  protected retryDelayMs = 2000;
 }
+
+/** About 2 km: as fine as the finest models Open-Meteo serves in Europe */
+const CELL_DEGREES = 0.02;
+
+const HOURLY_VARIABLES = [
+  'temperature_2m',
+  'apparent_temperature',
+  'relative_humidity_2m',
+  'precipitation',
+  'rain',
+  'snowfall',
+  'cloudcover',
+  'windspeed_10m',
+  'windgusts_10m',
+  'shortwave_radiation',
+  'sunshine_duration',
+  'is_day',
+];
