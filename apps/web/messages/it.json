@@ -1961,6 +1961,8 @@
   "activity_race_badge": "Gara",
   "activity_gpx_download": "Scarica la traccia GPX",
   "activity_gpx_download_failed": "Non è stato possibile scaricare la traccia",
+  "activity_fit_download": "Scarica il file FIT",
+  "activity_fit_download_failed": "Impossibile scaricare il file FIT",
   "activity_open_page": "Apri come pagina",
   "activity_copy_link": "Copia link",
   "activity_link_copied": "Link copiato",

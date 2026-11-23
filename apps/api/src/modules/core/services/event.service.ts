@@ -58,6 +58,7 @@ import { QueueService } from 'src/modules/queue/queue.service';
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
 import { ProviderExportService } from '../../providers-sync/export.service';
 import { TrainingLoadEstimationService } from '../../queue/services/training-load-estimation.service';
+import { activityToFit, fitFileName } from '../helpers/activity-fit';
 import {
   activityToGpx,
   garminSourceLabel,
@@ -448,6 +449,65 @@ export class EventService {
       throw new NotFoundException('No GPS track for this activity');
     }
     return { content: gpx, fileName: gpxFileName(event) };
+  }
+
+  /**
+   * The recording of an activity as a FIT file, for whoever may read the
+   * activity: the format analysis tools such as WKO import. Any activity
+   * with a time stream has one, with or without GPS.
+   */
+  async getEventFit(user: AuthUser, eventId: Event['eventId']) {
+    const ability = await this.abilities.getFor({ user });
+    const event = await this.prisma.event.findFirst({
+      where: {
+        AND: [{ eventId }, accessibleBy(ability, 'read').Event],
+      },
+      select: {
+        name: true,
+        startDate: true,
+        endDate: true,
+        activity: {
+          select: {
+            sport: true,
+            stream: true,
+            provider: true,
+            deviceName: true,
+            distance: true,
+            movingTime: true,
+            elevationGain: true,
+            averageHeartrate: true,
+            maxHeartrate: true,
+            averageWatts: true,
+          },
+        },
+      },
+    });
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+    const { activity } = event;
+    const compressed = activity?.stream as CompressedActivityStream | null;
+    const fit =
+      activity && compressed
+        ? activityToFit(
+            {
+              ...activity,
+              startDate: event.startDate,
+              endDate: event.endDate,
+              sport: activity.sport as SPORT_TYPE,
+              // Garmin's brand guidelines: its data names it as its source
+              garminDevice:
+                activity.provider === 'GARMIN'
+                  ? { name: activity.deviceName }
+                  : null,
+            },
+            uncompressActivityStream(compressed),
+          )
+        : null;
+    if (!fit) {
+      throw new NotFoundException('No recording for this activity');
+    }
+    return { content: Buffer.from(fit), fileName: fitFileName(event) };
   }
 
   /**

@@ -1961,6 +1961,8 @@
   "activity_race_badge": "Zawody",
   "activity_gpx_download": "Pobierz ślad GPX",
   "activity_gpx_download_failed": "Nie udało się pobrać śladu",
+  "activity_fit_download": "Pobierz plik FIT",
+  "activity_fit_download_failed": "Nie udało się pobrać pliku FIT",
   "activity_open_page": "Otwórz jako stronę",
   "activity_copy_link": "Kopiuj link",
   "activity_link_copied": "Link skopiowany",

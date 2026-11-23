@@ -1961,6 +1961,8 @@
   "activity_race_badge": "Race",
   "activity_gpx_download": "Download GPX track",
   "activity_gpx_download_failed": "The track could not be downloaded",
+  "activity_fit_download": "Download FIT file",
+  "activity_fit_download_failed": "The FIT file could not be downloaded",
   "activity_open_page": "Open as a page",
   "activity_copy_link": "Copy link",
   "activity_link_copied": "Link copied",

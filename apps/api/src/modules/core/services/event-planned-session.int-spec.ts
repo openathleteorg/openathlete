@@ -13,8 +13,12 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { EventService } from './event.service';
 
-// An ESM package Jest cannot load, pulled in by the FIT import; unused here
-jest.mock('@garmin/fitsdk', () => ({}));
+// An ESM package Jest cannot load: Node's own require loads it for the export
+jest.mock('@garmin/fitsdk', () =>
+  process.getBuiltinModule('module').createRequire(__filename)(
+    '@garmin/fitsdk',
+  ),
+);
 
 const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
 if (!databaseUrl)
@@ -159,6 +163,27 @@ describe('an activity read on its own (PostgreSQL)', () => {
       );
     });
 
+    it('gives the recording as FIT, with or without GPS', async () => {
+      await prisma.eventActivity.update({
+        where: { eventId: RUN_EVENT_ID },
+        data: {
+          stream: { time: [{ s: 0, i: 3 }], heartrate: [130, 131, 132] },
+        },
+      });
+      const fit = await events.getEventFit(athlete, RUN_EVENT_ID);
+      expect(fit.fileName).toMatch(/^\d{4}-\d{2}-\d{2}-Run\.fit$/);
+      // A FIT file starts with its header size and the ".FIT" signature
+      expect(fit.content.subarray(8, 12).toString('ascii')).toBe('.FIT');
+
+      await prisma.eventActivity.update({
+        where: { eventId: RUN_EVENT_ID },
+        data: { stream: { heartrate: [130] } },
+      });
+      await expect(events.getEventFit(athlete, RUN_EVENT_ID)).rejects.toThrow(
+        'No recording',
+      );
+    });
+
     it("is not given for another athlete's activity", async () => {
       const stranger = {
         userId: 999999,
@@ -167,6 +192,9 @@ describe('an activity read on its own (PostgreSQL)', () => {
         coachAthletes: [],
       } as unknown as AuthUser;
       await expect(events.getEventGpx(stranger, RUN_EVENT_ID)).rejects.toThrow(
+        'Event not found',
+      );
+      await expect(events.getEventFit(stranger, RUN_EVENT_ID)).rejects.toThrow(
         'Event not found',
       );
     });

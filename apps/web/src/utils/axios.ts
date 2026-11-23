@@ -58,6 +58,7 @@ export const routes = {
     getEvent: (eventId: Event['eventId']) => `/event/${eventId}`,
     getEventStream: (eventId: Event['eventId']) => `/event/${eventId}/stream`,
     getEventGpx: (eventId: Event['eventId']) => `/event/${eventId}/gpx`,
+    getEventFit: (eventId: Event['eventId']) => `/event/${eventId}/fit`,
     activityCorrections: (eventId: Event['eventId']) =>
       `/event/${eventId}/activity/corrections`,
     getEventWeather: (eventId: Event['eventId']) => `/event/${eventId}/weather`,

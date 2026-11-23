@@ -1961,6 +1961,8 @@
   "activity_race_badge": "Wedstrijd",
   "activity_gpx_download": "GPX-track downloaden",
   "activity_gpx_download_failed": "De track kon niet worden gedownload",
+  "activity_fit_download": "FIT-bestand downloaden",
+  "activity_fit_download_failed": "Het FIT-bestand kon niet worden gedownload",
   "activity_open_page": "Openen als pagina",
   "activity_copy_link": "Link kopiëren",
   "activity_link_copied": "Link gekopieerd",

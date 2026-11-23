@@ -1961,6 +1961,8 @@
   "activity_race_badge": "Prova",
   "activity_gpx_download": "Baixar o trajeto GPX",
   "activity_gpx_download_failed": "Não foi possível baixar o trajeto",
+  "activity_fit_download": "Baixar arquivo FIT",
+  "activity_fit_download_failed": "Não foi possível baixar o arquivo FIT",
   "activity_open_page": "Abrir como página",
   "activity_copy_link": "Copiar link",
   "activity_link_copied": "Link copiado",
