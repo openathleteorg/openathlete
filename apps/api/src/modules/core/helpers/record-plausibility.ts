@@ -42,11 +42,34 @@ const HIGHEST_POWER: [number, number][] = [
   [7200, 550],
 ];
 
+/**
+ * Seconds and the most metres climbed per hour. The half hour comes from
+ * the vertical kilometre record: Rémi Bonnet climbed the 1,000 m of the
+ * Kilomètre Vertical de Fully in 27:21 (October 2025), about 2,190 m/h.
+ * The other durations follow it with a margin, as shorter efforts are
+ * faster and longer ones slower. Faster is a lift, a car or an altimeter
+ * jump.
+ */
+const HIGHEST_VERTICAL_SPEED: [number, number][] = [
+  [300, 2600],
+  [600, 2400],
+  [1200, 2300],
+  [1800, 2200],
+  [3600, 2000],
+  [7200, 1700],
+];
+
 const HIGHEST_HEART_RATE = 230;
 const RUNNING = new Set(['RUNNING', 'TRAIL_RUNNING']);
 
 const lookup = (table: [number, number][], key: number | null | undefined) =>
   table.find(([at]) => at === key)?.[1];
+
+/** The most metres an hour a human climbs over this many seconds */
+export function highestVerticalSpeed(duration: number): number {
+  // No record is kept at other durations
+  return lookup(HIGHEST_VERTICAL_SPEED, duration) ?? 0;
+}
 
 /** Whether a human could have set this record */
 export function isPlausibleRecord(
@@ -54,6 +77,9 @@ export function isPlausibleRecord(
   sport: string,
 ): boolean {
   if (type === 'HEARTRATE') return value <= HIGHEST_HEART_RATE;
+  if (type === 'VERTICAL_SPEED') {
+    return duration != null && value <= highestVerticalSpeed(duration);
+  }
   if (type === 'POWER') {
     return value <= (lookup(HIGHEST_POWER, duration) ?? Infinity);
   }

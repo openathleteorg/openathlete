@@ -67,6 +67,14 @@ export const RECORD_METRICS: RecordMetric[] = [
     plotted: (record) => record.value,
     format: (metres) => `${Math.round(metres)}`,
   },
+  {
+    type: RECORD_TYPE.VERTICAL_SPEED,
+    axis: 'duration',
+    title: () => m.records_vertical_speed(),
+    unit: () => m.statistics_metres_per_hour(),
+    plotted: (record) => record.value,
+    format: (metresPerHour) => `${Math.round(metresPerHour)}`,
+  },
 ];
 
 /** Where a record sits on its axis: metres or seconds. */

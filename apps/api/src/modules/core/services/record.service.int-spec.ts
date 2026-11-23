@@ -94,6 +94,27 @@ describe('RecordService (PostgreSQL)', () => {
     expect(await service.getRecords(athlete, { sport: 'CYCLING' })).toEqual([]);
   });
 
+  it('keeps climbing speed records by duration', async () => {
+    await prisma.record.deleteMany();
+    await prisma.record.create({
+      data: {
+        type: 'VERTICAL_SPEED',
+        duration: 1200,
+        value: 1150,
+        date: new Date('2026-11-05'),
+        athleteId: DELETED_ATHLETE_ID,
+        eventActivityId: 3501,
+      },
+    });
+    const [vam] = await service.getRecords(athlete, { sport: 'RUNNING' });
+    expect(vam).toMatchObject({
+      type: 'VERTICAL_SPEED',
+      duration: 1200,
+      distance: null,
+      value: 1150,
+    });
+  });
+
   it('lists the sports with records, the most frequent first', async () => {
     // Two rides next to the fixture's run
     for (const id of [1, 2]) {

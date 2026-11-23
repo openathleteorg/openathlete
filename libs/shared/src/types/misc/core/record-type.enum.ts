@@ -5,4 +5,6 @@ export enum RECORD_TYPE {
   ELEVATION_GAIN = 'ELEVATION_GAIN',
   ELEVATION_LOSS = 'ELEVATION_LOSS',
   CADENCE = 'CADENCE',
+  /** Metres climbed per hour (VAM), by duration */
+  VERTICAL_SPEED = 'VERTICAL_SPEED',
 }

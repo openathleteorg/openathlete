@@ -2825,6 +2825,8 @@
   "plan_for_athletes_day_label": "Items of {day}: {count}",
   "garmin_attribution_data": "Includes data provided by Garmin devices.",
   "garmin_attribution_insights": "Insights derived in part from Garmin device-sourced data.",
+  "records_vertical_speed": "Climbing speed",
+  "records_last_days": "Last {days} days",
   "statistics_run_efficiency": "Run efficiency",
   "metric_run_efficiency_what": "Efficiency factor (Friel): grade-adjusted metres per heartbeat. Power per heartbeat: average power over average heart rate. Running effectiveness (Coggan): speed in m/s per W/kg on flat stretches, close to 1 kg/N for most trained runners. Decoupling: how much efficiency drops from the first half to the second. Rising efficiency on similar runs means more output for the same effort.",
   "metric_run_efficiency_limits": "Compare steady runs with each other: harder runs read higher on their own. Heat and fatigue move heart rate, and running power depends on the device (Stryd and Garmin differ), so compare runs measured with the same one. Descents are left out of both sides of each ratio.",
