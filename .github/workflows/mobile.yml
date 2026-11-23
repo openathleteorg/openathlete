@@ -31,6 +31,8 @@ concurrency:
 
 jobs:
   android:
+    # Public repository only: the private mirror has no macOS or GitHub minutes to spare.
+    if: github.repository == 'openathleteorg/openathlete'
     name: Android build
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -43,6 +45,8 @@ jobs:
         working-directory: apps/web
 
   ios:
+    # Public repository only: the private mirror has no macOS or GitHub minutes to spare.
+    if: github.repository == 'openathleteorg/openathlete'
     name: iOS build
     runs-on: macos-26
     timeout-minutes: 45

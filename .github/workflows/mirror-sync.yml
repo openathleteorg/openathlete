@@ -1,0 +1,63 @@
+name: Mirror sync
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    # Runs only in the private mirror; the file is copied to the public repository with the rest.
+    if: github.repository == 'tblt-lab/openathlete'
+    # No GitHub minutes on the mirror: the Coolify runner takes it.
+    runs-on: [self-hosted, coolify]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Bring both main branches together
+        env:
+          DEPLOY_KEY: ${{ secrets.PUBLIC_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/public_deploy
+          chmod 600 ~/.ssh/public_deploy
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/public_deploy -o IdentitiesOnly=yes"
+          git remote add public git@github.com:openathleteorg/openathlete.git
+          git fetch public main
+          mirror=$(git rev-parse HEAD)
+          public=$(git rev-parse public/main)
+          if [ "$mirror" = "$public" ]; then
+            echo "In sync"
+          elif git merge-base --is-ancestor "$public" "$mirror"; then
+            # Only the mirror moved: publish it
+            git push public "$mirror:refs/heads/main"
+          elif git merge-base --is-ancestor "$mirror" "$public"; then
+            # Only the public moved (an outside PR was merged): catch up
+            git push origin "$public:refs/heads/main"
+          else
+            # Both moved: replay the mirror's own commits on top of the public branch,
+            # committed under the name of the last mirror commit's author
+            git config user.name "$(git log -1 --format=%an)"
+            git config user.email "$(git log -1 --format=%ae)"
+            if git rebase public/main; then
+              rebased=$(git rev-parse HEAD)
+              git push public "$rebased:refs/heads/main"
+              git push --force-with-lease=main:"$mirror" origin "$rebased:refs/heads/main"
+            else
+              git rebase --abort
+              echo "::error::main has diverged and the mirror commits do not replay cleanly on the public branch"
+              exit 1
+            fi
+          fi
