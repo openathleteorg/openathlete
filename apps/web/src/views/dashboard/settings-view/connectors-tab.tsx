@@ -15,6 +15,7 @@ import {
 } from '@/components/connectors';
 import { CorosRegionDialog } from '@/components/connectors/coros-region-dialog';
 import { ImportFitDialog } from '@/components/import-fit-dialog/import-fit-dialog';
+import { ImportIcsPlanDialog } from '@/components/import-ics-plan-dialog/import-ics-plan-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
@@ -474,6 +475,15 @@ export function ConnectorsTab() {
           description={m.fit_import_help()}
         >
           <ImportFitDialog />
+        </SettingsSection>
+      )}
+
+      {roles?.includes('ATHLETE') && (
+        <SettingsSection
+          title={m.plan_import_title()}
+          description={m.plan_import_help()}
+        >
+          <ImportIcsPlanDialog />
         </SettingsSection>
       )}
 

@@ -134,6 +134,7 @@ model User {
   clubInvitationsSent       ClubInvitation[]
   clubSessionsCreated       ClubSession[]
   clubSessionAttendance     ClubSessionAttendance[]
+  eventsCreated             Event[]                    @relation("EventsCreated")
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

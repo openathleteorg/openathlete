@@ -349,6 +349,7 @@ export class EventBatchService {
             // Another athlete, another load: estimated again below
             keepLoad: false,
             batchId,
+            createdById: user.userId,
           }),
         );
       }

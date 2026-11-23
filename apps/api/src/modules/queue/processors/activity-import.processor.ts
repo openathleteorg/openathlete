@@ -175,14 +175,14 @@ export class ActivityImportProcessor extends WorkerHost {
         },
       });
 
-      if (!account) {
-        throw new Error(`Provider account ${providerAccountId} not found`);
-      }
-
-      if (account.status !== 'active') {
-        throw new Error(
-          `Provider account ${providerAccountId} is not active (status: ${account.status})`,
+      // Disconnected or deleted while its activities waited in the queue, as
+      // when an athlete leaves during a history import: nothing to import,
+      // and retrying would only report hundreds of failures
+      if (!account || account.status !== 'active') {
+        this.logger.debug(
+          `Skipping import for provider account ${providerAccountId}: ${account ? `account ${account.status}` : 'account deleted'}`,
         );
+        return { success: true, skipped: 'account-inactive' };
       }
 
       if (!account.importActivitiesEnabled) {

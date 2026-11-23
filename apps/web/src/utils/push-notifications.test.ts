@@ -50,4 +50,30 @@ describe('push notifications', () => {
     await expect(enablePushNotifications()).resolves.toBe('granted');
     expect(plugin.register).toHaveBeenCalledOnce();
   });
+
+  describe('token decoding', () => {
+    const fcm = `${'d'.repeat(22)}:APA91b${'x_-'.repeat(46)}`;
+    const hex = (text: string) =>
+      [...text]
+        .map((c) => c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join('');
+
+    it('keeps an FCM token as it is', async () => {
+      const { validateAndDecodeToken } = await import('./push-notifications');
+      expect(validateAndDecodeToken(fcm)).toBe(fcm);
+    });
+
+    it('decodes an FCM token sent as hex by iOS', async () => {
+      const { validateAndDecodeToken } = await import('./push-notifications');
+      expect(validateAndDecodeToken(hex(fcm))).toBe(fcm);
+    });
+
+    it('drops a device token that decodes to binary bytes', async () => {
+      const { validateAndDecodeToken } = await import('./push-notifications');
+      // 80 bytes of an APNs token, with a NUL and a dash once decoded
+      const apns = `2d00${'a3'.repeat(78)}`;
+      expect(validateAndDecodeToken(apns)).toBeNull();
+      expect(validateAndDecodeToken('ab'.repeat(32))).toBeNull();
+    });
+  });
 });

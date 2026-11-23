@@ -678,6 +678,57 @@ export class EventController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get(':eventId/fit')
+  @Throttle(RATE_LIMITS.activityFile)
+  @ApiOperation({
+    summary: 'Download an activity as a FIT file',
+    description:
+      'The recording of an activity as a FIT activity file, for analysis tools that import FIT (WKO, Golden Cheetah). One record per stream sample with position, altitude, distance, speed, heart rate, cadence, power and temperature; timer pauses as timer events; one lap and one session with the activity totals. Any activity with a time stream has one, with or without GPS, whatever it was imported from. An activity imported from Garmin names Garmin and the device in a `device_info` message, as the Garmin brand guidelines require. Limited to 30 files a minute. Uses CASL authorization to verify that the user has read access to the event.',
+  })
+  @ApiParam({
+    name: 'eventId',
+    type: Number,
+    description: 'ID of the activity event',
+    example: 1,
+  })
+  @ApiProduces('application/vnd.ant.fit')
+  @ApiResponse({
+    status: 200,
+    description: 'The FIT file, as an attachment',
+    content: {
+      'application/vnd.ant.fit': {
+        schema: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing authentication token',
+  })
+  @ApiResponse({
+    status: 404,
+    description:
+      'Not found - event not found or not readable by the user, or no recording',
+  })
+  @ApiResponse({ status: 429, description: 'Too many files requested' })
+  async getEventFit(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
+    @Res() res: Response,
+  ) {
+    const file = await this.eventService.getEventFit(user, eventId);
+    res.setHeader('Content-Type', 'application/vnd.ant.fit');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${file.fileName}"`,
+    );
+    // Private data: never from a shared cache
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(file.content);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get(':eventId/weather')
   @ApiOperation({
     summary: 'Get weather data for an activity',

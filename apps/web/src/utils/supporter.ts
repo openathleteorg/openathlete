@@ -74,3 +74,16 @@ export function isActiveSupporter(
     subscription.status !== SubscriptionStatus.CANCELED
   );
 }
+
+/**
+ * The plan whose rights the user has now: a Supporter subscription that is
+ * cancelled, unpaid or incomplete gives the free plan's, as the API decides
+ */
+export function currentPlanOf(
+  subscription: Pick<CurrentSubscriptionDto, 'plan' | 'status'>,
+): SubscriptionPlan {
+  const entitled =
+    subscription.status === SubscriptionStatus.ACTIVE ||
+    subscription.status === SubscriptionStatus.TRIALING;
+  return entitled ? subscription.plan : SubscriptionPlan.FREE;
+}

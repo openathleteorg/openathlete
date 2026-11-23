@@ -1,18 +1,17 @@
 import { Browser } from '@capacitor/browser';
 
 import { isCapacitor } from './capacitor';
+import { withNativeOAuthState } from './native-oauth';
 
 /**
- * Open a URL for OAuth flow, using Capacitor Browser in native or window.open in web
- * In native, the OAuth provider will redirect back to the app via deep link
- * The deep link format: org.openathlete://auth/callback/:provider?code=...
+ * Open a provider's consent page: in the in-app browser in the native apps,
+ * from which the web callback page sends the code back to the app (see
+ * native-oauth.ts), in the same tab on the web.
  */
 export async function openOAuthUrl(url: string): Promise<void> {
   if (isCapacitor()) {
-    // Use Capacitor Browser plugin for native apps
-    // The OAuth provider will redirect back to our app via deep link
     await Browser.open({
-      url,
+      url: withNativeOAuthState(url),
       windowName: '_self',
       presentationStyle: 'popover',
     });

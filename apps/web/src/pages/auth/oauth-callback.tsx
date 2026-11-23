@@ -1,5 +1,6 @@
 import { ProviderAPI, useSetOAuthTokenMutation } from '@/api/provider';
 import { LoadingScreen } from '@/components/loading-screen';
+import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import {
@@ -8,6 +9,8 @@ import {
   analyticsErrorCodeFromUnknown,
   consumeOauthConnectSource,
 } from '@/utils/analytics-events';
+import { isCapacitor } from '@/utils/capacitor';
+import { nativeReturnUrl } from '@/utils/native-oauth';
 import { ENABLE_DESCRIPTION_AFTER_OAUTH_KEY } from '@/utils/oauth';
 import { useQueryClient } from '@tanstack/react-query';
 import posthog from 'posthog-js';
@@ -51,9 +54,43 @@ function pathAfterConnect(source: OauthConnectSource) {
     : getPath(['dashboard', 'settings']);
 }
 
+/**
+ * The in-app browser of the native apps lands here after the consent page:
+ * the app, where the user is signed in, finishes the connection.
+ */
+function ReturnToApp({ url }: { url: string }) {
+  useEffect(() => {
+    window.location.replace(url);
+  }, [url]);
+
+  return (
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
+      <p className="text-muted-foreground">{m.oauth_return_to_app_message()}</p>
+      {/* Browsers may block the automatic redirect without a tap */}
+      <Button asChild size="lg">
+        <a href={url}>{m.oauth_return_to_app_button()}</a>
+      </Button>
+    </div>
+  );
+}
+
 export function OAuthCallbackPage() {
   const { provider } = useParams();
   const [searchParams] = useSearchParams();
+  const returnUrl = isCapacitor()
+    ? null
+    : nativeReturnUrl(provider, searchParams.toString());
+  if (returnUrl) return <ReturnToApp url={returnUrl} />;
+  return <OAuthCallback provider={provider} searchParams={searchParams} />;
+}
+
+function OAuthCallback({
+  provider,
+  searchParams,
+}: {
+  provider: string | undefined;
+  searchParams: URLSearchParams;
+}) {
   const nav = useNavigate();
   const hasInitialized = useRef(false);
   const queryClient = useQueryClient();

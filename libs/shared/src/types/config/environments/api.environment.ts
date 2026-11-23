@@ -21,10 +21,12 @@ export const ApiEnvSchema = z
     ENV: z
       .nativeEnum(ENV, {
         required_error:
-          'ENV is required. Must be one of: development, staging, production',
+          'ENV is required. Must be one of: development, staging, preview, production',
         invalid_type_error: 'ENV must be a valid environment enum value',
       })
-      .describe('Application environment (development, staging, production)'),
+      .describe(
+        'Application environment (development, staging, preview, production)',
+      ),
 
     NODE_ENV: z
       .nativeEnum(NODE_ENV, {

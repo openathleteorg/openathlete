@@ -55,7 +55,7 @@ export class EventBulkService {
     const created = await this.prisma.$transaction(
       sources.map((event) =>
         this.prisma.event.create({
-          data: copyOf(event, offsetDays),
+          data: copyOf(event, offsetDays, user.userId),
           select: { eventId: true },
         }),
       ),

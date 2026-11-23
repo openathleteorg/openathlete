@@ -53,11 +53,13 @@ export function shiftedDates(event: SourceEvent, offsetDays: number) {
 export function copyOf(
   event: SourceEvent,
   offsetDays: number,
+  createdById: number,
 ): Prisma.EventCreateInput {
   return copyTo(event, {
     athleteId: event.athleteId,
     ...shiftedDates(event, offsetDays),
     keepLoad: true,
+    createdById,
   });
 }
 
@@ -79,6 +81,8 @@ export type CopyTarget = {
   keepLoad: boolean;
   /** Shared by the copies of one operation, to undo them together */
   batchId?: string;
+  /** Who makes the copy, its author; none for club sessions */
+  createdById?: number;
 };
 
 /** A copy of the plan into any calendar, at the given dates. */
@@ -92,6 +96,9 @@ export function copyTo(
     startDate: target.startDate,
     endDate: target.endDate,
     ...(target.batchId && { batchId: target.batchId }),
+    ...(target.createdById && {
+      createdBy: { connect: { userId: target.createdById } },
+    }),
     ...(target.athleteId && {
       athlete: { connect: { athleteId: target.athleteId } },
     }),

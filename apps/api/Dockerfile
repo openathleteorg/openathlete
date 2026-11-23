@@ -39,6 +39,18 @@ RUN NODE_ENV=development pnpm build
 WORKDIR /app/apps/api
 RUN NODE_ENV=development pnpm build
 
+# ---- Seed stage (pull request previews only) ----
+# Runs scripts/screenshots/seed.ts with tsx, the generated Prisma client and
+# the API's own argon2 and bullmq. Not part of the published image: a build
+# without --target stops at the runtime stage below, the last one.
+FROM build AS seed
+WORKDIR /app
+COPY scripts/screenshots/seed.ts scripts/screenshots/routes.json scripts/screenshots/
+COPY scripts/screenshots/lib scripts/screenshots/lib
+WORKDIR /app/libs/database
+ENTRYPOINT ["/app/libs/database/node_modules/.bin/tsx", "../../scripts/screenshots/seed.ts"]
+CMD ["--once"]
+
 # ---- Runtime stage ----
 FROM node:22.23.4-alpine AS runtime
 WORKDIR /app

@@ -30,7 +30,7 @@ export function ErrorPage({ code, title, description }: ErrorPageProps) {
     <section className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-20">
       <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
         <div className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+          <p className="text-7xl font-semibold leading-none tracking-tight text-primary tabular-nums sm:text-8xl">
             {code}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">

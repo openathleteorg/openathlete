@@ -16,6 +16,7 @@ import {
 } from '@openathlete/database';
 import {
   BestRecordDto,
+  CompressedActivityStream,
   CreateRecordExclusionDto,
   FTP_MODEL_DAYS,
   FTP_MODEL_EFFORTS,
@@ -27,15 +28,20 @@ import {
   RecordEffortDto,
   RecordExclusionDto,
   RecordHistoryDto,
+  RunningEconomyDto,
   YEAR_REVIEW_RECORD_SPORTS,
   YearBestRecordDto,
   YearReviewRecordDto,
+  median,
   modelFtp,
+  runEnergyPerMetre,
 } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+
+import { uncompressActivityStream } from '../helpers/activity-stream';
 
 interface BestRecordRow {
   record_id: number;
@@ -95,6 +101,16 @@ const toExclusion = (
   distance: exclusion.distance,
   duration: exclusion.duration,
 });
+
+/** Flat runs the running economy is read from: 3 km or more, 1 % climbing */
+const RUNNING_ECONOMY_MIN_DISTANCE = 3000;
+const RUNNING_ECONOMY_MAX_CLIMB = 0.01;
+/**
+ * Enough runs for a median, without decompressing a whole season: the most
+ * recent flat runs are read, and the first 12 with power count
+ */
+const RUNNING_ECONOMY_CANDIDATES = 20;
+const RUNNING_ECONOMY_MAX_RUNS = 12;
 
 @Injectable()
 export class RecordService {
@@ -285,6 +301,69 @@ export class RecordService {
       ftpRunning: modelFtp(running),
       ftpCycling: modelFtp(cycling),
     };
+  }
+
+  /**
+   * Joules per metre on the flat runs of the last days (at most 1% climbing,
+   * 3 km or more, the 12 most recent with power among the 20 most recent),
+   * the median of the runs:
+   * watts per m/s, which turns a power into a pace. Null without three such
+   * runs.
+   */
+  async getRunningEconomy(
+    user: AuthUser,
+    athleteId?: Athlete['athleteId'],
+    now = new Date(),
+  ): Promise<RunningEconomyDto | null> {
+    const targetAthleteId = await this.targetAthleteId(user, athleteId);
+    const from = new Date(now);
+    from.setUTCHours(0, 0, 0, 0);
+    from.setUTCDate(from.getUTCDate() - FTP_MODEL_DAYS);
+
+    // Flat runs chosen in SQL, the most recent first: only their streams are
+    // read and decompressed. Whether a run has power is read from its stream,
+    // as providers often leave average_watts empty (Suunto does)
+    const candidates = await this.prisma.$queryRaw<{ id: number }[]>`
+      SELECT a.event_activity_id AS id
+      FROM event_activity a
+      JOIN event e ON e.event_id = a.event_id
+      WHERE e.athlete_id = ${targetAthleteId}
+        AND e.start_date >= ${from}
+        AND a.sport::text IN (${Prisma.join([...FTP_MODEL_SPORTS.running])})
+        AND a.distance >= ${RUNNING_ECONOMY_MIN_DISTANCE}
+        AND a.elevation_gain <= a.distance * ${RUNNING_ECONOMY_MAX_CLIMB}
+        AND a.stream IS NOT NULL
+      ORDER BY e.start_date DESC
+      LIMIT ${RUNNING_ECONOMY_CANDIDATES}`;
+    const order = new Map(candidates.map((run, index) => [run.id, index]));
+    const runs = candidates.length
+      ? (
+          await this.prisma.eventActivity.findMany({
+            where: { eventActivityId: { in: [...order.keys()] } },
+            select: { eventActivityId: true, stream: true },
+          })
+        ).sort(
+          (a, b) =>
+            order.get(a.eventActivityId)! - order.get(b.eventActivityId)!,
+        )
+      : [];
+    const values = runs
+      .map((run) =>
+        runEnergyPerMetre(
+          uncompressActivityStream(run.stream as CompressedActivityStream),
+        ),
+      )
+      .filter((value): value is number => value !== null)
+      .slice(0, RUNNING_ECONOMY_MAX_RUNS);
+    const value = values.length >= 3 ? median(values) : null;
+    return value === null
+      ? null
+      : {
+          value: Math.round(value * 10) / 10,
+          activities: values.length,
+          from,
+          days: FTP_MODEL_DAYS,
+        };
   }
 
   /** What the records page reads for a sport, in one round trip. */

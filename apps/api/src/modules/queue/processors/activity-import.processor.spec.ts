@@ -80,7 +80,15 @@ function setup(
     undefined,
     descriptions as never,
   );
-  return { processor, emitter, queue, strava, duplicates, descriptions };
+  return {
+    processor,
+    prisma,
+    emitter,
+    queue,
+    strava,
+    duplicates,
+    descriptions,
+  };
 }
 
 const job = (bulkImport = false) =>
@@ -224,6 +232,27 @@ describe('ActivityImportProcessor', () => {
     await processor.process(job());
     expect(duplicates.findDuplicate).not.toHaveBeenCalled();
     expect(strava.importActivity).toHaveBeenCalled();
+  });
+
+  it('skips the activities of an account disconnected during its import', async () => {
+    const { processor, prisma, strava } = setup(true);
+    prisma.providerAccount.findUnique.mockResolvedValue({
+      providerAccountId: 7,
+      status: 'revoked',
+    });
+    await expect(processor.process(job(true))).resolves.toMatchObject({
+      skipped: 'account-inactive',
+    });
+    expect(strava.importActivity).not.toHaveBeenCalled();
+  });
+
+  it('skips the activities of a deleted account', async () => {
+    const { processor, prisma, strava } = setup(true);
+    prisma.providerAccount.findUnique.mockResolvedValue(null);
+    await expect(processor.process(job(true))).resolves.toMatchObject({
+      skipped: 'account-inactive',
+    });
+    expect(strava.importActivity).not.toHaveBeenCalled();
   });
 
   it('waits for the quota without spending an attempt', async () => {

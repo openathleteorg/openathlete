@@ -13,10 +13,17 @@ import { Toaster } from './components/ui/sonner';
 import { AuthConsumer, AuthProvider } from './contexts/auth';
 import { ChatbotProvider } from './contexts/chatbot';
 import router from './routes/sections';
+import { isCapacitor } from './utils/capacitor';
 import { onOpenServerSelection } from './utils/mobile-server';
+import { listenForNativeOAuthReturn } from './utils/native-oauth';
 import { queryClient } from './utils/query-client';
 
 function AppContent() {
+  useEffect(() => {
+    if (!isCapacitor()) return;
+    return listenForNativeOAuthReturn((path) => void router.navigate(path));
+  }, []);
+
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClient}>

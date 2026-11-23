@@ -25,6 +25,12 @@ declare module '@garmin/fitsdk' {
     decode(): unknown;
   }
 
+  export class Encoder {
+    constructor(options?: { fieldDescriptions?: unknown });
+    onMesg(mesgNum: number, mesg: Record<string, unknown>): this;
+    close(): Uint8Array;
+  }
+
   export class Stream {
     constructor(buffer: ArrayBuffer | Buffer);
     static fromBuffer(buffer: ArrayBuffer | Buffer): Stream;

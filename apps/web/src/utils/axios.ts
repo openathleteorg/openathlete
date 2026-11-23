@@ -64,6 +64,7 @@ export const routes = {
     getEvent: (eventId: Event['eventId']) => `/event/${eventId}`,
     getEventStream: (eventId: Event['eventId']) => `/event/${eventId}/stream`,
     getEventGpx: (eventId: Event['eventId']) => `/event/${eventId}/gpx`,
+    getEventFit: (eventId: Event['eventId']) => `/event/${eventId}/fit`,
     activityCorrections: (eventId: Event['eventId']) =>
       `/event/${eventId}/activity/corrections`,
     getEventWeather: (eventId: Event['eventId']) => `/event/${eventId}/weather`,
@@ -116,6 +117,7 @@ export const routes = {
     getRecords: '/record',
     getRecordSports: '/record/sports',
     getModeledMetrics: '/record/modeled-metrics',
+    getRunningEconomy: '/record/running-economy',
     getRecordHistory: '/record/history',
     getRecordEfforts: '/record/efforts',
     getRecordExclusions: '/record/exclusions',
@@ -240,6 +242,8 @@ export const routes = {
     },
     thresholds: '/coach/thresholds',
     threshold: (id: number) => `/coach/thresholds/${id}`,
+    calendarExport: (athleteId: number) =>
+      `/coach/athletes/${athleteId}/calendar-export`,
     getPendingInvitations: '/coach/invitations/pending',
     acceptInvitation: (invitationId: number) =>
       `/coach/invitations/${invitationId}/accept`,

@@ -5,10 +5,11 @@
  *   pnpm --filter @openathlete/database exec tsx ../../scripts/screenshots/seed.ts
  *
  * It empties the database first, and refuses to when the database holds
- * accounts it did not create (pass --force to override).
+ * accounts it did not create (pass --force to override). With --once it
+ * leaves a database it already seeded as it is (pull request previews).
  */
 import { createCipheriv, hkdfSync, randomBytes } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 
@@ -33,6 +34,8 @@ const ROOT = join(__dirname, '..', '..');
 // ---------------------------------------------------------------------------
 
 function loadEnv(file: string) {
+  // The preview image has no api.env: its compose file sets the variables
+  if (!existsSync(file)) return;
   for (const line of readFileSync(file, 'utf8').split('\n')) {
     const match = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
     if (!match || process.env[match[1]] !== undefined) continue;
@@ -1278,6 +1281,11 @@ async function main() {
   const today = getToday();
   const { prisma: db } = (await import('../../libs/database/client')) as { prisma: Db };
   const seedEmails = [CAMILLE_EMAIL, COACH_EMAIL, ...ROSTER.map(emailOf), ...STAFF.map(emailOf), ...CLUB_MEMBERS.map(emailOf)];
+  if (process.argv.includes('--once') && (await db.user.count({ where: { email: COACH_EMAIL } })) > 0) {
+    console.log('[seed] already seeded, nothing to do'); // eslint-disable-line no-console
+    await db.$disconnect();
+    return;
+  }
   await reset(db, seedEmails);
 
   const passwordHash = await argon2.hash(PASSWORD, { secret: Buffer.from(PEPPER) });

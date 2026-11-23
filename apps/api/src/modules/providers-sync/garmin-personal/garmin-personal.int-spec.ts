@@ -7,11 +7,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthGuard } from '@nestjs/passport';
 import { Test } from '@nestjs/testing';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
+import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
 import {
   COACH_USER_ID,
   DELETED_USER_ID,
@@ -121,6 +123,7 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
   const processing = {
     addActivityProcessingJob: jest.fn().mockResolvedValue({}),
   };
+  const emitter = { emit: jest.fn() };
   const client = {
     authorize: jest.fn(),
     get: jest.fn(),
@@ -145,9 +148,14 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     prisma.garminPersonalConnection.findFirstOrThrow({
       where: { athlete: { userId: DELETED_USER_ID } },
     });
-  const run = async () => {
+  const run = async (automatic?: boolean) => {
     const c = await connection();
-    return service.run({ connectionId: c.id, version: c.version, ...range });
+    return service.run({
+      connectionId: c.id,
+      version: c.version,
+      ...range,
+      automatic,
+    });
   };
 
   beforeAll(async () => {
@@ -159,6 +167,7 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
       config as unknown as ConfigService<ApiEnvSchemaType, true>,
       queue as unknown as Queue<PersonalJob>,
       processing as unknown as QueueService,
+      emitter as unknown as EventEmitter2,
     );
     const module = await Test.createTestingModule({
       controllers: [GarminPersonalController, InstanceController],
@@ -450,6 +459,51 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     expect(records[0].eventActivity?.provider).toBe('GARMIN');
     expect(records[0].processingPending).toBe(false);
     expect(client.download).toHaveBeenCalledTimes(1);
+  });
+  it('announces an activity of the hourly sync like a webhook import, once', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    processing.addActivityProcessingJob.mockRejectedValueOnce(
+      new Error('Queue unavailable'),
+    );
+    expect(await run(true)).toMatchObject({ imported: 1, pending: 1 });
+    const { eventActivity } = await prisma.garminPersonalItem.findFirstOrThrow({
+      include: { eventActivity: true },
+    });
+    const { eventActivityId, eventId } = eventActivity!;
+    expect(processing.addActivityProcessingJob).toHaveBeenLastCalledWith(
+      eventActivityId,
+      eventId,
+      false,
+    );
+    expect(emitter.emit).toHaveBeenCalledTimes(1);
+    expect(emitter.emit).toHaveBeenCalledWith(
+      CoachActivityNoticeEvent.SLUG,
+      expect.objectContaining({
+        payload: {
+          eventId,
+          kind: 'ACTIVITY',
+          deliveryKey: `import:${eventId}`,
+        },
+      }),
+    );
+    // The next sync retries the processing as history, without a new notice
+    expect(await run(true)).toMatchObject({ matched: 1, pending: 0 });
+    expect(processing.addActivityProcessingJob).toHaveBeenLastCalledWith(
+      eventActivityId,
+      eventId,
+      true,
+    );
+    expect(emitter.emit).toHaveBeenCalledTimes(1);
+  });
+  it('imports a manual range as history, without notices', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    expect(await run()).toMatchObject({ imported: 1 });
+    expect(processing.addActivityProcessingJob).toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.any(Number),
+      true,
+    );
+    expect(emitter.emit).not.toHaveBeenCalled();
   });
   it('isolates receipts and imported activities when two users supply the same Garmin activity ID', async () => {
     await service.connect(DELETED_USER_ID, dto);

@@ -9,6 +9,7 @@ import { EventService } from './event.service';
 jest.mock('../helpers/activity-file-parser.service', () => ({
   ActivityFileParserService: class {},
 }));
+jest.mock('@garmin/fitsdk', () => ({}));
 
 jest.mock('../helpers/workout-zones', () => ({
   // The zones are not what this test is about: keep the steps as they are

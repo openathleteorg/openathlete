@@ -144,3 +144,18 @@ export const modeledMetricsSchema = z.object({
 });
 
 export type ModeledMetricsDto = z.infer<typeof modeledMetricsSchema>;
+
+/**
+ * Running power per unit of speed on flat runs: watts per m/s, which is
+ * joules per metre. FTP divided by it gives the threshold speed.
+ */
+export const runningEconomySchema = z.object({
+  /** Joules per metre, the median of the runs */
+  value: z.number(),
+  /** Flat runs it was read from */
+  activities: z.number(),
+  from: z.coerce.date(),
+  days: z.number(),
+});
+
+export type RunningEconomyDto = z.infer<typeof runningEconomySchema>;

@@ -40,6 +40,7 @@ import { ActivityDuplicateService } from './services/activity-duplicate.service'
 import { ActivityFeedbackService } from './services/activity-feedback.service';
 import { ActivityRecordsService } from './services/activity-records.service';
 import { ActivityUploadWebhookService } from './services/activity-upload-webhook.service';
+import { AthleteCalendarExportService } from './services/athlete-calendar-export.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
 import { AthleteService } from './services/athlete.service';
 import { CalendarFeedService } from './services/calendar-feed.service';
@@ -123,6 +124,7 @@ import { YearReviewService } from './services/year-review.service';
     AthleteService,
     AthleteSettingsService,
     CoachService,
+    AthleteCalendarExportService,
     StatisticsService,
     YearReviewService,
     RecordService,

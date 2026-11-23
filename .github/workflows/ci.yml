@@ -16,7 +16,8 @@ concurrency:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    # The private mirror has no GitHub minutes left: it runs on the Coolify runner.
+    runs-on: ${{ github.repository == 'openathleteorg/openathlete' && 'ubuntu-latest' || fromJSON('["self-hosted", "coolify"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
@@ -24,7 +25,8 @@ jobs:
 
   type-check:
     name: Type check
-    runs-on: ubuntu-latest
+    # The private mirror has no GitHub minutes left: it runs on the Coolify runner.
+    runs-on: ${{ github.repository == 'openathleteorg/openathlete' && 'ubuntu-latest' || fromJSON('["self-hosted", "coolify"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
@@ -32,12 +34,14 @@ jobs:
 
   test:
     name: Test (TZ=${{ matrix.tz }})
-    runs-on: ubuntu-latest
+    # The private mirror has no GitHub minutes left: it runs on the Coolify runner.
+    runs-on: ${{ github.repository == 'openathleteorg/openathlete' && 'ubuntu-latest' || fromJSON('["self-hosted", "coolify"]') }}
     strategy:
       fail-fast: false
       matrix:
-        # Date bucketing must not depend on the runtime timezone
-        tz: [UTC, America/New_York, Asia/Tokyo]
+        # Date bucketing must not depend on the runtime timezone. The private mirror,
+        # whose Actions minutes are counted, only runs UTC.
+        tz: ${{ fromJSON(github.repository == 'openathleteorg/openathlete' && '["UTC", "America/New_York", "Asia/Tokyo"]' || '["UTC"]') }}
     env:
       TZ: ${{ matrix.tz }}
     steps:
@@ -47,6 +51,8 @@ jobs:
 
   integration:
     # API tests against a real, freshly migrated PostgreSQL database
+    # Public repository only: the private mirror keeps its Actions minutes.
+    if: github.repository == 'openathleteorg/openathlete'
     name: Integration tests
     runs-on: ubuntu-latest
     services:
@@ -71,6 +77,8 @@ jobs:
 
   docs:
     # apps/docs is a standalone pnpm project with its own lockfile
+    # Public repository only: the private mirror keeps its Actions minutes.
+    if: github.repository == 'openathleteorg/openathlete'
     name: Docs
     runs-on: ubuntu-latest
     defaults:
@@ -91,6 +99,8 @@ jobs:
   e2e:
     # The production images (same Dockerfiles as releases) with PostgreSQL,
     # Redis and the worker, tested through the API and a real browser
+    # Public repository only: the private mirror keeps its Actions minutes.
+    if: github.repository == 'openathleteorg/openathlete'
     name: End-to-end tests
     runs-on: ubuntu-latest
     steps:
@@ -143,6 +153,8 @@ jobs:
           retention-days: 14
 
   build:
+    # Public repository only: the private mirror keeps its Actions minutes.
+    if: github.repository == 'openathleteorg/openathlete'
     name: Build (${{ matrix.app }})
     runs-on: ubuntu-latest
     strategy:

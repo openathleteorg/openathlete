@@ -150,6 +150,14 @@ export class EventAPI {
     return res.data;
   }
 
+  /** The recording of an activity, as a FIT file */
+  static async getEventFit(eventId: Event['eventId']): Promise<Blob> {
+    const res = await client.get(routes.event.getEventFit(eventId), {
+      responseType: 'blob',
+    });
+    return res.data;
+  }
+
   static async getEventStream(
     eventId: Event['eventId'],
     resolution: number,

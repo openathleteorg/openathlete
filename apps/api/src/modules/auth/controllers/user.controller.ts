@@ -38,6 +38,7 @@ import {
   PasswordResetRequestDto,
   SignupAttribution,
   UpdateAccountDto,
+  UpdatePushTokenDto,
   completeOnboardingDtoSchema,
   createAccountDtoSchema,
   passwordResetRequestSchema,
@@ -45,6 +46,7 @@ import {
   readCoachDashboardSettings,
   signupAttributionSchema,
   updateAccountDtoSchema,
+  updatePushTokenDtoSchema,
 } from '@openathlete/shared';
 import {
   AnalyticsConsentDto,
@@ -724,8 +726,8 @@ export class UserController {
   })
   updatePushToken(
     @JwtUser() user: AuthUser,
-    @Body(new ZodValidationPipe(z.object({ pushToken: z.string().min(1) })))
-    body: { pushToken: string },
+    @Body(new ZodValidationPipe(updatePushTokenDtoSchema))
+    body: UpdatePushTokenDto,
   ) {
     return this.userService.updatePushToken(user, body.pushToken);
   }

@@ -38,6 +38,11 @@ model Event {
   /// removes these events
   clubSession   ClubSession? @relation(fields: [clubSessionId], references: [clubSessionId], onDelete: SetNull)
   clubSessionId Int?         @map("club_session_id")
+  /// Who put the event in the calendar: the athlete or one of their coaches.
+  /// Null for imported activities, club sessions and events planned before
+  /// it was recorded
+  createdBy     User?        @relation("EventsCreated", fields: [createdById], references: [userId], onDelete: SetNull)
+  createdById   Int?         @map("created_by_id")
 
   // relationships
   activityChatNotices ActivityChatNotice[]
@@ -62,6 +67,8 @@ model Event {
   @@index([seriesId])
   @@index([batchId])
   @@index([clubSessionId])
+  /// What a coach wrote, and the foreign key when the user is deleted
+  @@index([createdById])
   @@map("event")
 }
 

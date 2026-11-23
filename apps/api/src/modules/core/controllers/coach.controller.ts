@@ -1,3 +1,4 @@
+import type { Response } from 'express';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import {
@@ -11,6 +12,7 @@ import {
   Post,
   Put,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -22,6 +24,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 import { InvitationStatus } from '@openathlete/database';
 import {
@@ -35,11 +38,13 @@ import {
   setMetricThresholdsDtoSchema,
 } from '@openathlete/shared';
 
+import { RATE_LIMITS } from 'src/common/security/rate-limits';
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { CoachInvitationService } from 'src/modules/auth/services/coach-invitation.service';
 import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
+import { AthleteCalendarExportService } from '../services/athlete-calendar-export.service';
 import { CoachService } from '../services/coach.service';
 import { MetricThresholdService } from '../services/metric-threshold.service';
 
@@ -51,7 +56,36 @@ export class CoachController {
     private coachInvitationService: CoachInvitationService,
     private readonly thresholds: MetricThresholdService,
     private readonly features: FeatureAccessService,
+    private readonly calendarExport: AthleteCalendarExportService,
   ) {}
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Throttle(RATE_LIMITS.dataExport)
+  @Get('athletes/:athleteId/calendar-export')
+  @ApiOperation({
+    summary: "Download an athlete's planned calendar",
+    description:
+      "For a coach to keep a copy of their programming: every planned event of the athlete (sessions with their workouts, races, notes, questionnaires), as one JSON file. Each event names who planned it (createdBy, createdByMe), when that was recorded. Recorded activities are not included: they leave through the athlete's own data export.",
+  })
+  @ApiParam({ name: 'athleteId', type: Number })
+  @ApiResponse({ status: 200, description: 'JSON file download' })
+  @ApiResponse({ status: 404, description: 'Not an athlete the user coaches' })
+  async exportAthleteCalendar(
+    @JwtUser() user: AuthUser,
+    @Param('athleteId', ParseIntPipe) athleteId: number,
+    @Res() res: Response,
+  ) {
+    // Checked before the headers: a refusal stays a plain JSON error
+    await this.calendarExport.athleteFor(user, athleteId);
+    const date = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="openathlete-calendar-${athleteId}-${date}.json"`,
+    );
+    await this.calendarExport.export(user, athleteId, res);
+  }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()

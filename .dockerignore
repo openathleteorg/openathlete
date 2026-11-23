@@ -74,3 +74,6 @@ temp
 **/*.zip
 **/*.tar
 **/*.gz
+
+# Local screenshot keys (scripts/screenshots/api.env)
+scripts/screenshots/*.env
