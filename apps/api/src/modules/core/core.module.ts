@@ -6,6 +6,7 @@ import { OAuthTokensModule } from '../mcp/auth/oauth-tokens.module';
 import { MessagesModule } from '../messages/messages.module';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { QueueModule } from '../queue';
+import { SubscriptionModule } from '../subscription/subscription.module';
 import { EventController } from './controllers';
 import { ActivityDuplicatesController } from './controllers/activity-duplicates.controller';
 import { ActivityFeedbackController } from './controllers/activity-feedback.controller';
@@ -37,6 +38,7 @@ import { ActivityDetailService } from './services/activity-detail.service';
 import { ActivityDuplicateService } from './services/activity-duplicate.service';
 import { ActivityFeedbackService } from './services/activity-feedback.service';
 import { ActivityRecordsService } from './services/activity-records.service';
+import { AthleteCalendarExportService } from './services/athlete-calendar-export.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
 import { AthleteService } from './services/athlete.service';
 import { CalendarFeedService } from './services/calendar-feed.service';
@@ -50,6 +52,7 @@ import { EventSeriesService } from './services/event-series.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
 import { EventTemplateService } from './services/event-template.service';
 import { InjuryService } from './services/injury.service';
+import { LabTeaserService } from './services/lab-teaser.service';
 import { ManualActivityService } from './services/manual-activity.service';
 import { ManualFitImportService } from './services/manual-fit-import.service';
 import { MetricThresholdService } from './services/metric-threshold.service';
@@ -81,6 +84,7 @@ import { YearReviewService } from './services/year-review.service';
     forwardRef(() => MessagesModule),
     forwardRef(() => QueueModule),
     forwardRef(() => ProvidersSyncModule),
+    forwardRef(() => SubscriptionModule),
   ],
   controllers: [
     ExerciseController,
@@ -104,6 +108,7 @@ import { YearReviewService } from './services/year-review.service';
     ManualFitImportController,
   ],
   providers: [
+    LabTeaserService,
     CustomExerciseService,
     StrengthSessionService,
     EventService,
@@ -115,6 +120,7 @@ import { YearReviewService } from './services/year-review.service';
     AthleteService,
     AthleteSettingsService,
     CoachService,
+    AthleteCalendarExportService,
     StatisticsService,
     YearReviewService,
     RecordService,

@@ -2,6 +2,10 @@ import { Language } from 'src/common/constants/languages.constant';
 
 import type { PushNotificationTranslation } from './translations';
 
+/** Polish takes "treningi" after 2-4, 22-24..., but not 12-14 */
+const polishFew = (count: number) =>
+  count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14);
+
 const translations: Record<
   Language,
   { title: string; many: (count: number, names: string) => string }
@@ -29,6 +33,15 @@ const translations: Record<
   [Language.DE]: {
     title: 'Morgen',
     many: (count, names) => `${count} Einheiten: ${names}`,
+  },
+  [Language.PL]: {
+    title: 'Jutro',
+    many: (count, names) =>
+      `${count} ${polishFew(count) ? 'treningi' : 'treningów'}: ${names}`,
+  },
+  [Language.NL]: {
+    title: 'Morgen',
+    many: (count, names) => `${count} trainingen: ${names}`,
   },
 };
 

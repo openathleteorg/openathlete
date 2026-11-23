@@ -8,12 +8,14 @@ import {
   Delete,
   Get,
   HttpCode,
+  Inject,
   Patch,
   Post,
   Put,
   Query,
   Res,
   UseGuards,
+  forwardRef,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -31,16 +33,20 @@ import {
   ACQUISITION_SOURCES,
   CompleteOnboardingDto,
   CreateAccountDto,
+  Feature,
   PasswordResetDto,
   PasswordResetRequestDto,
   SignupAttribution,
   UpdateAccountDto,
+  UpdatePushTokenDto,
   completeOnboardingDtoSchema,
   createAccountDtoSchema,
   passwordResetRequestSchema,
   passwordResetSchema,
+  readCoachDashboardSettings,
   signupAttributionSchema,
   updateAccountDtoSchema,
+  updatePushTokenDtoSchema,
 } from '@openathlete/shared';
 import {
   AnalyticsConsentDto,
@@ -50,6 +56,8 @@ import {
 import { Language } from 'src/common/constants/languages.constant';
 import { RATE_LIMITS } from 'src/common/security/rate-limits';
 
+import { PrismaService } from '../../prisma/services/prisma.service';
+import { FeatureAccessService } from '../../subscription/services/feature-access.service';
 import { JwtUser } from '../decorators';
 import { AuthUser } from '../decorators/user.decorator';
 import { UserTypeGuard } from '../guards';
@@ -62,6 +70,9 @@ export class UserController {
   constructor(
     private userService: UserService,
     private readonly accountExportService: AccountExportService,
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => FeatureAccessService))
+    private readonly features: FeatureAccessService,
   ) {}
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -174,6 +185,13 @@ export class UserController {
             'Optional language of the app at sign-up, saved as the preferred language (default FR)',
           example: 'EN',
         },
+        unitSystem: {
+          type: 'string',
+          enum: ['METRIC', 'IMPERIAL'],
+          description:
+            'Optional units the app shows values in (default METRIC)',
+          example: 'METRIC',
+        },
       },
       required: ['email', 'password', 'firstName', 'lastName'],
     },
@@ -269,6 +287,12 @@ export class UserController {
           description:
             'News about the project, Supporter included; true records the consent with its date',
         },
+        unitSystem: {
+          type: 'string',
+          enum: ['METRIC', 'IMPERIAL'],
+          description: 'Units the app shows values in',
+          example: 'METRIC',
+        },
       },
     },
   })
@@ -298,11 +322,40 @@ export class UserController {
     status: 401,
     description: 'Unauthorized - invalid or missing authentication token',
   })
-  updateAccount(
+  async updateAccount(
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(updateAccountDtoSchema)) body: UpdateAccountDto,
   ) {
+    if (body.coachDashboard) await this.assertMayChangeColumns(user, body);
+    // An accent colour is a Supporter perk; going back to the default is not
+    if (body.accentTheme) {
+      await this.features.assert(user.userId, Feature.THEMES);
+    }
     return this.userService.updateAccount(user, body);
+  }
+
+  /**
+   * Choosing the dashboard columns is a coach tool. The columns already
+   * chosen stay; only a change needs the tool.
+   */
+  private async assertMayChangeColumns(
+    user: AuthUser,
+    body: UpdateAccountDto,
+  ): Promise<void> {
+    const stored = await this.prisma.user.findUnique({
+      where: { userId: user.userId },
+      select: { coachDashboard: true },
+    });
+    const before = new Set(
+      readCoachDashboardSettings(stored?.coachDashboard).columns,
+    );
+    const after = new Set(body.coachDashboard?.columns ?? []);
+    const same =
+      before.size === after.size &&
+      [...after].every((column) => before.has(column));
+    if (!same) {
+      await this.features.assertAsCoach(user.userId, Feature.COACH_COLUMNS);
+    }
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -359,6 +412,12 @@ export class UserController {
           enum: Object.values(UserLanguage),
           example: 'EN',
         },
+        unitSystem: {
+          type: 'string',
+          enum: ['METRIC', 'IMPERIAL'],
+          description: 'Units the app shows values in',
+          example: 'METRIC',
+        },
       },
     },
   })
@@ -376,7 +435,7 @@ export class UserController {
   @ApiOperation({
     summary: 'Update user preferred language',
     description:
-      "Updates the authenticated user's preferred language for the application interface. Supported languages are French (FR), English (EN), Italian (IT), Spanish (ES), Brazilian Portuguese (PT_BR), and German (DE).",
+      "Updates the authenticated user's preferred language for the application interface. Supported languages are French (FR), English (EN), Italian (IT), Spanish (ES), Brazilian Portuguese (PT_BR), German (DE), Polish (PL), and Dutch (NL).",
   })
   @ApiBody({
     description: 'Language preference',
@@ -667,8 +726,8 @@ export class UserController {
   })
   updatePushToken(
     @JwtUser() user: AuthUser,
-    @Body(new ZodValidationPipe(z.object({ pushToken: z.string().min(1) })))
-    body: { pushToken: string },
+    @Body(new ZodValidationPipe(updatePushTokenDtoSchema))
+    body: UpdatePushTokenDto,
   ) {
     return this.userService.updatePushToken(user, body.pushToken);
   }

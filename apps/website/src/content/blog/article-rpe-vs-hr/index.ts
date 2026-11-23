@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleRpeVsHr: BlogPost = {
@@ -16,6 +18,8 @@ export const articleRpeVsHr: BlogPost = {
       it: 'RPE o frequenza cardiaca: cosa ti dice ciascuno della sessione',
       'pt-br': 'RPE ou frequência cardíaca: o que cada um diz do seu treino',
       de: 'RPE oder Herzfrequenz: Was beide über deinen Lauf verraten',
+      pl: 'RPE czy tętno: co każde z nich mówi o Twoim biegu',
+      nl: 'RPE of hartslag: wat elk je vertelt over je run',
     },
     description: {
       en: 'Heart rate and RPE both measure internal load, and they often disagree. What skews each one, and how to read the gap between them.',
@@ -25,6 +29,8 @@ export const articleRpeVsHr: BlogPost = {
       'pt-br':
         'Frequência cardíaca e RPE medem a carga interna e muitas vezes discordam. O que distorce cada um e como ler a diferença.',
       de: 'Herzfrequenz und RPE messen beide die innere Belastung und widersprechen sich oft. Was jeden Wert verfälscht und wie du die Differenz liest.',
+      pl: 'Tętno i RPE mierzą obciążenie wewnętrzne i często się nie zgadzają. Co zaburza każdy z nich i jak odczytać różnicę.',
+      nl: 'Hartslag en RPE meten allebei de interne belasting en zijn het vaak oneens. Wat elk van beide vertekent en hoe je het verschil leest.',
     },
     excerpt: {
       en: 'Same pace, same heart rate, a very different effort. Why heart rate and perceived exertion part ways, and which to trust for each kind of session.',
@@ -34,6 +40,8 @@ export const articleRpeVsHr: BlogPost = {
       'pt-br':
         'Mesmo pace, mesma frequência cardíaca, um esforço bem diferente. Por que frequência cardíaca e percepção de esforço se separam, e em qual confiar em cada treino.',
       de: 'Gleiche Pace, gleiche Herzfrequenz, eine ganz andere Anstrengung. Warum Herzfrequenz und Belastungsempfinden auseinanderlaufen und welchem Wert du bei welcher Einheit trauen kannst.',
+      pl: 'To samo tempo, to samo tętno, zupełnie inny wysiłek. Dlaczego tętno i odczuwany wysiłek się rozchodzą i któremu ufać przy danym treningu.',
+      nl: 'Hetzelfde tempo, dezelfde hartslag, een heel andere inspanning. Waarom hartslag en ervaren inspanning uiteenlopen en welke je bij welke training vertrouwt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleRpeVsHr: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

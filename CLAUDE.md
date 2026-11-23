@@ -73,7 +73,7 @@ Behaviour changes come with tests at the lowest level that can catch the regress
 - **Optional integrations** (Stripe, Brevo, Firebase, PostHog): create clients lazily. When the integration is unconfigured, degrade cleanly: feature off, or HTTP 503 on its endpoints. Never crash at boot.
 - **AI**: users bring their own keys and models; instance keys are a fallback that depends on the user's plan. All model calls go through `modules/ai` (see `apps/api/CLAUDE.md`).
 - **Slow or bulk work** (provider history, AI calls, processing) runs in BullMQ jobs, never in an HTTP request.
-- **Translations**: every user-facing string is a Paraglide message in `en`, `fr`, `it`, `es`, `pt-BR` and `de`. `pnpm check:locale-parity` must pass.
+- **Translations**: every user-facing string is a Paraglide message in `en`, `fr`, `it`, `es`, `pt-BR`, `de`, `pl` and `nl`. `pnpm check:locale-parity` must pass.
 - **Privacy and security**:
   - never log full emails (`maskEmail`);
   - auth endpoints use the `RATE_LIMITS` presets;
@@ -81,6 +81,17 @@ Behaviour changes come with tests at the lowest level that can catch the regress
   - deleting data goes through `AccountDeletionService` (see `apps/api/CLAUDE.md`).
 - **Dates**: store and bucket in UTC (`core/helpers/training-load.ts`). Tests run in several timezones.
 - **Comments**: explain why, not what. Match the density of the surrounding code.
+
+## Supporter perks and early access
+
+`FEATURES` (`libs/shared/src/types/features.ts`) lists what depends on the user's rights: permanent perks (`supporter`, `coachTools`) and Supporter early access. `featureAccess()` decides, the API sends its answer in `CurrentSubscriptionDto.features`, the app reads it with `useFeature`.
+
+- Every new user-facing feature of some size goes into `FEATURES` with `earlyAccess: { since: <day it reaches the hosted instance> }`, and is wrapped with `useFeature` / `<FeatureGate>` in the web app and `@RequireFeature` in the API. Set `since` on the day of the deploy, not of the merge. After 30 days it is everyone's; a test asks to remove the field 60 days later.
+- Never gated: bug fixes, data reliability, device sync and imports, export, calendar and planning basics, sending workouts to watches, activity analysis, training load, security, accessibility, translations, the MCP tools and anything the transparency page lists as free forever.
+- Without Stripe, every feature is available, with no lock, chip or Supporter mention. An E2E test checks it on the Docker images.
+- A lock stops creating or changing, never what already runs: scheduled messages still go out, saved thresholds and columns stay.
+- The server withholds locked data (a `teaser` instead) unless the rule says `serverEnforced: false`.
+- The Android app sells nothing: it hides locked entries and early access from non-Supporters, without mentioning Supporter.
 
 ## Git
 

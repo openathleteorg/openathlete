@@ -127,6 +127,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
 
           <Column title={m.site_footer_project()}>
             <Item href={p('/open-source')}>{m.site_nav_open_source()}</Item>
+            <Item href={p('/transparency')}>{m.site_nav_transparency()}</Item>
             <Item href={GITHUB_URL}>{m.site_footer_github()}</Item>
             <Item href={SELF_HOSTING_DOCS_URL}>
               {m.site_footer_self_host()}

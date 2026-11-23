@@ -40,10 +40,11 @@ export function ContentEn() {
       <p>
         <strong>OpenAthlete</strong> is free up to five athletes. Above that,
         the Supporter plan, from {q('oaYear')} a year, removes the limit,
-        whatever the roster, and also adds AI on our keys. Watch sync is free
-        for athletes. Self-hosting is free without limits. Clubs get a free club
-        space, and athletes a coach reaches through a club don't count against
-        the five.
+        whatever the roster, and also adds the Lab, early access to new
+        features, advanced coach tools, owning a club and AI on our keys. Watch
+        sync is free for athletes. Self-hosting is free without limits. A club
+        is opened by a Supporter and members and coaches join free; athletes a
+        coach reaches through a club don't count against the five.
       </p>
 
       <table>
@@ -97,7 +98,7 @@ export function ContentEn() {
         and the Performance Management Chart, and if you sell plans, its
         marketplace puts them in front of buyers. The mobile apps are mature,
         and TrainingPeaks Virtual covers indoor riding. Since 22 July 2026 it
-        belongs to Garmin; what that may change is discussed in
+        belongs to Garmin; what that may change is discussed in{' '}
         <Link href="/blog/trainingpeaks-alternatives-after-garmin-acquisition">
           TrainingPeaks alternatives after the Garmin acquisition
         </Link>
@@ -119,12 +120,12 @@ export function ContentEn() {
         athlete gets a short read and a few questions, and the effort and any
         pain they report land in an injury log and on your dashboard. Through
         the MCP server, Claude or ChatGPT can read an athlete's training and
-        plan up to 60 sessions into their calendar. Clubs get a free club space
-        with no athlete limit: groups with their own coaches, a shared library,
-        weekly club sessions that athletes answer, and a session, day or week
-        copied to a whole group, adapted to each athlete's zones. The code is
-        AGPL-3.0, so a club can also run its own instance with single sign-on
-        and invite-only signups.
+        plan up to 60 sessions into their calendar. A club is opened by a
+        Supporter and members join free, with no athlete limit: groups with
+        their own coaches, a shared library, weekly club sessions that athletes
+        answer, and a session, day or week copied to a whole group, adapted to
+        each athlete's zones. The code is AGPL-3.0, so a club can also run its
+        own instance with single sign-on and invite-only signups.
       </p>
 
       <h2>What each one lacks</h2>
@@ -154,10 +155,11 @@ export function ContentEn() {
       <p>
         A club with three coaches and sixty members: if they want a federation
         partner and an exercise video library, Nolio's club plans fit best. If
-        not, OpenAthlete's club space does the job for free, with groups, a
-        shared library and Tuesday's track session already in every member's
-        calendar. A self-hosted instance is an option if someone in the club is
-        happy to run a server.
+        not, an OpenAthlete club does the job, owned by one Supporter and free
+        for the other coaches and members, with groups, a shared library and
+        Tuesday's track session already in every member's calendar. A
+        self-hosted instance is an option if someone in the club is happy to run
+        a server.
       </p>
       <p>
         A coach who sells plans to athletes they never speak to: stay on

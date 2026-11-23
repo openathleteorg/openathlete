@@ -97,7 +97,8 @@ function Distribution({
               tickFormatter={(value: number) =>
                 hours
                   ? `${Math.round(value * 10) / 10} h`
-                  : `${value}${m.percent_symbol()}`
+                  : // Recharts' ticks carry float noise (100.00000000000001)
+                    `${Math.round(value)}${m.percent_symbol()}`
               }
             />
             <ChartTooltip

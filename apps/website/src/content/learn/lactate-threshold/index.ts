@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const lactateThreshold: LearnTerm = {
@@ -16,6 +18,8 @@ export const lactateThreshold: LearnTerm = {
     it: 'Soglia del lattato',
     'pt-br': 'Limiar de lactato',
     de: 'Laktatschwelle',
+    pl: 'Próg mleczanowy',
+    nl: 'Lactaatdrempel',
   },
   title: {
     en: 'Lactate threshold: definition, formula, example',
@@ -24,6 +28,8 @@ export const lactateThreshold: LearnTerm = {
     it: 'Cos’è la soglia del lattato? Definizione, formula, esempio',
     'pt-br': 'O que é limiar de lactato? Definição, fórmula e exemplo',
     de: 'Laktatschwelle: Definition, Formel, Beispiel',
+    pl: 'Czym jest próg mleczanowy? Definicja, wzór, przykład',
+    nl: 'Wat is de lactaatdrempel? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'Lactate threshold explained: LT1 and LT2, the 4 mmol/L rule, a step test worked through with real numbers, threshold sessions and the limits of the test.',
@@ -33,6 +39,8 @@ export const lactateThreshold: LearnTerm = {
     'pt-br':
       'O limiar de lactato explicado: LT1 e LT2, a regra dos 4 mmol/L, um teste progressivo calculado passo a passo, treinos de limiar e os limites do teste.',
     de: 'Laktatschwelle erklärt: LT1 und LT2, die 4-mmol-Regel, ein Stufentest mit echten Zahlen, Schwellentraining und die Grenzen des Tests.',
+    pl: 'Próg mleczanowy bez tajemnic: LT1 i LT2, reguła 4 mmol, test stopniowany na prawdziwych liczbach, treningi progowe i ograniczenia testu.',
+    nl: 'De lactaatdrempel uitgelegd: LT1 en LT2, de 4 mmol-regel, een stappentest met echte getallen, drempeltraining en de beperkingen van de test.',
   },
   definition: {
     en: 'The lactate threshold is the exercise intensity at which blood lactate stops staying stable and starts to accumulate, used to separate easy, sustainable running from efforts you can only hold for a limited time.',
@@ -42,6 +50,8 @@ export const lactateThreshold: LearnTerm = {
     'pt-br':
       'O limiar de lactato é a intensidade de esforço a partir da qual o lactato no sangue deixa de ficar estável e começa a se acumular, usada para separar o esforço leve e sustentável daquele que só se aguenta por tempo limitado.',
     de: 'Die Laktatschwelle ist die Belastungsintensität, ab der das Blutlaktat nicht mehr stabil bleibt, sondern sich anhäuft. Sie trennt lockeres, dauerhaft haltbares Laufen von Belastungen, die du nur begrenzt halten kannst.',
+    pl: 'Próg mleczanowy to intensywność wysiłku, powyżej której mleczan we krwi przestaje się stabilizować i zaczyna się kumulować; oddziela spokojne bieganie, które można utrzymać długo, od wysiłków, które da się utrzymać tylko przez ograniczony czas.',
+    nl: 'De lactaatdrempel is de inspanningsintensiteit waarboven het bloedlactaat niet meer stabiel blijft maar zich ophoopt; hij scheidt rustig lopen dat je lang volhoudt van inspanningen die je maar beperkt kunt volhouden.',
   },
   aliases: {
     en: [
@@ -79,6 +89,22 @@ export const lactateThreshold: LearnTerm = {
       'Anaerobe Schwelle',
       'Aerobe Schwelle',
       'Maximaler Laktat-Steady-State',
+    ],
+    pl: [
+      'LT1 i LT2',
+      'Próg beztlenowy',
+      'Próg tlenowy',
+      'Próg anaerobowy',
+      'Maksymalny stan równowagi mleczanowej',
+      'Próg mleczanowy 4 mmol',
+    ],
+    nl: [
+      'LT1 en LT2',
+      'Anaerobe drempel',
+      'Aerobe drempel',
+      'Verzuringsgrens',
+      'Maximale lactaat-steady-state',
+      'Omslagpunt',
     ],
   },
   faq: {
@@ -185,6 +211,40 @@ export const lactateThreshold: LearnTerm = {
           'Alle 6 bis 10 Wochen während eines Trainingsblocks oder immer dann, wenn ein Wettkampf zeigt, dass sich deine Form verändert hat. Zonen, die auf einer Schwelle aus der letzten Saison beruhen, liegen oft mehrere Sekunden pro Kilometer daneben.',
       },
     ],
+    pl: [
+      {
+        question: 'Jak wyznaczyć próg mleczanowy bez laboratorium?',
+        answer:
+          'Użyj zawodów albo próby na czas. Tempo, które utrzymasz przez około godzinę, u wytrenowanych biegaczy zwykle między tempem na 10 km a tempem półmaratonu, to dobre oszacowanie drugiego progu. 30-minutowa samotna próba na czas daje nieco szybszy wynik, wystarczająco bliski, by ustawić treningi progowe.',
+      },
+      {
+        question: 'Czy próg mleczanowy to to samo co próg beztlenowy?',
+        answer:
+          'W codziennym użyciu tak: oba określenia zwykle oznaczają drugi próg (LT2), najwyższą intensywność, przy której mleczan jeszcze się stabilizuje. Pierwszy próg (LT1, czyli próg tlenowy) to niższa intensywność, przy której mleczan po raz pierwszy rośnie ponad poziom spoczynkowy, i wyznacza górną granicę spokojnego biegania.',
+      },
+      {
+        question: 'Jak często powtarzać test progu?',
+        answer:
+          'Co 6 do 10 tygodni w trakcie bloku treningowego albo wtedy, gdy wynik z zawodów sugeruje, że forma się zmieniła. Strefy oparte na progu z poprzedniego sezonu często mijają się z rzeczywistością o kilka sekund na kilometr.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Hoe vind ik mijn lactaatdrempel zonder lab?',
+        answer:
+          'Gebruik een wedstrijd of een tijdrit. Het tempo dat je ongeveer een uur volhoudt, voor getrainde lopers meestal tussen hun 10 km- en halvemarathontempo, is een goede schatting van de tweede drempel. Een solo-tijdrit van 30 minuten geeft een iets sneller getal, dichtbij genoeg om drempeltrainingen op te baseren.',
+      },
+      {
+        question: 'Is de lactaatdrempel hetzelfde als de anaerobe drempel?',
+        answer:
+          'In het dagelijks gebruik wel: beide bedoelen meestal de tweede drempel (LT2), de hoogste intensiteit waarbij lactaat nog stabiliseert. De eerste drempel (LT1, of aerobe drempel) ligt lager, waar lactaat voor het eerst boven het rustniveau uitkomt, en markeert de bovengrens van rustig lopen.',
+      },
+      {
+        question: 'Hoe vaak moet ik mijn drempel opnieuw testen?',
+        answer:
+          'Elke 6 tot 10 weken tijdens een trainingsblok, of zodra een wedstrijd laat zien dat je conditie is veranderd. Zones op basis van een drempel van vorig seizoen zitten er vaak een paar seconden per kilometer naast.',
+      },
+    ],
   },
   related: [
     'critical-speed',
@@ -220,5 +280,7 @@ export const lactateThreshold: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

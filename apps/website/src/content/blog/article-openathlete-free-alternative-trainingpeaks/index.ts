@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
@@ -17,6 +19,8 @@ export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
       it: 'Alternative gratuite a TrainingPeaks nel 2026: il confronto',
       'pt-br': 'Alternativas grátis ao TrainingPeaks em 2026: comparativo',
       de: 'Kostenlose TrainingPeaks-Alternativen 2026: ehrlicher Vergleich',
+      pl: 'Darmowe alternatywy dla TrainingPeaks w 2026 roku: uczciwe porównanie',
+      nl: 'Gratis alternatieven voor TrainingPeaks in 2026: een eerlijke vergelijking',
     },
     description: {
       en: 'intervals.icu, Nolio, Final Surge and OpenAthlete against TrainingPeaks: watch sync, training load, coach pricing and limits, with dated prices.',
@@ -26,6 +30,8 @@ export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
       'pt-br':
         'intervals.icu, Nolio, Final Surge e OpenAthlete contra o TrainingPeaks: relógios, carga, preço para treinadores e limites, com data.',
       de: 'intervals.icu, Nolio, Final Surge und OpenAthlete gegen TrainingPeaks: Uhren-Sync, Belastung, Coach-Preise und Grenzen, mit datierten Preisen.',
+      pl: 'intervals.icu, Nolio, Final Surge i OpenAthlete kontra TrainingPeaks: synchronizacja z zegarkiem, obciążenie, ceny dla trenerów i ograniczenia, z datowanymi cenami.',
+      nl: 'intervals.icu, Nolio, Final Surge en OpenAthlete tegenover TrainingPeaks: horlogesync, belasting, coachprijzen en beperkingen, met gedateerde prijzen.',
     },
     excerpt: {
       en: 'What TrainingPeaks costs athletes and coaches, and what four alternatives offer instead, including where each one falls short.',
@@ -35,6 +41,8 @@ export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
       'pt-br':
         'Quanto o TrainingPeaks custa para atletas e treinadores, e o que quatro alternativas oferecem, incluindo os pontos fracos de cada uma.',
       de: 'Was TrainingPeaks Athleten und Coaches kostet und was vier Alternativen stattdessen bieten, inklusive ihrer Schwächen.',
+      pl: 'Ile TrainingPeaks kosztuje zawodników i trenerów oraz co w zamian oferują cztery alternatywy, łącznie z ich słabymi stronami.',
+      nl: 'Wat TrainingPeaks atleten en coaches kost, en wat vier alternatieven in plaats daarvan bieden, inclusief waar elk tekortschiet.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -53,4 +61,6 @@ export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

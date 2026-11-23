@@ -112,14 +112,16 @@ export function ContentIt() {
 
       <h2>OpenAthlete</h2>
       <p>
-        Tutte le funzioni sono gratuite sui nostri server: calendario, editor di
-        allenamenti, invio degli allenamenti a Garmin, Suunto e COROS, carico di
-        allenamento e coaching fino a cinque atleti. Il piano Supporter
-        facoltativo (a partire da {q('oaMonth')} al mese o {q('oaYear')}{' '}
-        all'anno) aggiunge l'IA sulle nostre chiavi e atleti illimitati, e
-        nient'altro. Il codice è AGPL-3.0, quindi puoi anche installarlo sul tuo
-        server, gratis e senza limiti. Anche i club hanno uno spazio gratuito,
-        senza limiti di atleti: gruppi con i loro allenatori, una libreria di
+        Tutto ciò che serve per allenarsi è gratuito sui nostri server:
+        calendario, editor di allenamenti, invio degli allenamenti a Garmin,
+        Suunto e COROS, carico di allenamento e coaching fino a cinque atleti.
+        Il piano Supporter facoltativo (a partire da {q('oaMonth')} al mese o{' '}
+        {q('oaYear')} all'anno) finanzia il progetto e aggiunge il Lab,
+        l'accesso anticipato alle novità, gli strumenti avanzati per allenatori
+        e i club, l'IA sulle nostre chiavi e atleti illimitati. Il codice è
+        AGPL-3.0, quindi puoi anche installarlo sul tuo server, gratis e senza
+        limiti. Un club lo apre un Supporter e i membri entrano gratis, senza
+        limiti di atleti: gruppi con i loro allenatori, una libreria di
         allenamenti condivisa, sedute settimanali del club e piani copiati a
         tutto un gruppo.
       </p>
@@ -193,8 +195,8 @@ export function ContentIt() {
         native mature. Scegli Final Surge per una squadra scolastica o un club
         americano con tariffa fissa. Scegli OpenAthlete se vuoi gli allenamenti
         sul tuo Garmin, Suunto o COROS senza pagare, un prezzo fisso da
-        allenatore, l'IA con la tua chiave, uno spazio club gratuito o un codice
-        che puoi ospitare tu.
+        allenatore, l'IA con la tua chiave, un club in cui i tuoi membri entrano
+        gratis o un codice che puoi ospitare tu.
       </p>
 
       <h2>Portarti lo storico</h2>

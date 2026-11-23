@@ -12,25 +12,55 @@ import {
 
 import { SportType } from '@openathlete/database';
 import {
+  Feature,
   GetStatisticsFiltersQueryDto,
   GetStatisticsOverviewQueryDto,
   GetStatisticsSectionQueryDto,
   GetStatisticsTrendsQueryDto,
+  LabResponse,
   getStatisticsFiltersQuerySchema,
   getStatisticsOverviewQuerySchema,
   getStatisticsSectionQuerySchema,
   getStatisticsTrendsQuerySchema,
+  statisticsGranularity,
 } from '@openathlete/shared';
 
 import { UserTypeGuard } from 'src/modules/auth';
 import { AuthUser, JwtUser } from 'src/modules/auth/decorators/user.decorator';
+import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
+import { LabTeaserService } from '../services/lab-teaser.service';
 import { StatisticsService } from '../services/statistics.service';
 
 @ApiTags('Statistics')
 @Controller('statistics')
 export class StatisticsController {
-  constructor(private statisticsService: StatisticsService) {}
+  constructor(
+    private statisticsService: StatisticsService,
+    private features: FeatureAccessService,
+    private labTeaser: LabTeaserService,
+  ) {}
+
+  /**
+   * The Lab's data for those who have it; for the others, one real figure
+   * (the teaser), never the full data hidden by the app. Apps released
+   * before the teaser do not send lab=1 and get an empty answer of the
+   * usual shape instead, which they draw as "no data" rather than break on.
+   */
+  private async lab<T>(
+    user: AuthUser,
+    query: GetStatisticsTrendsQueryDto,
+    knowsTeaser: string | undefined,
+    read: () => Promise<T>,
+    empty: () => T,
+  ): Promise<LabResponse<T>> {
+    if (await this.features.can(user.userId, Feature.LAB)) return read();
+    if (knowsTeaser !== '1') return empty();
+    return {
+      locked: true,
+      teaser: await this.labTeaser.teaser(user, query),
+    };
+  }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
@@ -216,8 +246,15 @@ export class StatisticsController {
     @JwtUser() user: AuthUser,
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
+    @Query('lab') lab?: string,
   ) {
-    return this.statisticsService.getTerrain(user, query);
+    return this.lab(
+      user,
+      query,
+      lab,
+      () => this.statisticsService.getTerrain(user, query),
+      () => ({ bins: [], classes: [] }),
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -239,8 +276,15 @@ export class StatisticsController {
     @JwtUser() user: AuthUser,
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
+    @Query('lab') lab?: string,
   ) {
-    return this.statisticsService.getCardiacCost(user, query);
+    return this.lab(
+      user,
+      query,
+      lab,
+      () => this.statisticsService.getCardiacCost(user, query),
+      () => ({ unit: 'speed' as const, bins: [] }),
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -285,8 +329,15 @@ export class StatisticsController {
     @JwtUser() user: AuthUser,
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
+    @Query('lab') lab?: string,
   ) {
-    return this.statisticsService.getDurability(user, query);
+    return this.lab(
+      user,
+      query,
+      lab,
+      () => this.statisticsService.getDurability(user, query),
+      () => ({ series: [], outings: [] }),
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -330,8 +381,18 @@ export class StatisticsController {
     @JwtUser() user: AuthUser,
     @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
     query: GetStatisticsTrendsQueryDto,
+    @Query('lab') lab?: string,
   ) {
-    return this.statisticsService.getTrends(user, query);
+    return this.lab(
+      user,
+      query,
+      lab,
+      () => this.statisticsService.getTrends(user, query),
+      () => ({
+        granularity: statisticsGranularity(query.from, query.to),
+        buckets: [],
+      }),
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

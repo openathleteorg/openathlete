@@ -42,11 +42,13 @@ export function ContentIt() {
       <p>
         <strong>OpenAthlete</strong> è gratuito fino a cinque atleti. Oltre, il
         piano Supporter, a partire da {q('oaYear')} all'anno, toglie il limite,
-        qualunque sia il gruppo, e aggiunge anche l'IA sulle nostre chiavi. La
-        sincronizzazione dell'orologio è gratuita per gli atleti. Installarlo
-        sul proprio server è gratuito e senza limiti. I club hanno uno spazio
-        gratuito, e gli atleti che un allenatore segue tramite un club non
-        contano nei cinque.
+        qualunque sia il gruppo, e aggiunge anche il Lab, l'accesso anticipato
+        alle novità, gli strumenti avanzati per allenatori, la possibilità di
+        aprire un club e l'IA sulle nostre chiavi. La sincronizzazione
+        dell'orologio è gratuita per gli atleti. Installarlo sul proprio server
+        è gratuito e senza limiti. Un club lo apre un Supporter e membri e
+        allenatori entrano gratis, e gli atleti che un allenatore segue tramite
+        un club non contano nei cinque.
       </p>
 
       <table>
@@ -124,12 +126,13 @@ export function ContentIt() {
         e lo sforzo e gli eventuali dolori segnalati finiscono in un registro
         infortuni e sulla tua dashboard. Tramite il server MCP, Claude o ChatGPT
         possono leggere l'allenamento di un atleta e pianificare fino a 60
-        sedute nel suo calendario. I club hanno uno spazio gratuito senza limiti
-        di atleti: gruppi con i loro allenatori, una libreria condivisa, sedute
-        settimanali del club a cui gli atleti rispondono, e una seduta, un
-        giorno o una settimana copiati a tutto un gruppo, adattati alle zone di
-        ciascuno. Il codice è AGPL-3.0, quindi un club può anche gestire la
-        propria istanza, con accesso unico (SSO) e iscrizioni solo su invito.
+        sedute nel suo calendario. Un club lo apre un Supporter e i membri
+        entrano gratis, senza limiti di atleti: gruppi con i loro allenatori,
+        una libreria condivisa, sedute settimanali del club a cui gli atleti
+        rispondono, e una seduta, un giorno o una settimana copiati a tutto un
+        gruppo, adattati alle zone di ciascuno. Il codice è AGPL-3.0, quindi un
+        club può anche gestire la propria istanza, con accesso unico (SSO) e
+        iscrizioni solo su invito.
       </p>
 
       <h2>Cosa manca a ciascuno</h2>
@@ -161,10 +164,11 @@ export function ContentIt() {
       <p>
         Un club con tre allenatori e sessanta tesserati: se vogliono una
         federazione partner e una libreria di video di esercizi, i piani club di
-        Nolio sono i più adatti. Altrimenti, lo spazio club di OpenAthlete fa il
-        lavoro gratis, con i gruppi, una libreria condivisa e la pista del
-        martedì già nel calendario di ogni tesserato. Un'istanza propria è
-        un'opzione se qualcuno nel club è disposto a gestire un server.
+        Nolio sono i più adatti. Altrimenti, un club su OpenAthlete fa il
+        lavoro, aperto da un Supporter e gratuito per gli altri allenatori e i
+        tesserati, con i gruppi, una libreria condivisa e la pista del martedì
+        già nel calendario di ogni tesserato. Un'istanza propria è un'opzione se
+        qualcuno nel club è disposto a gestire un server.
       </p>
       <p>
         Un allenatore che vende piani ad atleti con cui non parla mai: resta su

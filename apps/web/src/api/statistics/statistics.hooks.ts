@@ -1,6 +1,11 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { SPORT_TYPE } from '@openathlete/shared';
+import {
+  LabResponse,
+  LabTeaserDto,
+  SPORT_TYPE,
+  isLockedStatistics,
+} from '@openathlete/shared';
 
 import { StatisticsAPI, StatisticsSectionParams } from './statistics.api';
 import { statisticsKeys } from './statistics.keys';
@@ -16,6 +21,15 @@ const sectionOptions = (enabled: boolean) => ({
   staleTime: STALE_TIME,
   placeholderData: keepPreviousData,
 });
+
+/**
+ * A Lab section's data, or nothing when the API answered with the teaser:
+ * sections render only for those who have the Lab, the teaser has its own
+ * hook
+ */
+function unlocked<T extends object>(data: LabResponse<T>): T | undefined {
+  return isLockedStatistics(data) ? undefined : data;
+}
 
 const paramsKey = ({
   athleteId,
@@ -104,6 +118,7 @@ export const useStatisticsTerrainQuery = (
   useQuery({
     ...sectionOptions(enabled),
     queryFn: () => StatisticsAPI.getTerrain(params),
+    select: unlocked,
     queryKey: [statisticsKeys.terrain, ...paramsKey(params)],
   });
 
@@ -114,6 +129,7 @@ export const useStatisticsCardiacCostQuery = (
   useQuery({
     ...sectionOptions(enabled),
     queryFn: () => StatisticsAPI.getCardiacCost(params),
+    select: unlocked,
     queryKey: [statisticsKeys.cardiacCost, ...paramsKey(params)],
   });
 
@@ -134,6 +150,7 @@ export const useStatisticsDurabilityQuery = (
   useQuery({
     ...sectionOptions(enabled),
     queryFn: () => StatisticsAPI.getDurability(params),
+    select: unlocked,
     queryKey: [statisticsKeys.durability, ...paramsKey(params)],
   });
 
@@ -154,6 +171,7 @@ export const useStatisticsTrendsQuery = (
   useQuery({
     ...sectionOptions(enabled),
     queryFn: () => StatisticsAPI.getTrends(params),
+    select: unlocked,
     queryKey: [statisticsKeys.trends, ...paramsKey(params)],
   });
 
@@ -165,4 +183,32 @@ export const useStatisticsLoadQuery = (
     ...sectionOptions(enabled),
     queryFn: () => StatisticsAPI.getLoad(params),
     queryKey: [statisticsKeys.load, ...paramsKey(params)],
+  });
+
+const TEASER_DAYS = 84;
+
+/**
+ * The Lab figure the API sends someone without the Lab (null for those who
+ * have it, or when there is nothing to show)
+ */
+export const useLabTeaserQuery = (
+  athleteId: number,
+  sport: SPORT_TYPE | null,
+  enabled: boolean,
+) =>
+  useQuery({
+    enabled: enabled && sport !== null,
+    staleTime: 10 * STALE_TIME,
+    queryKey: [statisticsKeys.labTeaser, athleteId, sport],
+    queryFn: async (): Promise<LabTeaserDto> => {
+      const to = new Date();
+      const from = new Date(to.getTime() - TEASER_DAYS * 24 * 60 * 60 * 1000);
+      const data = await StatisticsAPI.getTrends({
+        athleteId,
+        sport: sport as SPORT_TYPE,
+        from,
+        to,
+      });
+      return isLockedStatistics(data) ? data.teaser : null;
+    },
   });

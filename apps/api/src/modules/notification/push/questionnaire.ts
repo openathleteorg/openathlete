@@ -68,6 +68,26 @@ const translations: Record<Language, Texts> = {
       body: `„${title}“ wartet noch auf deine Antwort.`,
     }),
   },
+  [Language.PL]: {
+    request: (coach, title) => ({
+      title: `Ankieta – ${coach}`,
+      body: `„${title}” czeka na Ciebie.`,
+    }),
+    reminder: (coach, title) => ({
+      title: `Ankieta – ${coach}`,
+      body: `„${title}” wciąż czeka na Twoją odpowiedź.`,
+    }),
+  },
+  [Language.NL]: {
+    request: (coach, title) => ({
+      title: `Vragenlijst van ${coach}`,
+      body: `‘${title}’ staat voor je klaar.`,
+    }),
+    reminder: (coach, title) => ({
+      title: `Vragenlijst van ${coach}`,
+      body: `‘${title}’ wacht nog op je antwoord.`,
+    }),
+  },
 };
 
 /** The push telling an athlete their coach's questionnaire is open */

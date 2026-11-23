@@ -44,7 +44,7 @@ export enum SubscriptionStatus {
  * Version (date) of the terms of sale on the website. Change it with the
  * terms: each new subscription records the version its customer accepted.
  */
-export const TERMS_OF_SALE_VERSION = '2026-11-16';
+export const TERMS_OF_SALE_VERSION = '2026-11-20';
 
 /**
  * Where the count of Supporters is headed: enough to cover the costs and
@@ -53,7 +53,14 @@ export const TERMS_OF_SALE_VERSION = '2026-11-16';
 export const SUPPORTER_GOAL = 100;
 
 /**
- * Feature names that can be restricted
+ * Supporters from which the app shows the gauge towards the goal: a gauge
+ * near empty says the project is fragile rather than inviting to join it.
+ */
+export const SUPPORTER_GAUGE_FROM = 25;
+
+/**
+ * AI features on the instance keys (hostedAi). Supporter perks and early
+ * access are in FEATURES (features.ts).
  */
 export enum FeatureName {
   AI_GENERATION = 'ai-generation',

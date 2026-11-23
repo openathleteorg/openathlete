@@ -76,11 +76,12 @@ export function ContentDe() {
         <strong>Coaching.</strong> Ein Coach plant direkt im Kalender jedes
         Athleten, nutzt Vorlagen und sieht, was tatsächlich trainiert wurde. Ein
         Athlet kann mehrere Coaches haben, und es gibt einen Gruppenchat. Das
-        Coaching von bis zu fünf Athleten ist kostenlos. Vereine bekommen einen
-        kostenlosen Vereinsbereich mit Gruppen und ihren Coaches, einer
-        gemeinsamen Workout-Bibliothek, wöchentlichen Vereinseinheiten und
-        Plänen, die auf eine ganze Gruppe kopiert werden; Athleten, die ein
-        Coach über einen Verein betreut, zählen nicht zu dieser Grenze.
+        Coaching von bis zu fünf Athleten ist kostenlos. Einen Verein eröffnet
+        ein Supporter, Mitglieder und Coaches treten kostenlos bei; er bietet
+        Gruppen mit ihren Coaches, eine gemeinsame Workout-Bibliothek,
+        wöchentliche Vereinseinheiten und Pläne, die auf eine ganze Gruppe
+        kopiert werden, und Athleten, die ein Coach über einen Verein betreut,
+        zählen nicht zu dieser Grenze.
       </p>
       <p>
         <strong>KI, wenn du willst.</strong> Nichts läuft, bevor du zustimmst,
@@ -106,8 +107,8 @@ export function ContentDe() {
           dienen nur als Quelle für Aktivitäten.
         </li>
         <li>
-          Es gibt keine Vereinsabrechnung: Der Vereinsbereich ist kostenlos, und
-          Mitgliedsbeiträge laufen außerhalb von OpenAthlete.
+          Es gibt keine Vereinsabrechnung: Der Beitritt zu einem Verein ist
+          kostenlos, und Mitgliedsbeiträge laufen außerhalb von OpenAthlete.
         </li>
         <li>
           Es sagt keine Verletzungen voraus. Es erfasst Schmerzen, wenn Athleten
@@ -123,11 +124,13 @@ export function ContentDe() {
 
       <h2>Wie es finanziert wird</h2>
       <p>
-        Alle Funktionen sind in der gehosteten Version kostenlos. Der
-        Supporter-Plan ab 5 € im Monat oder 50 € im Jahr bringt zwei Dinge dazu:
-        KI, die über die Schlüssel von OpenAthlete läuft, mit einem
-        wöchentlichen Kontingent für eine angemessene Nutzung, das jeden Montag
-        neu beginnt, und Coaching für mehr als fünf Athleten. Selbst hosten ist
+        In der gehosteten Version ist alles kostenlos, was du zum Trainieren
+        brauchst. Der Supporter-Plan ab 5 € im Monat oder 50 € im Jahr
+        finanziert das Projekt und bringt als Dankeschön das Lab, früheren
+        Zugang zu neuen Funktionen, die erweiterten Coach-Werkzeuge und Vereine,
+        Coaching für mehr als fünf Athleten sowie KI, die über die Schlüssel von
+        OpenAthlete läuft, mit einem wöchentlichen Kontingent für eine
+        angemessene Nutzung, das jeden Montag neu beginnt. Selbst hosten ist
         kostenlos und ohne Einschränkungen. Details findest du auf der{' '}
         <Link href="/de/pricing">Preisseite</Link>.
       </p>

@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const ctlAtlTsb: LearnTerm = {
@@ -16,6 +18,8 @@ export const ctlAtlTsb: LearnTerm = {
     it: 'CTL, ATL e TSB',
     'pt-br': 'CTL, ATL e TSB',
     de: 'CTL, ATL und TSB',
+    pl: 'CTL, ATL i TSB',
+    nl: 'CTL, ATL en TSB',
   },
   title: {
     en: 'CTL, ATL and TSB: definition, formula, example',
@@ -24,6 +28,8 @@ export const ctlAtlTsb: LearnTerm = {
     it: 'Cosa sono CTL, ATL e TSB? Definizione, formula, esempio',
     'pt-br': 'O que são CTL, ATL e TSB? Definição, fórmula e exemplo',
     de: 'Was sind CTL, ATL und TSB? Definition, Formel, Beispiel',
+    pl: 'Czym są CTL, ATL i TSB? Definicja, wzór, przykład',
+    nl: 'Wat zijn CTL, ATL en TSB? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'Fitness (CTL), fatigue (ATL) and form (TSB) explained: Banister’s model, the 42- and 7-day time constants, a worked example and how to read the curves.',
@@ -33,6 +39,8 @@ export const ctlAtlTsb: LearnTerm = {
     'pt-br':
       'Condicionamento (CTL), fadiga (ATL) e forma (TSB): o modelo de Banister, as constantes de 42 e 7 dias, um exemplo com contas e como ler as curvas.',
     de: 'Fitness (CTL), Ermüdung (ATL) und Form (TSB) erklärt: Banisters Modell, die Zeitkonstanten 42 und 7 Tage, ein Rechenbeispiel und das Lesen der Kurven.',
+    pl: 'Kondycja (CTL), zmęczenie (ATL) i forma (TSB): model Banistera, stałe czasowe 42 i 7 dni, przykład z liczbami i jak czytać krzywe.',
+    nl: 'Fitheid (CTL), vermoeidheid (ATL) en vorm (TSB) uitgelegd: het model van Banister, de tijdconstanten van 42 en 7 dagen, een voorbeeld en de curves lezen.',
   },
   definition: {
     en: 'CTL (fitness) and ATL (fatigue) are exponentially weighted averages of daily training load over about 42 and 7 days, and TSB (form) is the difference between them, CTL minus ATL.',
@@ -42,6 +50,8 @@ export const ctlAtlTsb: LearnTerm = {
     'pt-br':
       'A CTL (condicionamento) e a ATL (fadiga) são médias com peso exponencial da carga de treino diária ao longo de cerca de 42 e 7 dias, e a TSB (forma) é a diferença entre elas, CTL menos ATL.',
     de: 'CTL (Fitness) und ATL (Ermüdung) sind exponentiell gewichtete Mittelwerte der täglichen Trainingsbelastung über etwa 42 bzw. 7 Tage, und die TSB (Form) ist ihre Differenz, CTL minus ATL.',
+    pl: 'CTL (kondycja) i ATL (zmęczenie) to wykładniczo ważone średnie dziennego obciążenia treningowego z około 42 i 7 dni, a TSB (forma) to różnica między nimi, CTL minus ATL.',
+    nl: 'CTL (fitheid) en ATL (vermoeidheid) zijn exponentieel gewogen gemiddelden van de dagelijkse trainingsbelasting over ongeveer 42 en 7 dagen, en TSB (vorm) is het verschil ertussen, CTL min ATL.',
   },
   aliases: {
     en: [
@@ -81,6 +91,22 @@ export const ctlAtlTsb: LearnTerm = {
       'Akute Trainingsbelastung',
       'Training Stress Balance',
       'Fitness-Ermüdungs-Modell',
+    ],
+    pl: [
+      'Kondycja, zmęczenie i forma',
+      'Fitness, fatigue, form',
+      'Przewlekłe obciążenie treningowe',
+      'Ostre obciążenie treningowe',
+      'Model kondycja-zmęczenie',
+      'Performance Management Chart',
+    ],
+    nl: [
+      'Fitheid, vermoeidheid en vorm',
+      'Fitness, fatigue, form',
+      'Chronische trainingsbelasting',
+      'Acute trainingsbelasting',
+      'Fitness-vermoeidheidsmodel',
+      'Performance Management Chart',
     ],
   },
   faq: {
@@ -187,6 +213,40 @@ export const ctlAtlTsb: LearnTerm = {
           'Apps verwenden unterschiedliche Belastungswerte (TRIMP, leistungsbasierter TSS, pacebasierte Werte), unterschiedliche Tagesgewichte (1 − e^(−1/τ) oder die Abkürzung 2 / (N + 1)) und berechnen die TSB am selben Tag oder am Vortag. Der Trend ist vergleichbar, die absoluten Zahlen sind es nicht.',
       },
     ],
+    pl: [
+      {
+        question: 'Jakie TSB jest dobre przed startem?',
+        answer:
+          'Nie ma jednej uniwersalnej wartości. Wielu sportowców startuje dobrze z TSB między lekkim minusem a wyraźnym plusem, ale właściwa liczba jest indywidualna. Zapisuj swoje TSB przed każdym startem i porównuj je z tym, jak poszedł bieg.',
+      },
+      {
+        question: 'Jak szybko powinno rosnąć CTL?',
+        answer:
+          'Stopniowo. Wzrost o kilka punktów tygodniowo w okresie budowania jest typowy; dużo szybszy zwykle oznacza skok objętości lub intensywności, któremu warto się przyjrzeć. Model nie podaje bezpiecznej granicy: ważniejsze są Twoja reakcja, sen i drobne dolegliwości.',
+      },
+      {
+        question: 'Dlaczego moje CTL jest inne w innej aplikacji?',
+        answer:
+          'Aplikacje używają różnych miar obciążenia (TRIMP, TSS z mocy, wskaźniki z tempa), różnych dziennych wag (1 − e^(−1/τ) albo skrótu 2 / (N + 1)) i biorą TSB z tego samego dnia lub z dnia poprzedniego. Trend da się porównać, wartości bezwzględnych już nie.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Wat is een goede TSB voor een wedstrijd?',
+        answer:
+          'Er is geen universele waarde. Veel sporters presteren goed met een TSB tussen licht negatief en duidelijk positief, maar het juiste getal is persoonlijk. Noteer je TSB voor elke wedstrijd en vergelijk die met hoe de wedstrijd ging.',
+      },
+      {
+        question: 'Hoe snel mag CTL stijgen?',
+        answer:
+          'Geleidelijk. Een stijging van een paar punten per week tijdens een opbouw is gebruikelijk; veel sneller betekent meestal een sprong in volume of intensiteit die een tweede blik verdient. Het model geeft geen veilige grens: hoe je reageert, je slaap en kleine pijntjes wegen zwaarder.',
+      },
+      {
+        question: 'Waarom is mijn CTL anders in een andere app?',
+        answer:
+          'Apps gebruiken verschillende belastingsscores (TRIMP, TSS op basis van vermogen, scores op basis van tempo), verschillende dagelijkse gewichten (1 − e^(−1/τ) of de snelkoppeling 2 / (N + 1)) en nemen TSB op dezelfde dag of de dag ervoor. De trend is vergelijkbaar, de absolute getallen niet.',
+      },
+    ],
   },
   related: ['trimp', 'session-rpe', 'taper', 'hrv'],
   links: [
@@ -224,5 +284,7 @@ export const ctlAtlTsb: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

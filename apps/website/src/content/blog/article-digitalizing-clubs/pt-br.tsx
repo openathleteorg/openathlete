@@ -86,21 +86,22 @@ export function ContentPtBr() {
 
       <h2>Duas formas de rodar um clube no OpenAthlete</h2>
       <p>
-        O OpenAthlete tem um espaço de clube. Ele é gratuito nos nossos
-        servidores, sem limite de alunos, e um clube que prefere o próprio
-        servidor tem os mesmos recursos instalando o OpenAthlete lá.
+        O OpenAthlete tem um espaço de clube. Nos nossos servidores, um
+        Supporter abre o clube e membros e treinadores entram de graça, sem
+        limite de alunos, e um clube que prefere o próprio servidor tem os
+        mesmos recursos instalando o OpenAthlete lá.
       </p>
       <p>
         <strong>Um espaço de clube, nos nossos servidores.</strong> Um treinador
-        cria o clube em Configurações &gt; Clubes e dá um papel a cada membro:
-        dono, administrador, treinador, assistente ou atleta. Todo treinador do
-        clube acessa os alunos do clube, e esses alunos não contam no limite de
-        cinco alunos de uma conta gratuita de treinador. Os membros entram a
-        partir de uma lista que você importa (colada, ou em CSV da planilha do
-        clube, com os grupos), com um código de acesso ou por links que expiram.
-        Cada grupo, por pace ou por nível, tem seus treinadores, e a biblioteca
-        do clube reúne os treinos e as pastas que todos os treinadores do clube
-        usam.
+        com o plano Supporter cria o clube em Configurações &gt; Clubes e dá um
+        papel a cada membro: dono, administrador, treinador, assistente ou
+        atleta. Todo treinador do clube acessa os alunos do clube, e esses
+        alunos não contam no limite de cinco alunos de uma conta gratuita de
+        treinador. Os membros entram a partir de uma lista que você importa
+        (colada, ou em CSV da planilha do clube, com os grupos), com um código
+        de acesso ou por links que expiram. Cada grupo, por pace ou por nível,
+        tem seus treinadores, e a biblioteca do clube reúne os treinos e as
+        pastas que todos os treinadores do clube usam.
       </p>
       <p>
         Para planejar para um grupo, você copia um treino, um dia ou uma semana

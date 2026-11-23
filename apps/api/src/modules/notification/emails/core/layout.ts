@@ -11,6 +11,8 @@ const htmlLanguages: Record<EmailLanguage, string> = {
   ES: 'es',
   PT_BR: 'pt-BR',
   DE: 'de',
+  PL: 'pl',
+  NL: 'nl',
 };
 
 const footers = {
@@ -47,6 +49,18 @@ const footers = {
       'Du erhältst diese E-Mail aufgrund einer Aktion in deinem OpenAthlete-Konto.',
     unsubscribe: 'Diese E-Mails abbestellen',
     preferences: 'E-Mail-Einstellungen verwalten',
+  },
+  PL: {
+    account:
+      'Otrzymujesz tę wiadomość w związku z działaniem na Twoim koncie OpenAthlete.',
+    unsubscribe: 'Nie chcę więcej tych wiadomości',
+    preferences: 'Ustawienia e-maili',
+  },
+  NL: {
+    account:
+      'Je ontvangt deze e-mail naar aanleiding van een actie in je OpenAthlete-account.',
+    unsubscribe: 'Geen e-mails meer van dit soort',
+    preferences: 'E-mailinstellingen',
   },
 } as const satisfies Record<EmailLanguage, Record<string, string>>;
 

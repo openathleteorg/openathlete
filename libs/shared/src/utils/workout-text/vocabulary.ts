@@ -8,7 +8,8 @@ import { SPORT_TYPE } from '../../types/misc/core/sport-type.enum';
  * writes those of the locale it is given.
  */
 
-export type WorkoutTextLocale = 'en' | 'fr' | 'es' | 'it' | 'pt-BR' | 'de';
+export type WorkoutTextLocale =
+  'en' | 'fr' | 'es' | 'it' | 'pt-BR' | 'de' | 'pl' | 'nl';
 
 /** Lower case, accents removed: "Récup" and "recup" are the same word */
 export function fold(word: string): string {
@@ -32,6 +33,12 @@ const STEP_TYPE_WORDS: Record<TypedStep, string[]> = {
     'aufwarmen',
     'einlaufen',
     'einfahren',
+    'rozgrzewka',
+    'warming-up',
+    'warmingup',
+    'opwarmen',
+    'inlopen',
+    'inrijden',
   ],
   [WORKOUT_STEP_TYPE.COOLDOWN]: [
     'cooldown',
@@ -46,6 +53,13 @@ const STEP_TYPE_WORDS: Record<TypedStep, string[]> = {
     'auslaufen',
     'ausfahren',
     'abwarmen',
+    'schłodzenie',
+    'wychłodzenie',
+    'cooling-down',
+    'coolingdown',
+    'uitlopen',
+    'uitrijden',
+    'afkoelen',
   ],
   [WORKOUT_STEP_TYPE.INTERVAL_REST]: [
     'rest',
@@ -62,6 +76,15 @@ const STEP_TYPE_WORDS: Record<TypedStep, string[]> = {
     'pause',
     'erholung',
     'trabpause',
+    'przerwa',
+    'odpoczynek',
+    'regeneracja',
+    'trucht',
+    'herstel',
+    'rust',
+    'pauze',
+    'dribbel',
+    'dribbelpauze',
   ],
   [WORKOUT_STEP_TYPE.INTERVAL_ACTIVE]: [
     'active',
@@ -74,6 +97,10 @@ const STEP_TYPE_WORDS: Record<TypedStep, string[]> = {
     'esforco',
     'intervall',
     'belastung',
+    'interwał',
+    'odcinek',
+    'blok',
+    'inspanning',
   ],
   [WORKOUT_STEP_TYPE.STEADY]: [
     'steady',
@@ -82,8 +109,20 @@ const STEP_TYPE_WORDS: Record<TypedStep, string[]> = {
     'constante',
     'gleichmaßig',
     'dauer',
+    'ciagły',
+    'duur',
+    'constant',
   ],
-  [WORKOUT_STEP_TYPE.FREE]: ['free', 'libre', 'libero', 'livre', 'frei'],
+  [WORKOUT_STEP_TYPE.FREE]: [
+    'free',
+    'libre',
+    'libero',
+    'livre',
+    'frei',
+    'dowolny',
+    'swobodny',
+    'vrij',
+  ],
 };
 
 /** "Retour au calme" and "volta à calma" are cooldowns in two words or more */
@@ -161,6 +200,22 @@ const STEP_TYPE_LABELS: Record<WorkoutTextLocale, Record<TypedStep, string>> = {
     [WORKOUT_STEP_TYPE.STEADY]: 'Gleichmäßig',
     [WORKOUT_STEP_TYPE.FREE]: 'Frei',
   },
+  pl: {
+    [WORKOUT_STEP_TYPE.WARMUP]: 'Rozgrzewka',
+    [WORKOUT_STEP_TYPE.COOLDOWN]: 'Schłodzenie',
+    [WORKOUT_STEP_TYPE.INTERVAL_REST]: 'Przerwa',
+    [WORKOUT_STEP_TYPE.INTERVAL_ACTIVE]: 'Interwał',
+    [WORKOUT_STEP_TYPE.STEADY]: 'Ciągły',
+    [WORKOUT_STEP_TYPE.FREE]: 'Dowolny',
+  },
+  nl: {
+    [WORKOUT_STEP_TYPE.WARMUP]: 'Warming-up',
+    [WORKOUT_STEP_TYPE.COOLDOWN]: 'Cooling-down',
+    [WORKOUT_STEP_TYPE.INTERVAL_REST]: 'Herstel',
+    [WORKOUT_STEP_TYPE.INTERVAL_ACTIVE]: 'Interval',
+    [WORKOUT_STEP_TYPE.STEADY]: 'Constant',
+    [WORKOUT_STEP_TYPE.FREE]: 'Vrij',
+  },
 };
 
 export function stepTypeLabel(
@@ -171,7 +226,16 @@ export function stepTypeLabel(
 }
 
 /** Words that end a step on the lap button, or leave it open */
-export const LAP_WORDS = ['lap', 'tour', 'vuelta', 'giro', 'volta', 'runde'];
+export const LAP_WORDS = [
+  'lap',
+  'tour',
+  'vuelta',
+  'giro',
+  'volta',
+  'runde',
+  'okrazenie',
+  'ronde',
+];
 export const OPEN_WORDS = [
   'open',
   'ouvert',
@@ -179,6 +243,7 @@ export const OPEN_WORDS = [
   'aperto',
   'aberto',
   'offen',
+  'otwarty',
 ];
 
 /** Suffixes naming the zone type: "Z2 HR", "Z3 Pace", "Z4 Power" */
@@ -188,6 +253,8 @@ export const ZONE_TYPE_WORDS: Record<string, TRAINING_ZONE_TYPE> = {
   bpm: TRAINING_ZONE_TYPE.HEARTRATE,
   hf: TRAINING_ZONE_TYPE.HEARTRATE,
   puls: TRAINING_ZONE_TYPE.HEARTRATE,
+  tetno: TRAINING_ZONE_TYPE.HEARTRATE,
+  hs: TRAINING_ZONE_TYPE.HEARTRATE,
   pace: TRAINING_ZONE_TYPE.PACE,
   allure: TRAINING_ZONE_TYPE.PACE,
   ritmo: TRAINING_ZONE_TYPE.PACE,
@@ -197,6 +264,8 @@ export const ZONE_TYPE_WORDS: Record<string, TRAINING_ZONE_TYPE> = {
   potencia: TRAINING_ZONE_TYPE.POWER,
   potenza: TRAINING_ZONE_TYPE.POWER,
   leistung: TRAINING_ZONE_TYPE.POWER,
+  moc: TRAINING_ZONE_TYPE.POWER,
+  vermogen: TRAINING_ZONE_TYPE.POWER,
   w: TRAINING_ZONE_TYPE.POWER,
 };
 
@@ -216,6 +285,9 @@ export const PERCENT_BASE_WORDS: Record<string, PercentBase> = {
   hrmax: 'HR',
   hf: 'HR',
   hfmax: 'HR',
+  tetno: 'HR',
+  hs: 'HR',
+  hsmax: 'HR',
   ftp: 'FTP',
   power: 'FTP',
   cp: 'CP',

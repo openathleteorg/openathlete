@@ -109,14 +109,16 @@ export function ContentEn() {
 
       <h2>OpenAthlete</h2>
       <p>
-        Every feature is free on our servers: calendar, workout builder, planned
-        workouts sent to Garmin, Suunto and COROS, training load and coaching up
-        to five athletes. The optional Supporter plan (from {q('oaMonth')} a
-        month or {q('oaYear')} a year) adds AI on our keys and unlimited coached
-        athletes, and nothing else. The code is AGPL-3.0, so you can also run it
-        on your own server for free, without limits. Clubs get a free club space
-        too, with no athlete limit: groups with their own coaches, a shared
-        workout library, weekly club sessions and plans copied to a whole group.
+        Everything you need to train is free on our servers: calendar, workout
+        builder, planned workouts sent to Garmin, Suunto and COROS, training
+        load and coaching up to five athletes. The optional Supporter plan (from{' '}
+        {q('oaMonth')} a month or {q('oaYear')} a year) funds the project and
+        adds the Lab, early access to new features, advanced coach tools and
+        clubs, AI on our keys and unlimited coached athletes. The code is
+        AGPL-3.0, so you can also run it on your own server for free, without
+        limits. Clubs are opened by a Supporter and members join free, with no
+        athlete limit: groups with their own coaches, a shared workout library,
+        weekly club sessions and plans copied to a whole group.
       </p>
       <p>
         Training load is Banister TRIMP from heart rate, with session RPE
@@ -186,7 +188,8 @@ export function ContentEn() {
         pricing and mature native apps. Pick Final Surge for a US school or club
         team on simple flat pricing. Pick OpenAthlete if you want workouts on
         Garmin, Suunto or COROS without paying, a flat coach price, AI on your
-        own key, a free club space, or code you can host yourself.
+        own key, a club your members join for free, or code you can host
+        yourself.
       </p>
 
       <h2>Moving your history</h2>

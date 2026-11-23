@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const taper: LearnTerm = {
@@ -16,6 +18,8 @@ export const taper: LearnTerm = {
     it: 'Tapering (scarico pre-gara)',
     'pt-br': 'Polimento',
     de: 'Tapering',
+    pl: 'Tapering',
+    nl: 'Taperen',
   },
   title: {
     en: 'Taper: definition, how long, worked example',
@@ -24,6 +28,8 @@ export const taper: LearnTerm = {
     it: 'Cos’è il tapering? Definizione, durata, esempio',
     'pt-br': 'O que é polimento? Definição, duração e exemplo',
     de: 'Was ist Tapering? Definition, Dauer, Rechenbeispiel',
+    pl: 'Czym jest tapering? Definicja, czas trwania, przykład',
+    nl: 'Wat is taperen? Definitie, duur, rekenvoorbeeld',
   },
   description: {
     en: 'A taper cuts training volume before a race so fatigue drops faster than fitness. How long, how much to cut, and a worked example with CTL, ATL and TSB.',
@@ -33,6 +39,8 @@ export const taper: LearnTerm = {
     'pt-br':
       'O polimento reduz o volume antes da prova para a fadiga cair mais rápido que o condicionamento. Duração, quanto cortar e um exemplo com CTL e TSB.',
     de: 'Tapering senkt vor dem Wettkampf den Umfang, damit die Ermüdung schneller fällt als die Fitness. Dauer, wie stark reduzieren, Beispiel mit CTL und TSB.',
+    pl: 'Tapering zmniejsza objętość przed startem, by zmęczenie spadło szybciej niż kondycja. Ile trwa, o ile ciąć i przykład z CTL, ATL i TSB.',
+    nl: 'Taperen verlaagt het volume voor een wedstrijd, zodat vermoeidheid sneller daalt dan fitheid. Hoe lang, hoeveel minder en een voorbeeld met CTL en TSB.',
   },
   definition: {
     en: 'A taper is the period of reduced training before a goal race, usually one to three weeks, in which volume drops while intensity is kept, so that accumulated fatigue clears faster than fitness is lost.',
@@ -42,6 +50,8 @@ export const taper: LearnTerm = {
     'pt-br':
       'O polimento é o período de treino reduzido antes da prova-alvo, em geral de uma a três semanas, em que o volume cai e a intensidade se mantém, para que a fadiga acumulada desapareça mais rápido do que o condicionamento se perde.',
     de: 'Das Tapering ist die Phase mit reduziertem Training vor einem Zielwettkampf, meist ein bis drei Wochen, in der der Umfang sinkt und die Intensität erhalten bleibt, damit die angesammelte Ermüdung schneller abklingt, als Fitness verloren geht.',
+    pl: 'Tapering to okres zmniejszonego treningu przed docelowym startem, zwykle od jednego do trzech tygodni, w którym spada objętość, a intensywność zostaje, tak aby nagromadzone zmęczenie ustąpiło szybciej, niż ubywa kondycji.',
+    nl: 'Taperen is de periode van verminderde training voor een doelwedstrijd, meestal een tot drie weken, waarin het volume daalt en de intensiteit blijft, zodat opgebouwde vermoeidheid sneller verdwijnt dan fitheid verloren gaat.',
   },
   aliases: {
     en: ['Tapering', 'Pre-race taper'],
@@ -50,6 +60,18 @@ export const taper: LearnTerm = {
     it: ['Taper', 'Scarico pre-gara', 'Rifinitura'],
     'pt-br': ['Taper', 'Tapering', 'Polimento pré-prova'],
     de: ['Taper', 'Formzuspitzung', 'Tapering vor dem Wettkampf'],
+    pl: [
+      'Taper',
+      'BPS (bezpośrednie przygotowanie startowe)',
+      'Odpuszczanie przed startem',
+      'Tapering przed maratonem',
+    ],
+    nl: [
+      'Tapering',
+      'Taper',
+      'Afbouwen voor een wedstrijd',
+      'Taperen voor de marathon',
+    ],
   },
   faq: {
     en: [
@@ -154,6 +176,40 @@ export const taper: LearnTerm = {
           'Das ist häufig. Weniger Kilometer können dich schlapp, schwer oder unruhig fühlen lassen, und kleine Wehwehchen wirken lauter. Bis zum Wettkampftag geht das meist vorbei. Widerstehe dem Drang, dich in der letzten Woche mit einer harten Einheit zu testen: Die Fitness ist schon da.',
       },
     ],
+    pl: [
+      {
+        question: 'Ile powinien trwać tapering przed maratonem?',
+        answer:
+          'U większości biegaczy dwa do trzech tygodni. Metaanaliza 27 badań wykazała, że w różnych sportach najlepiej sprawdzały się dwa tygodnie, a analiza ponad 158 000 amatorów maratonu pokazała, że ścisły tapering trwający do trzech tygodni wiązał się z lepszymi czasami niż krótszy lub luźniejszy.',
+      },
+      {
+        question: 'Czy w czasie taperingu robić interwały?',
+        answer:
+          'Tak, krótsze. Badania są zgodne, że utrzymanie intensywności chroni kondycję, kiedy spada objętość: kilka minut w tempie startowym lub nieco szybciej, dwa, trzy razy w tygodniu, w zupełności wystarczy. Zmniejszaj liczbę powtórzeń, a nie ich prędkość.',
+      },
+      {
+        question: 'Dlaczego w czasie taperingu czuję się ociężale?',
+        answer:
+          'To częste. Mniej kilometrów potrafi dać uczucie braku energii, ciężkości albo niepokoju, a drobne bóle wydają się głośniejsze. Zwykle mija to do dnia startu. Nie ulegaj pokusie sprawdzania się ciężkim treningiem w ostatnim tygodniu: kondycja już jest.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Hoe lang moet je taperen voor een marathon?',
+        answer:
+          'Twee tot drie weken voor de meeste lopers. Een meta-analyse van 27 studies vond dat twee weken over alle sporten heen het best werkte, en een analyse van meer dan 158.000 recreatieve marathonlopers liet zien dat strikte tapers tot drie weken samengingen met snellere eindtijden dan kortere of lossere.',
+      },
+      {
+        question: 'Moet ik tijdens het taperen intervallen blijven doen?',
+        answer:
+          'Ja, kortere. Het onderzoek is eensgezind dat intensiteit vasthouden je fitheid beschermt terwijl het volume daalt: een paar minuten op wedstrijdtempo of iets sneller, twee of drie keer per week, is genoeg. Schrap herhalingen, niet hun snelheid.',
+      },
+      {
+        question: 'Waarom voel ik me sloom tijdens het taperen?',
+        answer:
+          'Dat is heel gewoon. Minder kilometers kunnen je een lusteloos, zwaar of onrustig gevoel geven, en kleine pijntjes lijken luider. Meestal is het voorbij op de wedstrijddag. Weersta de neiging om jezelf in de laatste week te testen met een zware training: de fitheid is er al.',
+      },
+    ],
   },
   related: ['ctl-atl-tsb', 'trimp', 'session-rpe', 'hrv'],
   links: [
@@ -187,5 +243,7 @@ export const taper: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

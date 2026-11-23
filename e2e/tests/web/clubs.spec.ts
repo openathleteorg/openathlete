@@ -93,6 +93,8 @@ test('a club gives its coaches its athletes, and an assistant only their groups'
     clubName: 'Running Club',
     role: 'ATHLETE',
     staff: [{ name: 'Olga A.', role: 'OWNER' }],
+    // Without billing every club takes new members
+    acceptsMembers: true,
   });
 
   await join(request, coach, staffToken);

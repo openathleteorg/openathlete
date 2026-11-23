@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const criticalSpeed: LearnTerm = {
@@ -16,6 +18,8 @@ export const criticalSpeed: LearnTerm = {
     it: 'Velocità critica',
     'pt-br': 'Velocidade crítica',
     de: 'Kritische Geschwindigkeit',
+    pl: 'Prędkość krytyczna',
+    nl: 'Kritische snelheid',
   },
   title: {
     en: 'Critical speed: definition, formula, example',
@@ -24,6 +28,8 @@ export const criticalSpeed: LearnTerm = {
     it: 'Cos’è la velocità critica? Definizione, formula, esempio',
     'pt-br': 'O que é velocidade crítica? Definição, fórmula e exemplo',
     de: 'Kritische Geschwindigkeit: Definition, Formel, Beispiel',
+    pl: 'Czym jest prędkość krytyczna? Definicja, wzór, przykład',
+    nl: 'Wat is kritische snelheid? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'Critical speed and D′ from your best efforts: the distance-time model, a worked example from four race times, how to use it for intervals, and its limits.',
@@ -33,6 +39,8 @@ export const criticalSpeed: LearnTerm = {
     'pt-br':
       'Velocidade crítica e D′ a partir dos seus melhores esforços: o modelo distância-tempo, um exemplo com quatro tempos, como usar nos tiros e seus limites.',
     de: 'Kritische Geschwindigkeit und D′ aus deinen Bestleistungen: Distanz-Zeit-Modell, Beispiel mit vier Zeiten, Einsatz im Intervalltraining, Grenzen.',
+    pl: 'Prędkość krytyczna i D′ z Twoich najlepszych wysiłków: model dystans-czas, przykład z czterech wyników, zastosowanie w interwałach i ograniczenia.',
+    nl: 'Kritische snelheid en D′ uit je beste inspanningen: het afstand-tijdmodel, een voorbeeld met vier tijden, gebruik bij intervallen en de beperkingen.',
   },
   definition: {
     en: 'Critical speed is the slope of the line linking distance and time across your best efforts of about 2 to 20 minutes, the highest speed at which your body can still reach a steady state.',
@@ -42,6 +50,8 @@ export const criticalSpeed: LearnTerm = {
     'pt-br':
       'A velocidade crítica é a inclinação da reta que liga distância e tempo nos seus melhores esforços de cerca de 2 a 20 minutos, a maior velocidade em que o organismo ainda atinge um estado estável.',
     de: 'Die kritische Geschwindigkeit ist die Steigung der Geraden, die Distanz und Zeit über deine Bestleistungen von etwa 2 bis 20 Minuten verbindet – die höchste Geschwindigkeit, bei der dein Körper noch einen stabilen Zustand erreichen kann.',
+    pl: 'Prędkość krytyczna to nachylenie prostej łączącej dystans i czas Twoich najlepszych wysiłków trwających od około 2 do 20 minut, czyli najwyższa prędkość, przy której organizm wciąż osiąga stan równowagi.',
+    nl: 'Kritische snelheid is de helling van de lijn die afstand en tijd verbindt over je beste inspanningen van ongeveer 2 tot 20 minuten, de hoogste snelheid waarbij je lichaam nog een stabiele toestand bereikt.',
   },
   aliases: {
     en: ['CS', 'D prime', 'Critical velocity'],
@@ -50,6 +60,8 @@ export const criticalSpeed: LearnTerm = {
     it: ['VC', 'D primo', 'Critical speed'],
     'pt-br': ['VC', 'D linha', 'Critical speed'],
     de: ['CS', 'D-Strich', 'Critical Speed'],
+    pl: ['CS', 'D prim', 'Critical speed'],
+    nl: ['CS', 'D-accent', 'Critical speed', 'Kritieke snelheid'],
   },
   faq: {
     en: [
@@ -155,6 +167,40 @@ export const criticalSpeed: LearnTerm = {
           'Mindestens drei maximale Belastungen zwischen etwa 2 und 20 Minuten, über diesen Bereich verteilt, zum Beispiel 1.000 m, 3.000 m und 5.000 m. Auf flachem Terrain, ohne starken Wind und aktuell genug, um deine derzeitige Form abzubilden.',
       },
     ],
+    pl: [
+      {
+        question: 'Jak długo można biec z prędkością krytyczną?',
+        answer:
+          'Nie w nieskończoność. Prędkość krytyczna to granica, a nie tempo przelotowe: dokładnie na niej zmęczenie i tak narasta, a to, jak długo kto wytrzyma, bardzo się różni między biegaczami. Większość startów trwających godzinę lub dłużej biegnie się poniżej niej.',
+      },
+      {
+        question: 'Czy prędkość krytyczna to to samo co tempo progowe?',
+        answer:
+          'Są blisko, ale nie identyczne. Prędkość krytyczna leży nieco powyżej maksymalnego stanu równowagi mleczanowej, czyli ścisłej wersji progu mleczanowego. W planie treningowym praca progowa jest zwykle trochę wolniejsza niż prędkość krytyczna.',
+      },
+      {
+        question: 'Jakich wysiłków użyć do jej obliczenia?',
+        answer:
+          'Co najmniej trzech maksymalnych wysiłków trwających od około 2 do 20 minut, rozłożonych w tym zakresie, na przykład 1000 m, 3000 m i 5000 m. Na płaskim terenie, bez silnego wiatru i na tyle świeżych, by odzwierciedlały Twoją obecną formę.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Hoe lang kun je op kritische snelheid lopen?',
+        answer:
+          'Niet eindeloos. Kritische snelheid is een grens, geen kruissnelheid: precies op die snelheid bouwt vermoeidheid toch op, en hoe lang iemand het volhoudt verschilt sterk per loper. De meeste wedstrijden van een uur of langer loop je eronder.',
+      },
+      {
+        question: 'Is kritische snelheid hetzelfde als drempeltempo?',
+        answer:
+          'Ze liggen dicht bij elkaar, maar zijn niet gelijk. Kritische snelheid ligt iets boven de maximale lactaat-steady-state, de strikte versie van de lactaatdrempel. In een schema is drempelwerk meestal iets langzamer dan de kritische snelheid.',
+      },
+      {
+        question: 'Welke inspanningen gebruik ik om haar te berekenen?',
+        answer:
+          'Minstens drie maximale inspanningen van ongeveer 2 tot 20 minuten, verspreid over dat bereik, bijvoorbeeld 1000 m, 3000 m en 5000 m. Op vlak terrein, zonder harde wind en recent genoeg om je huidige conditie te weerspiegelen.',
+      },
+    ],
   },
   related: [
     'lactate-threshold',
@@ -200,5 +246,7 @@ export const criticalSpeed: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

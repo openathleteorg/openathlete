@@ -235,6 +235,8 @@ export const routes = {
     },
     thresholds: '/coach/thresholds',
     threshold: (id: number) => `/coach/thresholds/${id}`,
+    calendarExport: (athleteId: number) =>
+      `/coach/athletes/${athleteId}/calendar-export`,
     getPendingInvitations: '/coach/invitations/pending',
     acceptInvitation: (invitationId: number) =>
       `/coach/invitations/${invitationId}/accept`,
@@ -356,6 +358,9 @@ export const routes = {
   subscription: {
     current: '/subscription/current',
     supporters: '/subscription/supporters',
+    wall: '/subscription/wall',
+    badge: '/subscription/badge',
+    badges: '/subscription/badges',
     checkout: '/subscription/checkout',
     cancel: '/subscription/cancel',
     resume: '/subscription/resume',

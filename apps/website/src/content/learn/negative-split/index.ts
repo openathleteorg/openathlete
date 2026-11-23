@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const negativeSplit: LearnTerm = {
@@ -16,6 +18,8 @@ export const negativeSplit: LearnTerm = {
     it: 'Negative split',
     'pt-br': 'Split negativo',
     de: 'Negative Split',
+    pl: 'Negative split',
+    nl: 'Negatieve split',
   },
   title: {
     en: 'Negative split: definition, formula, example',
@@ -24,6 +28,8 @@ export const negativeSplit: LearnTerm = {
     it: 'Cos’è il negative split? Definizione, formula, esempio',
     'pt-br': 'O que é split negativo? Definição, fórmula e exemplo',
     de: 'Negative Split: Definition, Formel, Beispiel',
+    pl: 'Czym jest negative split? Definicja, wzór, przykład',
+    nl: 'Wat is een negatieve split? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'A negative split is a faster second half. How to measure the split in %, a 10K and marathon example, how to pace it, and what the research says.',
@@ -33,6 +39,8 @@ export const negativeSplit: LearnTerm = {
     'pt-br':
       'Split negativo é uma segunda metade mais rápida. Como calcular em %, exemplos no 10 km e na maratona, como dosar o pace e o que diz a ciência.',
     de: 'Ein Negative Split ist eine schnellere zweite Hälfte. So misst du den Split in %, mit Beispielen für 10 km und Marathon, Pacing-Tipps und Studienlage.',
+    pl: 'Negative split to szybsza druga połowa biegu. Jak policzyć split w %, przykłady na 10 km i w maratonie, jak rozłożyć tempo i co mówią badania.',
+    nl: 'Een negatieve split is een snellere tweede helft. Zo bereken je de split in %, met voorbeelden voor 10 km en marathon, pacingtips en wat onderzoek zegt.',
   },
   definition: {
     en: 'A negative split is a race or run in which the second half is covered faster than the first.',
@@ -42,6 +50,8 @@ export const negativeSplit: LearnTerm = {
     'pt-br':
       'Split negativo é uma prova ou um treino em que a segunda metade é corrida mais rápido que a primeira.',
     de: 'Ein Negative Split ist ein Wettkampf oder Lauf, bei dem die zweite Hälfte schneller zurückgelegt wird als die erste.',
+    pl: 'Negative split to bieg lub start, w którym drugą połowę dystansu pokonuje się szybciej niż pierwszą.',
+    nl: 'Een negatieve split is een wedstrijd of loop waarbij je de tweede helft sneller aflegt dan de eerste.',
   },
   aliases: {
     en: ['Negative splits', 'Positive split', 'Even pacing'],
@@ -50,6 +60,8 @@ export const negativeSplit: LearnTerm = {
     it: ['Split negativo', 'Positive split', 'Andatura regolare'],
     'pt-br': ['Negative split', 'Split positivo', 'Ritmo constante'],
     de: ['Negative Splits', 'Positive Split', 'Gleichmäßiges Tempo'],
+    pl: ['Ujemny split', 'Negatywny split', 'Positive split', 'Równe tempo'],
+    nl: ['Negative split', 'Positieve split', 'Gelijkmatig tempo'],
   },
   faq: {
     en: [
@@ -157,6 +169,41 @@ export const negativeSplit: LearnTerm = {
           'Die Hälften nach Zeit zu vergleichen, ist auf Trails selten aussagekräftig, weil Gelände und Höhenmeter kaum je gleichmäßig verteilt sind. Die Idee dahinter gilt trotzdem: Starte mit einer Anstrengung, die du halten kannst, und beurteile dein Pacing nach Gefühl und Herzfrequenz statt nach der Uhr.',
       },
     ],
+    pl: [
+      {
+        question: 'Czy negative split jest zawsze szybszy niż równe tempo?',
+        answer:
+          'Nie. Na długich dystansach najlepiej sprawdza się chyba równe tempo z co najwyżej lekkim przyspieszeniem. Rekordy świata w maratonie biegano średnio nieco szybciej w pierwszej połowie, a najnowsze były najbardziej równe. Duży negative split często oznacza, że start był zbyt ostrożny.',
+      },
+      {
+        question: 'O ile wolniej zacząć maraton?',
+        answer:
+          'Tylko trochę: przez pierwsze 3–5 km o 5–10 sekund na kilometr wolniej od tempa docelowego, potem wejście w tempo docelowe. W skali całej pierwszej połowy daje to mniej niż minutę.',
+      },
+      {
+        question: 'Czy negative split ma sens w biegu górskim lub terenowym?',
+        answer:
+          'Porównywanie połówek po czasie rzadko coś mówi w terenie, bo podbiegi i nawierzchnia prawie nigdy nie rozkładają się równo. Sama idea nadal obowiązuje: zacznij wysiłkiem, który utrzymasz, i oceniaj rozłożenie sił po odczuciu i tętnie, a nie po zegarku.',
+      },
+    ],
+    nl: [
+      {
+        question:
+          'Is een negatieve split altijd sneller dan een gelijkmatig tempo?',
+        answer:
+          'Nee. Op lange afstanden lijkt een gelijkmatig tempo met hooguit een lichte versnelling het best te werken. Wereldrecords op de marathon werden gemiddeld iets sneller gelopen in de eerste helft, en de recentste waren het meest gelijkmatig. Een grote negatieve split betekent vaak dat de start te voorzichtig was.',
+      },
+      {
+        question: 'Hoeveel langzamer moet ik een marathon beginnen?',
+        answer:
+          'Maar een klein beetje: de eerste 3 tot 5 km 5 tot 10 seconden per kilometer langzamer dan je streeftempo, daarna op streeftempo. Over de hele eerste helft is dat samen minder dan een minuut.',
+      },
+      {
+        question: 'Heeft een negatieve split zin bij trailrunning?',
+        answer:
+          'Helften op tijd vergelijken zegt op trails zelden veel, omdat terrein en hoogtemeters bijna nooit gelijk verdeeld zijn. Het idee erachter geldt wel: start met een inspanning die je kunt volhouden, en beoordeel je pacing op gevoel en hartslag in plaats van op de klok.',
+      },
+    ],
   },
   related: [
     'grade-adjusted-pace',
@@ -191,5 +238,7 @@ export const negativeSplit: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

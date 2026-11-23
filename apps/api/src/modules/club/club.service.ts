@@ -77,6 +77,9 @@ async function clearRoleData(
   }
 }
 
+/** A club as the service reads it; the controller adds whether it may grow */
+export type ClubDetailCore = Omit<ClubDetailDto, 'acceptsMembers'>;
+
 @Injectable()
 export class ClubService {
   constructor(
@@ -125,7 +128,7 @@ export class ClubService {
     return { ...club, role: ClubRole.OWNER, memberCount: 1 };
   }
 
-  async get(userId: number, clubId: number): Promise<ClubDetailDto> {
+  async get(userId: number, clubId: number): Promise<ClubDetailCore> {
     const role = await requireClubRole(this.prisma, clubId, userId);
     const club = await this.prisma.club.findUniqueOrThrow({
       where: { clubId },
@@ -205,7 +208,7 @@ export class ClubService {
     userId: number,
     clubId: number,
     dto: UpdateClubDto,
-  ): Promise<ClubDetailDto> {
+  ): Promise<ClubDetailCore> {
     const role = await requireClubRole(this.prisma, clubId, userId);
     if (!isClubAdmin(role)) {
       throw new ForbiddenException('Only the club admins can edit the club');
@@ -265,7 +268,7 @@ export class ClubService {
     clubId: number,
     targetUserId: number,
     newRole: ClubRole,
-  ): Promise<ClubDetailDto> {
+  ): Promise<ClubDetailCore> {
     if (newRole === ClubRole.OWNER) {
       throw new BadRequestException('Transfer the club to change its owner');
     }
@@ -326,7 +329,7 @@ export class ClubService {
     actorUserId: number,
     clubId: number,
     targetUserId: number,
-  ): Promise<ClubDetailDto> {
+  ): Promise<ClubDetailCore> {
     await this.prisma.$transaction(async (tx) => {
       const actorRole = await requireClubRole(tx, clubId, actorUserId);
       if (actorRole !== ClubRole.OWNER) {

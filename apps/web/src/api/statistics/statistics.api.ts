@@ -1,6 +1,7 @@
 import client, { routes } from '@/utils/axios';
 
 import {
+  LabResponse,
   SPORT_TYPE,
   SportGroup,
   StatisticsCardiacCostDto,
@@ -26,6 +27,9 @@ export interface StatisticsSectionParams {
   sport?: SPORT_TYPE;
   group?: SportGroup;
 }
+
+/** Tells the API this app shows the Lab teaser (older apps get no data) */
+const LAB_TEASER = { lab: 1 };
 
 export class StatisticsAPI {
   static async getFilters(athleteId: number): Promise<StatisticsFiltersDto> {
@@ -73,15 +77,19 @@ export class StatisticsAPI {
 
   static async getTerrain(
     params: StatisticsSectionParams & { sport: SPORT_TYPE },
-  ): Promise<StatisticsTerrainDto> {
-    const res = await client.get(routes.statistics.terrain, { params });
+  ): Promise<LabResponse<StatisticsTerrainDto>> {
+    const res = await client.get(routes.statistics.terrain, {
+      params: { ...params, ...LAB_TEASER },
+    });
     return res.data;
   }
 
   static async getCardiacCost(
     params: StatisticsSectionParams & { sport: SPORT_TYPE },
-  ): Promise<StatisticsCardiacCostDto> {
-    const res = await client.get(routes.statistics.cardiacCost, { params });
+  ): Promise<LabResponse<StatisticsCardiacCostDto>> {
+    const res = await client.get(routes.statistics.cardiacCost, {
+      params: { ...params, ...LAB_TEASER },
+    });
     return res.data;
   }
 
@@ -94,8 +102,10 @@ export class StatisticsAPI {
 
   static async getDurability(
     params: StatisticsSectionParams & { sport: SPORT_TYPE },
-  ): Promise<StatisticsDurabilityDto> {
-    const res = await client.get(routes.statistics.durability, { params });
+  ): Promise<LabResponse<StatisticsDurabilityDto>> {
+    const res = await client.get(routes.statistics.durability, {
+      params: { ...params, ...LAB_TEASER },
+    });
     return res.data;
   }
 
@@ -108,8 +118,10 @@ export class StatisticsAPI {
 
   static async getTrends(
     params: StatisticsSectionParams & { sport: SPORT_TYPE },
-  ): Promise<StatisticsTrendsDto> {
-    const res = await client.get(routes.statistics.trends, { params });
+  ): Promise<LabResponse<StatisticsTrendsDto>> {
+    const res = await client.get(routes.statistics.trends, {
+      params: { ...params, ...LAB_TEASER },
+    });
     return res.data;
   }
 

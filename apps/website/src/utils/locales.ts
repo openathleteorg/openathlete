@@ -12,12 +12,15 @@ export const SUPPORTED_LOCALES = [
   'it',
   'pt-br',
   'de',
+  'pl',
+  'nl',
 ] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: SupportedLocale = 'en';
 
 /** Paraglide locale tags, as in project.inlang/settings.json. */
-export type ParaglideLocale = 'en' | 'fr' | 'es' | 'it' | 'pt-BR' | 'de';
+export type ParaglideLocale =
+  'en' | 'fr' | 'es' | 'it' | 'pt-BR' | 'de' | 'pl' | 'nl';
 
 export function isSupportedLocale(value: unknown): value is SupportedLocale {
   return SUPPORTED_LOCALES.includes(value as SupportedLocale);
@@ -100,6 +103,8 @@ export const OG_LOCALES: Record<SupportedLocale, string> = {
   it: 'it_IT',
   'pt-br': 'pt_BR',
   de: 'de_DE',
+  pl: 'pl_PL',
+  nl: 'nl_NL',
 };
 
 /** BCP 47 tags for `Intl` formatting. */
@@ -110,6 +115,8 @@ export const DATE_LOCALES: Record<SupportedLocale, string> = {
   it: 'it-IT',
   'pt-br': 'pt-BR',
   de: 'de-DE',
+  pl: 'pl-PL',
+  nl: 'nl-NL',
 };
 
 export function formatLongDate(date: string, locale: SupportedLocale): string {
@@ -127,6 +134,8 @@ export const LOCALE_NAMES: Record<SupportedLocale, string> = {
   it: 'Italiano',
   'pt-br': 'Português (Brasil)',
   de: 'Deutsch',
+  pl: 'Polski',
+  nl: 'Nederlands',
 };
 
 export const getLocaleName = (locale: string) =>

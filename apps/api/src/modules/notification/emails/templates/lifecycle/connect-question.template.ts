@@ -40,6 +40,18 @@ const translations = {
     body: 'Ich sehe, dass dein OpenAthlete-Konto noch leer ist, und frage mich, woran es gehakt hat. Eine Uhr, die wir nicht unterstützen, eine Verbindung, die fehlgeschlagen ist, oder einfach keine Zeit?',
     ask: 'Eine Zeile als Antwort reicht völlig. Ich lese jede Antwort, und sie entscheiden, was ich zuerst behebe.',
   },
+  PL: {
+    subject: 'krótkie pytanie',
+    preview: 'Wystarczy mi jedna linijka odpowiedzi.',
+    body: 'Widzę, że Twoje konto OpenAthlete jest wciąż puste, i zastanawiam się, co stanęło na przeszkodzie. Zegarek, którego nie obsługujemy, połączenie, które nie zadziałało, czy po prostu brak czasu?',
+    ask: 'Wystarczy mi jedna linijka odpowiedzi. Czytam każdą i to one decydują, co poprawiam w pierwszej kolejności.',
+  },
+  NL: {
+    subject: 'een korte vraag',
+    preview: 'Eén regel als antwoord is genoeg.',
+    body: 'Ik zie dat je OpenAthlete-account nog leeg is, en ik vraag me af wat je tegenhield. Een horloge dat we niet ondersteunen, een koppeling die mislukte, of gewoon geen tijd?',
+    ask: 'Eén regel als antwoord is genoeg. Ik lees elk antwoord, en die bepalen wat ik als eerste oplos.',
+  },
 };
 
 export function buildConnectQuestionEmail(

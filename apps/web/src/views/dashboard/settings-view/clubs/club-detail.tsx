@@ -6,10 +6,13 @@ import {
   useUpdateClubMemberMutation,
   useUpdateClubMutation,
 } from '@/api/club';
+import { useSupporterBadges } from '@/api/subscription';
 import { clubRoleLabel } from '@/components/clubs/club-role';
 import { GroupsManager } from '@/components/clubs/groups-manager';
 import { NameDialog } from '@/components/clubs/name-dialog';
 import { ConfirmAction } from '@/components/confirm-action';
+import { LockedPanel } from '@/components/supporter-perks/locks';
+import { SupporterBadge } from '@/components/supporter-perks/supporter-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,6 +34,7 @@ import {
   CLUB_NAME_MAX,
   ClubMemberDto,
   ClubRole,
+  Feature,
   isClubAdmin,
   isClubCoach,
   isClubStaff,
@@ -77,6 +81,11 @@ export function ClubDetail({ clubId }: { clubId: number }) {
   const failed = () => toast.error(m.club_save_failed());
 
   const role = club?.role;
+  // The club keeps running without a Supporter owner, but does not grow
+  const acceptsMembers = club?.acceptsMembers ?? true;
+  const badges = useSupporterBadges(
+    club?.members.map((member) => member.userId) ?? [],
+  );
   const staff = useMemo(
     () => club?.members.filter((member) => isClubStaff(member.role)) ?? [],
     [club],
@@ -119,6 +128,7 @@ export function ClubDetail({ clubId }: { clubId: number }) {
       title={
         <span className="flex flex-wrap items-center gap-2">
           {fullName(member)}
+          <SupporterBadge show={badges.has(member.userId)} />
           {isMe(member) && (
             <span className="text-muted-foreground">{m.club_you()}</span>
           )}
@@ -219,6 +229,21 @@ export function ClubDetail({ clubId }: { clubId: number }) {
           <p className="text-sm text-muted-foreground">{club.description}</p>
         )}
       </div>
+      {!acceptsMembers && role === 'OWNER' && (
+        <LockedPanel
+          feature={Feature.CLUBS}
+          place="club_detail"
+          description={m.club_closed_owner()}
+        />
+      )}
+      {!acceptsMembers && role && role !== 'OWNER' && isClubStaff(role) && (
+        <p
+          className="rounded-xl bg-muted px-4 py-3 text-sm text-pretty"
+          data-club-closed
+        >
+          {m.club_closed_staff()}
+        </p>
+      )}
 
       <SettingsSection
         title={m.club_staff_title()}
@@ -265,11 +290,19 @@ export function ClubDetail({ clubId }: { clubId: number }) {
       )}
 
       {isClubStaff(role) && (
-        <ClubSessionsSection clubId={clubId} canManage={isClubCoach(role)} />
+        <ClubSessionsSection
+          clubId={clubId}
+          canManage={isClubCoach(role)}
+          canCreate={isClubCoach(role) && acceptsMembers}
+        />
       )}
 
-      {isClubAdmin(role) && <ClubJoinLinksSection clubId={clubId} />}
-      {isClubAdmin(role) && <ClubInvitationsSection clubId={clubId} />}
+      {isClubAdmin(role) && acceptsMembers && (
+        <ClubJoinLinksSection clubId={clubId} />
+      )}
+      {isClubAdmin(role) && acceptsMembers && (
+        <ClubInvitationsSection clubId={clubId} />
+      )}
 
       <SettingsSection title={m.club_settings_title()}>
         <SettingsPanel>

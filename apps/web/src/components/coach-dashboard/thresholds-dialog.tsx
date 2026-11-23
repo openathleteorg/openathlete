@@ -5,6 +5,7 @@ import {
 } from '@/api/coach';
 import { AthletePicker } from '@/components/clubs/athlete-picker';
 import { useCoachedAthletes } from '@/components/clubs/use-coached-athletes';
+import { FeatureGate } from '@/components/supporter-perks/locks';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,7 +30,11 @@ import { X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { DASHBOARD_METRIC_TYPES, METRIC_TYPE } from '@openathlete/shared';
+import {
+  DASHBOARD_METRIC_TYPES,
+  Feature,
+  METRIC_TYPE,
+} from '@openathlete/shared';
 
 /** Sleep is stored in hours; the coach types hours too */
 const parse = (value: string) => {
@@ -141,62 +146,68 @@ export function ThresholdsDialog({
             </ul>
           )}
 
-          <div className="space-y-3 rounded-xl border p-3">
-            <p className="text-sm font-medium">{m.coach_thresholds_add()}</p>
-            <div className="grid gap-2">
-              <Label>{m.coach_thresholds_metric()}</Label>
-              <Select value={metricType} onValueChange={setMetricType}>
-                <SelectTrigger aria-label={m.coach_thresholds_metric()}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DASHBOARD_METRIC_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {label(type)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+          {/* Thresholds already set keep notifying; adding is a coach tool */}
+          <FeatureGate
+            feature={Feature.COACH_THRESHOLDS}
+            place="coach_thresholds"
+          >
+            <div className="space-y-3 rounded-xl border p-3">
+              <p className="text-sm font-medium">{m.coach_thresholds_add()}</p>
               <div className="grid gap-2">
-                <Label htmlFor="threshold-min">
-                  {m.coach_thresholds_min()} {unit && `(${unit})`}
-                </Label>
-                <Input
-                  id="threshold-min"
-                  inputMode="decimal"
-                  value={min}
-                  onChange={(event) => setMin(event.target.value)}
-                />
+                <Label>{m.coach_thresholds_metric()}</Label>
+                <Select value={metricType} onValueChange={setMetricType}>
+                  <SelectTrigger aria-label={m.coach_thresholds_metric()}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DASHBOARD_METRIC_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {label(type)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="threshold-max">
-                  {m.coach_thresholds_max()} {unit && `(${unit})`}
-                </Label>
-                <Input
-                  id="threshold-max"
-                  inputMode="decimal"
-                  value={max}
-                  onChange={(event) => setMax(event.target.value)}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="threshold-min">
+                    {m.coach_thresholds_min()} {unit && `(${unit})`}
+                  </Label>
+                  <Input
+                    id="threshold-min"
+                    inputMode="decimal"
+                    value={min}
+                    onChange={(event) => setMin(event.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="threshold-max">
+                    {m.coach_thresholds_max()} {unit && `(${unit})`}
+                  </Label>
+                  <Input
+                    id="threshold-max"
+                    inputMode="decimal"
+                    value={max}
+                    onChange={(event) => setMax(event.target.value)}
+                  />
+                </div>
+              </div>
+              <AthletePicker
+                athletes={athletes}
+                selected={selected}
+                onChange={setSelected}
+              />
+              <div className="flex justify-end">
+                <Button
+                  onClick={save}
+                  disabled={invalid || setThresholds.isPending}
+                  isLoading={setThresholds.isPending}
+                >
+                  {m.coach_thresholds_save({ count: selected.size })}
+                </Button>
               </div>
             </div>
-            <AthletePicker
-              athletes={athletes}
-              selected={selected}
-              onChange={setSelected}
-            />
-            <div className="flex justify-end">
-              <Button
-                onClick={save}
-                disabled={invalid || setThresholds.isPending}
-                isLoading={setThresholds.isPending}
-              >
-                {m.coach_thresholds_save({ count: selected.size })}
-              </Button>
-            </div>
-          </div>
+          </FeatureGate>
         </div>
       </DialogContent>
     </Dialog>

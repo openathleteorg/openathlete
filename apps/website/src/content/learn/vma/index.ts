@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const vma: LearnTerm = {
@@ -16,6 +18,8 @@ export const vma: LearnTerm = {
     it: 'VAM (velocità aerobica massima)',
     'pt-br': 'VAM (velocidade aeróbia máxima)',
     de: 'VMA (maximale aerobe Geschwindigkeit)',
+    pl: 'VMA (maksymalna prędkość tlenowa)',
+    nl: 'VMA (maximale aerobe snelheid)',
   },
   title: {
     en: 'VMA (maximal aerobic speed): definition, formula, example',
@@ -24,6 +28,8 @@ export const vma: LearnTerm = {
     it: 'Cos’è la VAM? Definizione, calcolo, esempio',
     'pt-br': 'O que é VAM? Definição, cálculo e exemplo',
     de: 'VMA (max. aerobe Geschwindigkeit): Definition, Formel, Beispiel',
+    pl: 'VMA (maksymalna prędkość tlenowa): definicja, wzór, przykład',
+    nl: 'VMA (maximale aerobe snelheid): definitie, formule, voorbeeld',
   },
   description: {
     en: 'VMA, maximal aerobic speed, is the slowest pace that reaches your VO2max. How to calculate it with a 6-minute test or a race, and train at % of VMA.',
@@ -33,6 +39,8 @@ export const vma: LearnTerm = {
     'pt-br':
       'A VAM é a velocidade em que você atinge o seu VO2máx. Como calcular com um teste de 6 minutos ou uma prova, e como treinar em % da VAM.',
     de: 'VMA, die maximale aerobe Geschwindigkeit, ist das langsamste Tempo, das deine VO2max erreicht. Berechnung per 6-Minuten-Test oder Wettkampf, Training in %.',
+    pl: 'VMA, maksymalna prędkość tlenowa, to najwolniejsze tempo, przy którym osiągasz VO2max. Jak ją policzyć testem 6-minutowym lub ze startu i trenować w % VMA.',
+    nl: 'VMA, de maximale aerobe snelheid, is het laagste tempo waarop je je VO2max haalt. Bereken het met een 6-minutentest of wedstrijd en train in % van je VMA.',
   },
   definition: {
     en: 'VMA (vitesse maximale aérobie, maximal aerobic speed) is the lowest running speed at which you reach your VO2max, usually held for 4 to 8 minutes, and the reference used to set interval paces as a percentage.',
@@ -42,6 +50,8 @@ export const vma: LearnTerm = {
     'pt-br':
       'A VAM (velocidade aeróbia máxima) é a menor velocidade de corrida em que você atinge o seu VO2máx, sustentável em geral por 4 a 8 minutos, e a referência para definir o ritmo dos tiros em porcentagem.',
     de: 'Die VMA (vitesse maximale aérobie, maximale aerobe Geschwindigkeit) ist die niedrigste Laufgeschwindigkeit, bei der du deine VO2max erreichst. Sie lässt sich meist 4 bis 8 Minuten halten und dient als Referenz, um Intervall-Paces in Prozent festzulegen.',
+    pl: 'VMA (vitesse maximale aérobie, maksymalna prędkość tlenowa) to najniższa prędkość biegu, przy której osiągasz swoje VO2max, zwykle utrzymywana przez 4–8 minut, i punkt odniesienia do ustalania temp interwałów w procentach.',
+    nl: 'VMA (vitesse maximale aérobie, maximale aerobe snelheid) is de laagste loopsnelheid waarbij je je VO2max bereikt, meestal 4 tot 8 minuten vol te houden, en de referentie om intervaltempo’s in procenten vast te leggen.',
   },
   aliases: {
     en: ['Maximal aerobic speed', 'MAS', 'vVO2max', 'VMA'],
@@ -50,6 +60,20 @@ export const vma: LearnTerm = {
     it: ['Velocità aerobica massima', 'vVO2max', 'VMA'],
     'pt-br': ['Velocidade aeróbia máxima', 'vVO2máx', 'VMA'],
     de: ['Maximale aerobe Geschwindigkeit', 'MAS', 'vVO2max', 'VMA berechnen'],
+    pl: [
+      'Maksymalna prędkość tlenowa',
+      'MAS',
+      'vVO2max',
+      'Prędkość przy VO2max',
+      'Jak obliczyć VMA',
+    ],
+    nl: [
+      'Maximale aerobe snelheid',
+      'MAS',
+      'vVO2max',
+      'Snelheid bij VO2max',
+      'VMA berekenen',
+    ],
   },
   faq: {
     en: [
@@ -154,6 +178,40 @@ export const vma: LearnTerm = {
           'Alle zwei bis drei Monate reicht für die meisten Läufer, oder zu Beginn jedes Trainingsblocks. Zwischen den Tests zeigt dir ein Wettkampfergebnis oder eine gut eingeteilte Intervalleinheit, ob sich deine Prozentwerte noch richtig anfühlen.',
       },
     ],
+    pl: [
+      {
+        question: 'Jak obliczyć swoją VMA?',
+        answer:
+          'Po dobrej rozgrzewce przebiegnij na stadionie jak najdłuższy dystans w 6 minut, a potem podziel dystans przez czas: 1500 m w 6 minut to 15 km/h. Sprawdzi się też niedawny, płaski start na 5 lub 10 km: podziel średnią prędkość przez około 0,95 (5 km) lub 0,90 (10 km).',
+      },
+      {
+        question: 'Jaka VMA jest dobra?',
+        answer:
+          'Wielu biegaczy amatorów ma VMA między 12 a 16 km/h, wytrenowani biegacze klubowi między 16 a 19, a elitarni biegacze długodystansowi powyżej 21. Liczy się ona tylko w odniesieniu do Twoich celów: VMA wyznacza tempa treningowe, ale sama nie decyduje o wyniku w maratonie.',
+      },
+      {
+        question: 'Jak często powtarzać test VMA?',
+        answer:
+          'Większości biegaczy wystarczy co dwa, trzy miesiące albo na początku każdego bloku treningowego. Między testami wynik startu lub dobrze rozłożony trening interwałowy pokażą, czy Twoje procenty nadal pasują.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Hoe bereken ik mijn VMA?',
+        answer:
+          'Loop na een goede warming-up in 6 minuten zo ver mogelijk op een baan en deel de afstand door de tijd: 1.500 m in 6 minuten is 15 km/u. Een recente, vlakke 5 of 10 km werkt ook: deel je gemiddelde snelheid door ongeveer 0,95 (5 km) of 0,90 (10 km).',
+      },
+      {
+        question: 'Wat is een goede VMA?',
+        answer:
+          'Veel recreatieve lopers zitten tussen 12 en 16 km/u, getrainde clublopers tussen 16 en 19, en elite-langeafstandslopers boven 21. Het telt alleen ten opzichte van je eigen doelen: VMA bepaalt je trainingstempo’s, maar beslist niet in zijn eentje over je marathon.',
+      },
+      {
+        question: 'Hoe vaak moet ik mijn VMA opnieuw testen?',
+        answer:
+          'Elke twee à drie maanden is voor de meeste lopers genoeg, of aan het begin van elk trainingsblok. Tussen de tests door vertelt een wedstrijdresultaat of een goed ingedeelde intervaltraining je of je percentages nog kloppen.',
+      },
+    ],
   },
   related: ['vo2max', 'vdot', 'trimp', 'hrv'],
   links: ['/tools/vma', '/tools/heart-rate-zones', '/pace-charts'],
@@ -187,5 +245,7 @@ export const vma: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

@@ -118,12 +118,13 @@ export function ContentIt() {
       <h2>Provare senza pagare</h2>
       <p>
         OpenAthlete è gratuito per gli allenatori fino a cinque atleti, con
-        tutte le funzioni: calendario, editor di allenamenti, invio agli orologi
-        Garmin, Suunto e COROS, importazione delle attività da queste marche
-        oltre che da Polar e Strava, e carico di allenamento dalla frequenza
-        cardiaca con l'RPE di seduta accanto. Oltre i cinque atleti, Supporter,
-        a partire da 50 € all'anno, toglie il limite. Puoi usarlo accanto al tuo
-        foglio di calcolo con uno o due atleti per un mese prima di decidere. La{' '}
+        tutto ciò che serve per allenarli: calendario, editor di allenamenti,
+        invio agli orologi Garmin, Suunto e COROS, importazione delle attività
+        da queste marche oltre che da Polar e Strava, e carico di allenamento
+        dalla frequenza cardiaca con l'RPE di seduta accanto. Oltre i cinque
+        atleti, Supporter, a partire da 50 € all'anno, toglie il limite. Puoi
+        usarlo accanto al tuo foglio di calcolo con uno o due atleti per un mese
+        prima di decidere. La{' '}
         <Link href="/it/coaches">pagina per allenatori</Link> mostra com'è il
         lato allenatore.
       </p>

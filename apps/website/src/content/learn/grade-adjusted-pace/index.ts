@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const gradeAdjustedPace: LearnTerm = {
@@ -16,6 +18,8 @@ export const gradeAdjustedPace: LearnTerm = {
     it: 'Passo corretto per la pendenza (GAP)',
     'pt-br': 'Pace ajustado à inclinação (GAP)',
     de: 'Steigungsbereinigte Pace (GAP)',
+    pl: 'Tempo skorygowane o nachylenie (GAP)',
+    nl: 'Hellingsgecorrigeerd tempo (GAP)',
   },
   title: {
     en: 'Grade-adjusted pace (GAP): definition, formula, example',
@@ -24,6 +28,8 @@ export const gradeAdjustedPace: LearnTerm = {
     it: 'Cos’è il passo corretto per la pendenza? Definizione, formula',
     'pt-br': 'O que é pace ajustado à inclinação? Definição e fórmula',
     de: 'Steigungsbereinigte Pace (GAP): Definition, Formel, Beispiel',
+    pl: 'Czym jest GAP (tempo skorygowane o nachylenie)? Definicja, wzór',
+    nl: 'Wat is GAP (hellingsgecorrigeerd tempo)? Definitie, formule',
   },
   description: {
     en: 'Grade-adjusted pace (GAP) converts uphill and downhill pace into its flat equivalent. Minetti’s energy-cost formula, worked examples and limits.',
@@ -33,6 +39,8 @@ export const gradeAdjustedPace: LearnTerm = {
     'pt-br':
       'O pace ajustado à inclinação (GAP) converte o pace de subida ou descida no equivalente no plano. Fórmula de Minetti, exemplos e limites.',
     de: 'Die steigungsbereinigte Pace (GAP) rechnet deine Pace bergauf und bergab in ihr Äquivalent im Flachen um. Minettis Formel, Rechenbeispiele und Grenzen.',
+    pl: 'Tempo skorygowane o nachylenie (GAP) przelicza tempo pod górę i w dół na równoważnik na płaskim. Wzór Minettiego, przykłady z liczbami i ograniczenia.',
+    nl: 'Hellingsgecorrigeerd tempo (GAP) rekent je tempo bergop en bergaf om naar het equivalent op het vlakke. Minetti’s formule, voorbeelden en beperkingen.',
   },
   definition: {
     en: 'Grade-adjusted pace (GAP) is the pace on flat ground that would cost the same energy as the pace you ran on a slope, computed from the energy cost of running at each gradient.',
@@ -42,6 +50,8 @@ export const gradeAdjustedPace: LearnTerm = {
     'pt-br':
       'O pace ajustado à inclinação (GAP) é o pace no plano que custaria a mesma energia que o pace corrido numa inclinação, calculado a partir do custo energético de correr em cada inclinação.',
     de: 'Die steigungsbereinigte Pace (GAP) ist die Pace im Flachen, die dieselbe Energie kosten würde wie die Pace, die du am Hang gelaufen bist. Sie wird aus den Energiekosten des Laufens bei jeder Steigung berechnet.',
+    pl: 'Tempo skorygowane o nachylenie (GAP) to tempo na płaskim, które kosztowałoby tyle samo energii co tempo pobiegnięte na zboczu, wyliczane z kosztu energetycznego biegu przy każdym nachyleniu.',
+    nl: 'Hellingsgecorrigeerd tempo (GAP) is het tempo op vlak terrein dat evenveel energie zou kosten als het tempo dat je op een helling liep, berekend uit de energiekosten van hardlopen bij elke helling.',
   },
   aliases: {
     en: ['GAP', 'Grade adjusted pace', 'Flat-equivalent pace'],
@@ -50,6 +60,13 @@ export const gradeAdjustedPace: LearnTerm = {
     it: ['GAP', 'Passo equivalente in piano', 'Grade-adjusted pace'],
     'pt-br': ['GAP', 'Pace equivalente no plano', 'Grade-adjusted pace'],
     de: ['GAP', 'Grade-adjusted Pace', 'Pace-Äquivalent im Flachen'],
+    pl: ['GAP', 'Grade adjusted pace', 'Tempo na płaskim', 'Tempo skorygowane'],
+    nl: [
+      'GAP',
+      'Grade adjusted pace',
+      'Gecorrigeerd tempo',
+      'Vlak-equivalent tempo',
+    ],
   },
   faq: {
     en: [
@@ -160,6 +177,42 @@ export const gradeAdjustedPace: LearnTerm = {
           'Nur ungefähr. Minettis Kurve gilt fürs Laufen. Bei Anstiegen über etwa 15 bis 20 % gehen die meisten Trailrunner, und Gehen hat andere Energiekosten, die GAP ist auf diesen Abschnitten also eine Näherung.',
       },
     ],
+    pl: [
+      {
+        question:
+          'Dlaczego na pagórkowatym biegu moje GAP jest szybsze niż rzeczywiste tempo?',
+        answer:
+          'Bo bieg pod górę kosztuje więcej energii na metr niż bieg po płaskim. Na 8-procentowym podbiegu metr kosztuje około 1,5 raza więcej, więc 7:30/km jest tam wart mniej więcej 4:58/km na płaskim. Zbiegi działają w drugą stronę, ale słabiej, więc pagórkowata pętla zwykle kończy się GAP szybszym niż surowa średnia.',
+      },
+      {
+        question: 'Dlaczego GAP różni się między aplikacjami?',
+        answer:
+          'Każda aplikacja ma własny model i własne wygładzanie wysokości. OpenAthlete używa krzywej Minettiego z 2002 roku, z nachyleniem ograniczonym do ±30 %; Strava używa modelu zbudowanego na danych tętna, który daje mniejszą premię na zbiegach. Porównuj biegi w obrębie jednej aplikacji.',
+      },
+      {
+        question: 'Czy GAP działa przy marszu na stromych podejściach?',
+        answer:
+          'Tylko z grubsza. Krzywa Minettiego dotyczy biegu. Na podejściach bardziej stromych niż około 15 do 20 % większość biegaczy górskich idzie, a marsz ma inny koszt energetyczny, więc GAP na tych odcinkach jest przybliżeniem.',
+      },
+    ],
+    nl: [
+      {
+        question:
+          'Waarom is mijn GAP sneller dan mijn echte tempo bij een heuvelachtige loop?',
+        answer:
+          'Omdat klimmen per meter meer energie kost dan lopen op het vlakke. Op een klim van 8% kost een meter ongeveer 1,5 keer zoveel, dus 7:30/km is daar zo’n 4:58/km op het vlakke waard. Afdalingen werken de andere kant op, maar minder sterk, dus een heuvelachtig rondje eindigt meestal met een GAP dat sneller is dan het ruwe gemiddelde.',
+      },
+      {
+        question: 'Waarom verschilt GAP per app?',
+        answer:
+          'Elke app gebruikt een eigen model en een eigen afvlakking van de hoogte. OpenAthlete gebruikt de loopbandcurve van Minetti uit 2002 met de helling begrensd op ±30%; Strava gebruikt een model dat het op hartslagdata bouwde en dat in afdalingen minder krediet geeft. Vergelijk loopjes binnen één app.',
+      },
+      {
+        question: 'Werkt GAP ook als je steile klimmen wandelt?',
+        answer:
+          'Alleen bij benadering. De curve van Minetti is voor hardlopen. Op klimmen steiler dan ongeveer 15 tot 20% wandelen de meeste trailrunners, en wandelen heeft andere energiekosten, dus GAP is op die stukken een benadering.',
+      },
+    ],
   },
   related: ['km-effort', 'critical-speed', 'negative-split', 'vma'],
   links: [
@@ -183,5 +236,7 @@ export const gradeAdjustedPace: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

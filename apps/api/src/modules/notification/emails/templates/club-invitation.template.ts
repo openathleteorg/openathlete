@@ -100,6 +100,34 @@ const translations: Record<
     ignoreNote:
       'Wenn du diese Einladung nicht erwartet hast, kannst du diese E-Mail ignorieren.',
   },
+  PL: {
+    title: (club) => `Dołącz do klubu ${club}`,
+    preview: (inviter, club) =>
+      `${inviter} zaprasza Cię do klubu ${club} w OpenAthlete`,
+    description: (inviter, club, role) =>
+      role === 'COACH'
+        ? `${inviter} zaprasza Cię do trenowania zawodników klubu ${club} w OpenAthlete. Kliknij przycisk, aby założyć konto lub się zalogować, i dołącz do klubu.`
+        : `${inviter} zaprasza Cię do klubu ${club} w OpenAthlete. Trenerzy klubu będą widzieć Twoje treningi i planować Twoje sesje. Kliknij przycisk, aby założyć konto lub się zalogować.`,
+    buttonLabel: 'Dołącz do klubu',
+    linkNote: (url) =>
+      `Jeśli przycisk nie działa, skopiuj ten link i wklej go w przeglądarce: ${url}`,
+    ignoreNote:
+      'Jeśli to zaproszenie jest dla Ciebie zaskoczeniem, możesz zignorować tę wiadomość.',
+  },
+  NL: {
+    title: (club) => `Word lid van ${club}`,
+    preview: (inviter, club) =>
+      `${inviter} nodigt je uit voor ${club} op OpenAthlete`,
+    description: (inviter, club, role) =>
+      role === 'COACH'
+        ? `${inviter} nodigt je uit om de atleten van ${club} te coachen op OpenAthlete. Klik op de knop om je account aan te maken of in te loggen, en word lid van de club.`
+        : `${inviter} nodigt je uit om lid te worden van ${club} op OpenAthlete. De coaches van de club zien je trainingen en plannen je sessies. Klik op de knop om je account aan te maken of in te loggen.`,
+    buttonLabel: 'Word lid van de club',
+    linkNote: (url) =>
+      `Werkt de knop niet? Kopieer deze link en plak hem in je browser: ${url}`,
+    ignoreNote:
+      'Had je deze uitnodiging niet verwacht? Dan kun je deze e-mail negeren.',
+  },
 };
 
 export function buildClubInvitationEmail({

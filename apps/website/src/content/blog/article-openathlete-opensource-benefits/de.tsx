@@ -125,12 +125,14 @@ export function ContentDe() {
 
       <h2>Wenn du lieber keinen Server betreiben willst</h2>
       <p>
-        Die gehostete Version ist kostenlos und enthält alle Funktionen. API und
-        Datenbank laufen bei OVH in Frankreich, die Web-App wird von Vercel
-        ausgeliefert. Der Supporter-Plan (ab 5&nbsp;€ im Monat oder 50&nbsp;€ im
-        Jahr) bietet KI über die Schlüssel von OpenAthlete und Coaching für mehr
-        als fünf Athleten, und er hilft, die Server zu bezahlen. Mehr zu den
-        Beweggründen hinter dem Projekt findest du auf der{' '}
+        In der gehosteten Version ist alles kostenlos, was du zum Trainieren
+        brauchst. API und Datenbank laufen bei OVH in Frankreich, die Web-App
+        wird von Vercel ausgeliefert. Der Supporter-Plan (ab 5&nbsp;€ im Monat
+        oder 50&nbsp;€ im Jahr) hilft, die Server zu bezahlen, und bringt als
+        Dankeschön das Lab, früheren Zugang zu neuen Funktionen, die erweiterten
+        Coach-Werkzeuge und Vereine, KI über die Schlüssel von OpenAthlete und
+        Coaching für mehr als fünf Athleten. Mehr zu den Beweggründen hinter dem
+        Projekt findest du auf der{' '}
         <Link href="/de/open-source">Open-Source-Seite</Link>.
       </p>
     </div>

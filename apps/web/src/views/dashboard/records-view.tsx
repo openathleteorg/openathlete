@@ -34,6 +34,7 @@ import { RecordsYearsTable } from '@/components/records/records-years-table';
 import { TrainingPacesCard } from '@/components/records/training-paces-card';
 import { useDismissedSuspects } from '@/components/records/use-dismissed-suspects';
 import { SportSelect } from '@/components/sport-select/sport-select';
+import { LockedPanel } from '@/components/supporter-perks/locks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { InsightBanner } from '@/components/ui/insight-banner';
@@ -41,6 +42,7 @@ import { PageTitle } from '@/components/ui/page-title';
 import { SkeletonChart } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
+import { useFeature } from '@/hooks/use-feature';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
@@ -50,6 +52,7 @@ import { toast } from 'sonner';
 
 import {
   CreateRecordExclusionDto,
+  Feature,
   RECORD_TYPE,
   SPORT_TYPE,
 } from '@openathlete/shared';
@@ -113,6 +116,7 @@ export function RecordsView({ athleteId }: P) {
     () => (history ? allTimeRecords(history) : []),
     [history],
   );
+  const lab = useFeature(Feature.LAB);
   const years = useMemo(() => (history ? recordYears(history) : []), [history]);
   const suspects = useMemo(
     () =>
@@ -320,16 +324,24 @@ export function RecordsView({ athleteId }: P) {
                   onSelect={(position) => openRecord(metric, position)}
                 />
               </div>
+              {/* The record of each distance stays free, rows open its
+                  progression and exclusions; the years side by side are
+                  part of the Lab */}
               <RecordsYearsTable
                 metric={metric}
                 sport={sport}
                 records={records}
-                history={history?.years ?? []}
-                years={years}
+                history={lab.available ? (history?.years ?? []) : []}
+                years={lab.available ? years : []}
                 suspects={suspects}
                 dateFormat={dateFormat}
                 onSelect={(position) => openRecord(metric, position)}
               />
+              {lab.locked && (
+                <div className="border-t p-3 md:p-4">
+                  <LockedPanel feature={Feature.LAB} place="records_years" />
+                </div>
+              )}
               <p className="border-t px-4 py-2 text-xs text-muted-foreground">
                 {m.records_legend()}
               </p>

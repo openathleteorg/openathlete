@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleStopTrainingOnFeeling: BlogPost = {
@@ -16,6 +18,8 @@ export const articleStopTrainingOnFeeling: BlogPost = {
       it: 'Allenarsi a sensazione: quando aiuta e quando ti frena',
       'pt-br': 'Treinar pela sensação: quando ajuda e quando atrapalha',
       de: 'Training nach Gefühl: wann es hilft und wann es dich bremst',
+      pl: 'Trening na czucie: kiedy pomaga, a kiedy Cię hamuje',
+      nl: 'Trainen op gevoel: wanneer het helpt en wanneer het je afremt',
     },
     description: {
       en: 'Listening to your body is not the same as training on mood. How to tell signals from preferences, and simple rules for adjusting a plan.',
@@ -25,6 +29,8 @@ export const articleStopTrainingOnFeeling: BlogPost = {
       'pt-br':
         'Escutar o corpo não é treinar conforme o humor. Como separar sinais de preferências e regras simples para ajustar a planilha.',
       de: 'Auf den Körper hören ist nicht dasselbe wie Training nach Laune. Wie du Signale von Vorlieben trennst, und einfache Regeln, um einen Plan anzupassen.',
+      pl: 'Słuchanie ciała to nie to samo co trening według nastroju. Jak odróżnić sygnały od preferencji i proste zasady dostosowania planu.',
+      nl: 'Naar je lichaam luisteren is niet hetzelfde als trainen op je humeur. Hoe je signalen van voorkeuren scheidt, en eenvoudige regels om een plan aan te passen.',
     },
     excerpt: {
       en: 'Speeding up on good days and skipping on flat ones turns every week into medium days. Decide your adjustment rules before the session, not during it.',
@@ -34,6 +40,8 @@ export const articleStopTrainingOnFeeling: BlogPost = {
       'pt-br':
         'Acelerar nos dias bons e pular treino nos dias ruins transforma toda semana em dias médios. Defina suas regras de ajuste antes do treino, não durante.',
       de: 'Wer an guten Tagen schneller läuft und an schlappen Tagen ausfallen lässt, macht aus jeder Woche mittlere Tage. Leg deine Anpassungsregeln vor der Einheit fest, nicht währenddessen.',
+      pl: 'Przyspieszanie w dobre dni i odpuszczanie w słabsze zamienia każdy tydzień w średnie dni. Ustal zasady dostosowania przed treningiem, a nie w jego trakcie.',
+      nl: 'Sneller lopen op goede dagen en overslaan op slappe dagen maakt van elke week gemiddelde dagen. Leg je aanpassingsregels vast vóór de training, niet tijdens.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -57,4 +65,6 @@ export const articleStopTrainingOnFeeling: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

@@ -157,6 +157,7 @@ export class UserService {
         timeZone: true,
         trainingReminders: true,
         calendarDisplay: true,
+        accentTheme: true,
         coachDashboard: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
@@ -175,6 +176,7 @@ export class UserService {
         weeklyTrainingHours: true,
         coachTeamSize: true,
         createdAt: true,
+        unitSystem: true,
       },
     });
   };
@@ -280,6 +282,7 @@ export class UserService {
       clubJoinToken,
       language,
       emailNews,
+      unitSystem,
     }: CreateAccountDto,
     { emailFromProvider = false }: { emailFromProvider?: boolean } = {},
   ) => {
@@ -359,6 +362,7 @@ export class UserService {
           language,
           // Ticked by the person on the form, never by default
           emailNewsConsentAt: emailNews ? new Date() : null,
+          unitSystem,
           roles: [UserRole.ATHLETE, UserRole.COACH],
           athlete: {
             create: {
@@ -466,6 +470,7 @@ export class UserService {
         timeZone: data.timeZone,
         trainingReminders: data.trainingReminders,
         calendarDisplay: data.calendarDisplay,
+        accentTheme: data.accentTheme,
         coachDashboard: data.coachDashboard,
         hiddenActivityTracks: data.hiddenActivityTracks,
         supportReminderDismissedAt: data.supportReminderDismissed
@@ -491,6 +496,7 @@ export class UserService {
             : data.emailNews
               ? new Date()
               : null,
+        unitSystem: data.unitSystem,
       },
       select: {
         firstName: true,
@@ -499,6 +505,7 @@ export class UserService {
         timeZone: true,
         trainingReminders: true,
         calendarDisplay: true,
+        accentTheme: true,
         coachDashboard: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
@@ -515,6 +522,7 @@ export class UserService {
         trainingGoal: true,
         weeklyTrainingHours: true,
         coachTeamSize: true,
+        unitSystem: true,
       },
     });
     if (before?.emailWeekly) {
@@ -712,6 +720,7 @@ export class UserService {
 
     if (data.targetRace && data.roles.includes('ATHLETE')) {
       await this.createTargetRace(
+        user.userId,
         athlete.athleteId,
         data.targetRace,
         updated.timeZone ?? 'UTC',
@@ -753,6 +762,7 @@ export class UserService {
    * day whatever the time zone.
    */
   private async createTargetRace(
+    userId: number,
     athleteId: number,
     race: TargetRaceDto,
     timeZone: string,
@@ -762,6 +772,7 @@ export class UserService {
     await this.prisma.event.create({
       data: {
         athleteId,
+        createdById: userId,
         type: 'COMPETITION',
         name: race.name ?? preset.name,
         startDate,

@@ -93,21 +93,23 @@ export function ContentFr() {
 
       <h2>Deux façons de faire tourner un club sur OpenAthlete</h2>
       <p>
-        OpenAthlete a un espace club. Il est gratuit sur nos serveurs, sans
+        OpenAthlete a un espace club. Sur nos serveurs, un Supporter ouvre le
+        club et les membres et entraîneurs le rejoignent gratuitement, sans
         limite d'athlètes, et un club qui préfère son propre serveur y retrouve
         les mêmes fonctions en installant OpenAthlete chez lui.
       </p>
       <p>
-        <strong>Un espace club, sur nos serveurs.</strong> Un entraîneur crée le
-        club dans Paramètres &gt; Clubs et donne un rôle à chacun&nbsp;:
-        propriétaire, administrateur, entraîneur, assistant ou athlète. Chaque
-        entraîneur du club accède aux athlètes du club, et ces athlètes ne
-        comptent pas dans la limite de cinq athlètes d'un compte entraîneur
-        gratuit. Les adhérents rejoignent le club depuis une liste que vous
-        importez (collée, ou en CSV depuis le tableur du club, groupes compris),
-        avec un code d'accès ou par des liens qui expirent. Chaque groupe, par
-        allure ou par niveau, a ses entraîneurs, et la bibliothèque du club
-        réunit les séances et les dossiers dont se servent tous ses entraîneurs.
+        <strong>Un espace club, sur nos serveurs.</strong> Un entraîneur abonné
+        Supporter crée le club dans Paramètres &gt; Clubs et donne un rôle à
+        chacun&nbsp;: propriétaire, administrateur, entraîneur, assistant ou
+        athlète. Chaque entraîneur du club accède aux athlètes du club, et ces
+        athlètes ne comptent pas dans la limite de cinq athlètes d'un compte
+        entraîneur gratuit. Les adhérents rejoignent le club depuis une liste
+        que vous importez (collée, ou en CSV depuis le tableur du club, groupes
+        compris), avec un code d'accès ou par des liens qui expirent. Chaque
+        groupe, par allure ou par niveau, a ses entraîneurs, et la bibliothèque
+        du club réunit les séances et les dossiers dont se servent tous ses
+        entraîneurs.
       </p>
       <p>
         Pour planifier un groupe, on copie une séance, une journée ou une

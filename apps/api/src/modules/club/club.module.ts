@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 
 import { AuthModule } from '../auth';
 import { CoreModule } from '../core/core.module';
 import { NotificationModule } from '../notification/notification.module';
+import { SubscriptionModule } from '../subscription/subscription.module';
 import { AthleteGroupController } from './athlete-group.controller';
 import { AthleteGroupService } from './athlete-group.service';
 import { ClubInvitationService } from './club-invitation.service';
@@ -13,7 +14,12 @@ import { ClubController, ClubJoinController } from './club.controller';
 import { ClubService } from './club.service';
 
 @Module({
-  imports: [AuthModule, CoreModule, NotificationModule],
+  imports: [
+    AuthModule,
+    CoreModule,
+    NotificationModule,
+    forwardRef(() => SubscriptionModule),
+  ],
   controllers: [
     ClubController,
     ClubJoinController,

@@ -203,29 +203,31 @@ export function ContentDe() {
       <p>
         Unser eigenes Projekt, urteile also entsprechend. Es ist Open Source
         (AGPL), kostenlos selbst zu hosten oder von uns in Frankreich gehostet.
-        In der gehosteten Version ist jede Funktion kostenlos, Coaching von bis
-        zu 5 Athleten eingeschlossen; Supporter ab 5&nbsp;€ im Monat oder
-        50&nbsp;€ im Jahr bringt unbegrenzt viele betreute Athleten und KI über
-        unsere Schlüssel (<Link href="/de/pricing">Preise</Link>). Vereine
-        bekommen einen kostenlosen Vereinsbereich ohne Athletenlimit: Gruppen
-        mit eigenen Coaches, eine gemeinsame Bibliothek, wöchentliche
-        Vereinseinheiten und Pläne, die auf eine ganze Gruppe kopiert werden.
-        Geplante Einheiten gehen an Uhren von Garmin, Suunto und COROS;
-        Aktivitäten kommen von diesen dreien sowie von Polar und Strava. Die
-        Trainingsbelastung ist TRIMP aus der Herzfrequenz mit Session-RPE
+        In der gehosteten Version ist alles kostenlos, was du zum Trainieren
+        brauchst, Coaching von bis zu 5 Athleten eingeschlossen; Supporter ab
+        5&nbsp;€ im Monat oder 50&nbsp;€ im Jahr finanziert das Projekt und
+        bringt das Lab, früheren Zugang zu neuen Funktionen, die erweiterten
+        Coach-Werkzeuge und Vereine, unbegrenzt viele betreute Athleten und KI
+        über unsere Schlüssel (<Link href="/de/pricing">Preise</Link>). Einen
+        Verein eröffnet ein Supporter, Mitglieder treten kostenlos bei, ohne
+        Athletenlimit: Gruppen mit eigenen Coaches, eine gemeinsame Bibliothek,
+        wöchentliche Vereinseinheiten und Pläne, die auf eine ganze Gruppe
+        kopiert werden. Geplante Einheiten gehen an Uhren von Garmin, Suunto und
+        COROS; Aktivitäten kommen von diesen dreien sowie von Polar und Strava.
+        Die Trainingsbelastung ist TRIMP aus der Herzfrequenz mit Session-RPE
         daneben, und Fitness, Ermüdung und Form werden über die geplanten
         Einheiten vorausberechnet. KI ist optional und läuft über deinen eigenen
         Schlüssel oder das Supporter-Kontingent.
       </p>
       <p>
         Die Grenzen sind real. Es gibt keinen Marktplatz für den Verkauf von
-        Plänen, keine Vereinsabrechnung (der Vereinsbereich ist kostenlos, aber
-        Mitgliedsbeiträge laufen außerhalb von OpenAthlete), keine App fürs
-        Indoor-Training und keine Workouts für Polar-Uhren. Die Analyse ist
-        weniger tief als bei intervals.icu, und das Projekt ist jung und wird
-        von einem einzelnen Entwickler gebaut. Unsere Antwort auf „Was, wenn es
-        euch nicht mehr gibt?“ ist die Lizenz: Der Code und deine Daten bleiben
-        ohne uns nutzbar. Der Vergleich Punkt für Punkt steht unter{' '}
+        Plänen, keine Vereinsabrechnung (der Beitritt zu einem Verein ist
+        kostenlos, aber Mitgliedsbeiträge laufen außerhalb von OpenAthlete),
+        keine App fürs Indoor-Training und keine Workouts für Polar-Uhren. Die
+        Analyse ist weniger tief als bei intervals.icu, und das Projekt ist jung
+        und wird von einem einzelnen Entwickler gebaut. Unsere Antwort auf „Was,
+        wenn es euch nicht mehr gibt?“ ist die Lizenz: Der Code und deine Daten
+        bleiben ohne uns nutzbar. Der Vergleich Punkt für Punkt steht unter{' '}
         <Link href="/de/compare/trainingpeaks">
           OpenAthlete vs. TrainingPeaks
         </Link>

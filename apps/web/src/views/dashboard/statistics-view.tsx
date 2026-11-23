@@ -1,7 +1,13 @@
 import { useStatisticsFiltersQuery } from '@/api/statistics';
 import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
+import { EfficiencyCard } from '@/components/statistics/efficiency-card';
+import { RUNNING_SPORTS } from '@/components/statistics/efficiency-data';
 import { EnduranceSection } from '@/components/statistics/endurance-section';
 import { IntensitySection } from '@/components/statistics/intensity-section';
+import {
+  LabOverviewCard,
+  LabPreview,
+} from '@/components/statistics/lab-preview';
 import { LoadSection } from '@/components/statistics/load-section';
 import { PerformanceSection } from '@/components/statistics/performance-section';
 import { PhysiologySection } from '@/components/statistics/physiology-section';
@@ -18,12 +24,18 @@ import {
 import { SummarySection } from '@/components/statistics/summary-section';
 import { TerrainSection } from '@/components/statistics/terrain-section';
 import { TrendsSection } from '@/components/statistics/trends-section';
-import { useStatisticsFilters } from '@/components/statistics/use-statistics-filters';
+import {
+  LAB_VIEWS,
+  useStatisticsFilters,
+} from '@/components/statistics/use-statistics-filters';
 import { VolumeSection } from '@/components/statistics/volume-section';
 import { YearReviewSection } from '@/components/statistics/year-review-section';
 import { PageTitle } from '@/components/ui/page-title';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
+import { useFeature } from '@/hooks/use-feature';
 import { m } from '@/paraglide/messages';
+
+import { Feature } from '@openathlete/shared';
 
 interface P {
   athleteId: number;
@@ -31,9 +43,18 @@ interface P {
 
 export function StatisticsView({ athleteId }: P) {
   const { data: options } = useStatisticsFiltersQuery(athleteId);
-  const filters = useStatisticsFilters(options?.firstActivityDate);
+  const compare = useFeature(Feature.STATISTICS_COMPARE);
+  const filters = useStatisticsFilters(
+    options?.firstActivityDate,
+    compare.available,
+  );
   const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
   const { period, compared, sport, group } = filters;
+  const lab = useFeature(Feature.LAB);
+  // The Android app does not show the Lab to non-Supporters: a shared link
+  // to it opens the overview
+  const view =
+    lab.hidden && LAB_VIEWS.includes(filters.view) ? 'overview' : filters.view;
 
   const pageTitle = isCurrentUser
     ? m.my_statistics()
@@ -44,15 +65,21 @@ export function StatisticsView({ athleteId }: P) {
 
   // A view on one sport opens on the most practised one, never on a dead end
   const oneSport = sport ?? options?.sports[0] ?? null;
+  // Efficiency is a runner's figure: the chosen sport, or the main run
+  const runSport = sport
+    ? RUNNING_SPORTS.has(sport)
+      ? sport
+      : null
+    : (options?.sports.find((value) => RUNNING_SPORTS.has(value)) ?? null);
 
   return (
     <div className="w-full space-y-4 p-4 md:space-y-6 md:p-8 md:pt-6">
       <PageTitle desktopOnly>{pageTitle}</PageTitle>
-      {filters.view !== 'review' && (
+      {view !== 'review' && (
         <StatisticsFilters filters={filters} sports={options?.sports ?? []} />
       )}
-      <StatisticsTabs value={filters.view} onChange={filters.setView} />
-      {filters.view === 'overview' && (
+      <StatisticsTabs value={view} onChange={filters.setView} />
+      {view === 'overview' && (
         <>
           <StatisticsInsight
             athleteId={athleteId}
@@ -79,9 +106,14 @@ export function StatisticsView({ athleteId }: P) {
             sport={sport}
             group={group}
           />
+          <LabOverviewCard
+            athleteId={athleteId}
+            sport={oneSport}
+            onOpen={() => filters.setView('capacities')}
+          />
         </>
       )}
-      {filters.view === 'load' && (
+      {view === 'load' && (
         <>
           <LoadSection
             athleteId={athleteId}
@@ -98,72 +130,81 @@ export function StatisticsView({ athleteId }: P) {
             group={group}
           />
           <RecoverySection athleteId={athleteId} period={period} />
+          {runSport && (
+            <EfficiencyCard
+              athleteId={athleteId}
+              period={period}
+              sport={runSport}
+              visible
+            />
+          )}
         </>
       )}
-      {filters.view === 'review' && (
+      {view === 'review' && (
         <YearReviewSection
           athleteId={athleteId}
           firstActivityDate={options?.firstActivityDate}
         />
       )}
-      {(filters.view === 'capacities' || filters.view === 'trends') &&
-        oneSport && (
-          <>
-            <SportPicker
-              sports={options?.sports ?? []}
-              value={oneSport}
-              onChange={filters.setSport}
-            />
-            {filters.view === 'capacities' ? (
-              <>
-                <CapacityTabs
-                  value={filters.capacity}
-                  onChange={filters.setCapacity}
-                />
-                {filters.capacity === 'profile' && (
-                  <ProfileSection athleteId={athleteId} sport={oneSport} />
-                )}
-                {filters.capacity === 'terrain' && (
-                  <TerrainSection
-                    athleteId={athleteId}
-                    period={period}
-                    sport={oneSport}
-                  />
-                )}
-                {filters.capacity === 'endurance' && (
-                  <EnduranceSection
-                    athleteId={athleteId}
-                    period={period}
-                    sport={oneSport}
-                  />
-                )}
-                {filters.capacity === 'physiology' && (
-                  <PhysiologySection
-                    athleteId={athleteId}
-                    period={period}
-                    compared={compared}
-                    sport={oneSport}
-                  />
-                )}
-                {filters.capacity === 'performance' && (
-                  <PerformanceSection
-                    athleteId={athleteId}
-                    period={period}
-                    compared={compared}
-                    sport={oneSport}
-                  />
-                )}
-              </>
-            ) : (
-              <TrendsSection
-                athleteId={athleteId}
-                period={period}
-                compared={compared}
-                sport={oneSport}
+      {(view === 'capacities' || view === 'trends') && oneSport && (
+        <>
+          <SportPicker
+            sports={options?.sports ?? []}
+            value={oneSport}
+            onChange={filters.setSport}
+          />
+          {lab.locked ? (
+            <LabPreview athleteId={athleteId} sport={oneSport} />
+          ) : view === 'capacities' ? (
+            <>
+              <CapacityTabs
+                value={filters.capacity}
+                onChange={filters.setCapacity}
               />
-            )}
-          </>
-        )}
+              {filters.capacity === 'profile' && (
+                <ProfileSection athleteId={athleteId} sport={oneSport} />
+              )}
+              {filters.capacity === 'terrain' && (
+                <TerrainSection
+                  athleteId={athleteId}
+                  period={period}
+                  sport={oneSport}
+                />
+              )}
+              {filters.capacity === 'endurance' && (
+                <EnduranceSection
+                  athleteId={athleteId}
+                  period={period}
+                  sport={oneSport}
+                />
+              )}
+              {filters.capacity === 'physiology' && (
+                <PhysiologySection
+                  athleteId={athleteId}
+                  period={period}
+                  compared={compared}
+                  sport={oneSport}
+                />
+              )}
+              {filters.capacity === 'performance' && (
+                <PerformanceSection
+                  athleteId={athleteId}
+                  period={period}
+                  compared={compared}
+                  sport={oneSport}
+                />
+              )}
+            </>
+          ) : (
+            <TrendsSection
+              athleteId={athleteId}
+              period={period}
+              compared={compared}
+              sport={oneSport}
+            />
+          )}
+        </>
+      )}
       <GarminAttribution athleteId={athleteId} />
     </div>
   );

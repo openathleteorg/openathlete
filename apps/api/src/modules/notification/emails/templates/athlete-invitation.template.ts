@@ -77,6 +77,29 @@ const translations = {
     expiryNote:
       'Diese Einladung ist 7 Tage gültig. Wenn du kein Interesse hast, kannst du diese E-Mail ignorieren.',
   },
+  PL: {
+    title: 'Zaproszenie do OpenAthlete',
+    preview: (coachName: string) => `${coachName} zaprasza Cię do OpenAthlete`,
+    description: (coachName: string) =>
+      `${coachName} zaprasza Cię do OpenAthlete jako zawodnika. Kliknij przycisk poniżej, aby założyć konto i zacząć śledzić swoje treningi.`,
+    buttonLabel: 'Załóż konto',
+    linkNote: (url: string) =>
+      `Jeśli przycisk nie działa, skopiuj ten link i wklej go w przeglądarce: ${url}`,
+    expiryNote:
+      'To zaproszenie jest ważne przez 7 dni. Jeśli Cię nie interesuje, możesz zignorować tę wiadomość.',
+  },
+  NL: {
+    title: 'Uitnodiging voor OpenAthlete',
+    preview: (coachName: string) =>
+      `${coachName} nodigt je uit voor OpenAthlete`,
+    description: (coachName: string) =>
+      `${coachName} nodigt je uit om als atleet lid te worden van OpenAthlete. Klik op de knop hieronder om je account aan te maken en je trainingen bij te houden.`,
+    buttonLabel: 'Account aanmaken',
+    linkNote: (url: string) =>
+      `Werkt de knop niet? Kopieer deze link en plak hem in je browser: ${url}`,
+    expiryNote:
+      'Deze uitnodiging is 7 dagen geldig. Heb je geen interesse, dan kun je deze e-mail negeren.',
+  },
 } as const;
 
 export function buildAthleteInvitationEmail({

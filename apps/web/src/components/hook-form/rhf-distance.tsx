@@ -30,6 +30,7 @@ const UNIT_CONVERSION = {
   m: 1,
   km: 1000,
   mi: 1609.34,
+  yd: 0.9144,
 };
 
 /**

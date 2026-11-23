@@ -88,22 +88,23 @@ export function ContentIt() {
 
       <h2>Due modi per gestire una società su OpenAthlete</h2>
       <p>
-        OpenAthlete ha uno spazio per le società. È gratuito sui nostri server,
-        senza limiti di atleti, e una società che preferisce il proprio server
-        ha le stesse funzioni installando OpenAthlete lì.
+        OpenAthlete ha uno spazio per le società. Sui nostri server la società
+        la apre un Supporter e tesserati e allenatori entrano gratis, senza
+        limiti di atleti, e una società che preferisce il proprio server ha le
+        stesse funzioni installando OpenAthlete lì.
       </p>
       <p>
         <strong>Uno spazio per la società, sui nostri server.</strong> Un
-        allenatore crea la società in Impostazioni &gt; Club e assegna a
-        ciascuno un ruolo: proprietario, amministratore, allenatore, assistente
-        o atleta. Ogni allenatore della società raggiunge gli atleti della
-        società, e questi atleti non contano nel limite di cinque atleti di un
-        account allenatore gratuito. I tesserati entrano da un elenco che
-        importi (incollato, o in CSV dal foglio di calcolo della società, gruppi
-        compresi), con un codice di accesso o tramite link che scadono. Ogni
-        gruppo, per ritmo o per livello, ha i suoi allenatori, e la libreria
-        della società raccoglie gli allenamenti e le cartelle che usano tutti i
-        suoi allenatori.
+        allenatore con il piano Supporter crea la società in Impostazioni &gt;
+        Club e assegna a ciascuno un ruolo: proprietario, amministratore,
+        allenatore, assistente o atleta. Ogni allenatore della società raggiunge
+        gli atleti della società, e questi atleti non contano nel limite di
+        cinque atleti di un account allenatore gratuito. I tesserati entrano da
+        un elenco che importi (incollato, o in CSV dal foglio di calcolo della
+        società, gruppi compresi), con un codice di accesso o tramite link che
+        scadono. Ogni gruppo, per ritmo o per livello, ha i suoi allenatori, e
+        la libreria della società raccoglie gli allenamenti e le cartelle che
+        usano tutti i suoi allenatori.
       </p>
       <p>
         Per pianificare un gruppo, copi una seduta, un giorno o una settimana a

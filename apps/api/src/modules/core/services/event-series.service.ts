@@ -90,7 +90,7 @@ export class EventSeriesService {
       this.prisma.event.update({ where: { eventId }, data: { seriesId } }),
       ...offsets.map((days) =>
         this.prisma.event.create({
-          data: { ...copyOf(source, days), seriesId },
+          data: { ...copyOf(source, days, user.userId), seriesId },
           select: { eventId: true },
         }),
       ),

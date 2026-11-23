@@ -33,6 +33,7 @@ export * from './statistics.dto';
 export * from './year-review.dto';
 export * from './instance.dto';
 export * from './calendar-display.dto';
+export * from './unit-system.dto';
 export * from './hidden-activity-tracks.dto';
 export * from './calendar-day.dto';
 export * from './season.dto';

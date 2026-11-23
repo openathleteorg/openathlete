@@ -39,6 +39,7 @@ import {
 import { BulkWorkoutSelectButton } from './bulk-workout-select-button';
 import { CalendarDayActions } from './calendar-day-actions';
 import { CalendarDisplaySettings } from './calendar-display-settings';
+import { CalendarExportButton } from './calendar-export-button';
 import { CalendarGoToDate } from './calendar-go-to-date';
 import { CalendarMobileHeader } from './calendar-mobile-header';
 import { CalendarViewToggle } from './calendar-view-toggle';
@@ -313,6 +314,10 @@ export function CalendarHeader({ planningDate, onPlanningDateChange }: P) {
         {/* A coach planning for an athlete keeps their notes at hand */}
         {athleteId && !isCurrentUser && (
           <CoachNotesSheet athleteId={athleteId} />
+        )}
+        {/* The coach keeps a copy of the programming they did */}
+        {athleteId && !isCurrentUser && (
+          <CalendarExportButton athleteId={athleteId} />
         )}
         {viewOptions}
         <Button

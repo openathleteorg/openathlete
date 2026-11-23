@@ -8,6 +8,8 @@ import { ConfirmAction } from '@/components/confirm-action';
 import { formatShortDay } from '@/components/questionnaires/answer-format';
 import { questionnaireErrorMessage } from '@/components/questionnaires/questionnaire-errors';
 import { TemplateGallery } from '@/components/questionnaires/template-gallery';
+import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
+import { ButtonLock } from '@/components/supporter-perks/locks';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -25,6 +27,7 @@ import {
 import { PageTitle } from '@/components/ui/page-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useFeature } from '@/hooks/use-feature';
 import { useSetPageActions } from '@/hooks/use-page-actions';
 import { m } from '@/paraglide/messages';
 import {
@@ -44,7 +47,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import type { QuestionnaireSummary } from '@openathlete/shared';
+import { Feature, type QuestionnaireSummary } from '@openathlete/shared';
 
 type Pending = {
   kind: 'archive' | 'delete';
@@ -65,6 +68,16 @@ export function QuestionnaireLibraryView() {
   const archive = useArchiveQuestionnaireMutation();
   const restore = useRestoreQuestionnaireMutation();
   const remove = useDeleteQuestionnaireMutation();
+  // One active questionnaire is free; a second is a coach tool. Those
+  // already active keep being sent
+  const tool = useFeature(Feature.COACH_QUESTIONNAIRES);
+  const paywall = useFeaturePaywall();
+  const { data: active } = useQuestionnairesQuery({ archived: false });
+  const mayActivate = tool.available || (active?.length ?? 0) < 1;
+  const activateOr = (go: () => void) => () =>
+    mayActivate
+      ? go()
+      : paywall.open(Feature.COACH_QUESTIONNAIRES, 'questionnaires');
 
   // The mobile top bar holds the creation, as the page's only action
   const actions = useMemo(
@@ -72,10 +85,11 @@ export function QuestionnaireLibraryView() {
       {
         label: m.questionnaire_create(),
         icon: Plus,
-        onClick: () => setCreating(true),
+        onClick: activateOr(() => setCreating(true)),
       },
     ],
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [mayActivate],
   );
   useSetPageActions(actions);
 
@@ -113,10 +127,11 @@ export function QuestionnaireLibraryView() {
         <PageTitle desktopOnly>{m.questionnaires()}</PageTitle>
         <Button
           className="hidden md:inline-flex"
-          onClick={() => setCreating(true)}
+          onClick={activateOr(() => setCreating(true))}
         >
           <Plus />
           {m.questionnaire_create()}
+          {!mayActivate && tool.locked && <ButtonLock />}
         </Button>
       </div>
       <p className="text-sm text-muted-foreground">
@@ -215,14 +230,14 @@ export function QuestionnaireLibraryView() {
                 <DropdownMenuContent align="end">
                   {archived ? (
                     <DropdownMenuItem
-                      onSelect={() =>
+                      onSelect={activateOr(() =>
                         restore.mutate(questionnaire.questionnaireId, {
                           onSuccess: () =>
                             toast.success(m.questionnaire_restored()),
                           onError: () =>
                             toast.error(m.questionnaire_action_failed()),
-                        })
-                      }
+                        }),
+                      )}
                     >
                       <Undo2 className="size-4" />
                       {m.questionnaire_restore()}

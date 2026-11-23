@@ -70,6 +70,12 @@ describe('renderActivityDescription', () => {
     expect(renderActivityDescription(hotRun, Language.DE)).toContain(
       '🎯 Normalisierte Pace: 4:51 /km (tatsächlich 5:10 /km)',
     );
+    expect(renderActivityDescription(hotRun, Language.PL)).toContain(
+      '🎯 Tempo znormalizowane: 4:51 /km (rzeczywiste 5:10 /km)',
+    );
+    expect(renderActivityDescription(hotRun, Language.NL)).toContain(
+      '🎯 Genormaliseerd tempo: 4:51 /km (werkelijk 5:10 /km)',
+    );
   });
 
   it('falls back to English for an unknown language', () => {

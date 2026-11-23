@@ -34,11 +34,12 @@ function setup(appleStore = new TestAppleStoreService()) {
     subscriptions: new SubscriptionController(
       subscriptionService as never,
       { billingEnabled: true } as never,
-      {} as never,
+      { accessMap: jest.fn().mockResolvedValue({}) } as never,
       appleStore,
       { get: () => 'https://app.test' } as never,
       { user: { findUnique: jest.fn().mockResolvedValue(null) } } as never,
       { emit: jest.fn() } as never,
+      { invalidate: jest.fn() } as never,
     ),
   };
 }
@@ -123,6 +124,7 @@ describe('SubscriptionController.getSupporterCount', () => {
       {} as never,
       {} as never,
       { emit: jest.fn() } as never,
+      { invalidate: jest.fn() } as never,
     );
 
   it('gives the count of Supporters and the goal', async () => {

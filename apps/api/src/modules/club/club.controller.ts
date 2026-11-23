@@ -33,6 +33,7 @@ import {
   ClubMemberParamsDto,
   ClubSummaryDto,
   CreateClubDto,
+  Feature,
   InviteToClubDto,
   InviteToClubResultDto,
   RotateClubJoinLinkDto,
@@ -58,11 +59,12 @@ import { RATE_LIMITS } from 'src/common/security/rate-limits';
 import { JwtUser } from 'src/modules/auth/decorators';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { UserTypeGuard } from 'src/modules/auth/guards';
+import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
 import { ClubInvitationService } from './club-invitation.service';
 import { ClubJoinLinkService } from './club-join-link.service';
 import { ClubSessionService } from './club-session.service';
-import { ClubService } from './club.service';
+import { ClubDetailCore, ClubService } from './club.service';
 
 const NOT_A_MEMBER = {
   status: 404,
@@ -79,7 +81,16 @@ export class ClubController {
     private readonly joinLinks: ClubJoinLinkService,
     private readonly invitations: ClubInvitationService,
     private readonly sessions: ClubSessionService,
+    private readonly features: FeatureAccessService,
   ) {}
+
+  /** Whether the club may grow: new members and sessions need a Supporter owner */
+  private async withOpenness(club: ClubDetailCore): Promise<ClubDetailDto> {
+    return {
+      ...club,
+      acceptsMembers: await this.features.clubIsOpen(club.clubId),
+    };
+  }
 
   @Get()
   @ApiOperation({
@@ -98,10 +109,12 @@ export class ClubController {
       'Creates a club owned by the user, who gains the coach role if they did not have it.',
   })
   @ApiResponse({ status: 201, description: 'The new club' })
-  create(
+  async create(
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(createClubDtoSchema)) body: CreateClubDto,
   ): Promise<ClubSummaryDto> {
+    // Owning a club is a Supporter perk; members and staff join for free
+    await this.features.assert(user.userId, Feature.CLUBS);
     return this.clubs.create(user.userId, body);
   }
 
@@ -113,11 +126,11 @@ export class ClubController {
   })
   @ApiResponse({ status: 200, description: 'The club' })
   @ApiResponse(NOT_A_MEMBER)
-  get(
+  async get(
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
   ): Promise<ClubDetailDto> {
-    return this.clubs.get(user.userId, params.clubId);
+    return this.withOpenness(await this.clubs.get(user.userId, params.clubId));
   }
 
   @Patch(':clubId')
@@ -125,12 +138,14 @@ export class ClubController {
   @ApiResponse({ status: 200, description: 'The updated club' })
   @ApiResponse({ status: 403, description: 'Not an admin of the club' })
   @ApiResponse(NOT_A_MEMBER)
-  update(
+  async update(
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
     @Body(new ZodValidationPipe(updateClubDtoSchema)) body: UpdateClubDto,
   ): Promise<ClubDetailDto> {
-    return this.clubs.update(user.userId, params.clubId, body);
+    return this.withOpenness(
+      await this.clubs.update(user.userId, params.clubId, body),
+    );
   }
 
   @Delete(':clubId')
@@ -161,18 +176,20 @@ export class ClubController {
   @ApiResponse({ status: 200, description: 'The updated club' })
   @ApiResponse({ status: 403, description: 'Not allowed for this member' })
   @ApiResponse(NOT_A_MEMBER)
-  updateMember(
+  async updateMember(
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubMemberParamsSchema))
     params: ClubMemberParamsDto,
     @Body(new ZodValidationPipe(updateClubMemberDtoSchema))
     body: UpdateClubMemberDto,
   ): Promise<ClubDetailDto> {
-    return this.clubs.updateMemberRole(
-      user.userId,
-      params.clubId,
-      params.userId,
-      body.role,
+    return this.withOpenness(
+      await this.clubs.updateMemberRole(
+        user.userId,
+        params.clubId,
+        params.userId,
+        body.role,
+      ),
     );
   }
 
@@ -203,12 +220,14 @@ export class ClubController {
   })
   @ApiResponse({ status: 200, description: 'The updated club' })
   @ApiResponse(NOT_A_MEMBER)
-  transfer(
+  async transfer(
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
     @Body(new ZodValidationPipe(transferClubDtoSchema)) body: TransferClubDto,
   ): Promise<ClubDetailDto> {
-    return this.clubs.transfer(user.userId, params.clubId, body.userId);
+    return this.withOpenness(
+      await this.clubs.transfer(user.userId, params.clubId, body.userId),
+    );
   }
 
   @Get(':clubId/join-links')
@@ -235,12 +254,13 @@ export class ClubController {
   })
   @ApiResponse({ status: 200, description: 'The links' })
   @ApiResponse(NOT_A_MEMBER)
-  updateJoinLinks(
+  async updateJoinLinks(
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
     @Body(new ZodValidationPipe(updateClubJoinLinksDtoSchema))
     body: UpdateClubJoinLinksDto,
   ): Promise<ClubJoinLinksDto> {
+    await this.features.assertClubOpen(params.clubId);
     return this.joinLinks.updateLinks(user.userId, params.clubId, body);
   }
 
@@ -255,11 +275,12 @@ export class ClubController {
     description: 'How many were invited, and who was skipped',
   })
   @ApiResponse(NOT_A_MEMBER)
-  invite(
+  async invite(
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
     @Body(new ZodValidationPipe(inviteToClubDtoSchema)) body: InviteToClubDto,
   ): Promise<InviteToClubResultDto> {
+    await this.features.assertClubOpen(params.clubId);
     return this.invitations.invite(user.userId, params.clubId, body);
   }
 
@@ -287,6 +308,7 @@ export class ClubController {
     @Param(new ZodValidationPipe(clubInvitationParamsSchema))
     params: ClubInvitationParamsDto,
   ): Promise<void> {
+    await this.features.assertClubOpen(params.clubId);
     await this.invitations.resend(
       user.userId,
       params.clubId,
@@ -319,12 +341,13 @@ export class ClubController {
   })
   @ApiResponse({ status: 200, description: 'The links' })
   @ApiResponse(NOT_A_MEMBER)
-  rotateJoinLink(
+  async rotateJoinLink(
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
     @Body(new ZodValidationPipe(rotateClubJoinLinkDtoSchema))
     body: RotateClubJoinLinkDto,
   ): Promise<ClubJoinLinksDto> {
+    await this.features.assertClubOpen(params.clubId);
     return this.joinLinks.rotate(user.userId, params.clubId, body.kind);
   }
 }

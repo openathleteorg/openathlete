@@ -87,21 +87,22 @@ export function ContentEs() {
 
       <h2>Dos formas de llevar un club en OpenAthlete</h2>
       <p>
-        OpenAthlete tiene un espacio de club. Es gratis en nuestros servidores,
-        sin límite de atletas, y un club que prefiera su propio servidor tiene
-        las mismas funciones instalando OpenAthlete allí.
+        OpenAthlete tiene un espacio de club. En nuestros servidores, un
+        Supporter abre el club y los miembros y entrenadores se unen gratis, sin
+        límite de atletas, y un club que prefiera su propio servidor tiene las
+        mismas funciones instalando OpenAthlete allí.
       </p>
       <p>
         <strong>Un espacio de club, en nuestros servidores.</strong> Un
-        entrenador crea el club en Ajustes &gt; Clubes y da a cada miembro un
-        rol: propietario, administrador, entrenador, asistente o atleta. Todos
-        los entrenadores del club llegan a los atletas del club, y esos atletas
-        no cuentan para el límite de cinco atletas de una cuenta de entrenador
-        gratuita. Los socios entran desde una lista que importas (pegada, o en
-        CSV desde la hoja de cálculo del club, con los grupos), con un código de
-        acceso o con enlaces que caducan. Cada grupo, por ritmo o por nivel,
-        tiene sus entrenadores, y la biblioteca del club reúne los
-        entrenamientos y carpetas que usan todos sus entrenadores.
+        entrenador con el plan Supporter crea el club en Ajustes &gt; Clubes y
+        da a cada miembro un rol: propietario, administrador, entrenador,
+        asistente o atleta. Todos los entrenadores del club llegan a los atletas
+        del club, y esos atletas no cuentan para el límite de cinco atletas de
+        una cuenta de entrenador gratuita. Los socios entran desde una lista que
+        importas (pegada, o en CSV desde la hoja de cálculo del club, con los
+        grupos), con un código de acceso o con enlaces que caducan. Cada grupo,
+        por ritmo o por nivel, tiene sus entrenadores, y la biblioteca del club
+        reúne los entrenamientos y carpetas que usan todos sus entrenadores.
       </p>
       <p>
         Para planificar un grupo, copias una sesión, un día o una semana a

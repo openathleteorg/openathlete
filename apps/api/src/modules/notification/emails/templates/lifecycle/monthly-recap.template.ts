@@ -13,6 +13,7 @@ import {
   formatKm,
   formatNumber,
   monthName,
+  polishPlural,
 } from '../../core/format';
 import { renderEmail } from '../../core/layout';
 import { LifecycleEmail, LifecycleEmailProps, greeting } from './common';
@@ -146,6 +147,54 @@ const translations = {
         ? `Nächster Wettkampf: ${name}, morgen.`
         : `Nächster Wettkampf: ${name}, in ${days} Tagen.`,
     button: 'Statistiken ansehen',
+  },
+  PL: {
+    subject: (month: string, figure: string, sessions: string) =>
+      `${month}: ${figure}, ${sessions}`,
+    subjectNoDistance: (month: string, sessions: string) =>
+      `${month}: ${sessions}`,
+    sessions: (n: string, one: boolean) =>
+      one
+        ? '1 trening'
+        : `${n} ${polishPlural(n, 'trening', 'treningi', 'treningów')}`,
+    title: (month: string) => `${month} w liczbach`,
+    preview: 'Twój miesiąc w liczbach i to, co przed Tobą.',
+    labels: ['Treningi', 'Dystans', 'Czas', 'Przewyższenie'],
+    more: (pct: string, prev: string) =>
+      `To o ${pct} % więcej niż w poprzednim miesiącu (${prev}).`,
+    less: (pct: string, prev: string) =>
+      `To o ${pct} % mniej niż w poprzednim miesiącu (${prev}).`,
+    same: (prev: string) =>
+      `Mniej więcej tyle samo co w poprzednim miesiącu (${prev}).`,
+    longest: (name: string, distance: string) =>
+      `Najdłuższy trening: ${name}, ${distance}.`,
+    race: (name: string, days: number) =>
+      days === 1
+        ? `Najbliższy start: ${name}, jutro.`
+        : `Najbliższy start: ${name}, za ${days} dni.`,
+    button: 'Zobacz statystyki',
+  },
+  NL: {
+    subject: (month: string, figure: string, sessions: string) =>
+      `${month}: ${figure} in ${sessions}`,
+    subjectNoDistance: (month: string, sessions: string) =>
+      `${month}: ${sessions}`,
+    sessions: (n: string, one: boolean) =>
+      one ? '1 training' : `${n} trainingen`,
+    title: (month: string) => `${month} in cijfers`,
+    preview: 'Je maand in cijfers, en wat er nog komt.',
+    labels: ['Trainingen', 'Afstand', 'Tijd', 'Hoogtemeters'],
+    more: (pct: string, prev: string) => `Dat is ${pct}% meer dan in ${prev}.`,
+    less: (pct: string, prev: string) =>
+      `Dat is ${pct}% minder dan in ${prev}.`,
+    same: (prev: string) => `Ongeveer evenveel als in ${prev}.`,
+    longest: (name: string, distance: string) =>
+      `Langste training: ${name}, ${distance}.`,
+    race: (name: string, days: number) =>
+      days === 1
+        ? `Volgende wedstrijd: ${name}, morgen.`
+        : `Volgende wedstrijd: ${name}, over ${days} dagen.`,
+    button: 'Mijn statistieken bekijken',
   },
 } satisfies Record<EmailLanguage, unknown>;
 

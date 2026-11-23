@@ -576,6 +576,7 @@ export class EventService {
     const created = await this.prisma.event.create({
       data: {
         athleteId: finalAthleteId,
+        createdById: user.userId,
         startDate,
         endDate,
         name,
@@ -1716,6 +1717,7 @@ export class EventService {
         name,
         type,
         athleteId,
+        createdById: user.userId,
         [type.toLocaleLowerCase()]: {
           create: subEntityData,
         },

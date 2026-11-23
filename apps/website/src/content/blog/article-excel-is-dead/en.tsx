@@ -114,14 +114,15 @@ export function ContentEn() {
 
       <h2>Trying it without paying</h2>
       <p>
-        OpenAthlete is free for coaches with up to five athletes, with every
-        feature: calendar, workout builder, sessions sent to Garmin, Suunto and
-        COROS watches, activities imported from those brands plus Polar and
-        Strava, and training load from heart rate with session RPE alongside.
-        Above five athletes, Supporter, from €50 a year, removes the limit. You
-        can run it next to your spreadsheet with one or two athletes for a month
-        before deciding. The <Link href="/coaches">coaches page</Link> shows
-        what the coach side looks like.
+        OpenAthlete is free for coaches with up to five athletes, with
+        everything you need to coach them: calendar, workout builder, sessions
+        sent to Garmin, Suunto and COROS watches, activities imported from those
+        brands plus Polar and Strava, and training load from heart rate with
+        session RPE alongside. Above five athletes, Supporter, from €50 a year,
+        removes the limit. You can run it next to your spreadsheet with one or
+        two athletes for a month before deciding. The{' '}
+        <Link href="/coaches">coaches page</Link> shows what the coach side
+        looks like.
       </p>
 
       <h2>Source</h2>

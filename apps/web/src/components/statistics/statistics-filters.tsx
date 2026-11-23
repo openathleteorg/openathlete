@@ -1,3 +1,4 @@
+import { useFeature } from '@/hooks/use-feature';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
@@ -6,8 +7,15 @@ import { getDateLocale } from '@/utils/locales';
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 
-import { SPORT_GROUPS, SPORT_TYPE, SportGroup } from '@openathlete/shared';
+import {
+  Feature,
+  SPORT_GROUPS,
+  SPORT_TYPE,
+  SportGroup,
+} from '@openathlete/shared';
 
+import { useLockedSelect } from '../supporter-perks/feature-paywall';
+import { LockedOption } from '../supporter-perks/locks';
 import { Button } from '../ui/button';
 import { DatePicker } from '../ui/date-picker';
 import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
@@ -65,6 +73,10 @@ interface P {
  */
 export function StatisticsFilters({ filters, sports }: P) {
   const { period, periodType, offset, sport, group, comparison } = filters;
+  const compare = useFeature(Feature.STATISTICS_COMPARE);
+  const onComparison = useLockedSelect('statistics_filters', (value) =>
+    filters.setComparison(value as StatisticsComparison),
+  );
   // A group only says something for an athlete with several of its sports
   const groups = (Object.keys(SPORT_GROUPS) as SportGroup[]).filter(
     (key) =>
@@ -145,12 +157,7 @@ export function StatisticsFilters({ filters, sports }: P) {
             ))}
           </SelectContent>
         </Select>
-        <Select
-          value={comparison}
-          onValueChange={(value) =>
-            filters.setComparison(value as StatisticsComparison)
-          }
-        >
+        <Select value={comparison} onValueChange={onComparison}>
           <SelectTrigger
             className={`${TRIGGER} col-span-2 md:col-auto`}
             aria-label={m.statistics_compare_label()}
@@ -158,11 +165,21 @@ export function StatisticsFilters({ filters, sports }: P) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {STATISTICS_COMPARISONS.map((value) => (
-              <SelectItem key={value} value={value}>
-                {COMPARISON_LABELS[value]()}
-              </SelectItem>
-            ))}
+            {STATISTICS_COMPARISONS.map((value) =>
+              value === 'none' || compare.available ? (
+                <SelectItem key={value} value={value}>
+                  {COMPARISON_LABELS[value]()}
+                </SelectItem>
+              ) : compare.locked ? (
+                <LockedOption
+                  key={value}
+                  feature={Feature.STATISTICS_COMPARE}
+                  value={value}
+                >
+                  {COMPARISON_LABELS[value]()}
+                </LockedOption>
+              ) : null,
+            )}
           </SelectContent>
         </Select>
         <div className="col-span-2 flex items-center justify-between gap-2 md:ml-auto">

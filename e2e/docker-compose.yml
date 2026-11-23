@@ -73,6 +73,31 @@ services:
     depends_on:
       api: { condition: service_healthy }
 
+  # Stripe's official mock of its API: an instance "with billing" for the
+  # Supporter perks tests, without any request to Stripe
+  stripe-mock:
+    # A bare binary image: no shell for a healthcheck, and it starts at once
+    image: stripe/stripe-mock:latest
+
+  # The same API with billing on (stripe-mock), on the same database: the
+  # hosted instance, where Supporter perks are locked for free accounts
+  api-billing:
+    image: openathlete-api:e2e
+    environment:
+      <<: *api-env
+      APP_URL: http://localhost:18081
+      CORS_ORIGINS: http://localhost:18081
+      SKIP_MIGRATIONS: 'true'
+      ENABLE_ACTIVITY_IMPORT: 'false'
+      ENABLE_ACTIVITY_PROCESSING: 'false'
+      ENABLE_TRAINING_LOAD_ESTIMATION: 'false'
+      STRIPE_SECRET_KEY: sk_test_e2e
+      STRIPE_API_URL: http://stripe-mock:12111
+    ports: ['127.0.0.1:13001:3000']
+    depends_on:
+      api: { condition: service_healthy }
+      stripe-mock: { condition: service_started }
+
   # OpenAI-compatible stand-in for AI providers (see fake-llm/server.mjs)
   fake-llm:
     image: node:22-alpine
@@ -80,7 +105,11 @@ services:
     volumes:
       - ./fake-llm/server.mjs:/srv/server.mjs:ro
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO /dev/null http://127.0.0.1:8080/health || exit 1']
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO /dev/null http://127.0.0.1:8080/health || exit 1',
+        ]
       interval: 3s
       retries: 20
 
@@ -93,7 +122,11 @@ services:
       - ./fake-oidc/server.mjs:/srv/server.mjs:ro
     ports: ['127.0.0.1:19000:9000']
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO /dev/null http://127.0.0.1:9000/health || exit 1']
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO /dev/null http://127.0.0.1:9000/health || exit 1',
+        ]
       interval: 3s
       retries: 20
 
@@ -111,3 +144,16 @@ services:
       retries: 20
     depends_on:
       api: { condition: service_healthy }
+
+  # The web app on the instance with billing (api-billing)
+  web-billing:
+    image: openathlete-web:e2e
+    environment:
+      API_PUBLIC_URL: http://localhost:13001
+    ports: ['127.0.0.1:18081:80']
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO /dev/null http://127.0.0.1/ || exit 1']
+      interval: 3s
+      retries: 20
+    depends_on:
+      api-billing: { condition: service_healthy }

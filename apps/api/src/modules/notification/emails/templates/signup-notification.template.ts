@@ -84,6 +84,32 @@ const translations = {
       'Melde dich gern, um die Person willkommen zu heißen oder ihre Bedürfnisse zu erfahren.',
     note: 'Diese E-Mail wird bei jeder neuen Registrierung automatisch versendet.',
   },
+  PL: {
+    title: 'Nowa rejestracja użytkownika',
+    preview: 'Nowy użytkownik właśnie założył konto.',
+    intro: (name?: string) =>
+      name
+        ? `${name} właśnie zarejestrował się w OpenAthlete.`
+        : 'Nowy użytkownik właśnie zarejestrował się w OpenAthlete.',
+    emailLabel: 'E-mail',
+    nameLabel: 'Imię i nazwisko',
+    followUp:
+      'Możesz się odezwać, żeby powitać tę osobę albo poznać jej potrzeby.',
+    note: 'Ta wiadomość jest wysyłana automatycznie przy każdej nowej rejestracji.',
+  },
+  NL: {
+    title: 'Nieuwe gebruiker aangemeld',
+    preview: 'Er heeft net iemand een account aangemaakt.',
+    intro: (name?: string) =>
+      name
+        ? `${name} heeft zich net aangemeld bij OpenAthlete.`
+        : 'Er heeft zich net iemand aangemeld bij OpenAthlete.',
+    emailLabel: 'E-mail',
+    nameLabel: 'Volledige naam',
+    followUp:
+      'Neem gerust contact op om de persoon welkom te heten of te horen wat ze nodig hebben.',
+    note: 'Deze e-mail wordt automatisch verstuurd bij elke nieuwe aanmelding.',
+  },
 } as const;
 
 export function buildSignupNotificationEmail({

@@ -73,6 +73,30 @@ const translations = {
     postscript:
       'P.S. Bereitest du dich gerade auf einen Wettkampf vor? Antworte mit seinem Namen, ich lese jede Antwort.',
   },
+  PL: {
+    title: 'Twoje konto jest gotowe',
+    preview:
+      'Jeszcze jeden krok, zanim pojawią się Twoje treningi: połącz zegarek.',
+    greeting: (name?: string) => (name ? `Cześć ${name},` : 'Cześć,'),
+    body: 'Na początek połącz swój zegarek albo Stravę. OpenAthlete pobierze wtedy Twoją historię i wyliczy Twoje obciążenie treningowe, bez wpisywania czegokolwiek.',
+    button: 'Połącz zegarek',
+    providers:
+      'Obsługujemy Garmin, Polar, Suunto, COROS i Stravę. Import trwa kilka minut.',
+    postscript:
+      'PS Przygotowujesz się teraz do jakichś zawodów? Odpisz z ich nazwą, czytam każdą odpowiedź.',
+  },
+  NL: {
+    title: 'Je account is klaar',
+    preview:
+      'Nog één stap voordat je trainingen verschijnen: koppel je horloge.',
+    greeting: (name?: string) => (name ? `Hoi ${name},` : 'Hoi,'),
+    body: 'Eerst: koppel je horloge of Strava. OpenAthlete haalt dan je geschiedenis op en berekent je trainingsbelasting, zonder dat je iets hoeft in te typen.',
+    button: 'Horloge koppelen',
+    providers:
+      'Garmin, Polar, Suunto, COROS en Strava worden ondersteund. Het importeren duurt een paar minuten.',
+    postscript:
+      'PS Train je op dit moment voor een wedstrijd? Antwoord met de naam ervan, ik lees elke reactie.',
+  },
 } as const satisfies Record<EmailLanguage, unknown>;
 
 export function buildWelcomeEmail({

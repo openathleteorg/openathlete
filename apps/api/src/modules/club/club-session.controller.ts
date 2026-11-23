@@ -38,6 +38,7 @@ import {
 import { JwtUser } from 'src/modules/auth/decorators';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { UserTypeGuard } from 'src/modules/auth/guards';
+import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
 import { ClubSessionService } from './club-session.service';
 
@@ -46,7 +47,10 @@ import { ClubSessionService } from './club-session.service';
 @UseGuards(AuthGuard('jwt'), UserTypeGuard)
 @Controller()
 export class ClubSessionController {
-  constructor(private readonly sessions: ClubSessionService) {}
+  constructor(
+    private readonly sessions: ClubSessionService,
+    private readonly features: FeatureAccessService,
+  ) {}
 
   @Get('club/:clubId/sessions')
   @ApiOperation({
@@ -69,12 +73,15 @@ export class ClubSessionController {
       "A place, a local time and a group (or all athletes), once or every week, with a template of the club's library as content. Each occurrence becomes a session in its athletes' calendars, four weeks ahead.",
   })
   @ApiResponse({ status: 201, description: 'The session' })
-  create(
+  async create(
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
     @Body(new ZodValidationPipe(createClubSessionDtoSchema))
     body: CreateClubSessionDto,
   ): Promise<ClubSessionDto> {
+    // Sessions already planned keep landing in calendars; new ones and
+    // changes need a Supporter owner
+    await this.features.assertClubOpen(params.clubId);
     return this.sessions.create(user, params.clubId, body);
   }
 
@@ -85,13 +92,14 @@ export class ClubSessionController {
       'Its coming occurrences are made again, and the athletes who had them are told.',
   })
   @ApiResponse({ status: 200, description: 'The session' })
-  update(
+  async update(
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubSessionParamsSchema))
     params: ClubSessionParamsDto,
     @Body(new ZodValidationPipe(createClubSessionDtoSchema))
     body: CreateClubSessionDto,
   ): Promise<ClubSessionDto> {
+    await this.features.assertClubOpen(params.clubId);
     return this.sessions.update(
       user,
       params.clubId,

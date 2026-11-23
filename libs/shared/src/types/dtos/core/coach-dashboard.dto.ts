@@ -46,6 +46,8 @@ export type CoachAlertDto = z.infer<typeof coachAlertSchema>;
 
 export const coachDashboardAthleteRowSchema = z.object({
   athleteId: z.number(),
+  /** For the Supporter badge; null for an athlete without an account */
+  userId: z.number().nullable().optional(),
   firstName: z.string().nullable(),
   lastName: z.string().nullable(),
   email: z.string().email().nullable(),

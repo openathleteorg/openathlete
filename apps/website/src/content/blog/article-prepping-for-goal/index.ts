@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articlePreppingForGoal: BlogPost = {
@@ -16,6 +18,8 @@ export const articlePreppingForGoal: BlogPost = {
       it: 'Adattare il piano a malattie, viaggi e settimane perse',
       'pt-br': 'Como adaptar a planilha a doença, viagem e semanas perdidas',
       de: 'Trainingsplan anpassen bei Krankheit, Reisen und verpassten Wochen',
+      pl: 'Jak dostosować plan treningowy do choroby, podróży i straconych tygodni',
+      nl: 'Je trainingsschema aanpassen bij ziekte, reizen en gemiste weken',
     },
     description: {
       en: 'What to protect when a marathon plan goes wrong: missed sessions, illness, travel, lost weeks, the taper, and a worked example of flu in week 9.',
@@ -25,6 +29,8 @@ export const articlePreppingForGoal: BlogPost = {
       'pt-br':
         'O que proteger quando a planilha de maratona desanda: treinos perdidos, doença, viagem, semanas perdidas, o polimento e um exemplo com gripe.',
       de: 'Was du schützen solltest, wenn dein Marathonplan aus dem Ruder läuft: verpasste Einheiten, Krankheit, Reisen, verlorene Wochen, Tapering und ein Beispiel mit Grippe in Woche 9.',
+      pl: 'Co chronić, gdy plan maratoński się sypie: opuszczone treningi, choroba, podróże, stracone tygodnie, tapering i przykład grypy w 9. tygodniu.',
+      nl: 'Wat je beschermt als je marathonschema ontspoort: gemiste trainingen, ziekte, reizen, verloren weken, de taper en een uitgewerkt voorbeeld met griep in week 9.',
     },
     excerpt: {
       en: 'No 16-week plan survives 16 weeks untouched. Protect the key sessions, never stack missed ones, rejoin the plan where it is now, and leave the taper alone.',
@@ -34,6 +40,8 @@ export const articlePreppingForGoal: BlogPost = {
       'pt-br':
         'Nenhuma planilha de 16 semanas chega intacta ao fim. Proteja os treinos-chave, não acumule os perdidos, volte à planilha onde ela está agora e não mexa no polimento.',
       de: 'Kein 16-Wochen-Plan übersteht 16 Wochen unverändert. Schütze die Schlüsseleinheiten, stapel nie verpasste Einheiten, steig dort wieder ein, wo der Plan jetzt steht, und lass das Tapering in Ruhe.',
+      pl: 'Żaden 16-tygodniowy plan nie przetrwa 16 tygodni bez zmian. Chroń kluczowe treningi, nigdy nie kumuluj opuszczonych, wracaj do planu w miejscu, w którym jest teraz, i nie ruszaj taperingu.',
+      nl: 'Geen enkel schema van 16 weken blijft 16 weken onaangeroerd. Bescherm de sleuteltrainingen, stapel nooit gemiste trainingen, stap weer in waar het schema nu is en blijf van je taper af.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articlePreppingForGoal: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

@@ -1,0 +1,3039 @@
+{
+  "plan": {
+    "name": "Trail 30 km, 1000 hm: trainingsschema van 12 weken",
+    "description": "Een trainingsschema van 12 weken voor een trail van 30 km met ongeveer 1000 hoogtemeters, met 4 looptrainingen per week plus optionele krachttraining. Heuvelherhalingen, drempelklimmen, powerhiken met stokken en afdaaltechniek. De lange duurloop groeit naar 2h30 en 1000 hoogtemeters, met een rustigere week om de 3–4 weken en 2 weken taperen.",
+    "goal": "Een trail van 30 km met 1000 hoogtemeters uitlopen",
+    "sportType": "TRAIL_RUNNING",
+    "distance": 30000,
+    "duration": 12,
+    "timeTarget": null,
+    "elevationGainRange": {
+      "min": 800,
+      "max": 1200
+    }
+  },
+  "cycles": [
+    {
+      "name": "Basis",
+      "description": "Rustige omvang, korte heuvelherhalingen en de eerste afdaaloefeningen. De lange duurloop groeit met 10 tot 15 minuten per week. Week 4 is lichter.",
+      "phase": "BASE",
+      "color": "#3b82f6",
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Heuveltraining",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up naar de voet van een helling van 8–12%, dan 6 × 1'30 bergop op 88–93% van je maximale hartslag, als herstel dribbelend of wandelend terug naar beneden. 10 min cooling-down. Bij korte inspanningen loopt je hartslag achter: mik aan het eind van elke herhaling op de bovenkant van de zone, en loop de laatste net zo netjes als de eerste.",
+              "goalDuration": 3060,
+              "goalDistance": 7000,
+              "goalElevationGain": 160,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "30 min, thuis, zonder materiaal. 3 rondes: 12 step-ups per been op een stoel of een stevige trede, 10 split squats per been, 15 langzame kuitheffingen op een trede (3 seconden zakken), 30 s op één been balanceren met je ogen dicht per been, 30 s zijplank per kant. Bij afdalingen vangen je bovenbenen de klappen op, op ruw terrein je enkels: dit is een goedkope verzekering.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "45 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "40 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten. Sluit af met 6 × 20\" versnellingen, wandelend terug.",
+              "goalDuration": 2760,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h15 op trails met ongeveer 300 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten.",
+              "goalDuration": 4500,
+              "goalDistance": 9500,
+              "goalElevationGain": 300,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4500,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 2,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "30/30 op vlak terrein",
+              "sport": "RUNNING",
+              "description": "20 min warming-up, dan 2 × (8 × 30\" snel / 30\" dribbelen), 3 min rustig tussen de series, 10 min cooling-down. Snel = 95–100% van je VMA, dribbelen = 60%. Op vlak terrein of op de baan.",
+              "goalDuration": 2940,
+              "goalDistance": 8000,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Snel"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Dribbelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "INTERVAL_REST",
+                    "durationType": "TIME",
+                    "durationValue": 180,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Snel"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Dribbelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "30 min, thuis, zonder materiaal. 3 rondes: 12 step-ups per been op een stoel of een stevige trede, 10 split squats per been, 15 langzame kuitheffingen op een trede (3 seconden zakken), 30 s op één been balanceren met je ogen dicht per been, 30 s zijplank per kant. Bij afdalingen vangen je bovenbenen de klappen op, op ruw terrein je enkels: dit is een goedkope verzekering.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "50 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Afdaaltechniek",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rustig naar een technische afdaling (wortels, stenen, 10–20%). 6 × 1' bergaf met een gecontroleerde inspanning (RPE 5/10), wandelend weer omhoog als herstel. Snelle, korte passen, blik 3–4 meter vooruit, armen breed voor je balans, voeten landen onder je heupen. Snelheid komt later: vandaag gaat het om voeten waarop je kunt vertrouwen. 10 min rustig om af te sluiten.",
+              "goalDuration": 2880,
+              "goalDistance": 6500,
+              "goalElevationGain": 140,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bergaf, korte snelle passen"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Wandelend omhoog"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h25 op trails met ongeveer 400 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten.",
+              "goalDuration": 5100,
+              "goalDistance": 10000,
+              "goalElevationGain": 400,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5100,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 3,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Heuveltraining",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up naar de voet van een helling van 8–12%, dan 8 × 1'30 bergop op 88–93% van je maximale hartslag, als herstel dribbelend of wandelend terug naar beneden. 10 min cooling-down. Bij korte inspanningen loopt je hartslag achter: mik aan het eind van elke herhaling op de bovenkant van de zone, en loop de laatste net zo netjes als de eerste.",
+              "goalDuration": 3480,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "30 min, thuis, zonder materiaal. 3 rondes: 12 step-ups per been op een stoel of een stevige trede, 10 split squats per been, 15 langzame kuitheffingen op een trede (3 seconden zakken), 30 s op één been balanceren met je ogen dicht per been, 30 s zijplank per kant. Bij afdalingen vangen je bovenbenen de klappen op, op ruw terrein je enkels: dit is een goedkope verzekering.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Tempoloop op vlak terrein",
+              "sport": "RUNNING",
+              "description": "15 min warming-up, 3 × 8' op 82–87% van je VMA (stevig maar beheerst, je kunt nog maar een paar woorden tegelijk zeggen) met 2 min rustig ertussen, 10 min cooling-down.",
+              "goalDuration": 3300,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "45 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten. Sluit af met 6 × 20\" versnellingen, wandelend terug.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h40 op trails met ongeveer 500 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten. Neem je stokken mee en gebruik ze op elke lange klim.",
+              "goalDuration": 6000,
+              "goalDistance": 11500,
+              "goalElevationGain": 500,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6000,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 4,
+          "theme": "Rustigere week",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "40 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten. Sluit af met 6 × 20\" versnellingen, wandelend terug.",
+              "goalDuration": 2760,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "20 min, thuis, zonder materiaal. 3 rondes: 12 step-ups per been op een stoel of een stevige trede, 10 split squats per been, 15 langzame kuitheffingen op een trede (3 seconden zakken), 30 s op één been balanceren met je ogen dicht per been, 30 s zijplank per kant. Bij afdalingen vangen je bovenbenen de klappen op, op ruw terrein je enkels: dit is een goedkope verzekering.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Heuveltraining",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up naar de voet van een helling van 8–12%, dan 6 × 1' bergop op 88–93% van je maximale hartslag, als herstel dribbelend of wandelend terug naar beneden. 10 min cooling-down. Bij korte inspanningen loopt je hartslag achter: mik aan het eind van elke herhaling op de bovenkant van de zone, en loop de laatste net zo netjes als de eerste.",
+              "goalDuration": 2700,
+              "goalDistance": 6500,
+              "goalElevationGain": 120,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "40 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten.",
+              "goalDuration": 2400,
+              "goalDistance": 6000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h15 op trails met ongeveer 350 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten.",
+              "goalDuration": 4500,
+              "goalDistance": 9000,
+              "goalElevationGain": 350,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4500,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Opbouw",
+      "description": "Langere heuvelherhalingen en drempelklimmen, powerhiken met stokken, meer hoogtemeters in de lange duurloop. Week 8 is lichter, zodat je de training kunt verwerken.",
+      "phase": "SPECIFIC",
+      "color": "#10b981",
+      "weeks": [
+        {
+          "weekNumber": 5,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Heuveltraining",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up naar de voet van een helling van 8–12%, dan 8 × 2' bergop op 90–95% van je maximale hartslag, als herstel dribbelend of wandelend terug naar beneden. 10 min cooling-down. Bij korte inspanningen loopt je hartslag achter: mik aan het eind van elke herhaling op de bovenkant van de zone, en loop de laatste net zo netjes als de eerste.",
+              "goalDuration": 3960,
+              "goalDistance": 8500,
+              "goalElevationGain": 250,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rondes: 8 langzame squats op één been vanaf een trede, per been (5 seconden zakken: precies wat afdalingen met je bovenbenen doen), 12 step-ups met sprong per been, 20 kuitheffingen op één been per been, 10 deadlifts op één been per been, 45 s plank. In een rustigere week maar 2 rondes.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "50 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Afdaaltechniek",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rustig naar een technische afdaling (wortels, stenen, 10–20%). 8 × 1' bergaf met een gecontroleerde inspanning (RPE 5/10), wandelend weer omhoog als herstel. Snelle, korte passen, blik 3–4 meter vooruit, armen breed voor je balans, voeten landen onder je heupen. Snelheid komt later: vandaag gaat het om voeten waarop je kunt vertrouwen. 10 min rustig om af te sluiten.",
+              "goalDuration": 3240,
+              "goalDistance": 7500,
+              "goalElevationGain": 170,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bergaf, korte snelle passen"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Wandelend omhoog"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h50 op trails met ongeveer 600 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten.",
+              "goalDuration": 6600,
+              "goalDistance": 12500,
+              "goalElevationGain": 600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 6,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Lange drempelklim",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up, dan 3 × 8' gelijkmatig bergop op 82–87% van je maximale hartslag, op een lange, beloopbare klim (5–10%). Wandel of dribbel terug naar beneden als herstel. 10 min cooling-down. Dwingt de helling je om te wandelen, wandel dan, maar houd je hartslag in de zone.",
+              "goalDuration": 4140,
+              "goalDistance": 8500,
+              "goalElevationGain": 280,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rondes: 8 langzame squats op één been vanaf een trede, per been (5 seconden zakken: precies wat afdalingen met je bovenbenen doen), 12 step-ups met sprong per been, 20 kuitheffingen op één been per been, 10 deadlifts op één been per been, 45 s plank. In een rustigere week maar 2 rondes.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "VMA-intervallen",
+              "sport": "RUNNING",
+              "description": "20 min warming-up, 6 × 3' op 90–95% van je VMA met 2' dribbelpauze, 10 min cooling-down. Op vlak terrein: hoe hoger je plafond, hoe makkelijker elke klim aanvoelt.",
+              "goalDuration": 3600,
+              "goalDistance": 10500,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "45 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten. Sluit af met 6 × 20\" versnellingen, wandelend terug.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h op trails met ongeveer 700 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten. Neem je stokken mee en gebruik ze op elke lange klim.",
+              "goalDuration": 7200,
+              "goalDistance": 13000,
+              "goalElevationGain": 700,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 7,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Heuveltraining",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up naar de voet van een helling van 8–12%, dan 10 × 2' bergop op 90–95% van je maximale hartslag, als herstel dribbelend of wandelend terug naar beneden. 10 min cooling-down. Bij korte inspanningen loopt je hartslag achter: mik aan het eind van elke herhaling op de bovenkant van de zone, en loop de laatste net zo netjes als de eerste.",
+              "goalDuration": 4500,
+              "goalDistance": 9500,
+              "goalElevationGain": 300,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 10,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rondes: 8 langzame squats op één been vanaf een trede, per been (5 seconden zakken: precies wat afdalingen met je bovenbenen doen), 12 step-ups met sprong per been, 20 kuitheffingen op één been per been, 10 deadlifts op één been per been, 45 s plank. In een rustigere week maar 2 rondes.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Tempoloop op vlak terrein",
+              "sport": "RUNNING",
+              "description": "15 min warming-up, 2 × 12' op 82–87% van je VMA (stevig maar beheerst, je kunt nog maar een paar woorden tegelijk zeggen) met 2 min rustig ertussen, 10 min cooling-down.",
+              "goalDuration": 3180,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 720,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Powerhiken met stokken",
+              "sport": "TRAIL_RUNNING",
+              "description": "15 min warming-up, dan 5 × 6' powerhiken op de steilste helling die je kunt vinden (15% en meer), met stokken, op 75–85% van je maximale hartslag. Korte passen, stevig afzetten op je stokken, en de vlakkere stukken loop je hard. Rustig naar beneden tussen de herhalingen. Zo klimmen de meeste lopers op wedstrijddag: het is het oefenen waard.",
+              "goalDuration": 4500,
+              "goalDistance": 8500,
+              "goalElevationGain": 400,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.75,
+                              "targetMax": 0.85,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Powerhiken, stokken"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 240,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h15 op trails met ongeveer 800 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten.",
+              "goalDuration": 8100,
+              "goalDistance": 14500,
+              "goalElevationGain": 800,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 8100,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 8,
+          "theme": "Rustigere week",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "45 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten. Sluit af met 6 × 20\" versnellingen, wandelend terug.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "20 min. 3 rondes: 8 langzame squats op één been vanaf een trede, per been (5 seconden zakken: precies wat afdalingen met je bovenbenen doen), 12 step-ups met sprong per been, 20 kuitheffingen op één been per been, 10 deadlifts op één been per been, 45 s plank. In een rustigere week maar 2 rondes.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Lange drempelklim",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up, dan 2 × 8' gelijkmatig bergop op 82–87% van je maximale hartslag, op een lange, beloopbare klim (5–10%). Wandel of dribbel terug naar beneden als herstel. 10 min cooling-down. Dwingt de helling je om te wandelen, wandel dan, maar houd je hartslag in de zone.",
+              "goalDuration": 3360,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "40 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten.",
+              "goalDuration": 2400,
+              "goalDistance": 6000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h30 op trails met ongeveer 500 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten.",
+              "goalDuration": 5400,
+              "goalDistance": 10000,
+              "goalElevationGain": 500,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wedstrijdspecifiek",
+      "description": "De zwaarste weken: de lange duurloop groeit naar 2h30 met 1000 hoogtemeters, met stukken op wedstrijdintensiteit.",
+      "phase": "SPECIFIC",
+      "color": "#f59e0b",
+      "weeks": [
+        {
+          "weekNumber": 9,
+          "theme": "Zwaarste week",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Lange drempelklim",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up, dan 3 × 10' gelijkmatig bergop op 82–87% van je maximale hartslag, op een lange, beloopbare klim (5–10%). Wandel of dribbel terug naar beneden als herstel. 10 min cooling-down. Dwingt de helling je om te wandelen, wandel dan, maar houd je hartslag in de zone.",
+              "goalDuration": 4680,
+              "goalDistance": 9500,
+              "goalElevationGain": 340,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rondes: 8 langzame squats op één been vanaf een trede, per been (5 seconden zakken: precies wat afdalingen met je bovenbenen doen), 12 step-ups met sprong per been, 20 kuitheffingen op één been per been, 10 deadlifts op één been per been, 45 s plank. In een rustigere week maar 2 rondes.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "30/30 op vlak terrein",
+              "sport": "RUNNING",
+              "description": "20 min warming-up, dan 2 × (10 × 30\" snel / 30\" dribbelen), 3 min rustig tussen de series, 10 min cooling-down. Snel = 95–100% van je VMA, dribbelen = 60%. Op vlak terrein of op de baan.",
+              "goalDuration": 3180,
+              "goalDistance": 9000,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 10,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Snel"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Dribbelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "INTERVAL_REST",
+                    "durationType": "TIME",
+                    "durationValue": 180,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 10,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Snel"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Dribbelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Powerhiken met stokken",
+              "sport": "TRAIL_RUNNING",
+              "description": "15 min warming-up, dan 5 × 6' powerhiken op de steilste helling die je kunt vinden (15% en meer), met stokken, op 75–85% van je maximale hartslag. Korte passen, stevig afzetten op je stokken, en de vlakkere stukken loop je hard. Rustig naar beneden tussen de herhalingen. Zo klimmen de meeste lopers op wedstrijddag: het is het oefenen waard.",
+              "goalDuration": 4500,
+              "goalDistance": 8500,
+              "goalElevationGain": 400,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.75,
+                              "targetMax": 0.85,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Powerhiken, stokken"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 240,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h30 op trails met ongeveer 1000 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten. Neem je stokken mee en gebruik ze op elke lange klim. Loop de laatste 30 min op wedstrijdintensiteit (75–82% van je maximale hartslag).",
+              "goalDuration": 9000,
+              "goalDistance": 15000,
+              "goalElevationGain": 1000,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.75,
+                        "targetMax": 0.82,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ],
+                    "name": "Wedstrijdintensiteit"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 10,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Heuveltraining",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up naar de voet van een helling van 8–12%, dan 8 × 2'30 bergop op 90–95% van je maximale hartslag, als herstel dribbelend of wandelend terug naar beneden. 10 min cooling-down. Bij korte inspanningen loopt je hartslag achter: mik aan het eind van elke herhaling op de bovenkant van de zone, en loop de laatste net zo netjes als de eerste.",
+              "goalDuration": 4440,
+              "goalDistance": 9500,
+              "goalElevationGain": 300,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krachttraining voor trail (optioneel)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rondes: 8 langzame squats op één been vanaf een trede, per been (5 seconden zakken: precies wat afdalingen met je bovenbenen doen), 12 step-ups met sprong per been, 20 kuitheffingen op één been per been, 10 deadlifts op één been per been, 45 s plank. In een rustigere week maar 2 rondes.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Tempoloop op vlak terrein",
+              "sport": "RUNNING",
+              "description": "15 min warming-up, 2 × 12' op 82–87% van je VMA (stevig maar beheerst, je kunt nog maar een paar woorden tegelijk zeggen) met 2 min rustig ertussen, 10 min cooling-down.",
+              "goalDuration": 3180,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 720,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Afdaaltechniek",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min rustig naar een technische afdaling (wortels, stenen, 10–20%). 8 × 1'15 bergaf met een gecontroleerde inspanning (RPE 5/10), wandelend weer omhoog als herstel. Snelle, korte passen, blik 3–4 meter vooruit, armen breed voor je balans, voeten landen onder je heupen. Snelheid komt later: vandaag gaat het om voeten waarop je kunt vertrouwen. 10 min rustig om af te sluiten.",
+              "goalDuration": 3600,
+              "goalDistance": 8000,
+              "goalElevationGain": 190,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 75,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bergaf, korte snelle passen"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Wandelend omhoog"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Generale repetitie",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h15 op trails met ongeveer 900 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten. Draag wat je in de wedstrijd draagt, met dezelfde rugzak en dezelfde voeding: niets nieuws op wedstrijddag.",
+              "goalDuration": 8100,
+              "goalDistance": 13500,
+              "goalElevationGain": 900,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 8100,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Taperen",
+      "description": "Twee weken om fris aan de start te staan: de omvang daalt met ongeveer een derde, daarna met de helft, terwijl een paar korte inspanningen je benen scherp houden. Niets nieuws, veel slapen.",
+      "phase": "TAPER",
+      "color": "#6366f1",
+      "weeks": [
+        {
+          "weekNumber": 11,
+          "theme": "Taperen",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Heuveltraining",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up naar de voet van een helling van 8–12%, dan 6 × 2' bergop op 90–95% van je maximale hartslag, als herstel dribbelend of wandelend terug naar beneden. 10 min cooling-down. Bij korte inspanningen loopt je hartslag achter: mik aan het eind van elke herhaling op de bovenkant van de zone, en loop de laatste net zo netjes als de eerste.",
+              "goalDuration": 3420,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Mobiliteit en enkels (optioneel)",
+              "sport": "STRENGTH",
+              "description": "20 min mobiliteit: enkelcirkels en kuitstretches, heupopeners, 2 × 30 s op één been balanceren per been. Niets waar je voor de wedstrijd spierpijn van krijgt.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 2,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "45 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "40 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten. Sluit af met 6 × 20\" versnellingen, wandelend terug.",
+              "goalDuration": 2760,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Lange duurloop met hoogtemeters",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h30 op trails met ongeveer 500 hoogtemeters, op 65–75% van je maximale hartslag. Loop het vlakke en de flauwe klimmen, powerhike alles wat steiler is dan 15% en oefen met eten om de 30–40 minuten.",
+              "goalDuration": 5400,
+              "goalDistance": 10000,
+              "goalElevationGain": 500,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 12,
+          "theme": "Wedstrijdweek",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Lange drempelklim",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min warming-up, dan 2 × 6' gelijkmatig bergop op 82–87% van je maximale hartslag, op een lange, beloopbare klim (5–10%). Wandel of dribbel terug naar beneden als herstel. 10 min cooling-down. Dwingt de helling je om te wandelen, wandel dan, maar houd je hartslag in de zone.",
+              "goalDuration": 3000,
+              "goalDistance": 6500,
+              "goalElevationGain": 160,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergop"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 240,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergaf dribbelen/wandelen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Rustige duurloop",
+              "sport": "RUNNING",
+              "description": "35 min rustig op vlak of glooiend terrein, 62–70% van je VMA. Je moet in hele zinnen kunnen praten. Sluit af met 6 × 20\" versnellingen, wandelend terug.",
+              "goalDuration": 2460,
+              "goalDistance": 6000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Losloopje",
+              "sport": "RUNNING",
+              "description": "20 min heel rustig met 4 korte versnellingen. Check je uitrusting, speld je startnummer op, ga vroeg naar bed.",
+              "goalDuration": 1260,
+              "goalDistance": 3000,
+              "goalElevationGain": null,
+              "goalRpe": 2,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.68,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 7
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 70,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Wedstrijddag: trail van 30 km",
+              "sport": "TRAIL_RUNNING",
+              "description": "30 km, ongeveer 1000 hoogtemeters. Start langzamer dan goed voelt: klimmen op 75–82% van je maximale hartslag, eet en drink vanaf het eerste uur en spaar je benen voor de laatste afdalingen.",
+              "goalDuration": 16200,
+              "goalDistance": 30000,
+              "goalElevationGain": 1000,
+              "goalRpe": 9,
+              "workout": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

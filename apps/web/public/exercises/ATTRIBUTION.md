@@ -22,6 +22,7 @@ Names, muscles, equipment and instructions from
 MIT licence (Copyright (c) 2026 Hasan Emir Yıldırım). Its media are © Gym visual
 and are not used here.
 
-Names in six languages, Brazilian Portuguese and German instructions, the matching
-between the two sources and the exercises left out are OpenAthlete's own work
+Names in eight languages, Brazilian Portuguese, German and Dutch instructions
+(and Polish ones for the Everkinetic-only exercises), the matching between the
+two sources and the exercises left out are OpenAthlete's own work
 (`scripts/exercises/data`), under the licence of this repository.

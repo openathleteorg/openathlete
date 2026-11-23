@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleClientRetention: BlogPost = {
@@ -16,6 +18,8 @@ export const articleClientRetention: BlogPost = {
       it: "Perché gli atleti lasciano l'allenatore, e come trattenerli",
       'pt-br': 'Por que os alunos deixam a assessoria, e como mantê-los',
       de: 'Warum betreute Athleten aufhören und wie du sie hältst',
+      pl: 'Dlaczego zawodnicy odchodzą od trenera i jak ich zatrzymać',
+      nl: 'Waarom gecoachte atleten stoppen, en hoe je ze houdt',
     },
     description: {
       en: 'Athletes rarely quit after one bad week; they drift. Onboarding, visible progress, a routine for athletes who go quiet, and a pause option.',
@@ -25,6 +29,8 @@ export const articleClientRetention: BlogPost = {
       'pt-br':
         'O aluno raramente sai depois de uma semana ruim: ele vai se desligando. Primeiras semanas, evolução visível e o que fazer quando ele some.',
       de: 'Athleten hören selten nach einer schlechten Woche auf, sie driften weg. Einstieg, sichtbarer Fortschritt, eine Routine für stille Athleten und eine Pause.',
+      pl: 'Zawodnicy rzadko odchodzą po jednym złym tygodniu; oni się oddalają. Start współpracy, widoczny postęp, rutyna dla milczących zawodników i opcja pauzy.',
+      nl: 'Atleten stoppen zelden na één slechte week; ze dwalen af. Onboarding, zichtbare vooruitgang, een routine voor atleten die stil worden en een pauzeoptie.',
     },
     excerpt: {
       en: 'What motivation research says about keeping athletes, and a practical routine for the first six weeks and for the athlete who stops replying.',
@@ -34,6 +40,8 @@ export const articleClientRetention: BlogPost = {
       'pt-br':
         'O que a pesquisa sobre motivação diz, e uma rotina prática para as primeiras seis semanas e para o aluno que para de responder.',
       de: 'Was die Motivationsforschung über Kundenbindung sagt, und eine praktische Routine für die ersten sechs Wochen und für Athleten, die nicht mehr antworten.',
+      pl: 'Co badania nad motywacją mówią o utrzymaniu zawodników oraz praktyczna rutyna na pierwsze sześć tygodni i dla zawodnika, który przestaje odpowiadać.',
+      nl: 'Wat motivatieonderzoek zegt over atleten behouden, en een praktische routine voor de eerste zes weken en voor de atleet die niet meer antwoordt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleClientRetention: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

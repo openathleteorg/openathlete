@@ -24,6 +24,7 @@ The same image runs as the HTTP API and as the background worker. Which BullMQ p
   - parse ids with `ParseIntPipe`, using `{ optional: true }` for optional query params;
   - document with `@ApiOperation` and `@ApiResponse`.
 - **Authorization**: get the user's ability (`this.abilities.getFor({ user })`) and filter queries with `accessibleBy(ability, 'read').Event`. A coach reads their athletes' data through the same rules, so never filter by `athleteId` alone.
+- **Supporter perks**: guard an endpoint with `@RequireFeature(Feature.X)` and `FeatureAccessGuard`, or call `FeatureAccessService.assert(userId, feature, { clubId })` when a club's owner decides. A locked read returns `{ locked: true, teaser }`, a locked write a 403 `FEATURE_LOCKED`. Nothing is locked without Stripe.
 - **Errors**: throw Nest HTTP exceptions (`NotFoundException`, `BadRequestException`...). A plain `Error` becomes a 500.
 - **Rate limits**: a global default applies. Auth and public write endpoints use the presets in `common/security/rate-limits.ts`. Webhooks and `/health` use `@SkipThrottle()`.
 - **Long work**:
@@ -33,7 +34,7 @@ The same image runs as the HTTP API and as the background worker. Which BullMQ p
   - throw `UnrecoverableError` for failures a retry cannot fix;
   - clear any "in progress" state once the last attempt fails.
 - **Optional third parties** (Stripe, OpenAI, Brevo, Firebase): create the client on first use and throw `ServiceUnavailableException` when it is not configured. The API must boot with only `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET_KEY` and `HASH_PEPPER`.
-- **Emails**: templates in `modules/notification/emails/templates/` hold one translation block per language (`FR`, `EN`, `IT`, `ES`, `PT_BR`, `DE`). Send through the `SendEmailEvent`; `EmailTransportService` (Brevo) is a no-op without a key.
+- **Emails**: templates in `modules/notification/emails/templates/` hold one translation block per language (`FR`, `EN`, `IT`, `ES`, `PT_BR`, `DE`, `PL`, `NL`). Send through the `SendEmailEvent`; `EmailTransportService` (Brevo) is a no-op without a key.
 
 ## Data and deletion
 

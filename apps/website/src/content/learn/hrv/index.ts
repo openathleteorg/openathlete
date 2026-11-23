@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const hrv: LearnTerm = {
@@ -16,6 +18,8 @@ export const hrv: LearnTerm = {
     it: 'HRV (variabilità della frequenza cardiaca)',
     'pt-br': 'VFC (variabilidade da frequência cardíaca)',
     de: 'HRV (Herzfrequenzvariabilität)',
+    pl: 'HRV (zmienność rytmu serca)',
+    nl: 'HRV (hartslagvariabiliteit)',
   },
   title: {
     en: 'HRV (heart rate variability): definition, formula, example',
@@ -24,6 +28,8 @@ export const hrv: LearnTerm = {
     it: 'Cos’è l’HRV? Definizione, formula, esempio',
     'pt-br': 'O que é VFC? Definição, fórmula e exemplo',
     de: 'HRV (Herzfrequenzvariabilität): Definition, Formel, Beispiel',
+    pl: 'Czym jest HRV (zmienność rytmu serca)? Definicja, wzór',
+    nl: 'Wat is HRV (hartslagvariabiliteit)? Definitie, formule',
   },
   description: {
     en: 'Heart rate variability (HRV) explained for endurance athletes: the rMSSD formula, why to read ln rMSSD as a 7-day average, and a worked example.',
@@ -33,6 +39,8 @@ export const hrv: LearnTerm = {
     'pt-br':
       'A variabilidade da frequência cardíaca (VFC, HRV) para atletas de endurance: fórmula do rMSSD, média de 7 dias e um exemplo com números.',
     de: 'Herzfrequenzvariabilität (HRV) für Ausdauersportler erklärt: die rMSSD-Formel, warum du ln rMSSD als 7-Tage-Mittel liest, und ein Rechenbeispiel.',
+    pl: 'Zmienność rytmu serca (HRV) dla sportowców wytrzymałościowych: wzór rMSSD, dlaczego czytać ln rMSSD jako średnią 7-dniową, i przykład z liczbami.',
+    nl: 'Hartslagvariabiliteit (HRV) voor duursporters uitgelegd: de rMSSD-formule, waarom je ln rMSSD als 7-daags gemiddelde leest, en een rekenvoorbeeld.',
   },
   definition: {
     en: 'Heart rate variability (HRV) is the beat-to-beat variation in the time between heartbeats, most often reported as rMSSD in milliseconds, and used by athletes as a marker of how their autonomic nervous system is coping with training.',
@@ -42,6 +50,8 @@ export const hrv: LearnTerm = {
     'pt-br':
       'A variabilidade da frequência cardíaca (VFC) é a variação, batimento a batimento, do intervalo entre dois batimentos do coração, geralmente expressa como rMSSD em milissegundos e acompanhada pelos atletas como indicador de como o sistema nervoso autônomo está absorvendo o treino.',
     de: 'Die Herzfrequenzvariabilität (HRV) ist die Schwankung des Abstands zwischen zwei Herzschlägen von Schlag zu Schlag. Sie wird meist als rMSSD in Millisekunden angegeben und von Athleten als Marker dafür genutzt, wie ihr autonomes Nervensystem das Training verkraftet.',
+    pl: 'Zmienność rytmu serca (HRV) to wahania odstępu między kolejnymi uderzeniami serca, zwykle podawane jako rMSSD w milisekundach i używane przez sportowców jako wskaźnik tego, jak ich autonomiczny układ nerwowy znosi trening.',
+    nl: 'Hartslagvariabiliteit (HRV) is de variatie in de tijd tussen opeenvolgende hartslagen, meestal uitgedrukt als rMSSD in milliseconden en door sporters gebruikt als maat voor hoe hun autonome zenuwstelsel de training verwerkt.',
   },
   aliases: {
     en: ['Heart rate variability', 'rMSSD', 'ln rMSSD'],
@@ -50,6 +60,13 @@ export const hrv: LearnTerm = {
     it: ['Variabilità cardiaca', 'VFC', 'rMSSD'],
     'pt-br': ['HRV', 'Variabilidade cardíaca', 'rMSSD'],
     de: ['Herzfrequenzvariabilität', 'HFV', 'rMSSD'],
+    pl: ['Zmienność rytmu zatokowego', 'Zmienność tętna', 'rMSSD', 'ln rMSSD'],
+    nl: [
+      'Hartslagvariabiliteit',
+      'Hartritmevariabiliteit',
+      'HRV-meting',
+      'rMSSD',
+    ],
   },
   faq: {
     en: [
@@ -156,6 +173,40 @@ export const hrv: LearnTerm = {
           'Die täglichen rMSSD-Werte sind schief verteilt: Einzelne sehr hohe Nächte ziehen einen einfachen Mittelwert nach oben. Der natürliche Logarithmus (ln rMSSD) macht die Verteilung symmetrischer, sodass sich Mittelwerte und Standardabweichungen besser verhalten. Das ist in den meisten Trainingsstudien üblich.',
       },
     ],
+    pl: [
+      {
+        question: 'Jakie HRV jest dobre u biegacza?',
+        answer:
+          'Nie ma wartości docelowej. Nocne rMSSD u zdrowych, dobrze wytrenowanych osób waha się od poniżej 30 ms do ponad 100 ms i zależy od wieku, genetyki i urządzenia. Porównuj swoją średnią 7-dniową z własnym punktem odniesienia z poprzednich tygodni, a nie z kimś innym.',
+      },
+      {
+        question: 'Czy niskie HRV po ciężkim treningu to zły znak?',
+        answer:
+          'Samo w sobie nie. Spadek przez noc lub dwie po długim wybieganiu albo zawodach to normalna reakcja na duże obciążenie. Uwagi wymaga średnia 7-dniowa, która przez tydzień lub dłużej utrzymuje się poniżej Twojego zwykłego zakresu, zwłaszcza przy słabym śnie, rosnącym tętnie spoczynkowym albo treningach, które są cięższe, niż powinny.',
+      },
+      {
+        question: 'Po co logarytm z rMSSD?',
+        answer:
+          'Dzienne wartości rMSSD mają skośny rozkład: pojedyncze bardzo wysokie noce podbijają zwykłą średnią. Logarytm naturalny (ln rMSSD) sprawia, że rozkład jest bardziej symetryczny, więc średnie i odchylenia standardowe zachowują się lepiej. Taka jest konwencja w większości badań treningowych.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Wat is een goede HRV voor een hardloper?',
+        answer:
+          'Er is geen streefwaarde. Nachtelijke rMSSD loopt bij gezonde, goed getrainde mensen van onder 30 ms tot boven 100 ms en hangt af van leeftijd, genen en het apparaat. Vergelijk je 7-daagse gemiddelde met je eigen basislijn van de weken ervoor, niet met iemand anders.',
+      },
+      {
+        question: 'Is een lage HRV na een zware training een slecht teken?',
+        answer:
+          'Op zichzelf niet. Een dip van een nacht of twee na een lange duurloop of een wedstrijd is de normale reactie op een grote belasting. Let op als het 7-daagse gemiddelde een week of langer onder je gebruikelijke bereik blijft, zeker bij slecht slapen, een stijgende rusthartslag of trainingen die zwaarder voelen dan ze zouden moeten.',
+      },
+      {
+        question: 'Waarom de logaritme van rMSSD gebruiken?',
+        answer:
+          'Dagelijkse rMSSD-waarden zijn scheef verdeeld: af en toe een heel hoge nacht trekt een gewoon gemiddelde omhoog. De natuurlijke logaritme (ln rMSSD) maakt de verdeling symmetrischer, zodat gemiddelden en standaardafwijkingen zich beter gedragen. Dat is de gewoonte in de meeste trainingsstudies.',
+      },
+    ],
   },
   related: ['ctl-atl-tsb', 'session-rpe', 'trimp', 'taper'],
   links: [
@@ -169,6 +220,8 @@ export const hrv: LearnTerm = {
         it: 'Collegamenti con Garmin, Polar, Suunto e COROS',
         'pt-br': 'Conexões com Garmin, Polar, Suunto e COROS',
         de: 'Verbindungen mit Garmin, Polar, Suunto und COROS',
+        pl: 'Połączenia z Garminem, Polarem, Suunto i COROS',
+        nl: 'Koppelingen met Garmin, Polar, Suunto en COROS',
       },
     },
     '/blog/5-signs-of-overtraining-and-how-to-avoid-it',
@@ -203,5 +256,7 @@ export const hrv: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

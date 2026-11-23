@@ -65,6 +65,26 @@ const translations = {
       'Du musst nichts tun. Danke, dass du so früh an das Projekt geglaubt hast: Es kommt dank dir voran.',
     cta: 'Mein Abo ansehen',
   },
+  PL: {
+    subject: 'dla Ciebie nic się nie zmienia',
+    preview: 'Zachowujesz swoją cenę i dostajesz trochę więcej.',
+    news: 'Supporter ma teraz trzy kwoty do wyboru: każdy wpłaca tyle, ile mu pasuje, za te same korzyści. Wbudowana AI działa teraz w rytmie tygodniowym, w rozsądnym limicie, który odnawia się w każdy poniedziałek.',
+    founder:
+      'Twoje wsparcie dla OpenAthlete zaczęło się przed tą zmianą, więc należysz do grona założycieli. Zachowujesz swoją cenę i swoje uprawnienia, w tym nieograniczoną liczbę zawodników, dopóki trwa Twoja subskrypcja. Dostajesz też wszystkie nowe korzyści Supportera, tak jak wszyscy.',
+    thanks:
+      'Nie musisz nic robić. Dziękuję za tak wczesne zaufanie do projektu: to dzięki Tobie idzie naprzód.',
+    cta: 'Zobacz moją subskrypcję',
+  },
+  NL: {
+    subject: 'voor jou verandert er niets',
+    preview: 'Je houdt je prijs, en je krijgt er wat bij.',
+    news: 'Supporter is er nu in drie bedragen: iedereen geeft wat bij hem of haar past, voor dezelfde voordelen. De inbegrepen AI werkt nu per week, voor redelijk gebruik dat elke maandag weer wordt aangevuld.',
+    founder:
+      'Je steunde OpenAthlete al vóór deze wijziging, en daarmee ben je een van de oprichters. Je houdt je prijs en je rechten, onbeperkt aantal atleten inbegrepen, zolang je abonnement loopt. En je krijgt alle nieuwe Supporter-voordelen, net als iedereen.',
+    thanks:
+      'Je hoeft niets te doen. Bedankt dat je zo vroeg in het project geloofde: dankzij jou komt het vooruit.',
+    cta: 'Mijn abonnement bekijken',
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 /** Once, to each founder of the Supporter tiers: what changed, what stays */

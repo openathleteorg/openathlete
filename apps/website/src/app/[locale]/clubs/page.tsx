@@ -15,7 +15,7 @@ import {
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
 import { TrackedLink } from '@/components/site/tracked-link';
 import { PhoneShot, Screenshot } from '@/components/site/visuals/screenshot';
-import { SELF_HOSTING_DOCS_URL } from '@/config';
+import { SELF_HOSTING_DOCS_URL, SUPPORTER_YEARLY_EUR } from '@/config';
 import {
   COACH_PRICING,
   type Currency,
@@ -24,6 +24,7 @@ import {
 } from '@/content/pricing';
 import { initLocale } from '@/i18n/server';
 import { signupUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import {
   DATE_LOCALES,
@@ -85,7 +86,8 @@ export async function generateMetadata({ params }: Props) {
 export default async function ClubsPage({ params }: Props) {
   const locale = initLocale((await params).locale);
   const intl = DATE_LOCALES[locale];
-  const faqs = faqEntries('clubspage_faq', 5);
+  const prices = supporterPriceVars(locale);
+  const faqs = faqEntries('clubspage_faq', 5, prices);
   const tpPremium =
     COACH_PRICING.find((vendor) => vendor.id === 'trainingpeaks')?.yearly(
       CLUB_ATHLETES,
@@ -101,17 +103,10 @@ export default async function ClubsPage({ params }: Props) {
   }> = [
     {
       name: m.clubspage_cost_oa_cloud(),
-      note: m.clubspage_cost_oa_cloud_note(),
-      amount: 0,
-      label: formatPrice(0, 'EUR', intl),
-      currency: 'EUR',
-      ours: true,
-    },
-    {
-      name: m.clubspage_cost_oa_self(),
-      note: m.clubspage_cost_oa_self_note(),
-      amount: 0,
-      label: formatPrice(0, 'EUR', intl),
+      // The owner's Supporter subscription covers the whole club
+      note: m.clubspage_cost_oa_cloud_note(prices),
+      amount: SUPPORTER_YEARLY_EUR,
+      label: formatPrice(SUPPORTER_YEARLY_EUR, 'EUR', intl),
       currency: 'EUR',
       ours: true,
     },
@@ -230,13 +225,7 @@ export default async function ClubsPage({ params }: Props) {
                 </TrackedLink>
               </div>
               <p className="mt-4 text-[0.85rem] text-white/60">
-                {m.clubspage_hero_reassure()}{' '}
-                <a
-                  href="#own-server"
-                  className="underline underline-offset-2 hover:text-white"
-                >
-                  {m.clubspage_hero_cta_server()}
-                </a>
+                {m.clubspage_hero_reassure(prices)}
               </p>
             </div>
           </div>
@@ -325,7 +314,7 @@ export default async function ClubsPage({ params }: Props) {
               <ArrowRight />
             </TrackedLink>
             <p className="text-[0.85rem] text-muted-foreground">
-              {m.clubspage_app_reassure()}
+              {m.clubspage_app_reassure(prices)}
             </p>
           </Reveal>
         </Container>
@@ -339,7 +328,7 @@ export default async function ClubsPage({ params }: Props) {
             title={m.clubspage_ways_title()}
             align="center"
           />
-          <RevealGroup className="mt-14 grid items-stretch gap-5 lg:grid-cols-2">
+          <RevealGroup className="mx-auto mt-14 grid max-w-3xl items-stretch gap-5">
             <RevealItem className="relative flex h-full flex-col overflow-hidden rounded-3xl bg-ink p-7 text-white shadow-[0_40px_80px_-30px_rgb(5_12_52/0.7)] sm:p-9">
               <div className="brand-gradient absolute inset-x-0 top-0 h-1" />
               <div
@@ -385,36 +374,6 @@ export default async function ClubsPage({ params }: Props) {
                 {m.clubspage_hero_cta_create()}
                 <ArrowRight />
               </TrackedLink>
-            </RevealItem>
-            <RevealItem className="flex h-full flex-col rounded-3xl border border-border bg-white p-7 sm:p-9">
-              <p className="kicker text-sky-strong">
-                {m.clubspage_way2_label()}
-              </p>
-              <h3 className="display-3 mt-4">{m.clubspage_way2_title()}</h3>
-              <p className="mt-4 leading-relaxed text-muted-foreground">
-                {m.clubspage_way2_body()}
-              </p>
-              <CheckList
-                className="mt-7"
-                items={[
-                  m.clubspage_way2_point_1(),
-                  m.clubspage_way2_point_2(),
-                  m.clubspage_way2_point_3(),
-                  m.clubspage_way2_point_4(),
-                  m.clubspage_way2_point_5(),
-                ]}
-              />
-              <p className="mt-7 rounded-2xl bg-paper p-4 text-[0.85rem] leading-relaxed text-muted-foreground">
-                {m.clubspage_way2_honest()}
-              </p>
-              <div className="flex-1" />
-              <a
-                href="#own-server"
-                className="mt-8 inline-flex items-center gap-1.5 font-medium hover:text-sky-strong"
-              >
-                <Server className="size-4" />
-                {m.clubspage_hero_cta_server()}
-              </a>
             </RevealItem>
           </RevealGroup>
         </Container>

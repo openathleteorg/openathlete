@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
 import { isTimeZone } from '../../../utils/date';
+import { accentThemeSchema } from '../../accent-themes';
 import { calendarDisplaySchema } from '../core/calendar-display.dto';
 import { coachDashboardSettingsSchema } from '../core/coach-dashboard-settings.dto';
 import { hiddenActivityTracksSchema } from '../core/hidden-activity-tracks.dto';
+import { unitSystemSchema } from '../core/unit-system.dto';
 import { personNameSchema } from './person-name';
 import { trainingProfileSchema } from './training-profile.dto';
 
@@ -17,6 +19,8 @@ export const updateAccountDtoSchema = trainingProfileSchema.extend({
   trainingReminders: z.boolean().optional(),
   /** What the calendar shows */
   calendarDisplay: calendarDisplaySchema.optional(),
+  /** Accent colour (Supporter perk); null: back to the default */
+  accentTheme: accentThemeSchema.optional(),
   coachDashboard: coachDashboardSettingsSchema.optional(),
   /** Tracks hidden from activity charts, per sport */
   hiddenActivityTracks: hiddenActivityTracksSchema.optional(),
@@ -38,6 +42,8 @@ export const updateAccountDtoSchema = trainingProfileSchema.extend({
   supporterNudgeSeen: z.literal(true).optional(),
   /** The athlete just opened their year review: the server dates it */
   yearReviewSeen: z.literal(true).optional(),
+  /** Units the app shows distances, weights and speeds in */
+  unitSystem: unitSystemSchema.optional(),
 });
 
 export type UpdateAccountDto = z.infer<typeof updateAccountDtoSchema>;

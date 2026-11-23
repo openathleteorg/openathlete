@@ -50,6 +50,7 @@ export class AccountExportService {
         emailWeekly: true,
         emailCoachWeekly: true,
         emailNewsConsentAt: true,
+        unitSystem: true,
         roles: true,
         onboardingCompleted: true,
         acquisitionSource: true,

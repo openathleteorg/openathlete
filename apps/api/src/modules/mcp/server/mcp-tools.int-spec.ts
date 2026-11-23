@@ -175,6 +175,8 @@ describe('MCP tools (PostgreSQL)', () => {
           'update_training_zone',
         ].includes(tool.name),
       );
+      // ChatGPT's app review requires every tool to say whether it destroys data
+      expect(typeof tool.annotations?.destructiveHint).toBe('boolean');
     }
   });
 

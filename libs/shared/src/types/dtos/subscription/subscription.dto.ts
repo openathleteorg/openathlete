@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { Feature, featureAccessMapSchema } from '../../features';
 import {
   billingIntervalSchema,
   billingProviderSchema,
@@ -36,7 +37,18 @@ export const currentSubscriptionDtoSchema = z.object({
   billingEnabled: z.boolean(),
   /** The iOS app can sell subscriptions (App Store purchases are configured) */
   appStoreEnabled: z.boolean(),
+  /** The user agreed to appear on the Supporter wall of the website */
+  showOnSupporterWall: z.boolean(),
+  /** Name shown there instead of the first name */
+  wallName: z.string().nullable(),
+  /** Coaches, athletes and club members see the Supporter badge */
+  showSupporterBadge: z.boolean(),
+  /** What the user may use of FEATURES today, decided by the server's clock */
+  features: featureAccessMapSchema,
 });
+
+/** Users one request about badges may name */
+export const SUPPORTER_BADGES_MAX = 200;
 
 export type CurrentSubscriptionDto = z.infer<
   typeof currentSubscriptionDtoSchema
@@ -49,6 +61,71 @@ export const supporterCountDtoSchema = z.object({
 });
 
 export type SupporterCountDto = z.infer<typeof supporterCountDtoSchema>;
+
+/** Show or hide the Supporter badge others see */
+export const updateSupporterBadgeDtoSchema = z.object({ show: z.boolean() });
+export type UpdateSupporterBadgeDto = z.infer<
+  typeof updateSupporterBadgeDtoSchema
+>;
+
+/** Users to ask about, among those the requester sees in the app */
+export const supporterBadgesQuerySchema = z.object({
+  userIds: z
+    .string()
+    .transform((value) =>
+      value
+        .split(',')
+        .map(Number)
+        .filter((id) => Number.isInteger(id) && id > 0),
+    )
+    .pipe(z.array(z.number()).max(SUPPORTER_BADGES_MAX)),
+});
+
+/** Those of them who show the Supporter badge */
+export const supporterBadgesDtoSchema = z.object({
+  userIds: z.array(z.number().int()),
+});
+export type SupporterBadgesDto = z.infer<typeof supporterBadgesDtoSchema>;
+
+/** Longest name a Supporter may show on the wall */
+export const SUPPORTER_WALL_NAME_MAX_LENGTH = 30;
+
+/**
+ * What the public transparency page of the website reads. Strict: no
+ * amount, no email and no full name may ever be added to it, since the
+ * revenue and the funding thresholds stay private.
+ */
+export const transparencyDtoSchema = z
+  .object({
+    supporters: supporterCountDtoSchema,
+    /**
+     * Progress of each funding tier, in whole percent of its own step (from
+     * the previous threshold to its own). Null when the thresholds are not
+     * configured.
+     */
+    tiers: z.array(z.number().int().min(0).max(100)).max(5).nullable(),
+    /** First names or chosen names of the Supporters who agreed, oldest first */
+    wall: z.array(z.string()),
+  })
+  .strict();
+
+export type TransparencyDto = z.infer<typeof transparencyDtoSchema>;
+
+/** Appear on the Supporter wall, under a chosen name or the first name */
+export const updateSupporterWallDtoSchema = z.object({
+  show: z.boolean(),
+  /** Empty or absent: the first name */
+  name: z
+    .string()
+    .trim()
+    .max(SUPPORTER_WALL_NAME_MAX_LENGTH)
+    .nullable()
+    .optional(),
+});
+
+export type UpdateSupporterWallDto = z.infer<
+  typeof updateSupporterWallDtoSchema
+>;
 
 /**
  * Create checkout session DTO
@@ -69,6 +146,8 @@ export const createCheckoutSessionDtoSchema = z.object({
   acceptTerms: z.literal(true).optional(),
   successUrl: z.string().url(),
   cancelUrl: z.string().url(),
+  /** The locked feature whose paywall led here, for the funnels */
+  feature: z.nativeEnum(Feature).optional(),
 });
 
 export type CreateCheckoutSessionDto = z.infer<

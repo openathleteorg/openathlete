@@ -474,11 +474,30 @@ export const ApiEnvSchema = z
       .default('redis://localhost:6379/0')
       .describe('Redis connection URL for queue and caching'),
 
+    FEATURES_CLOCK: z
+      .string()
+      .regex(
+        /^\d{4}-\d{2}-\d{2}$/,
+        'FEATURES_CLOCK must be a date (YYYY-MM-DD)',
+      )
+      .optional()
+      .describe(
+        'Testing only: the day the Supporter feature registry takes as today (early access). Without Stripe it changes nothing',
+      ),
+
     // Stripe (optional, required for subscription features)
     STRIPE_SECRET_KEY: z
       .string()
       .optional()
       .describe('Stripe secret key for payment processing (optional)'),
+
+    STRIPE_API_URL: z
+      .string()
+      .url('STRIPE_API_URL must be a URL')
+      .optional()
+      .describe(
+        'Testing only: the Stripe API to call instead of api.stripe.com (stripe-mock in the E2E stack)',
+      ),
 
     STRIPE_PRICE_SUPPORTER_MONTHLY: z
       .string()
@@ -495,6 +514,52 @@ export const ApiEnvSchema = z
       .optional()
       .describe(
         'Stripe webhook secret for verifying webhook requests (optional)',
+      ),
+
+    // Funding tiers of the transparency page (optional, hosted instance only)
+    TRANSPARENCY_TIER_1_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_1_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Monthly revenue, in euros excluding VAT, at which funding tier 1 of the transparency page is reached. Only its progress is published. Unset (any tier): the page shows the Supporter count alone',
+      ),
+
+    TRANSPARENCY_TIER_2_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_2_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Monthly revenue, in euros excluding VAT, at which funding tier 2 of the transparency page is reached. Only its progress is published. Unset (any tier): the page shows the Supporter count alone',
+      ),
+
+    TRANSPARENCY_TIER_3_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_3_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Monthly revenue, in euros excluding VAT, at which funding tier 3 of the transparency page is reached. Only its progress is published. Unset (any tier): the page shows the Supporter count alone',
+      ),
+
+    TRANSPARENCY_TIER_4_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_4_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Monthly revenue, in euros excluding VAT, at which funding tier 4 of the transparency page is reached. Only its progress is published. Unset (any tier): the page shows the Supporter count alone',
+      ),
+
+    TRANSPARENCY_TIER_5_EUR: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, 'TRANSPARENCY_TIER_5_EUR must be a number')
+      .optional()
+      .transform((val) => (val === undefined ? undefined : Number(val)))
+      .describe(
+        'Optional fifth funding tier of the transparency page, a small team, above tier 4. Unset: the page shows it as a horizon without progress',
       ),
 
     // App Store in-app purchases (optional, hosted iOS app only)
@@ -596,6 +661,14 @@ export const ApiEnvSchema = z
       .url('POSTHOG_HOST must be a valid URL')
       .default('https://eu.i.posthog.com')
       .describe('PostHog ingestion host'),
+
+    // Domain verification for the ChatGPT app directory (hosted instance)
+    OPENAI_APPS_CHALLENGE_TOKEN: z
+      .string()
+      .optional()
+      .describe(
+        'Token OpenAI asks for at /.well-known/openai-apps-challenge to verify the domain of an app listed in ChatGPT. Unset: 404',
+      ),
 
     // Normalization processor configuration (optional)
     NORMALIZATION_MIN_MOVING_SPEED_MS: z

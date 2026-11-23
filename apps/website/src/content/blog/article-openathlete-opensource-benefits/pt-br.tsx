@@ -122,11 +122,13 @@ export function ContentPtBr() {
 
       <h2>Se você prefere não cuidar de servidor</h2>
       <p>
-        A versão hospedada é gratuita, com todos os recursos. A API e o banco de
-        dados rodam na OVH, na França, e o app web é servido pela Vercel. O
-        plano Supporter (a partir de 5 € por mês ou 50 € por ano) acrescenta IA
-        nas chaves do OpenAthlete e o acompanhamento de mais de cinco atletas, e
-        ajuda a pagar os servidores. Os motivos por trás do projeto estão na{' '}
+        Tudo o que você precisa para treinar é gratuito na versão hospedada. A
+        API e o banco de dados rodam na OVH, na França, e o app web é servido
+        pela Vercel. O plano Supporter (a partir de 5 € por mês ou 50 € por ano)
+        ajuda a pagar os servidores e, como agradecimento, acrescenta o Lab, o
+        acesso antecipado às novidades, as ferramentas avançadas de treinador e
+        os clubes, IA nas chaves do OpenAthlete e o acompanhamento de mais de
+        cinco atletas. Os motivos por trás do projeto estão na{' '}
         <Link href="/pt-br/open-source">página sobre código aberto</Link>.
       </p>
     </div>

@@ -73,11 +73,12 @@ export function ContentEs() {
         <strong>Entrenadores.</strong> El entrenador planifica directamente en
         el calendario de cada atleta, reutiliza plantillas y ve lo que se hizo
         de verdad. Un atleta puede tener más de un entrenador, y hay un chat de
-        grupo. Entrenar hasta a cinco atletas es gratis. Los clubes tienen un
-        espacio de club gratuito, con grupos y sus entrenadores, una biblioteca
-        de entrenamientos compartida, sesiones semanales del club y planes
-        copiados a todo un grupo; los atletas a los que un entrenador llega a
-        través de un club no cuentan para ese límite.
+        grupo. Entrenar hasta a cinco atletas es gratis. Un club lo abre un
+        Supporter, y sus miembros y entrenadores se unen gratis; tiene grupos y
+        sus entrenadores, una biblioteca de entrenamientos compartida, sesiones
+        semanales del club y planes copiados a todo un grupo, y los atletas a
+        los que un entrenador llega a través de un club no cuentan para ese
+        límite.
       </p>
       <p>
         <strong>IA, si la quieres.</strong> Nada se ejecuta sin tu
@@ -103,8 +104,8 @@ export function ContentEs() {
           Ambos son solo fuentes de actividades.
         </li>
         <li>
-          No hay facturación al club: el espacio de club es gratis y las cuotas
-          se gestionan fuera de OpenAthlete.
+          No hay facturación al club: unirse a un club es gratis y las cuotas se
+          gestionan fuera de OpenAthlete.
         </li>
         <li>
           No predice lesiones. Registra el dolor cuando el atleta lo indica y se
@@ -119,10 +120,12 @@ export function ContentEs() {
 
       <h2>Cómo se financia</h2>
       <p>
-        Todas las funciones son gratuitas en la versión alojada. El plan
-        Supporter, desde 5 € al mes o 50 € al año, añade dos cosas: IA con las
-        claves de OpenAthlete, con una cuota semanal para un uso razonable que
-        se renueva cada lunes, y entrenar a más de cinco atletas. El
+        Todo lo necesario para entrenar es gratuito en la versión alojada. El
+        plan Supporter, desde 5 € al mes o 50 € al año, financia el proyecto y,
+        como agradecimiento, añade el Lab, el acceso anticipado a las novedades,
+        las herramientas avanzadas para entrenadores y los clubes, entrenar a
+        más de cinco atletas e IA con las claves de OpenAthlete, con una cuota
+        semanal para un uso razonable que se renueva cada lunes. El
         autoalojamiento es gratuito y sin límites. Los detalles están en la{' '}
         <Link href="/es/pricing">página de precios</Link>.
       </p>

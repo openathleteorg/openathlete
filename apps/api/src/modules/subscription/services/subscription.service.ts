@@ -148,6 +148,95 @@ export class SubscriptionService {
     });
   }
 
+  /** Shows or hides the user on the Supporter wall; an empty name: the first name */
+  async updateSupporterWall(
+    userId: number,
+    { show, name }: { show: boolean; name?: string | null },
+  ): Promise<Subscription> {
+    await this.getOrCreateSubscription(userId);
+    return this.prisma.subscription.update({
+      where: { userId },
+      data: {
+        showOnSupporterWall: show,
+        // Absent: keep the name chosen before
+        ...(name !== undefined && { wallName: name?.trim() || null }),
+      },
+    });
+  }
+
+  async updateSupporterBadge(
+    userId: number,
+    show: boolean,
+  ): Promise<Subscription> {
+    await this.getOrCreateSubscription(userId);
+    return this.prisma.subscription.update({
+      where: { userId },
+      data: { showSupporterBadge: show },
+    });
+  }
+
+  /**
+   * Which of these users show the Supporter badge to the viewer: running
+   * Supporters who kept it on, among the people the viewer sees in the app
+   * (their coaches and athletes, club mates, conversation partners), so the
+   * endpoint cannot be used to probe anyone's subscription.
+   */
+  async supporterBadges(
+    viewerId: number,
+    userIds: number[],
+  ): Promise<number[]> {
+    if (userIds.length === 0) return [];
+    const known = await this.usersSeenBy(viewerId, userIds);
+    const subscriptions = await this.prisma.subscription.findMany({
+      where: {
+        userId: { in: [...known] },
+        plan: PrismaSubscriptionPlan.SUPPORTER,
+        showSupporterBadge: true,
+      },
+    });
+    return subscriptions
+      .filter((subscription) => this.isEntitled(subscription))
+      .map((subscription) => subscription.userId);
+  }
+
+  private async usersSeenBy(
+    viewerId: number,
+    userIds: number[],
+  ): Promise<Set<number>> {
+    const asked = { in: userIds };
+    const [athletes, coaches, clubMates, partners] = await Promise.all([
+      this.prisma.coachAthlete.findMany({
+        where: { userId: viewerId, athlete: { userId: asked } },
+        select: { athlete: { select: { userId: true } } },
+      }),
+      this.prisma.coachAthlete.findMany({
+        where: { athlete: { userId: viewerId }, userId: asked },
+        select: { userId: true },
+      }),
+      this.prisma.clubMember.findMany({
+        where: {
+          userId: asked,
+          club: { members: { some: { userId: viewerId } } },
+        },
+        select: { userId: true },
+      }),
+      this.prisma.messageThreadParticipant.findMany({
+        where: {
+          userId: asked,
+          thread: { participants: { some: { userId: viewerId } } },
+        },
+        select: { userId: true },
+      }),
+    ]);
+    return new Set([
+      ...(userIds.includes(viewerId) ? [viewerId] : []),
+      ...athletes.map((link) => link.athlete.userId),
+      ...coaches.map((link) => link.userId),
+      ...clubMates.map((member) => member.userId),
+      ...partners.map((participant) => participant.userId),
+    ]);
+  }
+
   /**
    * Ensure a Stripe customer exists for this user and persist its ID.
    * Useful for flows like opening the billing portal when the user never checked out yet.

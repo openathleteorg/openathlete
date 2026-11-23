@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 
 import {
+  Feature,
   IMAGE_MAX_BYTES,
   type UploadImageDto,
   type UploadedImageDto,
@@ -34,6 +35,7 @@ import {
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
+import { FeatureAccessService } from '../subscription/services/feature-access.service';
 import { type ImageUpload, StoredFileService } from './stored-file.service';
 
 @ApiTags('Files')
@@ -41,7 +43,10 @@ import { type ImageUpload, StoredFileService } from './stored-file.service';
 @UseGuards(AuthGuard('jwt'), UserTypeGuard)
 @Controller('files')
 export class FilesController {
-  constructor(private readonly files: StoredFileService) {}
+  constructor(
+    private readonly files: StoredFileService,
+    private readonly features: FeatureAccessService,
+  ) {}
 
   @Post('images')
   @ApiOperation({
@@ -67,11 +72,14 @@ export class FilesController {
       limits: { fileSize: IMAGE_MAX_BYTES + 1, files: 1, fields: 2, parts: 3 },
     }),
   )
-  upload(
+  async upload(
     @JwtUser() user: AuthUser,
     @UploadedFile() file: ImageUpload | undefined,
     @Body(new ZodValidationPipe(uploadImageDtoSchema)) dto: UploadImageDto,
   ): Promise<UploadedImageDto> {
+    // Storing images costs: sending them is a Supporter perk. Those already
+    // sent stay readable through GET
+    await this.features.assert(user.userId, Feature.IMAGES);
     return this.files.uploadImage(user, file, dto);
   }
 

@@ -443,6 +443,8 @@ enum UserLanguage {
   ES
   PT_BR
   DE
+  PL
+  NL
 
   @@map("user_language")
 }
@@ -575,4 +577,13 @@ enum WorkoutRepeatKind {
   TABATA
 
   @@map("workout_repeat_kind")
+}
+
+/// Units a user sees distances, weights and speeds in. Values are always
+/// stored in metric
+enum UnitSystem {
+  METRIC
+  IMPERIAL
+
+  @@map("unit_system")
 }

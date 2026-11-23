@@ -40,6 +40,8 @@ import {
   getSportConfig,
 } from '@openathlete/shared';
 
+import { useWorkoutAthleteId } from './workout-athlete-context';
+
 /**
  * Default unit for the pace input, based on the sport's usual speed unit
  * (e.g. min/km for running, km/h for cycling)
@@ -161,8 +163,10 @@ export function TargetForm({
   sport,
 }: TargetFormProps) {
   const { data: athlete } = useGetMyAthleteQuery();
+  // Percentages read the session athlete's FTP or VMA, not the coach's
+  const workoutAthleteId = useWorkoutAthleteId();
   const { data: latestMetrics = {} } = useGetLatestMetricsQuery(
-    athlete?.athleteId,
+    workoutAthleteId ?? athlete?.athleteId,
   );
 
   const [useRange, setUseRange] = useState(

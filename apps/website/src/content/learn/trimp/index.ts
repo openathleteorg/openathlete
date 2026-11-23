@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const trimp: LearnTerm = {
@@ -16,6 +18,8 @@ export const trimp: LearnTerm = {
     it: 'TRIMP',
     'pt-br': 'TRIMP',
     de: 'TRIMP',
+    pl: 'TRIMP',
+    nl: 'TRIMP',
   },
   title: {
     en: 'TRIMP: definition, formula, example',
@@ -24,6 +28,8 @@ export const trimp: LearnTerm = {
     it: 'Cos’è il TRIMP? Definizione, formula, esempio',
     'pt-br': 'O que é TRIMP? Definição, fórmula e exemplo',
     de: 'Was ist TRIMP? Definition, Formel, Beispiel',
+    pl: 'Czym jest TRIMP? Definicja, wzór, przykład',
+    nl: 'Wat is TRIMP? Definitie, formule, voorbeeld',
   },
   description: {
     en: 'TRIMP (training impulse) puts one number on a session from duration and heart rate. Banister’s formula, the 0.64/1.92 coefficients and a worked example.',
@@ -33,6 +39,8 @@ export const trimp: LearnTerm = {
     'pt-br':
       'O TRIMP (training impulse) resume uma sessão em um número a partir da duração e da frequência cardíaca. Fórmula de Banister, coeficientes e exemplo.',
     de: 'Der TRIMP (Trainingsimpuls) fasst eine Einheit aus Dauer und Herzfrequenz in einer Zahl zusammen. Banisters Formel, Koeffizienten und ein Rechenbeispiel.',
+    pl: 'TRIMP (training impulse) zamienia trening w jedną liczbę na podstawie czasu i tętna. Wzór Banistera, współczynniki 0,64/1,92 i przykład z obliczeniami.',
+    nl: 'TRIMP (training impulse) vat een training samen in één getal uit duur en hartslag. De formule van Banister, de coëfficiënten en een rekenvoorbeeld.',
   },
   definition: {
     en: 'TRIMP (training impulse) is a training load score that multiplies the duration of a session by its heart rate intensity, weighted exponentially so that hard minutes count more than easy ones.',
@@ -42,6 +50,8 @@ export const trimp: LearnTerm = {
     'pt-br':
       'O TRIMP (training impulse) é uma pontuação de carga de treino que multiplica a duração de uma sessão pela intensidade cardíaca, com peso exponencial para que os minutos fortes contem mais que os leves.',
     de: 'Der TRIMP (training impulse, Trainingsimpuls) ist ein Wert für die Trainingsbelastung, der die Dauer einer Einheit mit ihrer Herzfrequenzintensität multipliziert, exponentiell gewichtet, sodass harte Minuten mehr zählen als lockere.',
+    pl: 'TRIMP (training impulse, impuls treningowy) to wskaźnik obciążenia treningowego, który mnoży czas trwania treningu przez jego intensywność mierzoną tętnem, z wagą wykładniczą, tak by ciężkie minuty liczyły się bardziej niż łatwe.',
+    nl: 'TRIMP (training impulse, trainingsimpuls) is een score voor trainingsbelasting die de duur van een training vermenigvuldigt met de hartslagintensiteit, exponentieel gewogen zodat zware minuten zwaarder tellen dan rustige.',
   },
   aliases: {
     en: ['Training impulse', 'Banister TRIMP'],
@@ -50,6 +60,8 @@ export const trimp: LearnTerm = {
     it: ['Training impulse', 'Impulso di allenamento', 'TRIMP di Banister'],
     'pt-br': ['Training impulse', 'Impulso de treino', 'TRIMP de Banister'],
     de: ['Training impulse', 'Trainingsimpuls', 'Banister-TRIMP'],
+    pl: ['Training impulse', 'Impuls treningowy', 'TRIMP Banistera'],
+    nl: ['Training impulse', 'Trainingsimpuls', 'TRIMP van Banister'],
   },
   faq: {
     en: [
@@ -158,6 +170,42 @@ export const trimp: LearnTerm = {
           'Nein: Der TRIMP braucht die Herzfrequenz sowie deinen Ruhepuls und deine HFmax. Ohne sie nutzt du die Session-RPE (Anstrengung von 0 bis 10 multipliziert mit den Minuten), die dasselbe aus einem anderen Blickwinkel misst.',
       },
     ],
+    pl: [
+      {
+        question: 'Jaki wynik TRIMP jest dobry?',
+        answer:
+          'Sam w sobie żaden wynik nie jest dobry ani zły. Spokojna godzina zwykle daje od 60 do 90, ciężki trening interwałowy albo długie wybieganie wyraźnie ponad 100. Liczy się to, jak zmienia się Twoja suma tygodniowa i kondycja (CTL) w porównaniu z Twoją własną historią.',
+      },
+      {
+        question:
+          'Dlaczego kobiety i mężczyźni mają różne współczynniki TRIMP?',
+        answer:
+          'Banister dopasował wagę do tego, jak mleczan we krwi rośnie wraz z tętnem, a średnia krzywa różniła się między badanymi mężczyznami i kobietami: 0,64 i 1,92 dla mężczyzn, 0,86 i 1,67 dla kobiet. To średnie grupowe, a nie wartości dla konkretnego zawodnika.',
+      },
+      {
+        question: 'Czy da się policzyć TRIMP bez pulsometru?',
+        answer:
+          'Nie: TRIMP wymaga tętna, a do tego Twojego tętna spoczynkowego i maksymalnego. Bez nich użyj session RPE (wysiłek od 0 do 10 pomnożony przez minuty), które mierzy to samo z innej perspektywy.',
+      },
+    ],
+    nl: [
+      {
+        question: 'Wat is een goede TRIMP-score?',
+        answer:
+          'Op zichzelf is geen enkele score goed of slecht. Een rustig uur komt meestal uit tussen 60 en 90, een harde intervaltraining of een lange duurloop ruim boven 100. Waar het om gaat, is hoe je weektotaal en je fitheid (CTL) zich ontwikkelen ten opzichte van je eigen geschiedenis.',
+      },
+      {
+        question:
+          'Waarom hebben mannen en vrouwen verschillende TRIMP-coëfficiënten?',
+        answer:
+          'Banister stemde de weging af op hoe het bloedlactaat stijgt met de hartslag, en de gemiddelde curve verschilde tussen de gemeten mannen en vrouwen: 0,64 en 1,92 voor mannen, 0,86 en 1,67 voor vrouwen. Het zijn groepsgemiddelden, geen waarden voor één individuele sporter.',
+      },
+      {
+        question: 'Kun je TRIMP berekenen zonder hartslagmeter?',
+        answer:
+          'Nee: TRIMP heeft hartslag nodig, plus je rusthartslag en maximale hartslag. Zonder die gegevens gebruik je session RPE (inspanning van 0 tot 10 maal de minuten), dat hetzelfde meet vanuit een andere hoek.',
+      },
+    ],
   },
   related: ['ctl-atl-tsb', 'session-rpe', 'aerobic-decoupling', 'hrv'],
   links: [
@@ -190,5 +238,7 @@ export const trimp: LearnTerm = {
     it: ContentIt,
     'pt-br': ContentPtBr,
     de: ContentDe,
+    pl: ContentPl,
+    nl: ContentNl,
   },
 };

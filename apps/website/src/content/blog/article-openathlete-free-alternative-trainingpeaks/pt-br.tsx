@@ -111,16 +111,18 @@ export function ContentPtBr() {
 
       <h2>OpenAthlete</h2>
       <p>
-        Todos os recursos são grátis nos nossos servidores: calendário, editor
-        de treinos, envio de treinos para Garmin, Suunto e COROS, carga de
-        treino e assessoria de até cinco atletas. O plano Supporter opcional (a
-        partir de {q('oaMonth')} por mês ou {q('oaYear')} por ano) acrescenta IA
-        com as nossas chaves e atletas ilimitados, e nada mais. O código é
-        AGPL-3.0, então você também pode rodar no seu próprio servidor, de graça
-        e sem limites. Os clubes também têm um espaço de clube gratuito, sem
-        limite de atletas: grupos com seus treinadores, uma biblioteca de
-        treinos compartilhada, treinos semanais do clube e planos copiados para
-        um grupo inteiro.
+        Tudo o que você precisa para treinar é grátis nos nossos servidores:
+        calendário, editor de treinos, envio de treinos para Garmin, Suunto e
+        COROS, carga de treino e assessoria de até cinco atletas. O plano
+        Supporter opcional (a partir de {q('oaMonth')} por mês ou {q('oaYear')}{' '}
+        por ano) financia o projeto e acrescenta o Lab, o acesso antecipado às
+        novidades, as ferramentas avançadas de treinador e os clubes, IA com as
+        nossas chaves e atletas ilimitados. O código é AGPL-3.0, então você
+        também pode rodar no seu próprio servidor, de graça e sem limites. Um
+        clube é aberto por um Supporter e os membros entram de graça, sem limite
+        de atletas: grupos com seus treinadores, uma biblioteca de treinos
+        compartilhada, treinos semanais do clube e planos copiados para um grupo
+        inteiro.
       </p>
       <p>
         A carga de treino é o TRIMP de Banister calculado pela frequência
@@ -192,7 +194,8 @@ export function ContentPtBr() {
         Surge para uma equipe escolar ou clube dos Estados Unidos com preço
         fixo. Escolha o OpenAthlete se você quer os treinos no Garmin, Suunto ou
         COROS sem pagar, um preço fixo de treinador, IA com a sua chave, um
-        espaço de clube gratuito ou um código que você mesmo pode hospedar.
+        clube em que seus atletas entram de graça ou um código que você mesmo
+        pode hospedar.
       </p>
 
       <h2>Levando seu histórico</h2>

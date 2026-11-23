@@ -78,6 +78,30 @@ const translations = {
     settingsNote:
       'Alle deine Einladungen verwaltest du im Bereich Einstellungen deines Kontos.',
   },
+  PL: {
+    title: 'Nowe zaproszenie od trenera',
+    preview: (athleteName: string) =>
+      `${athleteName} zaprasza Cię do roli swojego trenera`,
+    description: (athleteName: string) =>
+      `${athleteName} zaprasza Cię do roli swojego trenera w OpenAthlete. Możesz przyjąć lub odrzucić to zaproszenie w ustawieniach.`,
+    buttonLabel: 'Zobacz zaproszenia',
+    linkNote: (url: string) =>
+      `Jeśli przycisk nie działa, skopiuj ten link i wklej go w przeglądarce: ${url}`,
+    settingsNote:
+      'Wszystkimi zaproszeniami zarządzasz w sekcji Ustawienia swojego konta.',
+  },
+  NL: {
+    title: 'Nieuwe uitnodiging als coach',
+    preview: (athleteName: string) =>
+      `${athleteName} vraagt je om zijn of haar coach te worden`,
+    description: (athleteName: string) =>
+      `${athleteName} vraagt je om zijn of haar coach te worden op OpenAthlete. Je kunt deze uitnodiging accepteren of weigeren in je instellingen.`,
+    buttonLabel: 'Uitnodigingen bekijken',
+    linkNote: (url: string) =>
+      `Werkt de knop niet? Kopieer deze link en plak hem in je browser: ${url}`,
+    settingsNote:
+      'Al je uitnodigingen beheer je in het onderdeel Instellingen van je account.',
+  },
 } as const;
 
 export function buildCoachInvitationExistingEmail({

@@ -81,20 +81,21 @@ export function ContentEn() {
 
       <h2>Two ways to run a club on OpenAthlete</h2>
       <p>
-        OpenAthlete has a club space. It is free on our servers, with no limit
-        on the number of athletes, and a club that prefers its own server gets
-        the same features by installing OpenAthlete there.
+        OpenAthlete has a club space. On our servers, a Supporter opens the club
+        and members and coaches join free, with no limit on the number of
+        athletes, and a club that prefers its own server gets the same features
+        by installing OpenAthlete there.
       </p>
       <p>
-        <strong>A club space, on our servers.</strong> A coach creates the club
-        in Settings &gt; Clubs and gives each member a role: owner, admin,
-        coach, assistant or athlete. Every coach of the club reaches the club's
-        athletes, and those athletes don't count against the five-athlete limit
-        of a free coach account. Members join from a list you import (pasted, or
-        a CSV from the club spreadsheet, groups included), with a join code, or
-        through links that expire. Each group, by pace or level, has its own
-        coaches, and the club library holds the workouts and folders every coach
-        of the club uses.
+        <strong>A club space, on our servers.</strong> A coach on the Supporter
+        plan creates the club in Settings &gt; Clubs and gives each member a
+        role: owner, admin, coach, assistant or athlete. Every coach of the club
+        reaches the club's athletes, and those athletes don't count against the
+        five-athlete limit of a free coach account. Members join from a list you
+        import (pasted, or a CSV from the club spreadsheet, groups included),
+        with a join code, or through links that expire. Each group, by pace or
+        level, has its own coaches, and the club library holds the workouts and
+        folders every coach of the club uses.
       </p>
       <p>
         To plan for a group, copy a session, a day or a week to many athletes at

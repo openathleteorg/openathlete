@@ -46,6 +46,27 @@ export function indexRange(
   return start <= end ? [start, end] : null;
 }
 
+/** Locate chart samples on a separately sampled GPS route. */
+export function routeRange(
+  chart: ActivityStream,
+  route: ActivityStream,
+  start: number,
+  end: number,
+): [number, number] | null {
+  for (const key of ['time', 'distance'] as const) {
+    const source = chart[key];
+    const target = route[key];
+    if (!source || !target || target.length !== route.latlng?.length) continue;
+    const from = source[start];
+    const to = source[end];
+    if (to > from && target[target.length - 1] > target[0]) {
+      const range = indexRange(target, [from, to]);
+      if (range) return range;
+    }
+  }
+  return null;
+}
+
 export interface RangeStats {
   /** Seconds between the first and last samples */
   durationSec: number;

@@ -8,7 +8,7 @@ import {
   paragraph,
   signature,
 } from '../../core/blocks';
-import { formatNumber } from '../../core/format';
+import { formatNumber, polishPlural } from '../../core/format';
 import { renderEmail } from '../../core/layout';
 import { LifecycleEmail, LifecycleEmailProps, greeting } from './common';
 
@@ -144,6 +144,46 @@ const translations = {
       n === 1 ? 'Und 1 weiterer Athlet.' : `Und ${n} weitere Athleten.`,
     button: 'Dashboard öffnen',
     garmin: 'Erkenntnisse teilweise aus Daten von Garmin-Geräten abgeleitet.',
+  },
+  PL: {
+    // Between the athlete's name and what to look at
+    sep: ': ',
+    subject: (n: number) =>
+      `Twoi zawodnicy: ${n} do sprawdzenia w tym tygodniu`,
+    preview: 'Opuszczone treningi, rosnące obciążenie, wypełnione ankiety.',
+    title: 'Twoi zawodnicy w tym tygodniu',
+    intro: 'Oto ci, którym warto się przyjrzeć po minionym tygodniu.',
+    missed: (n: number) =>
+      `${n} ${polishPlural(n, 'opuszczony trening', 'opuszczone treningi', 'opuszczonych treningów')}`,
+    load: (pct: string) =>
+      `obciążenie mocno w górę: +${pct} % względem średniej z 4 poprzednich tygodni`,
+    answers: (n: number) =>
+      `${n} ${polishPlural(n, 'wypełniona ankieta', 'wypełnione ankiety', 'wypełnionych ankiet')}`,
+    calendar: 'Kalendarz',
+    more: (n: number) =>
+      n === 1 ? 'I jeszcze 1 zawodnik.' : `I jeszcze ${n} zawodników.`,
+    button: 'Otwórz panel',
+    garmin: 'Analizy oparte częściowo na danych z urządzeń Garmin.',
+  },
+  NL: {
+    // Between the athlete's name and what to look at
+    sep: ': ',
+    subject: (n: number) => `Je atleten: ${n} om naar te kijken deze week`,
+    preview:
+      'Gemiste trainingen, stijgende belasting, ingevulde vragenlijsten.',
+    title: 'Je atleten deze week',
+    intro: 'Deze verdienen een blik na afgelopen week.',
+    missed: (n: number) =>
+      n === 1 ? '1 gemiste training' : `${n} gemiste trainingen`,
+    load: (pct: string) =>
+      `belasting flink omhoog: +${pct}% ten opzichte van het gemiddelde van de 4 weken ervoor`,
+    answers: (n: number) =>
+      n === 1 ? '1 vragenlijst ingevuld' : `${n} vragenlijsten ingevuld`,
+    calendar: 'Agenda',
+    more: (n: number) =>
+      n === 1 ? 'En nog 1 atleet.' : `En nog ${n} atleten.`,
+    button: 'Dashboard openen',
+    garmin: 'Inzichten deels afgeleid van gegevens van Garmin-apparaten.',
   },
 } satisfies Record<EmailLanguage, unknown>;
 

@@ -145,6 +145,7 @@ export class TrainingPlanService {
           const createdEvent = await this.prisma.event.create({
             data: {
               athleteId,
+              createdById: user.userId,
               startDate: sessionDate,
               endDate: sessionEndDate,
               name: session.name,

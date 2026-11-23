@@ -86,6 +86,36 @@ const translations: Record<EmailLanguage, Texts> = {
     open: 'Antworten',
     closes: (day) => `Du kannst bis ${day} antworten.`,
   },
+  PL: {
+    subject: (coach, title) => `Nowa ankieta – ${coach}: „${title}”`,
+    heading: (title) => title,
+    intro: (coach) =>
+      `${coach} przesyła Ci ankietę. Twoje odpowiedzi pomogą dopasować Twój trening.`,
+    reminder: (coach) =>
+      `Ankieta, którą przesyła Ci ${coach}, wciąż czeka na Twoją odpowiedź.`,
+    questions: (count) => {
+      if (count <= 1) return 'Jedno pytanie.';
+      const few =
+        count % 10 >= 2 &&
+        count % 10 <= 4 &&
+        (count % 100 < 12 || count % 100 > 14);
+      return `${count} ${few ? 'pytania' : 'pytań'}, minuta lub dwie.`;
+    },
+    open: 'Odpowiedz',
+    closes: (day) => `Możesz odpowiedzieć do ${day}.`,
+  },
+  NL: {
+    subject: (coach, title) => `${coach} heeft je ‘${title}’ gestuurd`,
+    heading: (title) => title,
+    intro: (coach) =>
+      `${coach} heeft je een vragenlijst gestuurd. Met je antwoorden kan je training worden bijgestuurd.`,
+    reminder: (coach) =>
+      `De vragenlijst van ${coach} wacht nog op je antwoord.`,
+    questions: (count) =>
+      count > 1 ? `${count} vragen, een minuutje of twee.` : 'Eén vraag.',
+    open: 'Beantwoorden',
+    closes: (day) => `Je kunt antwoorden tot ${day}.`,
+  },
 };
 
 const locales: Record<EmailLanguage, string> = {
@@ -95,6 +125,8 @@ const locales: Record<EmailLanguage, string> = {
   ES: 'es-ES',
   PT_BR: 'pt-BR',
   DE: 'de-DE',
+  PL: 'pl-PL',
+  NL: 'nl-NL',
 };
 
 /** Tells an athlete a questionnaire from their coach is open, or still is */

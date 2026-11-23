@@ -9,6 +9,8 @@ describe('renderEmail', () => {
     ['IT', 'it', 'azione sul tuo account'],
     ['PT_BR', 'pt-BR', 'ação na sua conta'],
     ['DE', 'de', 'Aktion in deinem OpenAthlete-Konto'],
+    ['PL', 'pl', 'na Twoim koncie OpenAthlete'],
+    ['NL', 'nl', 'actie in je OpenAthlete-account'],
   ] as const)(
     'renders the %s language and footer',
     (language, htmlLanguage, footer) => {

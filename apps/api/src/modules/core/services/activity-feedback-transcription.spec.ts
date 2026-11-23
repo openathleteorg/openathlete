@@ -51,6 +51,8 @@ describe('voice note transcription', () => {
     [UserLanguage.ES, 'es'],
     [UserLanguage.PT_BR, 'pt'],
     [UserLanguage.DE, 'de'],
+    [UserLanguage.PL, 'pl'],
+    [UserLanguage.NL, 'nl'],
   ])('transcribes a %s user in %s', async (language, code) => {
     const { service, create } = setup(language);
 

@@ -3,6 +3,8 @@ import {
   useScheduledMessagesQuery,
   useUpdateScheduledMessageMutation,
 } from '@/api/messages';
+import { useFeaturePaywall } from '@/components/supporter-perks/feature-paywall';
+import { ButtonLock } from '@/components/supporter-perks/locks';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useFeature } from '@/hooks/use-feature';
 import { m } from '@/paraglide/messages';
 import { format } from 'date-fns';
 import { useState } from 'react';
@@ -20,6 +23,7 @@ import { toast } from 'sonner';
 
 import {
   BROADCAST_CONTENT_MAX,
+  Feature,
   ScheduledMessageDto,
 } from '@openathlete/shared';
 
@@ -101,6 +105,8 @@ export function ScheduledMessagesDialog({
   const { data: scheduled } = useScheduledMessagesQuery({ enabled: open });
   const cancel = useCancelScheduledMessageMutation();
   const [editing, setEditing] = useState<number | null>(null);
+  const broadcast = useFeature(Feature.COACH_BROADCAST);
+  const paywall = useFeaturePaywall();
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
@@ -146,9 +152,19 @@ export function ScheduledMessagesDialog({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setEditing(message.scheduledMessageId)}
+                        onClick={() =>
+                          // A waiting message still goes out and may be
+                          // canceled; changing it is a coach tool
+                          broadcast.available
+                            ? setEditing(message.scheduledMessageId)
+                            : paywall.open(
+                                Feature.COACH_BROADCAST,
+                                'scheduled_messages',
+                              )
+                        }
                       >
                         {m.edit()}
+                        {broadcast.locked && <ButtonLock />}
                       </Button>
                       <Button
                         variant="ghost"

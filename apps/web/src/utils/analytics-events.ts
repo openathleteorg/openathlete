@@ -42,6 +42,12 @@ export const AnalyticsEvent = {
   ai_event_generation_succeeded: 'ai_event_generation_succeeded',
   ai_event_generation_failed: 'ai_event_generation_failed',
   ai_paywall_viewed: 'ai_paywall_viewed',
+  /** Any paywall, with its reason and, for a locked feature, its key */
+  paywall_viewed: 'paywall_viewed',
+  /** A Supporter lock seen (once per screen and session), clicked, closed */
+  supporter_gate_viewed: 'supporter_gate_viewed',
+  supporter_gate_clicked: 'supporter_gate_clicked',
+  supporter_gate_dismissed: 'supporter_gate_dismissed',
   supporter_nudge_viewed: 'supporter_nudge_viewed',
   supporter_nudge_clicked: 'supporter_nudge_clicked',
   subscription_manage_billing_opened: 'subscription_manage_billing_opened',

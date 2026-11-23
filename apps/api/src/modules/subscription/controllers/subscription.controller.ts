@@ -14,6 +14,7 @@ import {
   Optional,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   ServiceUnavailableException,
@@ -47,11 +48,18 @@ import {
   InvoiceDto,
   Offer,
   SUPPORTER_GOAL,
+  SUPPORTER_WALL_NAME_MAX_LENGTH,
+  SupporterBadgesDto,
   SupporterCountDto,
+  UpdateSupporterBadgeDto,
+  UpdateSupporterWallDto,
   appleTransactionDtoSchema,
   createCheckoutSessionDtoSchema,
   featuredPrice,
   isTierPrice,
+  supporterBadgesQuerySchema,
+  updateSupporterBadgeDtoSchema,
+  updateSupporterWallDtoSchema,
 } from '@openathlete/shared';
 
 import { SendEmailEvent } from 'src/events';
@@ -68,6 +76,7 @@ import { AppleStoreService } from '../apple/apple-store.service';
 import { FeatureAccessService } from '../services/feature-access.service';
 import { StripeService } from '../services/stripe.service';
 import { SubscriptionService } from '../services/subscription.service';
+import { TransparencyService } from '../services/transparency.service';
 import { billingEventProperties } from '../subscription-events';
 
 @ApiTags('Subscription')
@@ -83,6 +92,7 @@ export class SubscriptionController {
     private readonly configService: ConfigService<ApiEnvSchemaType, true>,
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly transparencyService: TransparencyService,
     @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
@@ -160,6 +170,16 @@ export class SubscriptionController {
           description:
             'Whether the iOS app can sell subscriptions (APPLE_IAP_APP_ID is set)',
         },
+        showOnSupporterWall: {
+          type: 'boolean',
+          description:
+            'Whether the user agreed to appear on the Supporter wall of the website',
+        },
+        wallName: {
+          type: 'string',
+          nullable: true,
+          description: 'Name shown on the wall instead of the first name',
+        },
         status: {
           type: 'string',
           enum: Object.values(SubscriptionStatus),
@@ -208,6 +228,8 @@ export class SubscriptionController {
         'billingEnabled',
         'provider',
         'appStoreEnabled',
+        'showOnSupporterWall',
+        'wallName',
       ],
     },
   })
@@ -246,6 +268,10 @@ export class SubscriptionController {
       maxAthletes: await this.subscriptionService.getMaxAthletesForUser(userId),
       billingEnabled: this.stripeService.billingEnabled,
       appStoreEnabled: this.appleStoreService.enabled,
+      showOnSupporterWall: subscription.showOnSupporterWall,
+      wallName: subscription.wallName,
+      showSupporterBadge: subscription.showSupporterBadge,
+      features: await this.featureAccessService.accessMap(userId),
     };
   }
 
@@ -278,6 +304,83 @@ export class SubscriptionController {
     return {
       count: await this.subscriptionService.countSupporters(),
       goal: SUPPORTER_GOAL,
+    };
+  }
+
+  @Patch('wall')
+  @ApiOperation({
+    summary: 'Appear on the Supporter wall',
+    description:
+      "Shows or hides the user on the Supporter wall of the website's transparency page, under a chosen name or their first name. Only running Supporter subscriptions appear there; the choice is kept if the subscription ends.",
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        show: { type: 'boolean' },
+        name: {
+          type: 'string',
+          nullable: true,
+          maxLength: SUPPORTER_WALL_NAME_MAX_LENGTH,
+          description:
+            'Name shown instead of the first name; empty: the first name',
+        },
+      },
+      required: ['show'],
+    },
+  })
+  @ApiResponse({ status: 200, description: 'The updated subscription' })
+  async updateSupporterWall(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(updateSupporterWallDtoSchema))
+    body: UpdateSupporterWallDto,
+  ): Promise<CurrentSubscriptionDto> {
+    const subscription = await this.subscriptionService.updateSupporterWall(
+      user.userId,
+      body,
+    );
+    this.transparencyService.invalidate();
+    return this.toCurrentSubscriptionDto(subscription, user.userId);
+  }
+
+  @Patch('badge')
+  @ApiOperation({
+    summary: 'Show or hide the Supporter badge',
+    description:
+      'The badge coaches, athletes, club members and conversation partners see next to the user. On by default; shown only while a Supporter subscription runs.',
+  })
+  @ApiResponse({ status: 200, description: 'The updated subscription' })
+  async updateSupporterBadge(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(updateSupporterBadgeDtoSchema))
+    body: UpdateSupporterBadgeDto,
+  ): Promise<CurrentSubscriptionDto> {
+    const subscription = await this.subscriptionService.updateSupporterBadge(
+      user.userId,
+      body.show,
+    );
+    return this.toCurrentSubscriptionDto(subscription, user.userId);
+  }
+
+  @Get('badges')
+  @ApiOperation({
+    summary: 'Who shows the Supporter badge',
+    description:
+      'Among the given users (comma-separated ids), those the requester sees in the app (coaches, athletes, club mates, conversation partners) who are running Supporters with the badge on. Always empty without billing.',
+  })
+  @ApiResponse({ status: 200, description: '{ userIds }' })
+  async getSupporterBadges(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(supporterBadgesQuerySchema))
+    query: { userIds: number[] },
+  ): Promise<SupporterBadgesDto> {
+    // Self-hosted instances never mention Supporter
+    if (!this.stripeService.billingEnabled) return { userIds: [] };
+    return {
+      userIds: await this.subscriptionService.supporterBadges(
+        user.userId,
+        query.userIds,
+      ),
     };
   }
 
@@ -575,6 +678,7 @@ export class SubscriptionController {
     await this.analytics?.capture(user.userId, 'checkout_started', {
       interval: dto.interval,
       amount_cents: amountCents,
+      feature: dto.feature ?? null,
     });
 
     return {

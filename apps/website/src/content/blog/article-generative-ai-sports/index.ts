@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const articleGenerativeAiSports: BlogPost = {
@@ -16,6 +18,8 @@ export const articleGenerativeAiSports: BlogPost = {
       it: 'IA generativa per runner: a cosa serve e a cosa no',
       'pt-br': 'IA generativa para corredores: para que serve e para que não',
       de: 'Generative KI für Läufer: wofür sie taugt und wofür nicht',
+      pl: 'Generatywna AI dla biegaczy: do czego się nadaje, a do czego nie',
+      nl: 'Generatieve AI voor hardlopers: waar het goed voor is, en waarvoor niet',
     },
     description: {
       en: 'ChatGPT and co. write sessions, summarise notes and log how a run felt. They are poor at diagnosing pain or building a plan from nothing.',
@@ -25,6 +29,8 @@ export const articleGenerativeAiSports: BlogPost = {
       'pt-br':
         'ChatGPT e afins escrevem treinos, resumem anotações e registram a percepção. Erram ao diagnosticar dores ou montar uma planilha do zero.',
       de: 'ChatGPT & Co. schreiben Einheiten, fassen Notizen zusammen und erfassen dein Gefühl. Schmerzen diagnostizieren oder Pläne erstellen können sie schlecht.',
+      pl: 'ChatGPT i spółka piszą treningi, streszczają notatki i zapisują odczucia z biegu. Słabo radzą sobie z diagnozowaniem bólu i układaniem planu od zera.',
+      nl: 'ChatGPT en co. schrijven trainingen, vatten notities samen en leggen vast hoe een loop voelde. Pijn diagnosticeren of een plan uit het niets bouwen kunnen ze slecht.',
     },
     excerpt: {
       en: 'Generative AI is a text tool: good at turning a sentence into a structured session, bad at being right about your body. A practical, sceptical guide.',
@@ -34,6 +40,8 @@ export const articleGenerativeAiSports: BlogPost = {
       'pt-br':
         'A IA generativa é uma ferramenta de texto: boa para transformar uma frase num treino estruturado, ruim para acertar sobre o seu corpo. Um guia prático e cético.',
       de: 'Generative KI ist ein Textwerkzeug: gut darin, aus einem Satz eine strukturierte Einheit zu machen, schlecht darin, über deinen Körper recht zu haben. Ein praktischer, skeptischer Leitfaden.',
+      pl: 'Generatywna AI to narzędzie do tekstu: dobrze zamienia zdanie w ustrukturyzowany trening, słabo radzi sobie z tym, by mieć rację co do twojego ciała. Praktyczny, sceptyczny poradnik.',
+      nl: 'Generatieve AI is een teksttool: goed in een zin omzetten in een gestructureerde training, slecht in gelijk hebben over je lichaam. Een praktische, sceptische gids.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const articleGenerativeAiSports: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

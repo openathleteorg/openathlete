@@ -4,6 +4,8 @@ import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
 import { ContentIt } from './it';
+import { ContentNl } from './nl';
+import { ContentPl } from './pl';
 import { ContentPtBr } from './pt-br';
 
 export const article2: BlogPost = {
@@ -16,6 +18,8 @@ export const article2: BlogPost = {
       it: "L'IA nell'allenamento di endurance: cosa può fare e cosa no",
       'pt-br': 'IA no treino de endurance: o que ela faz e o que não faz',
       de: 'KI im Ausdauertraining: was sie kann und was nicht',
+      pl: 'AI w treningu wytrzymałościowym: co potrafi, a czego nie',
+      nl: 'AI in duurtraining: wat het wel en niet kan',
     },
     description: {
       en: 'Load models, injury prediction, HRV and ChatGPT training plans: what the research says AI can and cannot do for endurance athletes today.',
@@ -25,6 +29,8 @@ export const article2: BlogPost = {
       'pt-br':
         'Modelos de carga, previsão de lesões, VFC e planilhas do ChatGPT: o que a pesquisa diz sobre o que a IA consegue fazer hoje no endurance.',
       de: 'Belastungsmodelle, Verletzungsprognose, HRV und Trainingspläne von ChatGPT: was die Forschung darüber sagt, was KI heute im Ausdauersport leisten kann.',
+      pl: 'Modele obciążenia, przewidywanie kontuzji, HRV i plany treningowe z ChatGPT: co mówią badania o tym, co AI może dziś dać sportowcom wytrzymałościowym.',
+      nl: "Belastingsmodellen, blessurevoorspelling, HRV en trainingsschema's van ChatGPT: wat onderzoek zegt over wat AI vandaag wel en niet kan voor duursporters.",
     },
     excerpt: {
       en: 'Much of what is sold as AI is arithmetic, injury prediction is weak, and language models are best at text work. A sourced look at where AI helps.',
@@ -34,6 +40,8 @@ export const article2: BlogPost = {
       'pt-br':
         'Muito do que se vende como IA é aritmética, a previsão de lesões é fraca e os modelos de linguagem rendem mais com texto. Um panorama com fontes.',
       de: 'Vieles, was als KI verkauft wird, ist Arithmetik, Verletzungsprognosen sind schwach und Sprachmodelle glänzen vor allem bei Textarbeit. Ein Überblick mit Quellen.',
+      pl: 'Wiele z tego, co sprzedaje się jako AI, to arytmetyka, przewidywanie kontuzji jest słabe, a modele językowe najlepiej radzą sobie z tekstem. Przegląd ze źródłami.',
+      nl: 'Veel van wat als AI wordt verkocht, is rekenwerk, blessurevoorspelling is zwak en taalmodellen zijn vooral goed in tekstwerk. Een overzicht met bronnen.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +60,6 @@ export const article2: BlogPost = {
   ContentIt,
   ContentPtBr,
   ContentDe,
+  ContentPl,
+  ContentNl,
 };

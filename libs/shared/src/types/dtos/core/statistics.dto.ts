@@ -277,6 +277,42 @@ export type StatisticsEfficiencyDto = z.infer<
   typeof statisticsEfficiencySchema
 >;
 
+/**
+ * The one figure of the Lab a non-Supporter sees: the capacity of the
+ * profile that progressed the most over the last twelve months against the
+ * twelve before, real and computed for the athlete. Null without progress.
+ */
+export const labTeaserSchema = z
+  .object({
+    axis: z.enum(['climb', 'descent', 'critical', 'cost']),
+    /** m/h (climb, descent), m/s or W (critical), bpm (cost) */
+    value: z.number(),
+    /** Progress in percent, positive: better */
+    change: z.number(),
+    /** What critical output or cardiac cost is read against */
+    unit: z.enum(['speed', 'power']).nullable(),
+    /** Cardiac cost: the speed (km/h) or power (W) it is read at */
+    reference: z.number().nullable(),
+  })
+  .nullable();
+export type LabTeaserDto = z.infer<typeof labTeaserSchema>;
+
+/** What a Lab endpoint answers a user who does not have the Lab */
+export const lockedStatisticsSchema = z.object({
+  locked: z.literal(true),
+  teaser: labTeaserSchema,
+});
+export type LockedStatisticsDto = z.infer<typeof lockedStatisticsSchema>;
+
+/** A Lab answer: the data, or the teaser when locked */
+export type LabResponse<T> = T | LockedStatisticsDto;
+
+export function isLockedStatistics<T extends object>(
+  data: LabResponse<T> | undefined,
+): data is LockedStatisticsDto {
+  return !!data && 'locked' in data && data.locked === true;
+}
+
 export const statisticsDurabilitySchema = z.object({
   /** How much the output dropped and the heart rate rose, by outing length */
   series: z.array(

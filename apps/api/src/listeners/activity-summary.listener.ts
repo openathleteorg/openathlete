@@ -45,6 +45,8 @@ const LANGUAGE_NAMES: Record<string, string> = {
   ES: 'Spanish',
   PT_BR: 'Brazilian Portuguese',
   DE: 'German',
+  PL: 'Polish',
+  NL: 'Dutch',
 };
 
 const RECENT_DAYS = 42;

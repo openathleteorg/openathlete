@@ -37,3 +37,29 @@ test('an instance without billing sells nothing and limits nobody', async ({
   });
   expect((await checkout(true)).status()).toBe(503);
 });
+
+// The transparency page belongs to the hosted instance: a self-hosted one
+// publishes no funding figures, and keeps the wall choice private
+test('an instance without billing publishes no funding figures', async ({
+  request,
+}) => {
+  const transparency = await request.get(`${API_URL}/transparency`);
+  expect(transparency.status()).toBe(503);
+
+  const athlete = await createAthlete(request);
+  const headers = apiHeaders(undefined, athlete.accessToken);
+  const wall = await request.patch(`${API_URL}/subscription/wall`, {
+    headers,
+    data: { show: true, name: 'Trail Fox' },
+  });
+  expect(wall.status(), await wall.text()).toBe(200);
+  expect(await wall.json()).toMatchObject({
+    showOnSupporterWall: true,
+    wallName: 'Trail Fox',
+  });
+  const tooLong = await request.patch(`${API_URL}/subscription/wall`, {
+    headers,
+    data: { show: true, name: 'x'.repeat(31) },
+  });
+  expect(tooLong.status()).toBe(400);
+});

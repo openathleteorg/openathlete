@@ -1,6 +1,9 @@
 import { Job } from 'bullmq';
 
 import { MetricType } from '@openathlete/database';
+import { AiErrorCode } from '@openathlete/shared';
+
+import { AiProviderException } from 'src/modules/ai/ai.errors';
 
 import { TrainingLoadEstimationJobData } from '../services/training-load-estimation.service';
 import { TrainingLoadEstimationProcessor } from './training-load-estimation.processor';
@@ -196,5 +199,46 @@ describe('TrainingLoadEstimationProcessor', () => {
       30,
       expect.any(Number),
     );
+  });
+  const plannedRun = () =>
+    event({
+      steps: [
+        {
+          stepType: 'ACTIVE',
+          durationType: 'DISTANCE',
+          durationValue: 1000,
+          targets: [{ targetType: 'PACE', targetValue: 300 }],
+        },
+      ],
+      goalDuration: 3600,
+      goalRpe: 0.6,
+    });
+
+  it.each([AiErrorCode.QUOTA_EXCEEDED, AiErrorCode.CREDENTIAL_REJECTED])(
+    "estimates from duration and RPE when the athlete's own key fails with %s",
+    async (code) => {
+      const { processor, resolver, ai, calendar } = setup(plannedRun());
+      resolver.tryResolveForAthlete.mockResolvedValue({ source: 'own_key' });
+      ai.generateObject.mockRejectedValue(
+        new AiProviderException(code, 'refused', 429),
+      );
+
+      await expect(processor.process(job())).resolves.toMatchObject({
+        method: 'DURATION_RPE',
+      });
+      expect(
+        calendar.notifyTrainingLoadEstimationFailed,
+      ).not.toHaveBeenCalled();
+    },
+  );
+
+  it('still fails when the instance key is out of quota', async () => {
+    const { processor, resolver, ai } = setup(plannedRun());
+    resolver.tryResolveForAthlete.mockResolvedValue({ source: 'hosted' });
+    ai.generateObject.mockRejectedValue(
+      new AiProviderException(AiErrorCode.QUOTA_EXCEEDED, 'refused', 429),
+    );
+
+    await expect(processor.process(job())).rejects.toThrow('refused');
   });
 });

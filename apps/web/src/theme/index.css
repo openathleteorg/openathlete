@@ -162,6 +162,119 @@
   --oa-brand-4a: color-mix(in oklab, var(--oa-brand-4) 60%, transparent);
 }
 
+/* The swatches of the accent picker, each in its own colour */
+[data-accent-choice='default'] {
+  background-color: #050c34;
+  --primary-foreground: oklch(0.985 0 0);
+}
+[data-accent-choice='ocean'] {
+  background-color: #1d5fd1;
+  --primary-foreground: oklch(0.985 0 0);
+}
+[data-accent-choice='forest'] {
+  background-color: #1f7a4d;
+  --primary-foreground: oklch(0.985 0 0);
+}
+[data-accent-choice='sunset'] {
+  background-color: #b4451a;
+  --primary-foreground: oklch(0.985 0 0);
+}
+[data-accent-choice='berry'] {
+  background-color: #6f3cc4;
+  --primary-foreground: oklch(0.985 0 0);
+}
+[data-accent-choice='rose'] {
+  background-color: #b8336a;
+  --primary-foreground: oklch(0.985 0 0);
+}
+.dark [data-accent-choice='default'] {
+  background-color: oklch(0.95 0.01 265);
+  --primary-foreground: oklch(0.2 0.01 265);
+}
+.dark [data-accent-choice='ocean'] {
+  background-color: #7fb2ff;
+  --primary-foreground: oklch(0.2 0.01 265);
+}
+.dark [data-accent-choice='forest'] {
+  background-color: #6fd3a0;
+  --primary-foreground: oklch(0.2 0.01 265);
+}
+.dark [data-accent-choice='sunset'] {
+  background-color: #ff9a66;
+  --primary-foreground: oklch(0.2 0.01 265);
+}
+.dark [data-accent-choice='berry'] {
+  background-color: #b99cff;
+  --primary-foreground: oklch(0.2 0.01 265);
+}
+.dark [data-accent-choice='rose'] {
+  background-color: #f28ab0;
+  --primary-foreground: oklch(0.2 0.01 265);
+}
+
+/* Accent colours, a Supporter perk (AccentThemeSync sets data-accent on
+   <html>). Only the primary moves: neutrals, charts and states stay. */
+:root[data-accent='ocean'] {
+  --primary: #1d5fd1;
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: color-mix(in oklab, #1d5fd1 45%, transparent);
+  --sidebar-primary: #1d5fd1;
+}
+:root[data-accent='forest'] {
+  --primary: #1f7a4d;
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: color-mix(in oklab, #1f7a4d 45%, transparent);
+  --sidebar-primary: #1f7a4d;
+}
+:root[data-accent='sunset'] {
+  --primary: #b4451a;
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: color-mix(in oklab, #b4451a 45%, transparent);
+  --sidebar-primary: #b4451a;
+}
+:root[data-accent='berry'] {
+  --primary: #6f3cc4;
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: color-mix(in oklab, #6f3cc4 45%, transparent);
+  --sidebar-primary: #6f3cc4;
+}
+:root[data-accent='rose'] {
+  --primary: #b8336a;
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: color-mix(in oklab, #b8336a 45%, transparent);
+  --sidebar-primary: #b8336a;
+}
+.dark[data-accent='ocean'] {
+  --primary: #7fb2ff;
+  --primary-foreground: oklch(0.2 0.01 265);
+  --ring: color-mix(in oklab, #7fb2ff 55%, transparent);
+  --sidebar-primary: #7fb2ff;
+}
+.dark[data-accent='forest'] {
+  --primary: #6fd3a0;
+  --primary-foreground: oklch(0.2 0.01 265);
+  --ring: color-mix(in oklab, #6fd3a0 55%, transparent);
+  --sidebar-primary: #6fd3a0;
+}
+.dark[data-accent='sunset'] {
+  --primary: #ff9a66;
+  --primary-foreground: oklch(0.2 0.01 265);
+  --ring: color-mix(in oklab, #ff9a66 55%, transparent);
+  --sidebar-primary: #ff9a66;
+}
+.dark[data-accent='berry'] {
+  --primary: #b99cff;
+  --primary-foreground: oklch(0.2 0.01 265);
+  --ring: color-mix(in oklab, #b99cff 55%, transparent);
+  --sidebar-primary: #b99cff;
+}
+.dark[data-accent='rose'] {
+  --primary: #f28ab0;
+  --primary-foreground: oklch(0.2 0.01 265);
+  --ring: color-mix(in oklab, #f28ab0 55%, transparent);
+  --sidebar-primary: #f28ab0;
+}
+
 @theme inline {
   --font-sans:
     'Geist Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;

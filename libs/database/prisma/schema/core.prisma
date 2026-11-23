@@ -45,7 +45,7 @@ model User {
   /// Campaign, referring site and website pages that led to the signup,
   /// recorded once (see signupAttributionSchema)
   signupAttribution   Json?        @map("signup_attribution")
-  /// User's preferred language (FR, EN, IT, ES, PT_BR or DE)
+  /// User's preferred language (FR, EN, IT, ES, PT_BR, DE, PL or NL)
   language            UserLanguage @default(FR)
   /// Push notification token for mobile devices
   pushToken           String?      @map("push_token")
@@ -57,6 +57,8 @@ model User {
   trainingReminderSentOn DateTime? @map("training_reminder_sent_on") @db.Date
   /// What calendar cards and summaries show (see calendarDisplaySchema)
   calendarDisplay     Json?        @map("calendar_display")
+  /// Accent colour of the app (a Supporter perk); null: the default
+  accentTheme         String?      @map("accent_theme")
   /// How the user set up their coach dashboard (columns)
   coachDashboard      Json?        @map("coach_dashboard")
   /// Tracks hidden from activity charts, per sport (see hiddenActivityTracksSchema)
@@ -91,6 +93,9 @@ model User {
   /// When the user asked for news about the project, Supporter included:
   /// commercial emails need this consent (CNIL), unset by default
   emailNewsConsentAt  DateTime?    @map("email_news_consent_at")
+
+  /// Units the app shows values in
+  unitSystem          UnitSystem   @default(METRIC) @map("unit_system")
 
   // relationships
   athlete                   Athlete?
@@ -128,6 +133,7 @@ model User {
   clubInvitationsSent       ClubInvitation[]
   clubSessionsCreated       ClubSession[]
   clubSessionAttendance     ClubSessionAttendance[]
+  eventsCreated             Event[]                    @relation("EventsCreated")
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

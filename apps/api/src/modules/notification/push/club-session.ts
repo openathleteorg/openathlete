@@ -32,6 +32,14 @@ const copy: Record<
     canceled: `${club}: „${title}“ am ${date} fällt aus.`,
     changed: `${club}: „${title}“ hat sich geändert, sieh in deinen Kalender.`,
   }),
+  [Language.PL]: (club, title, date) => ({
+    canceled: `${club}: „${title}” z dnia ${date} jest odwołany.`,
+    changed: `${club}: „${title}” się zmienił, sprawdź swój kalendarz.`,
+  }),
+  [Language.NL]: (club, title, date) => ({
+    canceled: `${club}: ‘${title}’ op ${date} gaat niet door.`,
+    changed: `${club}: ‘${title}’ is gewijzigd, bekijk je agenda.`,
+  }),
 };
 
 /** An athlete's notice that a club session they were sent changed. */

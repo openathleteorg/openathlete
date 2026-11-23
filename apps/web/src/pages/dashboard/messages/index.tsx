@@ -4,12 +4,14 @@ import {
   useGetUserThreadsQuery as useGetMessageThreadsQuery,
   useMessagesWebSocket,
 } from '@/api/messages';
+import { useSupporterBadges } from '@/api/subscription';
 import { useGetMeQuery } from '@/api/user';
 import { ChatInput } from '@/components/chatbot/chat-input';
 import { BroadcastControls } from '@/components/messages/broadcast-controls';
 import { MessageMessages } from '@/components/messages/message-messages';
 import { MessageSearch } from '@/components/messages/message-search';
 import { NewMessageThreadDialog } from '@/components/messages/new-message-thread-dialog';
+import { SupporterBadge } from '@/components/supporter-perks/supporter-badge';
 import { Button } from '@/components/ui/button';
 import { PageLoader } from '@/components/ui/loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -93,6 +95,21 @@ export function MessagesPage() {
       return unreadCount > 0;
     });
   }, [allThreads, filter, currentUser, messageThreads]);
+  // The other person of a one-to-one conversation, for the Supporter heart
+  const partnerOf = (thread: AgentThread | MessageThread): number | null => {
+    const others =
+      (thread as MessageThread).participants?.filter(
+        (participant) => participant.userId !== currentUser?.userId,
+      ) ?? [];
+    return others.length === 1 ? others[0].userId : null;
+  };
+  const badges = useSupporterBadges(
+    (messageThreads ?? []).flatMap((thread: MessageThread) =>
+      (thread.participants ?? [])
+        .map((participant) => participant.userId)
+        .filter((userId) => userId !== currentUser?.userId),
+    ),
+  );
 
   const activeId = activeMessageThreadId;
   const setActiveId = setActiveMessageThreadId;
@@ -312,9 +329,14 @@ export function MessagesPage() {
                       <MessageCircle className="size-5" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[0.9375rem] font-medium">
-                        {thread.title ||
-                          m.message_thread_title({ id: threadId })}
+                      <span className="flex min-w-0 items-center gap-1.5 text-[0.9375rem] font-medium">
+                        <span className="truncate">
+                          {thread.title ||
+                            m.message_thread_title({ id: threadId })}
+                        </span>
+                        <SupporterBadge
+                          show={badges.has(partnerOf(thread) ?? 0)}
+                        />
                       </span>
                       <span className="block text-sm text-muted-foreground">
                         {new Date(thread.createdAt).toLocaleDateString(
@@ -426,6 +448,7 @@ export function MessagesPage() {
             {threads?.map((thread: AgentThread | MessageThread) => {
               const threadId = (thread as MessageThread).messageThreadId;
               const threadTitle = thread.title;
+              const partner = partnerOf(thread);
               const threadCreatedAt = thread.createdAt;
               const unreadCount = currentUser
                 ? calculateUnreadCount(
@@ -460,6 +483,9 @@ export function MessagesPage() {
                             : threadTitle
                           : m.message_thread_title({ id: threadId })}
                       </h3>
+                      <SupporterBadge
+                        show={partner !== null && badges.has(partner)}
+                      />
                       {unreadCount > 0 && <UnreadBadge count={unreadCount} />}
                     </div>
                     <p className="text-xs text-muted-foreground">

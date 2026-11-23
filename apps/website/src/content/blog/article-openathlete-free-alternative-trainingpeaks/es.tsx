@@ -112,14 +112,16 @@ export function ContentEs() {
 
       <h2>OpenAthlete</h2>
       <p>
-        Todas las funciones son gratuitas en nuestros servidores: calendario,
-        editor de entrenamientos, envío de entrenamientos a Garmin, Suunto y
-        COROS, carga de entrenamiento y coaching de hasta cinco atletas. El plan
-        Supporter opcional (desde {q('oaMonth')} al mes o {q('oaYear')} al año)
-        añade IA con nuestras claves y atletas ilimitados, y nada más. El código
-        es AGPL-3.0, así que también puedes instalarlo en tu propio servidor,
-        gratis y sin límites. Los clubes también tienen un espacio de club
-        gratuito, sin límite de atletas: grupos con sus entrenadores, una
+        Todo lo necesario para entrenar es gratuito en nuestros servidores:
+        calendario, editor de entrenamientos, envío de entrenamientos a Garmin,
+        Suunto y COROS, carga de entrenamiento y coaching de hasta cinco
+        atletas. El plan Supporter opcional (desde {q('oaMonth')} al mes o{' '}
+        {q('oaYear')} al año) financia el proyecto y añade el Lab, el acceso
+        anticipado a las novedades, las herramientas avanzadas para entrenadores
+        y los clubes, IA con nuestras claves y atletas ilimitados. El código es
+        AGPL-3.0, así que también puedes instalarlo en tu propio servidor,
+        gratis y sin límites. Un club lo abre un Supporter y sus miembros se
+        unen gratis, sin límite de atletas: grupos con sus entrenadores, una
         biblioteca de entrenamientos compartida, sesiones semanales del club y
         planes copiados a todo un grupo.
       </p>
@@ -193,8 +195,8 @@ export function ContentEs() {
         y apps nativas maduras. Elige Final Surge para un equipo escolar o un
         club de Estados Unidos con tarifa plana. Elige OpenAthlete si quieres
         los entrenamientos en tu Garmin, Suunto o COROS sin pagar, un precio
-        fijo como entrenador, IA con tu propia clave, un espacio de club
-        gratuito o un código que puedes alojar tú mismo.
+        fijo como entrenador, IA con tu propia clave, un club al que tus
+        miembros se unen gratis o un código que puedes alojar tú mismo.
       </p>
 
       <h2>Llevarte tu historial</h2>

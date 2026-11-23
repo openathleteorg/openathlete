@@ -71,8 +71,8 @@ describe('Garmin Personal scheduling', () => {
       }),
     );
     expect(enqueue.mock.calls).toEqual([
-      [1, { startDate: '2025-12-27', endDate: '2026-01-02' }],
-      [2, { startDate: '2025-12-27', endDate: '2026-01-02' }],
+      [1, { startDate: '2025-12-27', endDate: '2026-01-02' }, true],
+      [2, { startDate: '2025-12-27', endDate: '2026-01-02' }, true],
     ]);
   });
 });

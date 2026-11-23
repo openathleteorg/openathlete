@@ -16,8 +16,14 @@ describe('localizeDatePattern', () => {
     expect(write('d MMM', 'de')).toBe('12. Nov.');
   });
 
+  it('writes Polish dates with the weekday comma and the genitive month', () => {
+    expect(write('EEEE d MMMM', 'pl')).toBe('czwartek, 12 listopada');
+    expect(write('d MMMM yyyy', 'pl')).toBe('12 listopada 2026');
+  });
+
   it('leaves the other languages as written', () => {
     expect(write('EEEE d MMMM', 'fr')).toBe('jeudi 12 novembre');
     expect(write('d MMM', 'en')).toBe('12 Nov');
+    expect(write('EEEE d MMMM', 'nl')).toBe('donderdag 12 november');
   });
 });

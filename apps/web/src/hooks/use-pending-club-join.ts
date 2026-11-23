@@ -10,7 +10,10 @@ import { isAxiosError } from 'axios';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { AcceptClubJoinLinkResponseDto } from '@openathlete/shared';
+import {
+  AcceptClubJoinLinkResponseDto,
+  CLUB_CLOSED_ERROR,
+} from '@openathlete/shared';
 
 export function toastClubJoined(result: AcceptClubJoinLinkResponseDto) {
   if (result.alreadyMember) {
@@ -25,6 +28,8 @@ export function clubJoinErrorMessage(error: unknown): string | null {
   if (!isAxiosError(error) || !error.response) return null;
   const { status } = error.response;
   if (status === 404) return m.join_link_invalid_title();
+  const code = (error.response.data as { code?: unknown } | undefined)?.code;
+  if (code === CLUB_CLOSED_ERROR) return m.club_closed_join();
   if (status >= 400 && status < 500) return m.club_join_failed();
   return null;
 }

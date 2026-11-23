@@ -29,6 +29,7 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { SUPPORTED_LOCALES, getLocaleName } from '@/utils/locales';
+import { currentPlanOf } from '@/utils/supporter';
 import { ChevronsUpDown, CogIcon, Download, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useNavigate } from 'react-router-dom';
@@ -64,11 +65,9 @@ export function NavUser() {
   const fullName = `${user.firstName || ''} ${user.lastName || ''}`;
   const initials =
     `${user.firstName?.charAt(0) ?? ''}${user.lastName?.charAt(0) ?? ''}`.toUpperCase();
-  const currentPlan = subscription?.plan as SubscriptionPlan | undefined;
-  const planName =
-    currentPlan && subscription?.billingEnabled
-      ? planNameMap[currentPlan]
-      : null;
+  const planName = subscription?.billingEnabled
+    ? planNameMap[currentPlanOf(subscription)]
+    : null;
   return (
     <SidebarMenu>
       <SidebarMenuItem>

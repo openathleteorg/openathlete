@@ -8,6 +8,8 @@ export interface LocalizedText {
   it?: string;
   'pt-br'?: string;
   de?: string;
+  pl?: string;
+  nl?: string;
 }
 
 export interface BlogPostMetadata {
@@ -35,4 +37,6 @@ export interface BlogPost {
   ContentIt?: () => ReactNode;
   ContentPtBr?: () => ReactNode;
   ContentDe?: () => ReactNode;
+  ContentPl?: () => ReactNode;
+  ContentNl?: () => ReactNode;
 }

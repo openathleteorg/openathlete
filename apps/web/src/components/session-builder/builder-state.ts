@@ -130,6 +130,8 @@ export type BuilderAction =
       after?: string | null;
       /** Inside this repeat, at its end */
       into?: string;
+      /** Types were chosen, not typed: they stay as they are */
+      explicit?: boolean;
     }
   | { type: 'update'; uid: string; patch: Partial<CreateWorkoutStepDto> }
   | { type: 'remove'; uid: string }
@@ -226,7 +228,7 @@ export function builderReducer(
     case 'insert': {
       // A step typed without a type word reads as steady: its place decides
       const added = withUids(action.steps).map((step) =>
-        step.stepType === WORKOUT_STEP_TYPE.STEADY
+        step.stepType === WORKOUT_STEP_TYPE.STEADY && !action.explicit
           ? { ...step, autoType: true }
           : step,
       );

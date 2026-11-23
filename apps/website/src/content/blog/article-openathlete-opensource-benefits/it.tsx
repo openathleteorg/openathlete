@@ -122,11 +122,13 @@ export function ContentIt() {
 
       <h2>Se preferisci non gestire un server</h2>
       <p>
-        La versione ospitata è gratuita, con tutte le funzioni. API e database
-        girano su OVH, in Francia, e l'app web è servita da Vercel. Il piano
-        Supporter (a partire da 5 € al mese o 50 € all'anno) aggiunge l'IA sulle
-        chiavi di OpenAthlete e la possibilità di seguire più di cinque atleti,
-        e aiuta a pagare i server. Le ragioni del progetto sono nella{' '}
+        Tutto ciò che serve per allenarsi è gratuito nella versione ospitata.
+        API e database girano su OVH, in Francia, e l'app web è servita da
+        Vercel. Il piano Supporter (a partire da 5 € al mese o 50 € all'anno)
+        aiuta a pagare i server e, come ringraziamento, aggiunge il Lab,
+        l'accesso anticipato alle novità, gli strumenti avanzati per allenatori
+        e i club, l'IA sulle chiavi di OpenAthlete e la possibilità di seguire
+        più di cinque atleti. Le ragioni del progetto sono nella{' '}
         <Link href="/it/open-source">pagina sull'open source</Link>.
       </p>
     </div>

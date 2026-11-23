@@ -36,6 +36,7 @@ import type {
   UpdateScheduledMessageDto,
 } from '@openathlete/shared';
 import {
+  Feature,
   createMessageThreadDtoSchema,
   createMessageThreadMessageDtoSchema,
   markMessagesAsReadDtoSchema,
@@ -48,6 +49,7 @@ import {
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { FeatureAccessService } from 'src/modules/subscription/services/feature-access.service';
 
 import { MessagesGateway } from '../gateways/messages.gateway';
 import { MessageBroadcastService } from '../services/message-broadcast.service';
@@ -62,6 +64,7 @@ export class MessagesController {
     private messageService: MessageService,
     private messagesGateway: MessagesGateway,
     private readonly broadcasts: MessageBroadcastService,
+    private readonly features: FeatureAccessService,
   ) {}
 
   // ==================== Thread Routes ====================
@@ -444,10 +447,17 @@ export class MessagesController {
     status: 403,
     description: 'Some recipients are not linked to the sender',
   })
-  sendBroadcast(
+  async sendBroadcast(
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(sendBroadcastDtoSchema)) dto: SendBroadcastDto,
   ): Promise<SendBroadcastResultDto> {
+    // One person, now, is a private message: free. Several people or a
+    // set time is the coach tool
+    if (dto.recipientUserIds.length > 1 || dto.sendAt) {
+      await this.features.assertAsCoach(user.userId, Feature.COACH_BROADCAST, {
+        athleteUserIds: dto.recipientUserIds,
+      });
+    }
     return this.broadcasts.send(user, dto);
   }
 
@@ -474,6 +484,9 @@ export class MessagesController {
     @Body(new ZodValidationPipe(updateScheduledMessageDtoSchema))
     dto: UpdateScheduledMessageDto,
   ): Promise<void> {
+    // A waiting message still goes out, and may be canceled; changing it is
+    // the coach tool
+    await this.features.assertAsCoach(user.userId, Feature.COACH_BROADCAST);
     await this.broadcasts.updateScheduled(user, params.scheduledMessageId, dto);
   }
 

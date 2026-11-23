@@ -36,6 +36,8 @@ export const WHISPER_LANGUAGE: Record<UserLanguage, string> = {
   ES: 'es',
   PT_BR: 'pt',
   DE: 'de',
+  PL: 'pl',
+  NL: 'nl',
 };
 
 @Injectable()

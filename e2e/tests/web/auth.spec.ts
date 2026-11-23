@@ -196,3 +196,21 @@ test('shows the password while logging in', async ({ page, request }) => {
   await page.click('button[type="submit"]');
   await expect(page).toHaveURL(/\/dashboard/);
 });
+
+test('hands a connection started in the mobile app back to it', async ({
+  page,
+}) => {
+  // The in-app browser of the native apps lands here, signed out
+  await page.route('org.openathlete://**', (route) => route.abort());
+  await page.goto(
+    '/auth/callback/STRAVA?state=openathlete-native&code=abc&scope=read',
+  );
+
+  await expect(
+    page.getByRole('link', { name: 'Open OpenAthlete' }),
+  ).toHaveAttribute(
+    'href',
+    'org.openathlete://auth/callback/STRAVA?state=openathlete-native&code=abc&scope=read',
+  );
+  await expect(page).toHaveURL(/\/auth\/callback\/STRAVA/);
+});

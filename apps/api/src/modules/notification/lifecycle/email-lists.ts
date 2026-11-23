@@ -28,6 +28,8 @@ export const LIST_REASONS: Record<EmailList, Record<EmailLanguage, string>> = {
     ES: 'Recibes estos consejos porque tienes una cuenta de OpenAthlete.',
     PT_BR: 'Você recebe estas dicas porque tem uma conta no OpenAthlete.',
     DE: 'Du erhältst diese Tipps, weil du ein OpenAthlete-Konto hast.',
+    PL: 'Dostajesz te wskazówki, bo masz konto w OpenAthlete.',
+    NL: 'Je ontvangt deze tips omdat je een OpenAthlete-account hebt.',
   },
   recap: {
     FR: 'Vous recevez ce récapitulatif chaque mois où vous vous entraînez.',
@@ -36,6 +38,8 @@ export const LIST_REASONS: Record<EmailList, Record<EmailLanguage, string>> = {
     ES: 'Recibes este resumen cada mes que entrenas.',
     PT_BR: 'Você recebe este resumo todo mês em que treina.',
     DE: 'Du erhältst diesen Rückblick in jedem Monat, in dem du trainierst.',
+    PL: 'Dostajesz to podsumowanie w każdym miesiącu, w którym trenujesz.',
+    NL: 'Je ontvangt dit overzicht elke maand waarin je traint.',
   },
   news: {
     FR: 'Vous recevez ce message parce que vous avez demandé des nouvelles du projet.',
@@ -44,6 +48,8 @@ export const LIST_REASONS: Record<EmailList, Record<EmailLanguage, string>> = {
     ES: 'Recibes este mensaje porque pediste noticias del proyecto.',
     PT_BR: 'Você recebe esta mensagem porque pediu notícias do projeto.',
     DE: 'Du erhältst diese Nachricht, weil du Neuigkeiten zum Projekt angefordert hast.',
+    PL: 'Dostajesz tę wiadomość, bo chcesz otrzymywać wieści o projekcie.',
+    NL: 'Je ontvangt dit bericht omdat je om nieuws over het project hebt gevraagd.',
   },
   questionnaires: {
     FR: 'Vous recevez cet email parce que votre coach vous a envoyé un questionnaire.',
@@ -53,6 +59,8 @@ export const LIST_REASONS: Record<EmailList, Record<EmailLanguage, string>> = {
     PT_BR:
       'Você recebe este e-mail porque seu treinador enviou um questionário.',
     DE: 'Du erhältst diese E-Mail, weil dir dein Coach einen Fragebogen geschickt hat.',
+    PL: 'Dostajesz tę wiadomość, bo Twój trener wysłał Ci ankietę.',
+    NL: 'Je ontvangt deze e-mail omdat je coach je een vragenlijst heeft gestuurd.',
   },
   weekly: {
     FR: 'Tu reçois ce récap le lundi, tant que tu t’entraînes ou que tu planifies.',
@@ -61,6 +69,8 @@ export const LIST_REASONS: Record<EmailList, Record<EmailLanguage, string>> = {
     ES: 'Recibes este resumen los lunes, mientras entrenes o planifiques.',
     PT_BR: 'Você recebe este resumo às segundas, enquanto treinar ou planejar.',
     DE: 'Du erhältst diesen Rückblick montags, solange du trainierst oder planst.',
+    PL: 'Dostajesz to podsumowanie w poniedziałki, dopóki trenujesz lub planujesz.',
+    NL: 'Je ontvangt dit overzicht op maandag, zolang je traint of plant.',
   },
   coach_weekly: {
     FR: 'Tu reçois ce point le lundi parce que tu coaches des athlètes sur OpenAthlete.',
@@ -70,6 +80,8 @@ export const LIST_REASONS: Record<EmailList, Record<EmailLanguage, string>> = {
     PT_BR:
       'Você recebe este resumo às segundas porque treina atletas no OpenAthlete.',
     DE: 'Du erhältst diese Übersicht montags, weil du Athleten auf OpenAthlete betreust.',
+    PL: 'Dostajesz to podsumowanie w poniedziałki, bo trenujesz zawodników w OpenAthlete.',
+    NL: 'Je ontvangt dit overzicht op maandag omdat je atleten coacht op OpenAthlete.',
   },
 };
 
@@ -81,4 +93,6 @@ export const WEBSITE_LOCALES: Record<EmailLanguage, string> = {
   ES: 'es',
   PT_BR: 'pt-br',
   DE: 'de',
+  PL: 'pl',
+  NL: 'nl',
 };

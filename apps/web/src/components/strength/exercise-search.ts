@@ -43,6 +43,15 @@ const SMALL = new Set([
   'sul',
   'y',
   'e',
+  // Polish and Dutch
+  'z',
+  'ze',
+  'w',
+  'met',
+  'het',
+  'op',
+  'van',
+  'een',
 ]);
 const core = (text: string) =>
   text.split(/[\s'’-]+/).filter((word) => word && !SMALL.has(word));

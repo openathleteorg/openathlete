@@ -41,6 +41,7 @@ const TITLES: Record<string, Candidates> = {
   '/clubs': ['clubspage_hero_title', 'clubspage_seo_title'],
   '/pricing': ['pricing_page_hero_title', 'pricing_page_seo_title'],
   '/open-source': ['opensource_hero_title', 'opensource_seo_title'],
+  '/transparency': ['transparency_hero_title', 'transparency_seo_title'],
   '/self-hosting': [
     'selfhost_hero_title',
     'selfhosting_hero_title',
@@ -85,6 +86,7 @@ const SECTIONS: Record<string, string> = {
   clubs: 'site_nav_clubs',
   pricing: 'site_nav_pricing',
   'open-source': 'site_nav_open_source',
+  transparency: 'site_nav_transparency',
   compare: 'site_nav_compare',
   connect: 'site_nav_integrations',
   mobile: 'site_nav_mobile',

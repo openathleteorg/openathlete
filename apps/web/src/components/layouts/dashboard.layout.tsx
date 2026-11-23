@@ -36,6 +36,8 @@ import { AppShell } from '../mobile/app-shell';
 import { PlanImportHandler } from '../plan-import-handler';
 import { AppSidebar } from '../sidebar/app-sidebar';
 import { SportIcon } from '../sport-icon/sport-icon';
+import { AccentThemeSync } from '../supporter-perks/accent-theme';
+import { FeaturePaywallProvider } from '../supporter-perks/feature-paywall-context';
 import { YearReviewProvider } from '../year-review/year-review-provider';
 
 interface P {
@@ -211,7 +213,10 @@ export function DashboardLayout({ children }: P) {
           <SharedDndProvider>
             <FinderProvider>
               <YearReviewProvider>
-                <LayoutContent>{children}</LayoutContent>
+                <FeaturePaywallProvider>
+                  <AccentThemeSync />
+                  <LayoutContent>{children}</LayoutContent>
+                </FeaturePaywallProvider>
               </YearReviewProvider>
             </FinderProvider>
           </SharedDndProvider>

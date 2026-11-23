@@ -367,6 +367,7 @@ export class CoachService {
             : 0;
         return {
           athleteId: a.athleteId,
+          userId: a.user?.userId ?? null,
           firstName: a.user?.firstName ?? null,
           lastName: a.user?.lastName ?? null,
           email: a.user?.email ?? null,

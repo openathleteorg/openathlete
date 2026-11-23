@@ -100,6 +100,22 @@ const pushNotificationTranslations: PushNotificationTranslationsMap = {
         withoutQuestions: 'Deine Aktivität wurde erfolgreich analysiert.',
       },
     },
+    [Language.PL]: {
+      title: 'Aktywność przetworzona',
+      body: {
+        withQuestions:
+          'Twoja aktywność została przeanalizowana i czekają na Ciebie pytania o trening.',
+        withoutQuestions: 'Twoja aktywność została przeanalizowana.',
+      },
+    },
+    [Language.NL]: {
+      title: 'Activiteit verwerkt',
+      body: {
+        withQuestions:
+          'Je activiteit is geanalyseerd en er staan feedbackvragen voor je klaar.',
+        withoutQuestions: 'Je activiteit is succesvol geanalyseerd.',
+      },
+    },
   },
 } as const;
 

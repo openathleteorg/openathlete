@@ -1,7 +1,15 @@
+import { useFeature } from '@/hooks/use-feature';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
+import { Lock } from 'lucide-react';
 
-import { StatisticsCapacity, StatisticsView } from './use-statistics-filters';
+import { Feature } from '@openathlete/shared';
+
+import {
+  LAB_VIEWS,
+  StatisticsCapacity,
+  StatisticsView,
+} from './use-statistics-filters';
 
 const VIEWS: { id: StatisticsView; label: () => string }[] = [
   { id: 'overview', label: m.statistics_view_overview },
@@ -12,7 +20,7 @@ const VIEWS: { id: StatisticsView; label: () => string }[] = [
 ];
 
 interface P<T extends string> {
-  items: { id: T; label: () => string }[];
+  items: { id: T; label: () => string; locked?: boolean }[];
   value: T;
   onChange: (id: T) => void;
   label: string;
@@ -38,7 +46,7 @@ export function SegmentTabs<T extends string>({
           'sticky top-0 z-10 -mx-4 border-b bg-background px-4 md:static md:mx-0 md:px-0',
       )}
     >
-      {items.map(({ id, label: itemLabel }) => (
+      {items.map(({ id, label: itemLabel, locked }) => (
         <button
           key={id}
           type="button"
@@ -62,7 +70,15 @@ export function SegmentTabs<T extends string>({
                 ),
           )}
         >
-          {itemLabel()}
+          <span className="inline-flex items-center gap-1">
+            {itemLabel()}
+            {locked && (
+              <Lock
+                aria-label={m.feature_lock_label()}
+                className="size-3 text-muted-foreground"
+              />
+            )}
+          </span>
         </button>
       ))}
     </div>
@@ -75,9 +91,16 @@ interface ViewTabs {
 }
 
 export function StatisticsTabs({ value, onChange }: ViewTabs) {
+  const lab = useFeature(Feature.LAB);
+  const items = VIEWS.filter(
+    (view) => !(lab.hidden && LAB_VIEWS.includes(view.id)),
+  ).map((view) => ({
+    ...view,
+    locked: lab.locked && LAB_VIEWS.includes(view.id),
+  }));
   return (
     <SegmentTabs
-      items={VIEWS}
+      items={items}
       value={value}
       onChange={onChange}
       label={m.statistics_sections_label()}

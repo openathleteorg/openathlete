@@ -193,23 +193,25 @@ export function ContentEs() {
       <h3>OpenAthlete</h3>
       <p>
         El nuestro, así que júzgalo con eso en mente. Es de código abierto
-        (AGPL), gratis si lo alojas tú, o alojado por nosotros en Francia. Todas
-        las funciones son gratis en la versión alojada, incluido el coaching de
-        hasta 5 atletas; Supporter, desde 5 € al mes o 50 € al año, añade
+        (AGPL), gratis si lo alojas tú, o alojado por nosotros en Francia. Todo
+        lo necesario para entrenar es gratis en la versión alojada, incluido el
+        coaching de hasta 5 atletas; Supporter, desde 5 € al mes o 50 € al año,
+        financia el proyecto y añade el Lab, el acceso anticipado a las
+        novedades, las herramientas avanzadas para entrenadores y los clubes,
         atletas ilimitados e IA con nuestras claves (
-        <Link href="/es/pricing">precios</Link>). Los clubes tienen un espacio
-        de club gratuito, sin límite de atletas: grupos con sus entrenadores,
-        biblioteca compartida, sesiones semanales del club y planes copiados a
-        todo un grupo. Las sesiones planificadas van a relojes Garmin, Suunto y
-        COROS; las actividades llegan de esas tres marcas, de Polar y de Strava.
-        La carga de entrenamiento es el TRIMP por frecuencia cardiaca, con el
-        RPE de sesión al lado, y la forma, la fatiga y la frescura se proyectan
-        sobre las sesiones planificadas. La IA es opcional y funciona con tu
-        propia clave o con la cuota de Supporter.
+        <Link href="/es/pricing">precios</Link>). Un club lo abre un Supporter y
+        sus miembros se unen gratis, sin límite de atletas: grupos con sus
+        entrenadores, biblioteca compartida, sesiones semanales del club y
+        planes copiados a todo un grupo. Las sesiones planificadas van a relojes
+        Garmin, Suunto y COROS; las actividades llegan de esas tres marcas, de
+        Polar y de Strava. La carga de entrenamiento es el TRIMP por frecuencia
+        cardiaca, con el RPE de sesión al lado, y la forma, la fatiga y la
+        frescura se proyectan sobre las sesiones planificadas. La IA es opcional
+        y funciona con tu propia clave o con la cuota de Supporter.
       </p>
       <p>
         Las limitaciones son reales. No hay marketplace para vender planes, ni
-        facturación al club (el espacio de club es gratis, pero las cuotas se
+        facturación al club (unirse a un club es gratis, pero las cuotas se
         gestionan fuera de OpenAthlete), ni app de rodillo, ni envío de
         entrenamientos a relojes Polar. El análisis es menos profundo que el de
         intervals.icu, y el proyecto es joven y lo desarrolla una sola persona.

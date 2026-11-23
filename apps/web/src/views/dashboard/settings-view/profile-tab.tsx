@@ -1,10 +1,16 @@
 import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useCurrentSubscription } from '@/api/subscription';
-import { useDeleteAccountMutation, useUpdateAccountMutation } from '@/api/user';
+import {
+  useDeleteAccountMutation,
+  useGetMeQuery,
+  useUpdateAccountMutation,
+} from '@/api/user';
+import { userKeys } from '@/api/user/user.keys';
 import { ConfirmAction } from '@/components/confirm-action';
 import { FormProvider, RHFTextField } from '@/components/hook-form';
 import { RHFSelect } from '@/components/hook-form/rhf-select';
 import { SessionValidationSettingsCard } from '@/components/session-validation-settings-card';
+import { AccentThemeSettings } from '@/components/supporter-perks/accent-theme';
 import { Button } from '@/components/ui/button';
 import { SelectItem } from '@/components/ui/select';
 import { useAuthContext } from '@/contexts/auth';
@@ -14,7 +20,8 @@ import { revokeAppleSignIn } from '@/utils/firebase-auth';
 import { openServerSelection } from '@/utils/mobile-server';
 import { localizedPersonNameSchema } from '@/utils/person-name';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -37,11 +44,15 @@ import { TrainingRemindersSection } from './training-reminders-section';
 
 export function ProfileTab() {
   const { user, logout } = useAuthContext();
+  const queryClient = useQueryClient();
+  const { data: me } = useGetMeQuery();
   const { data: athlete } = useGetMyAthleteQuery();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const updateAccountMutation = useUpdateAccountMutation({
     onSuccess: async () => {
       toast.success(m.account_updated_successfully());
+      // useUnits reads this query: without it, the old units stay on screen
+      await queryClient.invalidateQueries({ queryKey: [userKeys.getMe] });
     },
   });
   const { data: subscription } = useCurrentSubscription();
@@ -73,13 +84,25 @@ export function ProfileTab() {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       gender: user?.gender || undefined,
+      unitSystem: user?.unitSystem || 'METRIC',
     },
   });
 
-  const { handleSubmit } = methods;
+  const { handleSubmit, setValue } = methods;
 
-  const onSubmit = handleSubmit(async (data) =>
-    updateAccountMutation.mutate(data),
+  // The session's user is not refreshed after a change: saving this form with
+  // its value would undo a choice made since sign-in
+  useEffect(() => {
+    if (me?.unitSystem) setValue('unitSystem', me.unitSystem);
+  }, [me?.unitSystem, setValue]);
+
+  // Sent only when changed: saving a name is not choosing units
+  const onSubmit = handleSubmit(async ({ unitSystem, ...data }) =>
+    updateAccountMutation.mutate(
+      unitSystem !== (me?.unitSystem ?? user?.unitSystem)
+        ? { ...data, unitSystem }
+        : data,
+    ),
   );
   return (
     <div className="space-y-8">
@@ -109,6 +132,17 @@ export function ProfileTab() {
               <SelectItem value="FEMALE">{m.gender_female()}</SelectItem>
               <SelectItem value="OTHER">{m.gender_other()}</SelectItem>
             </RHFSelect>
+
+            <RHFSelect
+              name="unitSystem"
+              label={m.unit_system()}
+              placeholder={m.unit_system_placeholder()}
+            >
+              <SelectItem value="METRIC">{m.unit_system_metric()}</SelectItem>
+              <SelectItem value="IMPERIAL">
+                {m.unit_system_imperial()}
+              </SelectItem>
+            </RHFSelect>
           </div>
           <div className="mt-4 flex justify-end">
             <Button
@@ -124,6 +158,7 @@ export function ProfileTab() {
       {athlete?.athleteId && (
         <SessionValidationSettingsCard athleteId={athlete.athleteId} />
       )}
+      <AccentThemeSettings />
       <TrainingProfileSection />
       {athlete?.athleteId && <TrainingRemindersSection />}
       <EmailPreferencesSection />
