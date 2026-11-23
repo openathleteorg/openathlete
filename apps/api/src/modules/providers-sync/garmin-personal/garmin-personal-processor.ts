@@ -36,6 +36,8 @@ export class GarminPersonalScheduler {
   ) {}
   @Cron('17 * * * *')
   async sync() {
+    // Activities of the last week only: what this sync creates notifies the
+    // coach and runs the AI summary, so a wider window would flood them
     const endDate = new Date().toISOString().slice(0, 10);
     const startDate = new Date(Date.now() - 6 * 86400000)
       .toISOString()
@@ -51,10 +53,11 @@ export class GarminPersonalScheduler {
     });
     for (const account of accounts) {
       try {
-        await this.personal.enqueue(account.athlete.userId, {
-          startDate,
-          endDate,
-        });
+        await this.personal.enqueue(
+          account.athlete.userId,
+          { startDate, endDate },
+          true,
+        );
       } catch {
         /* A disconnected account or temporarily unavailable queue is retried next hour. */
       }
