@@ -1232,6 +1232,7 @@
   "webhook_upload_description": "Send completed FIT activities from an app or script.",
   "webhook_upload_active": "Active",
   "webhook_upload_inactive": "Inactive",
+  "webhook_upload_last_received": "Last upload received: {date}",
   "webhook_upload_generate": "Generate upload token",
   "webhook_upload_replace": "Replace upload token",
   "webhook_upload_revoke": "Revoke upload token",

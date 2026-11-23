@@ -29,6 +29,9 @@ export function useActivityUploadWebhookQuery(connector: WebhookConnector) {
   return useQuery({
     queryKey: webhookStatusKey(connector),
     queryFn: () => ActivityImportAPI.getWebhookStatus(connector),
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -42,14 +45,9 @@ export function useGenerateActivityUploadWebhookMutation(
       const credentials = await ActivityImportAPI.generateWebhook(connector);
       // Only component state gets the one-time credentials.
       showCredentials(credentials);
-      return { enabled: true };
     },
-    onSuccess: (status) => {
-      queryClient.setQueryData<ActivityUploadWebhookStatusDto>(
-        webhookStatusKey(connector),
-        status,
-      );
-    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: webhookStatusKey(connector) }),
   });
 }
 
@@ -64,6 +62,7 @@ export function useRevokeActivityUploadWebhookMutation(
         webhookStatusKey(connector),
         {
           enabled: false,
+          lastUploadAt: null,
         },
       );
     },

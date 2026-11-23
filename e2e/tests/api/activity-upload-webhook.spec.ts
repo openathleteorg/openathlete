@@ -75,6 +75,7 @@ test('queues signed RunGap deliveries for the token owner once', async ({
     await (await request.get(`${connection}/rungap`, { headers })).json(),
   ).toEqual({
     enabled: false,
+    lastUploadAt: null,
   });
 
   const { url, token, passkey } = await generate(
@@ -86,7 +87,7 @@ test('queues signed RunGap deliveries for the token owner once', async ({
   expect(passkey).toBeTruthy();
   const status = await request.get(`${connection}/rungap`, { headers });
   expect(status.headers()['cache-control']).toBe('no-store');
-  expect(await status.json()).toEqual({ enabled: true });
+  expect(await status.json()).toEqual({ enabled: true, lastUploadAt: null });
 
   const signed = signedDelivery(passkey!);
   const tampered = Buffer.from(signed.data);
@@ -98,6 +99,9 @@ test('queues signed RunGap deliveries for the token owner once', async ({
     expect(rejected.status()).toBe(401);
     expect(await rejected.json()).toEqual(await invalidToken.json());
   }
+  expect(
+    await (await request.get(`${connection}/rungap`, { headers })).json(),
+  ).toEqual({ enabled: true, lastUploadAt: null });
 
   const deliveries = await Promise.all([
     request.post(url, signed),
@@ -107,6 +111,13 @@ test('queues signed RunGap deliveries for the token owner once', async ({
     expect(delivery.status(), await delivery.text()).toBe(200);
     expect(await delivery.json()).toEqual({ queued: true });
   }
+  const receivedStatus = await (
+    await request.get(`${connection}/rungap`, { headers })
+  ).json();
+  expect(receivedStatus).toEqual({
+    enabled: true,
+    lastUploadAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T.*Z$/),
+  });
   await expect
     .poll(async () => (await request.get(calendar, { headers })).json())
     .toMatchObject([
@@ -128,6 +139,9 @@ test('queues signed RunGap deliveries for the token owner once', async ({
   expect(rotated.passkey).not.toBe(passkey);
   expect((await request.post(url, signed)).status()).toBe(401);
   expect(
+    await (await request.get(`${connection}/rungap`, { headers })).json(),
+  ).toEqual(receivedStatus);
+  expect(
     (await request.delete(`${connection}/rungap`, { headers })).status(),
   ).toBe(204);
   expect(
@@ -135,6 +149,9 @@ test('queues signed RunGap deliveries for the token owner once', async ({
       await request.post(rotated.url, signedDelivery(rotated.passkey!))
     ).status(),
   ).toBe(401);
+  expect(
+    await (await request.get(`${connection}/rungap`, { headers })).json(),
+  ).toEqual({ enabled: false, lastUploadAt: null });
 });
 
 test('queues raw FIT with a bearer token and enforces the file size cap', async ({

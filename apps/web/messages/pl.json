@@ -1232,6 +1232,7 @@
   "webhook_upload_description": "Przesyłaj ukończone aktywności w formacie FIT z aplikacji lub skryptu.",
   "webhook_upload_active": "Aktywny",
   "webhook_upload_inactive": "Nieaktywny",
+  "webhook_upload_last_received": "Ostatni odebrany plik: {date}",
   "webhook_upload_generate": "Wygeneruj token przesyłania",
   "webhook_upload_replace": "Zastąp token przesyłania",
   "webhook_upload_revoke": "Unieważnij token przesyłania",

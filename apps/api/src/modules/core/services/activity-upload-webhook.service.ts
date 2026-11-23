@@ -9,6 +9,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   PayloadTooLargeException,
   ServiceUnavailableException,
   UnauthorizedException,
@@ -34,6 +35,7 @@ const TOKEN_FORMAT = /^oa_upload_[A-Za-z0-9_-]{43}$/;
 
 @Injectable()
 export class ActivityUploadWebhookService {
+  private readonly logger = new Logger(ActivityUploadWebhookService.name);
   private readonly cipher: AiCredentialCipher;
 
   constructor(
@@ -53,9 +55,12 @@ export class ActivityUploadWebhookService {
   ): Promise<ActivityUploadWebhookStatusDto> {
     const webhook = await this.prisma.activityUploadWebhook.findUnique({
       where: { userId_connector: { userId, connector } },
-      select: { userId: true },
+      select: { lastUploadAt: true },
     });
-    return { enabled: !!webhook };
+    return {
+      enabled: !!webhook,
+      lastUploadAt: webhook?.lastUploadAt?.toISOString() ?? null,
+    };
   }
 
   async generate(
@@ -101,8 +106,9 @@ export class ActivityUploadWebhookService {
   ): Promise<{ queued: true }> {
     if (!token || !TOKEN_FORMAT.test(token)) throw new UnauthorizedException();
 
+    const tokenHash = hashToken(token);
     const webhook = await this.prisma.activityUploadWebhook.findUnique({
-      where: { tokenHash: hashToken(token) },
+      where: { tokenHash },
       select: { userId: true, encryptedPasskey: true },
     });
     if (!webhook) throw new UnauthorizedException();
@@ -150,6 +156,20 @@ export class ActivityUploadWebhookService {
       );
     } catch {
       throw new ServiceUnavailableException('Could not queue the FIT upload');
+    }
+
+    const lastUploadAt = new Date();
+    try {
+      await this.prisma.activityUploadWebhook.updateMany({
+        where: {
+          tokenHash,
+          OR: [{ lastUploadAt: null }, { lastUploadAt: { lt: lastUploadAt } }],
+        },
+        data: { lastUploadAt },
+      });
+    } catch {
+      // The upload is already queued. An error response could trigger a retry.
+      this.logger.warn('Could not record the last webhook upload time');
     }
     return { queued: true };
   }

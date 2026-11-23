@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
+import { getLocale } from '@/paraglide/runtime';
 import { CheckCircle2, ChevronDown, Link2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -28,6 +29,7 @@ export function ActivityUploadWebhookRow({
   connector: WebhookConnector;
 }) {
   const query = useActivityUploadWebhookQuery(connector);
+  const lastUploadAt = query.data?.lastUploadAt;
   const title =
     connector === 'rungap'
       ? m.webhook_upload_rungap_title()
@@ -40,10 +42,24 @@ export function ActivityUploadWebhookRow({
         description={
           query.data &&
           (query.data.enabled ? (
-            <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
-              <CheckCircle2 className="size-3.5 shrink-0" />
-              {m.webhook_upload_active()}
-            </span>
+            <>
+              <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="size-3.5 shrink-0" />
+                {m.webhook_upload_active()}
+              </span>
+              {lastUploadAt && (
+                <time dateTime={lastUploadAt}>
+                  {m.webhook_upload_last_received({
+                    date: new Date(lastUploadAt).toLocaleDateString(
+                      getLocale(),
+                      {
+                        dateStyle: 'medium',
+                      },
+                    ),
+                  })}
+                </time>
+              )}
+            </>
           ) : (
             m.webhook_upload_inactive()
           ))

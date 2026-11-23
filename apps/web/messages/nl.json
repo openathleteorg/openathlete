@@ -1232,6 +1232,7 @@
   "webhook_upload_description": "Verstuur voltooide FIT-activiteiten vanuit een app of script.",
   "webhook_upload_active": "Actief",
   "webhook_upload_inactive": "Inactief",
+  "webhook_upload_last_received": "Laatste upload ontvangen op {date}",
   "webhook_upload_generate": "Uploadtoken genereren",
   "webhook_upload_replace": "Uploadtoken vervangen",
   "webhook_upload_revoke": "Uploadtoken intrekken",

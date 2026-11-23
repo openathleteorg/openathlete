@@ -41,6 +41,7 @@ function setup() {
     upsert: jest.fn(async ({ create }: { create: Credential }) => {
       rows.set(create.connector, create);
     }),
+    updateMany: jest.fn(),
     deleteMany: jest.fn(
       async ({ where }: { where: { connector: WebhookConnector } }) => {
         rows.delete(where.connector);
@@ -69,6 +70,7 @@ describe('ActivityUploadWebhookService', () => {
     const { service, webhook } = setup();
     expect(await service.status(userId, 'rungap')).toEqual({
       enabled: false,
+      lastUploadAt: null,
     });
     const { url, token, passkey } = await service.generate(userId, 'rungap');
     expect(url).toBe(
@@ -82,6 +84,7 @@ describe('ActivityUploadWebhookService', () => {
     expect(create.encryptedPasskey).not.toContain(passkey);
     expect(await service.status(userId, 'rungap')).toEqual({
       enabled: true,
+      lastUploadAt: null,
     });
   });
 
@@ -144,7 +147,7 @@ describe('ActivityUploadWebhookService', () => {
   });
 
   it('returns a safe retryable response if the queue cannot accept the upload', async () => {
-    const { service, queue } = setup();
+    const { service, webhook, queue } = setup();
     const { token } = await service.generate(userId, 'generic');
     queue.addWebhookFitImportJob.mockRejectedValue(
       new Error('Redis command details'),
@@ -154,5 +157,16 @@ describe('ActivityUploadWebhookService', () => {
     ).rejects.toThrow(
       new ServiceUnavailableException('Could not queue the FIT upload'),
     );
+    expect(webhook.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('acknowledges the queued upload if recording its timestamp fails', async () => {
+    const { service, webhook } = setup();
+    const { token } = await service.generate(userId, 'generic');
+    webhook.updateMany.mockRejectedValue(new Error('Database unavailable'));
+
+    await expect(
+      service.receive(token, file, contentType, undefined),
+    ).resolves.toEqual({ queued: true });
   });
 });

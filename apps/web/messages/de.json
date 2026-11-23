@@ -1232,6 +1232,7 @@
   "webhook_upload_description": "Sende abgeschlossene Aktivitäten als FIT-Datei aus einer App oder einem Skript.",
   "webhook_upload_active": "Aktiv",
   "webhook_upload_inactive": "Inaktiv",
+  "webhook_upload_last_received": "Letzter empfangener Upload: {date}",
   "webhook_upload_generate": "Upload-Token erstellen",
   "webhook_upload_replace": "Upload-Token ersetzen",
   "webhook_upload_revoke": "Upload-Token widerrufen",

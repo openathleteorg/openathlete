@@ -1232,6 +1232,7 @@
   "webhook_upload_description": "Envie atividades concluídas em formato FIT por um aplicativo ou script.",
   "webhook_upload_active": "Ativo",
   "webhook_upload_inactive": "Inativo",
+  "webhook_upload_last_received": "Último envio recebido: {date}",
   "webhook_upload_generate": "Gerar token de envio",
   "webhook_upload_replace": "Substituir token de envio",
   "webhook_upload_revoke": "Revogar token de envio",

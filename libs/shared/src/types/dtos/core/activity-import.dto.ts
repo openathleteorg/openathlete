@@ -33,6 +33,8 @@ export type WebhookConnector = z.infer<typeof webhookConnectorSchema>;
 
 export interface ActivityUploadWebhookStatusDto {
   enabled: boolean;
+  /** ISO 8601 timestamp of the most recent upload accepted by the queue. */
+  lastUploadAt: string | null;
 }
 
 export interface ActivityUploadWebhookCredentialsDto {
