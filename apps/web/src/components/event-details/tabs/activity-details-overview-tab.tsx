@@ -1,3 +1,4 @@
+import { useGetEventStreamQuery } from '@/api/event';
 import { m } from '@/paraglide/messages';
 import { computeHoverPin } from '@/utils/map-hover';
 import { useMemo, useState } from 'react';
@@ -20,6 +21,7 @@ import {
 import {
   XAxisKind,
   defaultXAxis,
+  routeRange,
   xSeries,
 } from '../../activity-analysis/stream-range';
 import { ZonesCard } from '../../activity-analysis/zones-card';
@@ -33,6 +35,11 @@ import { ActivityDetailsSelectionProvider } from '../activity-details-selection-
 import { ActivityFeedbackDisplayCard } from '../activity-feedback-display-card';
 import { ActivityQuickEditCard } from '../activity-quick-edit-card';
 import { ActivityStatistics } from '../activity-statistics';
+import {
+  ACTIVITY_ROUTE_KEYS,
+  ACTIVITY_ROUTE_RESOLUTION,
+  ACTIVITY_STREAM_RESOLUTION,
+} from '../activity-stream-keys';
 
 interface P {
   event: ActivityEvent;
@@ -58,9 +65,17 @@ export function ActivityDetailsOverviewTab({
   const [xAxisChoice, setXAxisChoice] = useState<XAxisKind>();
   const xAxis = xAxisChoice ?? defaultXAxis(stream);
 
+  // Measuring gaps from chart samples can mistake downsampling for a dropout.
+  const { data: route } = useGetEventStreamQuery(
+    event.eventId,
+    ACTIVITY_ROUTE_RESOLUTION,
+    ACTIVITY_ROUTE_KEYS,
+    (stream?.latlng?.length ?? 0) >= ACTIVITY_STREAM_RESOLUTION,
+  );
+  const mapStream = route?.latlng?.length ? route : stream;
   const hoverPin = useMemo(
-    () => computeHoverPin(stream?.latlng, stream?.time, hover),
-    [hover, stream],
+    () => computeHoverPin(mapStream?.latlng, mapStream?.time, hover),
+    [hover, mapStream],
   );
 
   const fullDomain: [number, number] | undefined = useMemo(() => {
@@ -69,8 +84,16 @@ export function ActivityDetailsOverviewTab({
   }, [stream, xAxis]);
 
   const lapOptions = useLapOptions(event, stream);
-  const climbs = useMemo(() => climbsOf(stream), [stream]);
-  const hasMap = !!stream?.latlng?.length && !!fullDomain;
+  const climbs = useMemo(() => {
+    const climbs = climbsOf(stream);
+    if (!stream || !mapStream || mapStream === stream) return climbs;
+    return climbs.flatMap((climb) => {
+      const range = routeRange(stream, mapStream, climb.start, climb.end);
+      return range ? [{ ...climb, start: range[0], end: range[1] }] : [];
+    });
+  }, [stream, mapStream]);
+  const mapPath =
+    fullDomain && mapStream?.latlng?.length ? mapStream.latlng : undefined;
   const laps = event.segments?.filter(
     (segment) => segment.segmentType === 'LAP',
   );
@@ -106,7 +129,7 @@ export function ActivityDetailsOverviewTab({
       <PlanBanner event={event} options={lapOptions} />
       <AiSummaryCard event={event} />
       <SectionAnchor id={id('summary')} />
-      <Card className={hasMap ? 'col-span-2 sm:col-span-1' : 'col-span-2'}>
+      <Card className={mapPath ? 'col-span-2 sm:col-span-1' : 'col-span-2'}>
         <CardHeader>
           <CardTitle>{m.statistics()}</CardTitle>
         </CardHeader>
@@ -119,13 +142,14 @@ export function ActivityDetailsOverviewTab({
       {event.strengthLog ? (
         <StrengthLogCard log={event.strengthLog} className="col-span-2" />
       ) : null}
-      {hasMap && (
+      {mapPath && (
         <ActivityDetailsMap
           className="col-span-2 sm:col-span-1 rounded-xl shadow-sm border w-full min-h-[300px]"
-          polyline={stream.latlng!}
+          polyline={mapPath}
           pins={hoverPin}
-          distance={stream.distance}
-          time={stream.time}
+          distance={mapStream?.distance}
+          time={mapStream?.time}
+          timerPaused={mapStream?.timerPaused}
           climbs={climbs}
         />
       )}
