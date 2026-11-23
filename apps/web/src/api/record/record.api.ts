@@ -10,8 +10,10 @@ import {
   RecordEffortDto,
   RecordExclusionDto,
   RecordHistoryDto,
+  RunningEconomyDto,
   SPORT_TYPE,
   modeledMetricsSchema,
+  runningEconomySchema,
 } from '@openathlete/shared';
 
 export class RecordAPI {
@@ -34,6 +36,16 @@ export class RecordAPI {
       params: { athleteId },
     });
     return modeledMetricsSchema.parse(res.data);
+  }
+
+  /** Joules per metre on recent flat runs, null without three of them */
+  static async getRunningEconomy(
+    athleteId?: number,
+  ): Promise<RunningEconomyDto | null> {
+    const res = await client.get(routes.record.getRunningEconomy, {
+      params: { athleteId },
+    });
+    return res.data ? runningEconomySchema.parse(res.data) : null;
   }
 
   /** Sports that have records, the most frequent first. */

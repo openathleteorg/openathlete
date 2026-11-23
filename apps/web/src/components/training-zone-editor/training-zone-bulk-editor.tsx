@@ -29,6 +29,7 @@ import {
 } from './heart-rate-percentages';
 import { MultiSportSelector } from './multi-sport-selector';
 import { ALL_SPORTS, describeSports } from './sport-summary';
+import { ThresholdZonesPanel } from './threshold-zones-panel';
 import {
   ZoneDraft,
   ZoneMode,
@@ -508,6 +509,27 @@ export function TrainingZoneBulkEditor({
           )}
         </div>
       )}
+
+      <ThresholdZonesPanel
+        athleteId={athleteId}
+        type={type}
+        sports={active.sports}
+        currentCount={zones.length}
+        onApply={(computed) => {
+          setError('');
+          setPendingMode(null);
+          updateActive({
+            // In bpm, watts or pace: no longer percentages
+            mode: 'absolute',
+            // Saved zones keep their ids, which planned workouts point at
+            zones: computed.map((zone, index) => ({
+              ...zone,
+              key: nextKey(),
+              id: zones[index]?.id,
+            })),
+          });
+        }}
+      />
 
       <div className="space-y-2">
         <ZonesBar zones={activeResolved ?? zones} />

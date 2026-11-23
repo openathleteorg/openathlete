@@ -215,6 +215,96 @@ describe('RecordService (PostgreSQL)', () => {
     });
   });
 
+  describe('running economy', () => {
+    const now = new Date('2026-11-16T10:00:00Z');
+    /** A steady run: a sample a second for 15 minutes */
+    const steadyRun = (speed: number, watts: number) => ({
+      time: [{ s: 0, i: 900 }],
+      distance: Array.from({ length: 900 }, (_, i) => i * speed),
+      watts: [{ r: 900, v: watts }],
+    });
+    const addRun = async (
+      id: number,
+      stream: object,
+      {
+        elevationGain = 20,
+        sport = 'RUNNING',
+        date = '2026-11-01',
+        averageWatts = 320 as number | null,
+      } = {},
+    ) =>
+      prisma.event.create({
+        data: {
+          name: `Run ${id}`,
+          type: 'ACTIVITY',
+          startDate: new Date(date),
+          endDate: new Date(date),
+          athleteId: DELETED_ATHLETE_ID,
+          activity: {
+            create: {
+              sport: sport as 'RUNNING',
+              distance: 3600,
+              elevationGain,
+              movingTime: 900,
+              averageSpeed: 4,
+              maxSpeed: 5,
+              externalId: `economy-${id}`,
+              averageWatts,
+              stream,
+            },
+          },
+        },
+      });
+
+    it('takes the median of the flat runs with power', async () => {
+      await addRun(1, steadyRun(4, 320)); // 80 J/m
+      await addRun(2, steadyRun(4, 328)); // 82 J/m
+      await addRun(3, steadyRun(3.5, 315), { sport: 'TRAIL_RUNNING' }); // 90 J/m
+      await addRun(4, steadyRun(4, 400), { elevationGain: 200 }); // hilly
+      await addRun(5, steadyRun(4, 400), { date: '2026-07-01' }); // too old
+      // No power in the stream: left out
+      await addRun(6, {
+        time: [{ s: 0, i: 900 }],
+        distance: steadyRun(4, 0).distance,
+      });
+
+      expect(
+        await service.getRunningEconomy(athlete, undefined, now),
+      ).toMatchObject({ value: 82, activities: 3, days: 90 });
+    });
+
+    it('reads power from the stream when the summary has none', async () => {
+      // Suunto leaves average_watts empty
+      await addRun(1, steadyRun(4, 320), { averageWatts: null });
+      await addRun(2, steadyRun(4, 328), { averageWatts: null });
+      await addRun(3, steadyRun(4, 336), { averageWatts: null });
+      expect(
+        await service.getRunningEconomy(athlete, undefined, now),
+      ).toMatchObject({ value: 82, activities: 3 });
+    });
+
+    it('reads the most recent flat runs only', async () => {
+      // 14 runs at 80 J/m, then 2 older ones at 100 J/m out of the 12
+      for (let day = 1; day <= 14; day++)
+        await addRun(day, steadyRun(4, 320), {
+          date: `2026-11-${String(day).padStart(2, '0')}`,
+        });
+      await addRun(20, steadyRun(4, 400), { date: '2026-10-01' });
+      await addRun(21, steadyRun(4, 400), { date: '2026-10-02' });
+      expect(
+        await service.getRunningEconomy(athlete, undefined, now),
+      ).toMatchObject({ value: 80, activities: 12 });
+    });
+
+    it('needs three flat runs', async () => {
+      await addRun(1, steadyRun(4, 320));
+      await addRun(2, steadyRun(4, 328));
+      expect(
+        await service.getRunningEconomy(athlete, undefined, now),
+      ).toBeNull();
+    });
+  });
+
   describe('exclusions', () => {
     const owner = {
       ...athlete,
