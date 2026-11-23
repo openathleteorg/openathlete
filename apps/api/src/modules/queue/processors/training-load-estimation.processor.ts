@@ -5,6 +5,7 @@ import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 
 import { MetricType, SportType } from '@openathlete/database';
 import {
+  AiErrorCode,
   AiTask,
   TrainingZone,
   mapPrismaWorkoutToDto,
@@ -15,7 +16,10 @@ import {
   trimpEstimationOutputSchema,
 } from 'src/mastra/agents';
 import { AiModelResolverService, AiService } from 'src/modules/ai';
-import { isRetryableAiError } from 'src/modules/ai/ai.errors';
+import {
+  AiProviderException,
+  isRetryableAiError,
+} from 'src/modules/ai/ai.errors';
 import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { reportJobFailure } from 'src/modules/analytics/job-failure';
 import {
@@ -323,6 +327,21 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
       );
       return result.trimp;
     } catch (error) {
+      // The athlete's own key is out of credit or revoked: the session gets
+      // the duration and RPE estimate, and Settings > AI shows the key's error.
+      // Reporting it would only repeat, on every session saved, what they
+      // must fix with their provider
+      if (
+        model.source === 'own_key' &&
+        error instanceof AiProviderException &&
+        (error.code === AiErrorCode.QUOTA_EXCEEDED ||
+          error.code === AiErrorCode.CREDENTIAL_REJECTED)
+      ) {
+        this.logger.warn(
+          `Training load of a session of athlete ${athleteId} estimated without AI: ${error.message}`,
+        );
+        return null;
+      }
       if (!isRetryableAiError(error)) {
         throw new UnrecoverableError(
           error instanceof Error ? error.message : String(error),
