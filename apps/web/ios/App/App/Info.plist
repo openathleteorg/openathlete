@@ -29,6 +29,15 @@
           <string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
         </array>
       </dict>
+      <dict>
+        <!-- Provider connections come back through it, see native-oauth.ts -->
+        <key>CFBundleURLName</key>
+        <string>org.openathlete</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>org.openathlete</string>
+        </array>
+      </dict>
     </array>
     <key>CFBundleVersion</key>
     <string>$(CURRENT_PROJECT_VERSION)</string>

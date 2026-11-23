@@ -3149,5 +3149,7 @@
   "supporter_badge_save_failed": "Não foi possível salvar o selo.",
   "club_closed_owner": "Seu clube não aceita novos membros, convites nem sessões enquanto você não for Supporter. Tudo o que já está planejado continua e seus membros mantêm o acesso.",
   "lab_teaser_progress": "{change}% em um ano, seu maior progresso",
-  "feature_locked_title": "{name} · Supporter"
+  "feature_locked_title": "{name} · Supporter",
+  "oauth_return_to_app_message": "Conexão autorizada. Volte ao app OpenAthlete para concluí-la.",
+  "oauth_return_to_app_button": "Abrir o OpenAthlete"
 }

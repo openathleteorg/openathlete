@@ -3149,5 +3149,7 @@
   "supporter_badge_save_failed": "De badge kon niet worden opgeslagen.",
   "club_closed_owner": "Je club neemt geen nieuwe leden, uitnodigingen of trainingen aan zolang je geen Supporter bent. Alles wat al gepland is loopt door en je leden houden hun toegang.",
   "lab_teaser_progress": "{change}% in een jaar, je grootste vooruitgang",
-  "feature_locked_title": "{name} · Supporter"
+  "feature_locked_title": "{name} · Supporter",
+  "oauth_return_to_app_message": "Verbinding toegestaan. Ga terug naar de OpenAthlete-app om af te ronden.",
+  "oauth_return_to_app_button": "OpenAthlete openen"
 }

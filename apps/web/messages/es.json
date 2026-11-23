@@ -3149,5 +3149,7 @@
   "supporter_badge_save_failed": "No se pudo guardar la insignia.",
   "club_closed_owner": "Tu club no admite nuevos miembros, invitaciones ni sesiones mientras no seas Supporter. Todo lo ya planificado sigue y tus miembros conservan su acceso.",
   "lab_teaser_progress": "{change} % en un año, tu mayor progreso",
-  "feature_locked_title": "{name} · Supporter"
+  "feature_locked_title": "{name} · Supporter",
+  "oauth_return_to_app_message": "Conexión autorizada. Vuelve a la app de OpenAthlete para completarla.",
+  "oauth_return_to_app_button": "Abrir OpenAthlete"
 }

@@ -3149,5 +3149,7 @@
   "supporter_badge_save_failed": "Das Abzeichen konnte nicht gespeichert werden.",
   "club_closed_owner": "Dein Verein nimmt keine neuen Mitglieder, Einladungen oder Einheiten an, solange du kein Supporter bist. Alles bereits Geplante läuft weiter, und deine Mitglieder behalten ihren Zugang.",
   "lab_teaser_progress": "{change} % in einem Jahr, dein stärkster Fortschritt",
-  "feature_locked_title": "{name} · Supporter"
+  "feature_locked_title": "{name} · Supporter",
+  "oauth_return_to_app_message": "Verbindung erlaubt. Kehre zur OpenAthlete-App zurück, um sie abzuschließen.",
+  "oauth_return_to_app_button": "OpenAthlete öffnen"
 }
