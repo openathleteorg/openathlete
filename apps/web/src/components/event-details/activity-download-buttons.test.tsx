@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActivityEvent, EVENT_TYPE } from '@openathlete/shared';
 
 import { ActivityDownloadButtons } from './activity-download-buttons';
-import { activityFileName } from './gpx-file-name';
+import { activityFileName } from './activity-file-name';
 
 const state = vi.hoisted(() => ({
   stream: undefined as unknown,

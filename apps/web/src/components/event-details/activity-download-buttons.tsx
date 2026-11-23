@@ -10,11 +10,11 @@ import { toast } from 'sonner';
 import { ActivityEvent } from '@openathlete/shared';
 
 import { Button } from '../ui/button';
+import { activityFileName } from './activity-file-name';
 import {
   ACTIVITY_STREAM_KEYS,
   ACTIVITY_STREAM_RESOLUTION,
 } from './activity-stream-keys';
-import { activityFileName } from './gpx-file-name';
 
 /**
  * Saves an activity as a file: its GPS track as GPX, to follow it again, and
