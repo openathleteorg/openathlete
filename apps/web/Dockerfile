@@ -44,6 +44,7 @@ COPY --from=build /app/apps/web/dist /usr/share/nginx/html
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Run by the nginx image entrypoint before nginx starts
+COPY --chmod=755 apps/web/docker/30-api-upstream.sh /docker-entrypoint.d/30-api-upstream.sh
 COPY --chmod=755 apps/web/docker/40-api-public-url.sh /docker-entrypoint.d/40-api-public-url.sh
 
 EXPOSE 80

@@ -32,6 +32,10 @@ describe('validateEnv', () => {
     }
   });
 
+  it('accepts the environment of a pull request preview', () => {
+    expect(validateEnv({ ...required, ENV: 'preview' }).ENV).toBe('preview');
+  });
+
   it('still rejects invalid non-empty values', () => {
     expect(() =>
       validateEnv({ ...required, GARMIN_REDIRECT_URI: 'not a url' }),
