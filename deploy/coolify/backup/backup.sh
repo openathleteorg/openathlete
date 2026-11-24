@@ -5,15 +5,25 @@
 # Restore: restic dump latest /openathlete.sql | psql -d <empty database>
 set -eu
 
+# Tells the monitor (Constellation, /api/heartbeats/backup?token=...) that the
+# backup ran: the URL as is after a success, with status=fail after a failure.
 heartbeat() {
-  if [ -n "${BACKUP_HEARTBEAT_URL:-}" ]; then
-    wget -q -T 10 -O /dev/null "${BACKUP_HEARTBEAT_URL}$1" || true
+  url="${BACKUP_HEARTBEAT_URL:-}"
+  [ -n "$url" ] || return 0
+  if [ "$1" = fail ]; then
+    case "$url" in
+      *\?*) url="$url&status=fail" ;;
+      *) url="$url?status=fail" ;;
+    esac
   fi
+  wget -q -T 10 -O /dev/null "$url" || true
 }
 
 run() {
   if [ -z "${RESTIC_REPOSITORY:-}" ]; then
     echo "RESTIC_REPOSITORY is not set, nothing to do."
+    # Watched but not configured: no backup is a failure, not a success.
+    [ -z "${BACKUP_HEARTBEAT_URL:-}" ] || return 1
     return 0
   fi
 
@@ -38,5 +48,5 @@ run() {
 }
 
 # Through a trap rather than `if run`, which would turn off `set -e` in run.
-trap 'if [ $? -eq 0 ]; then heartbeat ""; else heartbeat "/fail"; fi' EXIT
+trap 'if [ $? -eq 0 ]; then heartbeat ok; else heartbeat fail; fi' EXIT
 run

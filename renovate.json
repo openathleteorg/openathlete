@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "timezone": "Europe/Paris",
+  "schedule": ["before 6am on monday"],
+  "minimumReleaseAge": "3 days",
+  "prConcurrentLimit": 5,
+  "platformAutomerge": false,
+  "dependencyDashboard": true,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "non-major dependencies",
+      "automerge": true
+    },
+    { "matchUpdateTypes": ["major"], "dependencyDashboardApproval": true },
+    { "matchFileNames": ["apps/docs/**"], "groupName": "docs site" },
+    {
+      "description": "Stripe SDK versions pin a Stripe API version: upgrade deliberately",
+      "matchPackageNames": ["stripe"],
+      "matchUpdateTypes": ["minor", "major"],
+      "groupName": null,
+      "automerge": false,
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Later 14.x releases overflow the stack while building pages with includeProcessedMarkdown; drop this once a release builds again",
+      "matchPackageNames": ["fumadocs-mdx"],
+      "allowedVersions": "<=14.2.3"
+    }
+  ],
+  "vulnerabilityAlerts": { "schedule": ["at any time"], "automerge": true }
+}

@@ -1,0 +1,82 @@
+name: Post-deploy checks
+
+# The smoke suite (e2e/smoke) against production after each deployment, its
+# result sent to Constellation. Private mirror only: production deploys from it.
+on:
+  # Vercel reports its deployments of the web app to GitHub
+  deployment_status:
+  # Coolify does not: Constellation sends this when it sees a new API deployment
+  repository_dispatch:
+    types: [api-deployed]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: What was deployed
+        type: choice
+        options: [web, api]
+        default: web
+
+permissions:
+  contents: read
+
+concurrency:
+  group: post-deploy-${{ github.event.deployment.sha || github.event.client_payload.sha || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Smoke checks against production
+    # Vercel sends a status for every project and preview: only the web app's
+    # production deployment, once it succeeded.
+    if: >-
+      github.repository == 'tblt-lab/openathlete' && (
+        github.event_name != 'deployment_status' || (
+          github.event.deployment_status.state == 'success' &&
+          github.event.deployment.environment == 'Production – openathlete-web'))
+    runs-on: [self-hosted, coolify]
+    timeout-minutes: 15
+    env:
+      TARGET: ${{ github.event_name == 'deployment_status' && 'web' || github.event_name == 'repository_dispatch' && 'api' || inputs.target }}
+      SHA: ${{ github.event.deployment.sha || github.event.client_payload.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile --filter @openathlete/e2e...
+
+      # The Coolify runner image ships no browser
+      - name: Chromium
+        run: pnpm --filter @openathlete/e2e exec playwright install --with-deps chromium
+
+      - name: Smoke checks
+        id: smoke
+        working-directory: e2e
+        env:
+          SMOKE_BASE_URL: https://app.openathlete.org
+          SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+        run: pnpm test:smoke
+
+      # Only when the suite ran: a runner that failed to set up is not a
+      # broken production, and must not open a « roll back? » card.
+      - name: Report to Constellation
+        if: always() && (steps.smoke.outcome == 'success' || steps.smoke.outcome == 'failure')
+        env:
+          CONSTELLATION_DEPLOY_CHECK_URL: ${{ secrets.CONSTELLATION_DEPLOY_CHECK_URL }}
+          DEPLOY_CHECK_TOKEN: ${{ secrets.DEPLOY_CHECK_TOKEN }}
+          OUTCOME: ${{ steps.smoke.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node e2e/smoke/report.mjs
+
+      - name: Keep the Playwright traces
+        if: failure() && steps.smoke.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-traces
+          path: e2e/smoke/smoke-results/
+          retention-days: 7

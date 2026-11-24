@@ -10,6 +10,7 @@
     "stack:logs": "docker compose logs --no-color api worker web",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:smoke": "playwright test -c smoke/playwright.config.ts",
     "report": "playwright show-report",
     "tsc:check": "tsc --noEmit",
     "lint": "eslint \"**/*.ts\" --max-warnings 0",
