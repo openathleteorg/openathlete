@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 
 import { formatDistance } from '@openathlete/shared';
@@ -10,26 +11,48 @@ interface P {
 }
 
 export function DistanceStat({ label, distance }: P) {
+  const units = useUnits();
+  const imperial = units.unitSystem === 'IMPERIAL';
+
   return (
     <Popover>
       <PopoverTrigger className="text-left">
         {label && <div className="text-sm font-semibold">{label}</div>}
         <div>
-          {formatDistance(distance, 'km')}{' '}
+          {units.formatDist(distance)}{' '}
           <span className="text-muted-foreground text-sm">
-            {m.kilometers()}
+            {units.distanceLabel}
           </span>
         </div>
       </PopoverTrigger>
       <PopoverContent>
-        <div>
-          {formatDistance(distance, 'm')}{' '}
-          <span className="text-muted-foreground text-sm">{m.meters()}</span>
-        </div>
-        <div>
-          {formatDistance(distance, 'mi')}{' '}
-          <span className="text-muted-foreground text-sm">{m.miles()}</span>
-        </div>
+        {imperial ? (
+          <>
+            <div>
+              {formatDistance(distance, 'yd')}{' '}
+              <span className="text-muted-foreground text-sm">{m.yards()}</span>
+            </div>
+            <div>
+              {formatDistance(distance, 'km')}{' '}
+              <span className="text-muted-foreground text-sm">
+                {m.kilometers()}
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              {formatDistance(distance, 'm')}{' '}
+              <span className="text-muted-foreground text-sm">
+                {m.meters()}
+              </span>
+            </div>
+            <div>
+              {formatDistance(distance, 'mi')}{' '}
+              <span className="text-muted-foreground text-sm">{m.miles()}</span>
+            </div>
+          </>
+        )}
       </PopoverContent>
     </Popover>
   );

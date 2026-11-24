@@ -1,4 +1,4 @@
-import { m } from '@/paraglide/messages';
+import { useUnits } from '@/hooks/use-units';
 import { cn } from '@/utils/shadcn';
 import { ComponentProps, useEffect, useState } from 'react';
 import {
@@ -7,6 +7,8 @@ import {
   type FieldError,
   useFormContext,
 } from 'react-hook-form';
+
+import { M_TO_FT } from '@openathlete/shared';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -28,23 +30,41 @@ function ElevationFieldAdapter({
   field: ControllerRenderProps<Record<string, unknown>, string>;
   error?: FieldError;
 } & ComponentProps<'input'>) {
+  const units = useUnits();
+  const factor = units.unitSystem === 'IMPERIAL' ? M_TO_FT : 1;
   const [elevationInput, setElevationInput] = useState<string>('');
+  const [lastSyncedValue, setLastSyncedValue] = useState<
+    number | null | undefined
+  >(undefined);
 
-  // Set initial value from field
+  // Set initial value from field (stored in meters)
   useEffect(() => {
+    if (field.value === lastSyncedValue && lastSyncedValue !== undefined) {
+      return;
+    }
+
     if (field.value === undefined || field.value === null) {
       setElevationInput('');
+      setLastSyncedValue(field.value);
     } else {
-      setElevationInput((field.value as number).toString());
+      const displayValue = Math.round((field.value as number) * factor);
+      setElevationInput(displayValue.toString());
+      setLastSyncedValue(field.value as number);
     }
-  }, [field.value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [field.value, factor]);
 
   const updateFormValue = (elevation: string) => {
     if (elevation === '') {
+      setLastSyncedValue(undefined);
       field.onChange(undefined);
     } else {
       const elevationNum = parseFloat(elevation);
-      field.onChange(elevationNum);
+      if (!Number.isNaN(elevationNum)) {
+        const meters = elevationNum / factor;
+        setLastSyncedValue(meters);
+        field.onChange(meters);
+      }
     }
   };
 
@@ -70,7 +90,9 @@ function ElevationFieldAdapter({
         )}
       />
       <div className="rounded-l-none rounded-r-md border border-l-0 shadow-xs py-1.25 px-3 text-base">
-        <span className="text-md text-muted-foreground">{m.meters()}</span>
+        <span className="text-md text-muted-foreground">
+          {units.elevationLabel}
+        </span>
       </div>
     </div>
   );

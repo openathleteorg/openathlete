@@ -1,4 +1,4 @@
-import { m } from '@/paraglide/messages';
+import { useUnits } from '@/hooks/use-units';
 
 import { ActivityStream } from '@openathlete/shared';
 
@@ -18,13 +18,17 @@ export function ElevationStat({
   altitudeStream,
   distanceStream,
 }: P) {
+  const units = useUnits();
+
   return (
     <Popover>
       <PopoverTrigger className="text-left">
         {label && <div className="text-sm font-semibold">{label}</div>}
         <div>
-          {elevation.toFixed(0)}{' '}
-          <span className="text-muted-foreground text-sm">{m.meters()}</span>
+          {units.elevation(elevation)}{' '}
+          <span className="text-muted-foreground text-sm">
+            {units.elevationLabel}
+          </span>
         </div>
       </PopoverTrigger>
       {altitudeStream && distanceStream && (

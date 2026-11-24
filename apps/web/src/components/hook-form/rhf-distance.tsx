@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { ComponentProps, useEffect, useState } from 'react';
@@ -45,8 +46,9 @@ function DistanceFieldAdapter({
   field: ControllerRenderProps<Record<string, unknown>, string>;
   error?: FieldError;
 } & ComponentProps<'input'>) {
+  const units = useUnits();
   const [distanceInput, setDistanceInput] = useState<string>('');
-  const [unit, setUnit] = useState<DistanceUnit>('km');
+  const [unit, setUnit] = useState<DistanceUnit>(units.distanceUnit);
 
   // Convert stored value (in meters) to display value in selected unit
   useEffect(() => {
@@ -108,6 +110,7 @@ function DistanceFieldAdapter({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="m">{m.meters()}</SelectItem>
+          <SelectItem value="yd">{m.yards()}</SelectItem>
           <SelectItem value="km">{m.kilometers()}</SelectItem>
           <SelectItem value="mi">{m.miles()}</SelectItem>
         </SelectContent>

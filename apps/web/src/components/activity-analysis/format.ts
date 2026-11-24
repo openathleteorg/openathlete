@@ -1,12 +1,16 @@
-import { m } from '@/paraglide/messages';
+import { Units, unitsFor } from '@/utils/units';
 
-import { formatDistance, formatDuration } from '@openathlete/shared';
+import { formatDuration } from '@openathlete/shared';
 
 import { XAxisKind } from './stream-range';
 
-/** A position on the charts' axis: kilometres or elapsed time */
-export function formatAxisValue(value: number, kind: XAxisKind) {
+/** A position on the charts' axis: distance in user units or elapsed time */
+export function formatAxisValue(
+  value: number,
+  kind: XAxisKind,
+  units: Units = unitsFor('METRIC'),
+) {
   return kind === 'distance'
-    ? `${formatDistance(value)} ${m.kilometers()}`
+    ? `${units.formatDist(value)} ${units.distanceLabel}`
     : formatDuration(value);
 }

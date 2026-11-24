@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { useMemo } from 'react';
 import { Area, AreaChart } from 'recharts';
@@ -24,13 +25,15 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function SimpleElevationChart({ altitudeStream, distanceStream }: P) {
+  const units = useUnits();
+
   const chartData = useMemo(() => {
     return altitudeStream.map((altitude, i) => ({
-      altitude,
+      altitude: units.elevation(altitude),
       time: distanceStream[i],
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [altitudeStream]);
+  }, [altitudeStream, units]);
 
   return (
     <ChartContainer config={chartConfig} className="h-[100px] w-full">
