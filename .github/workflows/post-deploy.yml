@@ -39,21 +39,42 @@ jobs:
       TARGET: ${{ github.event_name == 'deployment_status' && 'web' || github.event_name == 'repository_dispatch' && 'api' || inputs.target }}
       SHA: ${{ github.event.deployment.sha || github.event.client_payload.sha || github.sha }}
     steps:
+      # Without the smoke account, the suite would fail at sign-in and report a
+      # broken production: it does not run at all.
+      - name: Smoke account
+        id: account
+        env:
+          SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+        run: |
+          if [ -z "$SMOKE_EMAIL" ] || [ -z "$SMOKE_PASSWORD" ]; then
+            echo "::notice::SMOKE_EMAIL or SMOKE_PASSWORD is not set: no smoke checks, nothing reported."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v7
+        if: steps.account.outputs.ready == 'true'
 
       - uses: pnpm/action-setup@v4
+        if: steps.account.outputs.ready == 'true'
       - uses: actions/setup-node@v5
+        if: steps.account.outputs.ready == 'true'
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile --filter @openathlete/e2e...
+        if: steps.account.outputs.ready == 'true'
 
       # The Coolify runner image ships no browser
       - name: Chromium
+        if: steps.account.outputs.ready == 'true'
         run: pnpm --filter @openathlete/e2e exec playwright install --with-deps chromium
 
       - name: Smoke checks
+        if: steps.account.outputs.ready == 'true'
         id: smoke
         working-directory: e2e
         env:
