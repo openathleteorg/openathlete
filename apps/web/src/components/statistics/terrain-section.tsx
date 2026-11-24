@@ -1,4 +1,5 @@
 import { useStatisticsTerrainQuery } from '@/api/statistics';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 
 import { SPORT_TYPE, StatisticsTerrainDto } from '@openathlete/shared';
@@ -19,7 +20,6 @@ interface P {
 
 const MIN_SLOPES = 3;
 
-const metresPerHour = (value: number) => `${Math.round(value)}`;
 const percent = (value: number) => `${value}${m.percent_symbol()}`;
 
 const points = (bins: StatisticsTerrainDto['bins']) =>
@@ -36,13 +36,14 @@ function SlopeCard({
   id: string;
   color: string;
 }) {
+  const units = useUnits();
   return (
     <Card className="gap-0 py-0" data-terrain={id}>
       <CardHeader className="p-4 pb-2">
         <CardTitle className="text-sm font-medium">
           {title}{' '}
           <span className="font-normal text-muted-foreground">
-            ({m.statistics_metres_per_hour()})
+            ({units.verticalSpeedLabel})
           </span>
         </CardTitle>
       </CardHeader>
@@ -51,7 +52,7 @@ function SlopeCard({
           points={points(bins)}
           label={title}
           formatX={percent}
-          formatY={metresPerHour}
+          formatY={(value) => `${units.elevation(value)}`}
           color={color}
         />
       </CardContent>
@@ -66,6 +67,7 @@ function Terrain({
   athleteId: number;
   data: StatisticsTerrainDto;
 }) {
+  const units = useUnits();
   const climb = data.bins.filter(({ bin }) => bin > 0);
   const descent = data.bins.filter(({ bin }) => bin < 0);
   // A single point is not a curve
@@ -162,10 +164,12 @@ function Terrain({
                       : `${row.from}-${row.from + 5}${m.percent_symbol()}`}
                   </td>
                   <td className="py-1 text-right">
-                    {Math.round(row.climbed).toLocaleString()} {m.meters()}
+                    {units.elevation(row.climbed).toLocaleString()}{' '}
+                    {units.elevationLabel}
                   </td>
                   <td className="py-1 text-right">
-                    {Math.round(row.descended).toLocaleString()} {m.meters()}
+                    {units.elevation(row.descended).toLocaleString()}{' '}
+                    {units.elevationLabel}
                   </td>
                 </tr>
               ))}

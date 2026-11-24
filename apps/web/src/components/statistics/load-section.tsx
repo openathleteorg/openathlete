@@ -1,4 +1,5 @@
 import { useStatisticsLongRunsQuery } from '@/api/statistics';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { activityPath } from '@/routes/paths';
@@ -6,7 +7,7 @@ import { getDateFnsLocale } from '@/utils/locales';
 import { format, parseISO } from 'date-fns';
 import { Link } from 'react-router-dom';
 
-import { SPORT_TYPE, SportGroup, formatDistance } from '@openathlete/shared';
+import { SPORT_TYPE, SportGroup } from '@openathlete/shared';
 
 import { TrainingLoadChart } from '../training-load';
 import { Card, CardContent } from '../ui/card';
@@ -35,6 +36,7 @@ function LongRuns({
   period: Period;
   visible: boolean;
 }) {
+  const units = useUnits();
   const locale = getDateFnsLocale(getLocale());
   const { data } = useStatisticsLongRunsQuery(
     { athleteId, from: period.start, to: period.end },
@@ -57,11 +59,11 @@ function LongRuns({
               >
                 <span>
                   {format(parseISO(run.date), 'PP', { locale })} ·{' '}
-                  {formatDistance(run.distance)} {m.kilometers()}
+                  {units.formatDist(run.distance)} {units.distanceLabel}
                 </span>
                 <span className="text-muted-foreground tabular-nums">
                   {m.statistics_long_run_before({
-                    distance: formatDistance(run.longest),
+                    distance: units.formatDist(run.longest),
                   })}
                 </span>
               </Link>

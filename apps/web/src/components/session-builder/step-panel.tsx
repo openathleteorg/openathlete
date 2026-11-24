@@ -6,6 +6,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { Check, Plus, Type, X } from 'lucide-react';
@@ -410,6 +411,7 @@ function IntensitySection({
   env: BuilderEnv;
   update: (patch: Partial<BuilderStep>) => void;
 }) {
+  const units = useUnits();
   const zones = env.zonesByType[env.zoneType] ?? [];
   const targets = step.targets ?? [];
   const zoneIds = new Set(zones.map((zone) => zone.id));
@@ -480,6 +482,7 @@ function IntensitySection({
             env.sport,
             env.zonesByType,
             env.metrics,
+            units.unitSystem,
           );
           if (!label) return null;
           return (

@@ -1,3 +1,8 @@
+import { formatAxisValue } from '@/components/activity-analysis/format';
+import { formatMeters } from '@/components/coach-dashboard/coach-dashboard-format';
+import { formatRecordDistance } from '@/components/records/record-metrics';
+import { formatSportSpeed } from '@/components/session-builder/step-format';
+import { chartTotals } from '@/components/statistics/volume-data';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -149,5 +154,37 @@ describe('existing formatters', () => {
   it('still return strings', () => {
     expect(formatDistance(5000)).toBe('5.00');
     expect(formatSpeed(10, 'km/h')).toBe('36.00');
+  });
+
+  it('format screen helpers in imperial when requested', () => {
+    const imperial = unitsFor('IMPERIAL');
+    expect(formatAxisValue(1609.34, 'distance', imperial)).toBe('1.00 mi');
+    expect(formatMeters(1609.34, imperial)).toBe('1 mi');
+    expect(formatRecordDistance(1609.34, 'IMPERIAL')).toBe('1 mi');
+    expect(formatRecordDistance(400, 'IMPERIAL')).toBe('437 yd');
+    expect(formatSportSpeed(10, SPORT_TYPE.CYCLING, 'IMPERIAL')).toBe(
+      '22.4 mph',
+    );
+    expect(
+      chartTotals(
+        [
+          {
+            period: '2026-W01',
+            partial: false,
+            sports: [
+              {
+                sport: SPORT_TYPE.RUNNING,
+                movingTime: 3600,
+                distance: 1609.34,
+                elevationGain: 100,
+                count: 1,
+              },
+            ],
+          },
+        ],
+        'distance',
+        'IMPERIAL',
+      )[0],
+    ).toBeCloseTo(1, 2);
   });
 });

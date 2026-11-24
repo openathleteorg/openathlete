@@ -2,6 +2,7 @@ import {
   useStatisticsOverviewQuery,
   useStatisticsVolumeQuery,
 } from '@/api/statistics';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
@@ -20,7 +21,6 @@ import {
 import {
   SPORT_TYPE,
   SportGroup,
-  formatDistance,
   formatDuration,
 } from '@openathlete/shared';
 
@@ -125,12 +125,20 @@ function VolumeCharts({
     },
     enabled && !!compared,
   );
+  const units = useUnits();
   const locale = getDateFnsLocale(getLocale());
 
-  const { rows: bars, series } = volumeChartData(volume?.buckets ?? [], metric);
+  const { rows: bars, series } = volumeChartData(
+    volume?.buckets ?? [],
+    metric,
+    units.unitSystem,
+  );
   const granularity = volume?.granularity ?? 'week';
   // Periods have the same length: buckets line up by rank
-  const totals = before && compared ? chartTotals(before.buckets, metric) : [];
+  const totals =
+    before && compared
+      ? chartTotals(before.buckets, metric, units.unitSystem)
+      : [];
   // Day by day, rest days turn the line into noise
   const overlaid = !!compared && granularity !== 'day';
   const rows = bars.map((row, index) => ({
@@ -139,8 +147,11 @@ function VolumeCharts({
   }));
   const unit: Record<VolumeMetric, string> = {
     movingTime: 'h',
-    distance: m.kilometers(),
-    elevationGain: m.short_elevation_gain(),
+    distance: units.distanceLabel,
+    elevationGain:
+      units.unitSystem === 'IMPERIAL'
+        ? units.elevationLabel
+        : m.short_elevation_gain(),
     count: '',
   };
   const seriesLabel = (key: VolumeSeries | 'compared') =>
@@ -153,8 +164,9 @@ function VolumeCharts({
     metric === 'movingTime' ? value.toFixed(1) : `${Math.round(value)}`;
   const formatSlice: Record<VolumeMetric, (value: number) => string> = {
     movingTime: formatDuration,
-    distance: (value) => `${formatDistance(value)} ${m.kilometers()}`,
-    elevationGain: (value) => `${Math.round(value)} ${m.meters()}`,
+    distance: (value) => `${units.formatDist(value)} ${units.distanceLabel}`,
+    elevationGain: (value) =>
+      `${units.elevation(value)} ${units.elevationLabel}`,
     count: (value) => `${value}`,
   };
   const showPie = !sport && (overview?.sports.length ?? 0) > 1;

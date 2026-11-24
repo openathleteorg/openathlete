@@ -2,14 +2,17 @@ import { m } from '@/paraglide/messages';
 
 import {
   BestRecordDto,
+  M_TO_FT,
   RECORD_TYPE,
   SPORT_CONFIG,
   SPORT_TYPE,
   SpeedUnit,
+  UnitSystem,
   formatDuration,
   formatSpeed,
   formatSpeedUnit,
   isPaceUnit,
+  localSpeedUnit,
 } from '@openathlete/shared';
 
 export type ChartRecord = Pick<
@@ -22,26 +25,32 @@ export interface RecordMetric {
   type: RECORD_TYPE;
   axis: 'distance' | 'duration';
   title: (sport: SPORT_TYPE) => string;
-  unit: (sport: SPORT_TYPE) => string;
+  unit: (sport: SPORT_TYPE, unitSystem?: UnitSystem) => string;
   /** The number plotted for a record */
   plotted: (record: ChartRecord, sport: SPORT_TYPE) => number;
   /** A plotted number, as written in the tooltip and on the axis */
-  format: (plotted: number, sport: SPORT_TYPE) => string;
+  format: (
+    plotted: number,
+    sport: SPORT_TYPE,
+    unitSystem?: UnitSystem,
+  ) => string;
 }
 
-const speedUnit = (sport: SPORT_TYPE): SpeedUnit =>
-  SPORT_CONFIG[sport]?.speedUnit ?? 'km/h';
+const speedUnit = (sport: SPORT_TYPE, unitSystem: UnitSystem = 'METRIC'): SpeedUnit =>
+  localSpeedUnit(SPORT_CONFIG[sport]?.speedUnit ?? 'km/h', unitSystem);
 
 export const RECORD_METRICS: RecordMetric[] = [
   {
     type: RECORD_TYPE.SPEED,
     axis: 'distance',
-    // Pace sports read the time per kilometre, others the speed
+    // Pace sports read the time per kilometre/mile, others the speed
     title: (sport) => (isPaceUnit(speedUnit(sport)) ? m.pace() : m.speed()),
-    unit: (sport) => formatSpeedUnit(speedUnit(sport)),
+    unit: (sport, unitSystem = 'METRIC') =>
+      formatSpeedUnit(speedUnit(sport, unitSystem)),
     // Speeds are plotted in m/s and written in the sport's unit
     plotted: (record) => (record.distance ?? 0) / record.value,
-    format: (speed, sport) => formatSpeed(speed, speedUnit(sport)),
+    format: (speed, sport, unitSystem = 'METRIC') =>
+      formatSpeed(speed, speedUnit(sport, unitSystem)),
   },
   {
     type: RECORD_TYPE.POWER,
@@ -63,9 +72,11 @@ export const RECORD_METRICS: RecordMetric[] = [
     type: RECORD_TYPE.ELEVATION_GAIN,
     axis: 'distance',
     title: () => m.elevation_gain(),
-    unit: () => m.meters(),
+    unit: (_sport, unitSystem = 'METRIC') =>
+      unitSystem === 'IMPERIAL' ? m.feet() : m.meters(),
     plotted: (record) => record.value,
-    format: (metres) => `${Math.round(metres)}`,
+    format: (metres, _sport, unitSystem = 'METRIC') =>
+      `${Math.round(unitSystem === 'IMPERIAL' ? metres * M_TO_FT : metres)}`,
   },
 ];
 
@@ -74,8 +85,16 @@ export function recordPosition(record: ChartRecord): number | null {
   return record.distance ?? record.duration;
 }
 
-/** "400 m", "1.5 km", "21.1 km" */
-export function formatRecordDistance(metres: number): string {
+/** "400 m", "1.5 km", "21.1 km" (or yards / miles in imperial) */
+export function formatRecordDistance(
+  metres: number,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
+  if (unitSystem === 'IMPERIAL') {
+    const miles = metres / 1609.34;
+    if (miles < 0.5) return `${Math.round(metres * 1.09361)} yd`;
+    return `${Number(miles.toFixed(1))} mi`;
+  }
   if (metres < 1000) return `${Math.round(metres)} m`;
   const km = metres / 1000;
   return `${Number.isInteger(km) ? km : km.toFixed(1)} km`;
@@ -92,9 +111,10 @@ export function formatRecordDuration(seconds: number): string {
 export function formatRecordPosition(
   metric: RecordMetric,
   position: number,
+  unitSystem: UnitSystem = 'METRIC',
 ): string {
   return metric.axis === 'distance'
-    ? formatRecordDistance(position)
+    ? formatRecordDistance(position, unitSystem)
     : formatRecordDuration(position);
 }
 
@@ -108,14 +128,15 @@ export function formatRecordValue(
   metric: RecordMetric,
   record: ChartRecord,
   sport: SPORT_TYPE,
+  unitSystem: UnitSystem = 'METRIC',
 ): { value: string; unit: string } {
-  const plotted = metric.format(metric.plotted(record, sport), sport);
+  const plotted = metric.format(metric.plotted(record, sport), sport, unitSystem);
   return metric.type === RECORD_TYPE.SPEED
     ? {
         value: formatRecordTime(record),
-        unit: `${plotted} ${metric.unit(sport)}`,
+        unit: `${plotted} ${metric.unit(sport, unitSystem)}`,
       }
-    : { value: plotted, unit: metric.unit(sport) };
+    : { value: plotted, unit: metric.unit(sport, unitSystem) };
 }
 
 export type CurveSeries<R extends ChartRecord = ChartRecord> = {

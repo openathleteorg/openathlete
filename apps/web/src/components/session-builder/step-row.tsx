@@ -14,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import {
@@ -209,6 +210,7 @@ function TargetEditor({
   labels: TargetLabel[];
   onChange: (targets: CreateWorkoutStepTarget[]) => void;
 }) {
+  const units = useUnits();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const parsed = text.trim() ? parseTargets(text, env) : null;
@@ -293,6 +295,7 @@ function TargetEditor({
                       env.sport,
                       env.zonesByType,
                       env.metrics,
+                      units.unitSystem,
                     ),
                   )
                   .filter(Boolean)
@@ -416,9 +419,16 @@ export function StepRow({
   expanded,
   onExpandedChange,
 }: StepRowProps) {
+  const units = useUnits();
   const labels = (step.targets ?? [])
     .map((target) =>
-      describeTarget(target, env.sport, env.zonesByType, env.metrics),
+      describeTarget(
+        target,
+        env.sport,
+        env.zonesByType,
+        env.metrics,
+        units.unitSystem,
+      ),
     )
     .filter((label): label is TargetLabel => label !== null);
   const zoneColor = labels.find((label) => label.color)?.color;

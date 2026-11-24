@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 
 import {
@@ -24,11 +25,13 @@ interface P {
 
 /** Jack Daniels' training paces, from the athlete's best effort. */
 export function TrainingPacesCard({ recordSets }: P) {
+  const units = useUnits();
   const effort = recordSets.map(bestVdotEffort).find(Boolean);
   if (!effort) return null;
 
+  const paceUnit = units.speedUnit('min/km');
   const paces = trainingPaces(effort.vdot);
-  const format = (speed: number) => formatSpeed(speed, 'min/km');
+  const format = (speed: number) => formatSpeed(speed, paceUnit);
   const rows = [
     {
       label: m.training_pace_easy(),
@@ -47,7 +50,7 @@ export function TrainingPacesCard({ recordSets }: P) {
         <CardDescription>
           {m.training_paces_source({
             vdot: effort.vdot.toFixed(1),
-            distance: formatRecordDistance(effort.distance),
+            distance: formatRecordDistance(effort.distance, units.unitSystem),
             time: formatDuration(effort.seconds),
           })}
         </CardDescription>
@@ -61,7 +64,7 @@ export function TrainingPacesCard({ recordSets }: P) {
                   {label}
                 </th>
                 <td className="py-2 text-right tabular-nums whitespace-nowrap">
-                  {pace} {formatSpeedUnit('min/km')}
+                  {pace} {formatSpeedUnit(paceUnit)}
                 </td>
               </tr>
             ))}
