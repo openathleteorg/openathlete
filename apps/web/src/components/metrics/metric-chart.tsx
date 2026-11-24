@@ -1,4 +1,5 @@
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getMetricUnit } from '@/utils/metric-unit';
@@ -12,7 +13,7 @@ import {
   YAxis,
 } from 'recharts';
 
-import { METRIC_TYPE } from '@openathlete/shared';
+import { METRIC_TYPE, UnitSystem, metricToDisplay } from '@openathlete/shared';
 
 import {
   MetricAnalysis,
@@ -49,16 +50,23 @@ interface TooltipProps {
   payload?: { payload: ChartRow }[];
   type: METRIC_TYPE;
   dateLabel: (day: string) => string;
+  unitSystem: UnitSystem;
 }
 
-function MetricTooltip({ active, payload, type, dateLabel }: TooltipProps) {
+function MetricTooltip({
+  active,
+  payload,
+  type,
+  dateLabel,
+  unitSystem,
+}: TooltipProps) {
   const row = payload?.[0]?.payload;
   if (!active || !row) return null;
   return (
     <div className="rounded-lg border bg-background px-2.5 py-1.5 text-xs tabular-nums shadow-sm">
       <span className="font-semibold">
-        {formatMetricValue(type, row.value)}
-        {!hasOwnUnit(type) && ` ${getMetricUnit(type)}`}
+        {formatMetricValue(type, row.value, 'METRIC')}
+        {!hasOwnUnit(type) && ` ${getMetricUnit(type, unitSystem)}`}
       </span>
       <span className="text-muted-foreground"> · {dateLabel(row.day)}</span>
     </div>
@@ -73,8 +81,11 @@ interface P {
 }
 
 export function MetricChart({ type, analysis, days }: P) {
+  const units = useUnits();
   const dateLabel = useMetricDateLabel();
   const { points, trend, baseline, last } = analysis;
+  const convert = (value: number) =>
+    metricToDisplay(type, value, units.unitSystem);
 
   const { rows, first, end } = useMemo(() => {
     const end = last ? metricDayNumber(last.day) : 0;
@@ -83,18 +94,23 @@ export function MetricChart({ type, analysis, days }: P) {
       .map((point, index) => ({
         day: point.day,
         dayNumber: metricDayNumber(point.day),
-        value: point.value,
-        trend: trend[index].value,
+        value: metricToDisplay(type, point.value, units.unitSystem),
+        trend: metricToDisplay(type, trend[index].value, units.unitSystem),
       }))
       .filter((row) => row.dayNumber >= first);
     return { rows, first, end };
-  }, [points, trend, last, days]);
+  }, [points, trend, last, days, type, units.unitSystem]);
 
   const ticks = useMemo(() => {
     const values = rows.map((row) => row.value);
-    if (baseline) values.push(baseline.low, baseline.high);
+    if (baseline) {
+      values.push(
+        metricToDisplay(type, baseline.low, units.unitSystem),
+        metricToDisplay(type, baseline.high, units.unitSystem),
+      );
+    }
     return roundTicks(Math.min(...values), Math.max(...values));
-  }, [rows, baseline]);
+  }, [rows, baseline, type, units.unitSystem]);
 
   return (
     <ChartContainer
@@ -137,8 +153,8 @@ export function MetricChart({ type, analysis, days }: P) {
         />
         {baseline && (
           <ReferenceArea
-            y1={baseline.low}
-            y2={baseline.high}
+            y1={convert(baseline.low)}
+            y2={convert(baseline.high)}
             fill="var(--chart-2)"
             fillOpacity={0.12}
             stroke="none"
@@ -147,7 +163,13 @@ export function MetricChart({ type, analysis, days }: P) {
         )}
         <ChartTooltip
           cursor={{ stroke: 'var(--border)' }}
-          content={<MetricTooltip type={type} dateLabel={dateLabel} />}
+          content={
+            <MetricTooltip
+              type={type}
+              dateLabel={dateLabel}
+              unitSystem={units.unitSystem}
+            />
+          }
         />
         <Line
           dataKey="value"

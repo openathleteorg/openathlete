@@ -1,5 +1,6 @@
 import { useCoachDashboardQuery } from '@/api/coach';
 import { useSupporterBadges } from '@/api/subscription';
+import { useUnits } from '@/hooks/use-units';
 import {
   GroupFilterOption,
   useGroupFilterOptions,
@@ -263,6 +264,7 @@ function GroupsOverview({
 }
 
 function Watchlist({ rows }: { rows: Row[] }) {
+  const units = useUnits();
   const flagged = rows.filter(
     (row) => row.alerts.length > 0 || row.unreadMessages > 0,
   );
@@ -305,7 +307,7 @@ function Watchlist({ rows }: { rows: Row[] }) {
                       asChild
                     >
                       <Link to={athletePath('metrics', row)}>
-                        {alertText(alert)}
+                        {alertText(alert, units.unitSystem)}
                       </Link>
                     </Badge>
                   ) : (
@@ -318,7 +320,7 @@ function Watchlist({ rows }: { rows: Row[] }) {
                           'border-red-300 text-red-700 dark:text-red-300',
                       )}
                     >
-                      {alertText(alert)}
+                      {alertText(alert, units.unitSystem)}
                     </Badge>
                   ),
                 )}

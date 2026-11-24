@@ -1,4 +1,9 @@
-import { METRIC_TYPE, metricUnitMap } from '@openathlete/shared';
+import {
+  METRIC_TYPE,
+  UnitSystem,
+  metricToDisplay,
+  metricUnitMap,
+} from '@openathlete/shared';
 
 export interface MetricPoint {
   /** Calendar day, yyyy-MM-dd */
@@ -162,16 +167,21 @@ export function analyzeMetric(
 }
 
 /** 8.15 hours reads 8 h 09, and a sensor's 39.89 needs no such precision */
-export function formatMetricValue(type: METRIC_TYPE, value: number): string {
+export function formatMetricValue(
+  type: METRIC_TYPE,
+  value: number,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
+  const display = metricToDisplay(type, value, unitSystem);
   if (metricUnitMap[type] === 'h') {
-    const minutes = Math.round(value * 60);
+    const minutes = Math.round(display * 60);
     const rest = minutes % 60;
     return `${Math.floor(minutes / 60)} h ${String(rest).padStart(2, '0')}`;
   }
-  const digits = Math.abs(value) >= 100 ? 0 : 1;
+  const digits = Math.abs(display) >= 100 ? 0 : 1;
   return new Intl.NumberFormat(undefined, {
     maximumFractionDigits: digits,
-  }).format(value);
+  }).format(display);
 }
 
 /** Durations already carry their unit in {@link formatMetricValue} */

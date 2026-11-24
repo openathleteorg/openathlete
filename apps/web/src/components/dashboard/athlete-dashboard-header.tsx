@@ -9,6 +9,7 @@ import { InsightBanner } from '@/components/ui/insight-banner';
 import { MetricTile } from '@/components/ui/metric-tile';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { isCapacitor } from '@/utils/capacitor';
@@ -25,7 +26,11 @@ import {
 import { Calendar } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { EVENT_TYPE, METRIC_TYPE } from '@openathlete/shared';
+import {
+  EVENT_TYPE,
+  METRIC_TYPE,
+  metricToDisplay,
+} from '@openathlete/shared';
 
 import { ModeledMetrics } from './modeled-metrics';
 
@@ -45,6 +50,7 @@ export function AthleteDashboardHeader({
   athleteId,
   asCoach = false,
 }: AthleteDashboardHeaderProps) {
+  const units = useUnits();
   const isMobile = isCapacitor();
   const {
     data: upcomingCompetitionsData = [],
@@ -234,21 +240,28 @@ export function AthleteDashboardHeader({
                 </p>
               ) : (
                 <div className="grid grid-cols-3 gap-2">
-                  {recentMetrics.map((metric) => (
-                    <MetricTile
-                      key={metric.athleteMetricId}
-                      label={
-                        metricTypeLabelMap[metric.type as METRIC_TYPE] ||
-                        metric.type
-                      }
-                      value={metric.value}
-                      unit={getMetricUnit(metric.type as METRIC_TYPE) || ''}
-                      // Garmin's attribution, beside each value it provided
-                      caption={
-                        metric.source === 'GARMIN' ? 'Garmin' : undefined
-                      }
-                    />
-                  ))}
+                  {recentMetrics.map((metric) => {
+                    const type = metric.type as METRIC_TYPE;
+                    const displayValue = Number(
+                      metricToDisplay(
+                        type,
+                        metric.value,
+                        units.unitSystem,
+                      ).toFixed(1),
+                    );
+                    return (
+                      <MetricTile
+                        key={metric.athleteMetricId}
+                        label={metricTypeLabelMap[type] || metric.type}
+                        value={displayValue}
+                        unit={getMetricUnit(type, units.unitSystem) || ''}
+                        // Garmin's attribution, beside each value it provided
+                        caption={
+                          metric.source === 'GARMIN' ? 'Garmin' : undefined
+                        }
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getMetricUnit } from '@/utils/metric-unit';
@@ -34,6 +35,8 @@ import {
   DASHBOARD_METRIC_TYPES,
   Feature,
   METRIC_TYPE,
+  metricFromDisplay,
+  metricToDisplay,
 } from '@openathlete/shared';
 
 /** Sleep is stored in hours; the coach types hours too */
@@ -54,6 +57,7 @@ export function ThresholdsDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const units = useUnits();
   const athletes = useCoachedAthletes();
   const { data: thresholds } = useMetricThresholdsQuery({ enabled: open });
   const setThresholds = useSetThresholdsMutation();
@@ -82,11 +86,40 @@ export function ThresholdsDialog({
     (low !== null && high !== null && low >= high);
   const label = (type: string) =>
     metricTypeLabelMap[type as METRIC_TYPE] ?? type;
-  const unit = getMetricUnit(metricType as METRIC_TYPE);
+  const unit = getMetricUnit(metricType as METRIC_TYPE, units.unitSystem);
+  const formatBound = (type: string, value: number | null) =>
+    value === null
+      ? '–'
+      : Number(
+          metricToDisplay(
+            type as METRIC_TYPE,
+            value,
+            units.unitSystem,
+          ).toFixed(1),
+        );
 
   const save = () =>
     setThresholds.mutate(
-      { athleteIds: [...selected], metricType, min: low, max: high },
+      {
+        athleteIds: [...selected],
+        metricType,
+        min:
+          low === null
+            ? null
+            : metricFromDisplay(
+                metricType as METRIC_TYPE,
+                low,
+                units.unitSystem,
+              ),
+        max:
+          high === null
+            ? null
+            : metricFromDisplay(
+                metricType as METRIC_TYPE,
+                high,
+                units.unitSystem,
+              ),
+      },
       {
         onSuccess: () => {
           setSelected(new Set());
@@ -126,7 +159,8 @@ export function ThresholdsDialog({
                     {' · '}
                     {label(threshold.metricType)}{' '}
                     <span className="text-muted-foreground tabular-nums">
-                      {threshold.min ?? '–'} ↔ {threshold.max ?? '–'}
+                      {formatBound(threshold.metricType, threshold.min)} ↔{' '}
+                      {formatBound(threshold.metricType, threshold.max)}
                     </span>
                   </span>
                   <Button

@@ -7,6 +7,7 @@ import {
 } from '@/api/metric';
 import { Button } from '@/components/ui/button';
 import { SkeletonChart } from '@/components/ui/skeleton';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getMetricUnit } from '@/utils/metric-unit';
@@ -87,6 +88,7 @@ interface EntryProps {
 }
 
 function HistoryEntry({ metric, hidden, onEdit, athleteId }: EntryProps) {
+  const units = useUnits();
   const dateLabel = useMetricDateLabel();
   const [confirming, setConfirming] = useState(false);
   const deleteMetric = useDeleteMetricMutation();
@@ -123,10 +125,10 @@ function HistoryEntry({ metric, hidden, onEdit, athleteId }: EntryProps) {
         </span>
       )}
       <span className="font-medium">
-        {formatMetricValue(metric.type, metric.value)}
+        {formatMetricValue(metric.type, metric.value, units.unitSystem)}
         {!hasOwnUnit(metric.type) && (
           <span className="ml-1 text-xs font-normal text-muted-foreground">
-            {getMetricUnit(metric.type)}
+            {getMetricUnit(metric.type, units.unitSystem)}
           </span>
         )}
       </span>
@@ -180,6 +182,7 @@ interface P {
 }
 
 export function MetricDetail({ type, pinned, onTogglePinned, athleteId }: P) {
+  const units = useUnits();
   const dateLabel = useMetricDateLabel();
   const [days, setDays] = useState(DEFAULT_RANGE);
   const [editing, setEditing] = useState<AthleteMetric | null>(null);
@@ -205,9 +208,9 @@ export function MetricDetail({ type, pinned, onTogglePinned, athleteId }: P) {
   );
   const { last, baseline, average7, min, max, hiddenDays } = analysis;
   const label = metricTypeLabelMap[type];
-  const unit = hasOwnUnit(type) ? '' : getMetricUnit(type);
+  const unit = hasOwnUnit(type) ? '' : getMetricUnit(type, units.unitSystem);
   const show = (value: number | null) =>
-    value === null ? '—' : formatMetricValue(type, value);
+    value === null ? '—' : formatMetricValue(type, value, units.unitSystem);
 
   const newestFirst = useMemo(() => [...history].reverse(), [history]);
   // Garmin requires its attribution beside the values and the chart it feeds
