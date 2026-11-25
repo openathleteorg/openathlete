@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CardiacBand,
+  RangeSignal,
   cardiacScores,
   compareModels,
   compareWindows,
+  rangeSignal,
+  recoveryStatus,
 } from './training-check';
 
 describe('compareWindows', () => {
@@ -178,5 +181,57 @@ describe('cardiacScores', () => {
       band(5, true, 30, 120, 120),
     ]);
     expect(scores.current).toHaveLength(2);
+  });
+});
+
+describe('rangeSignal', () => {
+  // 21 mornings between 45 and 55 ms
+  const baseline = Array.from({ length: 21 }, (_, i) => 45 + (i % 3) * 5);
+
+  it('needs four mornings in the week and two weeks before it', () => {
+    expect(rangeSignal([50, 50, 50], baseline)).toBeNull();
+    expect(rangeSignal([50, 50, 50, 50], baseline.slice(0, 13))).toBeNull();
+  });
+
+  it('places the week in the range of the weeks before', () => {
+    const usual = rangeSignal([50, 49, 51, 50, 48], baseline, { log: true });
+    expect(usual).toMatchObject({ state: 'NORMAL', days: 5 });
+    // About 50 ms, give or take a few
+    expect(usual!.low).toBeGreaterThan(45);
+    expect(usual!.high).toBeLessThan(55);
+    expect(usual!.week).toBeCloseTo(49.6, 0);
+
+    expect(
+      rangeSignal([40, 41, 39, 42, 40], baseline, { log: true })?.state,
+    ).toBe('LOW');
+    expect(
+      rangeSignal([58, 60, 59, 61, 60], baseline, { log: true })?.state,
+    ).toBe('HIGH');
+  });
+});
+
+describe('recoveryStatus', () => {
+  const signal = (state: RangeSignal['state']): RangeSignal => ({
+    state,
+    week: 50,
+    low: 45,
+    high: 55,
+    days: 7,
+  });
+
+  it('is open without a measure, and follows a single one', () => {
+    expect(recoveryStatus(null, null)).toBe('OPEN');
+    expect(recoveryStatus(signal('LOW'), null)).toBe('WORSE');
+    expect(recoveryStatus(signal('HIGH'), null)).toBe('BETTER');
+    // A resting heart rate above the usual is the bad direction
+    expect(recoveryStatus(null, signal('HIGH'))).toBe('WORSE');
+    expect(recoveryStatus(null, signal('NORMAL'))).toBe('SAME');
+  });
+
+  it('wants variability and resting heart rate to agree', () => {
+    expect(recoveryStatus(signal('LOW'), signal('HIGH'))).toBe('WORSE');
+    expect(recoveryStatus(signal('HIGH'), signal('LOW'))).toBe('BETTER');
+    expect(recoveryStatus(signal('LOW'), signal('NORMAL'))).toBe('SAME');
+    expect(recoveryStatus(signal('LOW'), signal('LOW'))).toBe('SAME');
   });
 });

@@ -10,7 +10,9 @@ import {
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { RecordService } from './record.service';
+import { StatisticsService } from './statistics.service';
 import { TrainingCheckService } from './training-check.service';
+import { TrainingLoadService } from './training-load.service';
 
 const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
 if (!databaseUrl)
@@ -50,6 +52,11 @@ describe('TrainingCheckService (PostgreSQL)', () => {
       prisma,
       abilities,
       new RecordService(prisma, abilities),
+      new StatisticsService(
+        prisma,
+        abilities,
+        new TrainingLoadService(prisma, abilities),
+      ),
     );
   });
 
@@ -134,6 +141,90 @@ describe('TrainingCheckService (PostgreSQL)', () => {
       previous: null,
     });
     expect(check.durability).toMatchObject({ status: 'OPEN', counts: [0, 0] });
+    expect(check.recovery).toEqual({
+      status: 'OPEN',
+      variability: null,
+      restingHeartrate: null,
+    });
+    expect(check.design).toEqual({
+      status: 'OPEN',
+      weeks: 0,
+      of: 6,
+      easyShare: null,
+      longRun: null,
+    });
+  });
+
+  it('reads the week of variability and resting heart rate against the weeks before', async () => {
+    const day = (ago: number) => new Date(NOW.getTime() - ago * 86_400_000);
+    const metric = (
+      type: 'HRV_LAST_NIGHT_AVG' | 'HR_REST',
+      ago: number,
+      value: number,
+    ) => ({ type, date: day(ago), value, athleteId: DELETED_ATHLETE_ID });
+    await prisma.athleteMetric.deleteMany({
+      where: { athleteId: DELETED_ATHLETE_ID },
+    });
+    await prisma.athleteMetric.createMany({
+      data: [
+        // Three weeks around 50 ms and 45 beats, then a week at 40 and 51
+        ...Array.from({ length: 21 }, (_, i) => [
+          metric('HRV_LAST_NIGHT_AVG', 8 + i, 48 + (i % 3) * 2),
+          metric('HR_REST', 8 + i, 44 + (i % 3)),
+        ]).flat(),
+        ...Array.from({ length: 6 }, (_, i) => [
+          metric('HRV_LAST_NIGHT_AVG', i + 0.5, 40 + (i % 2)),
+          metric('HR_REST', i + 0.5, 51 - (i % 2)),
+        ]).flat(),
+        // Older than the six weeks before: not the athlete of today
+        metric('HRV_LAST_NIGHT_AVG', 60, 5),
+      ],
+    });
+    const { recovery } = await service.getCheck(
+      athlete,
+      DELETED_ATHLETE_ID,
+      NOW,
+    );
+    expect(recovery.status).toBe('WORSE');
+    expect(recovery.variability).toMatchObject({ state: 'LOW', days: 6 });
+    expect(recovery.variability!.week).toBeCloseTo(40.5, 0);
+    expect(recovery.variability!.low).toBeGreaterThan(47);
+    expect(recovery.restingHeartrate).toMatchObject({ state: 'HIGH', days: 6 });
+
+    // The resting heart rate back to usual: the two no longer agree
+    await prisma.athleteMetric.updateMany({
+      where: { type: 'HR_REST', date: { gt: day(7) } },
+      data: { value: 45 },
+    });
+    const calm = await service.getCheck(athlete, DELETED_ATHLETE_ID, NOW);
+    expect(calm.recovery.status).toBe('SAME');
+  });
+
+  it('describes how the six weeks were built, and notes a run far too long', async () => {
+    // Four of the six weeks, 80 % of the time easy
+    for (const days of [1, 8, 9, 22, 36]) {
+      await run(
+        new Date(NOW.getTime() - days * 86_400_000).toISOString().slice(0, 10),
+        { intensitySeconds: [2400, 400, 200], distance: 10000 },
+      );
+    }
+    const steady = await service.getCheck(athlete, DELETED_ATHLETE_ID, NOW);
+    expect(steady.design).toEqual({
+      status: 'FINE',
+      weeks: 4,
+      of: 6,
+      easyShare: 0.8,
+      longRun: null,
+    });
+
+    await run(lately(28), { distance: 16000 });
+    const { design } = await service.getCheck(athlete, DELETED_ATHLETE_ID, NOW);
+    expect(design.status).toBe('NOTE');
+    expect(design.longRun).toEqual({
+      date: '2026-06-28',
+      distance: 16000,
+      longest: 10000,
+    });
   });
 
   it('reads a lower heart rate at the same power as fitter', async () => {

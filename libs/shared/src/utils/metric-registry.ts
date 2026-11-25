@@ -255,7 +255,7 @@ export const METRIC_REGISTRY = {
   trainingCheck: {
     verdict: 'estimate',
     formula:
-      '|Δ median| > spread × max(0.5, 1.6 × √(1/n₁ + 1/n₂)); critical speed or power: > 1%',
+      '|Δ median| > spread × max(0.5, 1.6 × √(1/n₁ + 1/n₂)); critical speed or power: > 1%; week of ln HRV and resting HR: outside mean ± SD × max(0.5, 1.28 × √(1/n₁ + 1/n₂))',
     sources: [
       {
         label: 'Buchheit 2014',
@@ -280,6 +280,22 @@ export const METRIC_REGISTRY = {
       {
         label: 'Smyth et al. 2022',
         url: 'https://doi.org/10.1007/s40279-022-01680-5',
+      },
+      {
+        label: 'Plews et al. 2012',
+        url: 'https://doi.org/10.1007/s00421-012-2354-4',
+      },
+      {
+        label: 'Bellenger et al. 2016',
+        url: 'https://doi.org/10.1007/s40279-016-0484-2',
+      },
+      {
+        label: 'Bosquet et al. 2008',
+        url: 'https://doi.org/10.1136/bjsm.2007.042200',
+      },
+      {
+        label: 'Frandsen et al. 2025',
+        url: 'https://doi.org/10.1136/bjsports-2024-109380',
       },
     ],
   },

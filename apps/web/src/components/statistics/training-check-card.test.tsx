@@ -28,6 +28,7 @@ vi.mock('@/paraglide/messages', () => ({
   ),
 }));
 vi.mock('@/paraglide/runtime', () => ({ getLocale: () => 'en' }));
+vi.mock('@/utils/locales', () => ({ getDateLocale: () => 'en-GB' }));
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -47,6 +48,8 @@ const check = (parts: Partial<TrainingCheckDto>): TrainingCheckDto => ({
   fitness: { ...open, basis: 'SPEED', reference: null },
   speed: { status: 'OPEN', kind: null, current: null, previous: null },
   durability: open,
+  recovery: { status: 'OPEN', variability: null, restingHeartrate: null },
+  design: { status: 'OPEN', weeks: 0, of: 6, easyShare: null, longRun: null },
   ...parts,
 });
 
@@ -140,6 +143,101 @@ describe('TrainingCheckCard', () => {
       'check_durability_open 2|0|0',
     );
     expect(row('durability').dataset.status).toBe('OPEN');
+  });
+
+  it('sets the week of variability and resting heart rate against the usual range', () => {
+    render(
+      check({
+        speed: { status: 'SAME', kind: 'power', current: 333, previous: 333 },
+        recovery: {
+          status: 'WORSE',
+          variability: {
+            state: 'LOW',
+            week: 40.4,
+            low: 44.2,
+            high: 52.8,
+            days: 6,
+          },
+          restingHeartrate: {
+            state: 'HIGH',
+            week: 48.2,
+            low: 41.6,
+            high: 45.4,
+            days: 6,
+          },
+        },
+      }),
+    );
+    expect(row('recovery').dataset.status).toBe('WORSE');
+    expect(row('recovery').textContent).toContain(
+      'check_recovery_hrv_low 40|44|53 check_recovery_rhr_high 48|42|45',
+    );
+  });
+
+  it('adds a decimal when whole numbers would hide that a week left its range', () => {
+    render(
+      check({
+        speed: { status: 'SAME', kind: 'power', current: 333, previous: 333 },
+        recovery: {
+          status: 'SAME',
+          variability: null,
+          restingHeartrate: {
+            state: 'LOW',
+            week: 42.57,
+            low: 43.02,
+            high: 45.84,
+            days: 7,
+          },
+        },
+      }),
+    );
+    expect(row('recovery').textContent).toContain(
+      'check_recovery_rhr_low 42.6|43|45.8',
+    );
+  });
+
+  it('describes the weeks without a verdict, and notes a run far too long', () => {
+    const speed = {
+      status: 'SAME' as const,
+      kind: 'power' as const,
+      current: 333,
+      previous: 333,
+    };
+    render(
+      check({
+        speed,
+        design: {
+          status: 'FINE',
+          weeks: 5,
+          of: 6,
+          easyShare: 0.784,
+          longRun: null,
+        },
+      }),
+    );
+    expect(row('design').dataset.status).toBe('FINE');
+    expect(row('design').textContent).toContain(
+      'check_design_weeks 5|6 check_design_easy 78 % check_design_steady',
+    );
+    expect(row('recovery').textContent).toContain('check_recovery_open 4|14');
+
+    render(
+      check({
+        speed,
+        design: {
+          status: 'NOTE',
+          weeks: 6,
+          of: 6,
+          easyShare: null,
+          longRun: { date: '2026-11-08', distance: 22800, longest: 16000 },
+        },
+      }),
+    );
+    expect(row('design').dataset.status).toBe('NOTE');
+    expect(row('design').textContent).toMatch(
+      /check_design_weeks 6\|6 check_design_long_run .*8.*\|43 %/,
+    );
+    expect(row('design').textContent).toContain('check_status_note');
   });
 
   it('compares the critical value of today with six weeks ago', () => {

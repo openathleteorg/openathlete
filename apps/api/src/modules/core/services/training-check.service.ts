@@ -12,12 +12,15 @@ import {
   CHECK_LONG_RUN_SECONDS,
   CHECK_LOW_SHARE,
   CHECK_MIN_LONG_RUNS,
+  CHECK_WEEK_DAYS,
   CHECK_WINDOW_DAYS,
   FTP_MODEL_SPORTS,
   TrainingCheckDto,
   cardiacScores,
   compareModels,
   compareWindows,
+  rangeSignal,
+  recoveryStatus,
 } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -25,6 +28,7 @@ import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { RecordService } from './record.service';
+import { StatisticsService } from './statistics.service';
 
 const DAY_MS = 86_400_000;
 /** A band of output read in passing says nothing */
@@ -55,6 +59,7 @@ export class TrainingCheckService {
     private readonly prisma: PrismaService,
     private readonly abilities: CaslAbilityFactory,
     private readonly records: RecordService,
+    private readonly statistics: StatisticsService,
   ) {}
 
   async getCheck(
@@ -111,10 +116,17 @@ export class TrainingCheckService {
       this.records.runningCriticalAt(athleteId, split),
     ]);
 
+    const [recovery, design] = await Promise.all([
+      this.recoveryOf(athleteId, now),
+      this.designOf(user, athleteId, split, now),
+    ]);
+
     return {
       from,
       split,
       to: now,
+      recovery,
+      design,
       fitness: fitnessOf(bands),
       speed: speedOf(modelNow, modelBefore),
       durability: compareWindows(
@@ -122,6 +134,92 @@ export class TrainingCheckService {
         longRuns.filter((run) => !run.current).map((run) => run.drift),
         { higherIsBetter: false, minCount: CHECK_MIN_LONG_RUNS },
       ),
+    };
+  }
+  /**
+   * The last week of heart rate variability and resting heart rate against
+   * the six weeks before it. Variability from one source only: a night's
+   * average and a morning reading are not interchangeable.
+   */
+  private async recoveryOf(
+    athleteId: number,
+    now: Date,
+  ): Promise<TrainingCheckDto['recovery']> {
+    const week = new Date(now.getTime() - CHECK_WEEK_DAYS * DAY_MS);
+    const rows = await this.prisma.athleteMetric.findMany({
+      where: {
+        athleteId,
+        type: { in: ['HRV_LAST_NIGHT_AVG', 'RMSSD', 'HR_REST'] },
+        value: { gt: 0 },
+        date: {
+          gt: new Date(week.getTime() - CHECK_WINDOW_DAYS * DAY_MS),
+          lte: now,
+        },
+      },
+      select: { date: true, type: true, value: true },
+    });
+    const of = (type: string) => rows.filter((row) => row.type === type);
+    const variability =
+      of('HRV_LAST_NIGHT_AVG').length >= of('RMSSD').length
+        ? of('HRV_LAST_NIGHT_AVG')
+        : of('RMSSD');
+    const signal = (measures: typeof rows, log: boolean) =>
+      rangeSignal(
+        measures.filter((row) => row.date > week).map((row) => row.value),
+        measures.filter((row) => row.date <= week).map((row) => row.value),
+        { log },
+      );
+    const signals = {
+      variability: signal(variability, true),
+      restingHeartrate: signal(of('HR_REST'), false),
+    };
+    return {
+      status: recoveryStatus(signals.variability, signals.restingHeartrate),
+      ...signals,
+    };
+  }
+
+  /**
+   * How the last six weeks were built, in facts: the weeks with training,
+   * the share of easy time, and a run far beyond the longest of the month
+   * before it, the one pattern a study links to injury. No verdict: there
+   * is no evidence for a right share of easy time.
+   */
+  private async designOf(
+    user: AuthUser,
+    athleteId: number,
+    split: Date,
+    now: Date,
+  ): Promise<TrainingCheckDto['design']> {
+    const [[totals], { runs }] = await Promise.all([
+      this.prisma.$queryRaw<
+        { weeks: number; low: number | null; all: number | null }[]
+      >`
+        SELECT
+          count(DISTINCT floor(extract(epoch FROM (${now}::timestamp - e.start_date)) / ${7 * 86_400}))::int AS weeks,
+          sum(a.intensity_seconds[1])::float8 AS low,
+          sum(a.intensity_seconds[1] + a.intensity_seconds[2] + a.intensity_seconds[3])::float8 AS "all"
+        FROM event_activity a
+        JOIN event e ON e.event_id = a.event_id
+        WHERE e.athlete_id = ${athleteId}
+          AND e.type = 'ACTIVITY'
+          AND e.start_date > ${split}
+          AND e.start_date <= ${now}`,
+      this.statistics.getLongRuns(user, { athleteId, from: split, to: now }),
+    ]);
+    const [longRun] = runs;
+    return {
+      status: totals.weeks === 0 ? 'OPEN' : longRun ? 'NOTE' : 'FINE',
+      weeks: totals.weeks,
+      of: CHECK_WINDOW_DAYS / 7,
+      easyShare: totals.all ? (totals.low ?? 0) / totals.all : null,
+      longRun: longRun
+        ? {
+            date: longRun.date,
+            distance: longRun.distance,
+            longest: longRun.longest,
+          }
+        : null,
     };
   }
 }

@@ -27,6 +27,20 @@
  *   Med 52:2283-2295, doi:10.1007/s40279-022-01680-5. They read it on
  *   marathons, on the flat.
  *
+ * - Recovery: the week's mean of the logarithm of heart rate variability
+ *   against the athlete's own range, half their day-to-day variation either
+ *   side, as Plews DJ et al. (2012), Eur J Appl Physiol 112:3729-3741,
+ *   doi:10.1007/s00421-012-2354-4, read it (on two triathletes). Bellenger
+ *   CR et al. (2016), Sports Med 46:1461-1486, doi:10.1007/s40279-016-0484-2:
+ *   resting variability rises with training that improves performance.
+ *   Bosquet L et al. (2008), Br J Sports Med 42:709-714,
+ *   doi:10.1136/bjsm.2007.042200: such changes only mean something next to
+ *   other signs. So variability and resting heart rate have to agree here.
+ * - A run more than 10 % longer than the longest of the 30 days before went
+ *   with more overuse injuries: Frandsen JSB et al. (2025), Br J Sports Med
+ *   59:1203-1210, doi:10.1136/bjsports-2024-109380. Exploratory, on
+ *   self-reported injuries: shown as a note, never as a risk.
+ *
  * What a trail runner's data taught us (2026-11, 24 runs of one athlete):
  * heart rate at the same power or grade-adjusted speed varied by 12 beats
  * a minute between runs over whole outings, whatever the smoothing, and by
@@ -53,6 +67,12 @@ export const CHECK_LONG_RUN_SECONDS = 60 * 60;
 export const CHECK_LOW_SHARE = 0.8;
 /** Flat: climbing this share of the distance at most */
 export const CHECK_FLAT_CLIMB = 0.02;
+
+/** Recovery reads the last week against the six before it */
+export const CHECK_WEEK_DAYS = 7;
+/** Mornings a week needs, and its baseline */
+export const CHECK_MIN_WEEK_DAYS = 4;
+export const CHECK_MIN_BASELINE_DAYS = 14;
 
 /** A band of output counts with these runs in each window */
 const MIN_BAND_RUNS = 2;
@@ -248,4 +268,81 @@ export function cardiacScores(bands: CardiacBand[]): {
     scores[run.current ? 'current' : 'previous'].push(run.beats / run.seconds);
   }
   return { ...scores, referenceBand };
+}
+
+export type RangeState = 'LOW' | 'NORMAL' | 'HIGH';
+
+export interface RangeSignal {
+  state: RangeState;
+  /** Mean of the week */
+  week: number;
+  /** The athlete's usual range, from the weeks before */
+  low: number;
+  high: number;
+  /** Days measured in the week */
+  days: number;
+}
+
+/**
+ * Where the mean of a week of daily measures sits against the athlete's own
+ * range of the weeks before: half their day-to-day spread either side, and
+ * clear of the noise a week's mean still carries. Null with too few days.
+ * `log` for heart rate variability, which is skewed: its logarithm is what
+ * the literature averages.
+ */
+export function rangeSignal(
+  week: number[],
+  baseline: number[],
+  { log = false }: { log?: boolean } = {},
+): RangeSignal | null {
+  if (
+    week.length < CHECK_MIN_WEEK_DAYS ||
+    baseline.length < CHECK_MIN_BASELINE_DAYS
+  ) {
+    return null;
+  }
+  const to = (value: number) => (log ? Math.log(value) : value);
+  const from = (value: number) => (log ? Math.exp(value) : value);
+  const mean = (values: number[]) =>
+    values.reduce((sum, value) => sum + to(value), 0) / values.length;
+  const usual = mean(baseline);
+  const spread = Math.sqrt(
+    baseline.reduce((sum, value) => sum + (to(value) - usual) ** 2, 0) /
+      (baseline.length - 1),
+  );
+  const margin =
+    spread *
+    Math.max(
+      CHECK_NOISE_SHARE,
+      CLEAR * Math.sqrt(1 / week.length + 1 / baseline.length),
+    );
+  const now = mean(week);
+  return {
+    state:
+      now < usual - margin ? 'LOW' : now > usual + margin ? 'HIGH' : 'NORMAL',
+    week: from(now),
+    low: from(usual - margin),
+    high: from(usual + margin),
+    days: week.length,
+  };
+}
+
+/**
+ * Recovery from heart rate variability and resting heart rate. One measure
+ * alone decides; with both, they have to agree, as either can move for
+ * reasons of its own. Lower variability and a higher resting heart rate
+ * read as worse.
+ */
+export function recoveryStatus(
+  variability: RangeSignal | null,
+  restingHeartrate: RangeSignal | null,
+): CheckStatus {
+  const signs = [
+    variability && { LOW: -1, NORMAL: 0, HIGH: 1 }[variability.state],
+    restingHeartrate && { LOW: 1, NORMAL: 0, HIGH: -1 }[restingHeartrate.state],
+  ].filter((sign): sign is number => sign !== null);
+  if (signs.length === 0) return 'OPEN';
+  if (signs.every((sign) => sign > 0)) return 'BETTER';
+  if (signs.every((sign) => sign < 0)) return 'WORSE';
+  return 'SAME';
 }

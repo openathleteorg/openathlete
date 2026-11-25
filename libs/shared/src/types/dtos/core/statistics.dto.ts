@@ -297,6 +297,17 @@ const checkComparisonSchema = z.object({
   counts: z.tuple([z.number(), z.number()]),
 });
 
+const rangeSignalSchema = z.object({
+  state: z.enum(['LOW', 'NORMAL', 'HIGH']),
+  /** Mean of the last week */
+  week: z.number(),
+  /** The athlete's usual range */
+  low: z.number(),
+  high: z.number(),
+  /** Days measured in the week */
+  days: z.number(),
+});
+
 /**
  * The training check of a runner: the last six weeks against the six before
  * (see training-check.ts for the method and its sources)
@@ -331,6 +342,36 @@ export const trainingCheckSchema = z.object({
    * runs on the flat, in percent
    */
   durability: checkComparisonSchema,
+  /**
+   * Coping with the training: the last week of heart rate variability (ms)
+   * and resting heart rate against the athlete's own range of the six weeks
+   * before. Both have to agree when both are measured.
+   */
+  recovery: z.object({
+    status: checkStatusSchema,
+    variability: rangeSignalSchema.nullable(),
+    restingHeartrate: rangeSignalSchema.nullable(),
+  }),
+  /** How the last six weeks were built: facts and one note, no verdict */
+  design: z.object({
+    /** NOTE: a run far beyond the longest of the month before it */
+    status: z.enum(['FINE', 'NOTE', 'OPEN']),
+    /** Weeks with at least one activity, of any sport */
+    weeks: z.number(),
+    of: z.number(),
+    /** Share of the time below the first threshold; null without zones */
+    easyShare: z.number().nullable(),
+    /** The latest run over 10 % longer than the longest of the 30 days before */
+    longRun: z
+      .object({
+        /** YYYY-MM-DD */
+        date: z.string(),
+        /** Metres */
+        distance: z.number(),
+        longest: z.number(),
+      })
+      .nullable(),
+  }),
 });
 export type TrainingCheckDto = z.infer<typeof trainingCheckSchema>;
 
