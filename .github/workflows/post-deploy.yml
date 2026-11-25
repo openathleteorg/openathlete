@@ -19,10 +19,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: post-deploy-${{ github.event.deployment.sha || github.event.client_payload.sha || github.sha }}
-  cancel-in-progress: false
-
 jobs:
   smoke:
     name: Smoke checks against production
@@ -35,6 +31,11 @@ jobs:
           github.event.deployment.environment == 'Production – openathlete-web'))
     runs-on: [self-hosted, coolify]
     timeout-minutes: 15
+    # Per target, and on the job: the skipped runs of preview deployments must
+    # not cancel a pending production check
+    concurrency:
+      group: post-deploy-${{ github.event_name == 'deployment_status' && 'web' || github.event_name == 'repository_dispatch' && 'api' || inputs.target }}-${{ github.event.deployment.sha || github.event.client_payload.sha || github.sha }}
+      cancel-in-progress: false
     env:
       TARGET: ${{ github.event_name == 'deployment_status' && 'web' || github.event_name == 'repository_dispatch' && 'api' || inputs.target }}
       SHA: ${{ github.event.deployment.sha || github.event.client_payload.sha || github.sha }}
