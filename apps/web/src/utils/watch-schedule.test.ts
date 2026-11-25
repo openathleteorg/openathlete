@@ -26,8 +26,11 @@ vi.mock('@capacitor/core', () => ({
 }));
 
 const {
+  clearFenceUnconfirmed,
   disconnectWatchSchedule,
   fenceWatchScheduleOnExit,
+  hasFenceUnconfirmed,
+  markFenceUnconfirmed,
   watchScheduleCredential,
 } = await import('./watch-schedule');
 
@@ -80,18 +83,43 @@ describe('watch schedule bridge', () => {
     expect(error).not.toHaveBeenCalled();
   });
 
-  it('acknowledges the native fence before sign-out continues', async () => {
+  it('returns true only for a native acknowledgement', async () => {
     state.fence.mockResolvedValue(undefined);
 
-    await fenceWatchScheduleOnExit();
-
+    await expect(fenceWatchScheduleOnExit()).resolves.toBe(true);
     expect(state.fence).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns false for a rejected fence instead of claiming success', async () => {
+    state.fence.mockRejectedValue(new Error('WATCH_SCHEDULE_UNAVAILABLE'));
+
+    await expect(fenceWatchScheduleOnExit()).resolves.toBe(false);
+  });
+
+  it('returns false when the bridge does not answer in time', async () => {
+    vi.useFakeTimers();
+    try {
+      state.fence.mockImplementation(() => new Promise(() => undefined));
+      const pending = fenceWatchScheduleOnExit();
+      await vi.advanceTimersByTimeAsync(1600);
+      await expect(pending).resolves.toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps an unconfirmed-fence marker until a later acknowledgement', () => {
+    expect(hasFenceUnconfirmed()).toBe(false);
+    markFenceUnconfirmed();
+    expect(hasFenceUnconfirmed()).toBe(true);
+    clearFenceUnconfirmed();
+    expect(hasFenceUnconfirmed()).toBe(false);
   });
 
   it('does not call the bridge off iOS', async () => {
     state.ios = false;
 
-    await expect(fenceWatchScheduleOnExit()).resolves.toBeUndefined();
+    await expect(fenceWatchScheduleOnExit()).resolves.toBe(true);
     await expect(disconnectWatchSchedule()).resolves.toBeNull();
     expect(state.fence).not.toHaveBeenCalled();
     expect(state.disconnect).not.toHaveBeenCalled();

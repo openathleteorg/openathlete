@@ -3233,5 +3233,9 @@
   "apple_watch_skip_zone": "Non è stato possibile risolvere una zona di allenamento per questa sessione.",
   "apple_watch_skip_structure": "La struttura di questa sessione non può essere espressa nell'app Workout di Apple.",
   "apple_watch_skip_other": "Questa sessione non può essere rappresentata nell'app Workout di Apple.",
-  "apple_watch_local_pending": "{count} allenamenti attendono un nuovo tentativo al prossimo aggiornamento."
+  "apple_watch_local_pending": "{count} allenamenti attendono un nuovo tentativo al prossimo aggiornamento.",
+  "apple_watch_cleanup_incomplete": "La pulizia di Apple Watch non è terminata. La pianificazione resta in pausa; aggiorna per riprovare.",
+  "apple_watch_cleanup_unknown": "OpenAthlete non ha potuto leggere la pulizia Apple Watch in sospeso. La pianificazione resta in pausa finché non sarà possibile.",
+  "apple_watch_server_switch_blocked": "Impossibile fermare la pianificazione Apple Watch su questo iPhone. Blocca il cambio di server finché non viene confermata.",
+  "apple_watch_fence_unconfirmed": "Non è stato possibile fermare la pianificazione Apple Watch su questo iPhone. Accedi di nuovo per completare la pulizia."
 }

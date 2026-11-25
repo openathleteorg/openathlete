@@ -262,6 +262,11 @@ public struct WatchScheduleStatus: Equatable, Sendable {
     /// A previous account's pending write or teardown blocks scheduling. Only
     /// this boolean crosses the account boundary.
     public let otherAccountPending: Bool
+    /// A teardown authorization exists, including for this same account.
+    public let cleanupPending: Bool
+    /// The durable teardown store could not be read; cleanup is not known to be
+    /// clear.
+    public let cleanupUnknown: Bool
 }
 
 public struct WatchScheduleRefreshReport: Equatable, Sendable {
@@ -345,9 +350,12 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
     public func credential(
         for scope: AccountScope
     ) async throws -> WatchScheduleCredential? {
-        if let pinned,
-           pinned.scope == scope,
-           !isExpired(pinned) {
+        if let pinned {
+            // A pass that pinned its credential never falls back to a newer or
+            // different token, even when the pin expired or has another scope.
+            guard pinned.scope == scope, !isExpired(pinned) else {
+                return nil
+            }
             return pinned
         }
         if let foreground,
@@ -398,6 +406,19 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
     }
 }
 
+private struct SyncState {
+    var lastSuccessAt: Date?
+    var lastAttemptAt: Date?
+    var lastErrorCode: String?
+    var counts = WatchScheduleCounts.none
+    var skipped: [SkippedScheduleEvent] = []
+}
+
+private struct TeardownOutcome {
+    let report: WatchScheduleDisconnectReport
+    let fullyRetired: Bool
+}
+
 // MARK: - Lifecycle
 
 /// Serialized owner of the opt-in, the account generation and the refresh
@@ -422,14 +443,9 @@ public actor WatchScheduleLifecycle {
     /// a logout. A stale continuation must never save the opt-in or credential.
     private var epoch: UInt64 = 0
     private var permissionCache: WatchSchedulePermission = .notDetermined
-    /// The account the in-memory sync state belongs to. Another account's
-    /// status must not expose its last refresh, counts or skipped event IDs.
-    private var stateScope: AccountScope?
-    private var lastSuccessAt: Date?
-    private var lastAttemptAt: Date?
-    private var lastErrorCode: String?
-    private var counts = WatchScheduleCounts.none
-    private var skipped: [SkippedScheduleEvent] = []
+    /// Per-account sync state. A speculative or failed pass for one scope can
+    /// never rewrite another account's last success, error or skipped IDs.
+    private var syncStates: [AccountScope: SyncState] = [:]
 
     private var gateIsHeld = false
     private var gateWaiters: [CheckedContinuation<Void, Never>] = []
@@ -479,6 +495,12 @@ public actor WatchScheduleLifecycle {
     /// this and let cleanup continue in the background.
     public func fence() async {
         epoch &+= 1
+        // Revoke writes and credential use before any fallible storage await,
+        // so a stalled teardown write cannot let a paused submission through.
+        await reconciler.fence()
+        await credentials.blockReuse()
+        syncStates.removeAll()
+
         let target = (try? await optIn.load()) ?? activeScope
         if let target {
             do {
@@ -486,14 +508,11 @@ public actor WatchScheduleLifecycle {
                 try? await optIn.clear()
             } catch {
                 // Fail closed: keep the opt-in as the only durable authorization
-                // we have. Writes are still fenced below.
+                // we have. Writes and credentials stay fenced.
             }
         } else {
             try? await optIn.clear()
         }
-        await reconciler.fence()
-        await credentials.blockReuse()
-        clearSyncState()
     }
 
     // MARK: Connect
@@ -503,8 +522,13 @@ public actor WatchScheduleLifecycle {
         credential: WatchScheduleCredential,
         requestPermission: Bool
     ) async -> WatchScheduleRefreshReport {
+        let waitEpoch = epoch
         await acquireGate()
         defer { releaseGate() }
+        // A connect queued before a logout must not start a new session.
+        guard waitEpoch == epoch else {
+            return await report(.deferred(.inactive), scope: scope)
+        }
 
         epoch &+= 1
         let entryEpoch = epoch
@@ -635,8 +659,18 @@ public actor WatchScheduleLifecycle {
         guard entryEpoch == epoch else {
             return await report(.deferred(.inactive), scope: scope)
         }
+        // Recovery clears a stale opt-in for a crashed teardown; this account
+        // must not be re-enabled automatically.
+        guard let currentOptIn = try? await optIn.load(),
+              currentOptIn == scope
+        else {
+            return await report(.deferred(.inactive), scope: scope)
+        }
 
         let permission = await authorization.permission()
+        guard entryEpoch == epoch else {
+            return await report(.deferred(.inactive), scope: scope)
+        }
         permissionCache = permission
         switch permission {
         case .authorized:
@@ -648,7 +682,6 @@ public actor WatchScheduleLifecycle {
                 permission: permission
             )
         case .denied:
-            lastErrorCode = "permissionDenied"
             return await report(
                 .deferred(.permissionDenied),
                 scope: scope,
@@ -732,6 +765,7 @@ public actor WatchScheduleLifecycle {
             }
             await credentials.adopt(credential)
             guard entryEpoch == epoch else {
+                try? await credentials.purge()
                 return await report(.deferred(.inactive), scope: scope)
             }
             chosen = credential
@@ -758,9 +792,16 @@ public actor WatchScheduleLifecycle {
     public func disconnect(
         scope requested: AccountScope?
     ) async -> WatchScheduleDisconnectReport? {
+        epoch &+= 1
+        // Fence writes and credential use before any storage read or write.
+        await reconciler.fence()
+        await credentials.blockReuse()
+        syncStates.removeAll()
+
         let stored = try? await optIn.load()
         guard let target = stored ?? activeScope else {
-            await fence()
+            // A cold logout after a crash still has durable teardown work.
+            _ = await recoverPendingTeardown()
             return nil
         }
         // Never clean a scope other than the authorized one.
@@ -768,27 +809,23 @@ public actor WatchScheduleLifecycle {
             return nil
         }
 
-        epoch &+= 1
         do {
             try await teardown.add(target)
         } catch {
-            // No durable authorization: keep the opt-in and fence everything.
-            await reconciler.fence()
-            await credentials.blockReuse()
+            // No durable authorization: keep the opt-in (and the fence).
             return nil
         }
         try? await optIn.clear()
-        await reconciler.fence()
         await reconciler.invalidate()
 
         await acquireGate()
         defer { releaseGate() }
 
         let result = await teardownScope(target)
-        if result.retainedEventIDs.isEmpty && result.purgedCredential {
+        if result.fullyRetired {
             try? await teardown.remove(target)
         }
-        return result
+        return result.report
     }
 
     // MARK: Background entry point
@@ -798,8 +835,9 @@ public actor WatchScheduleLifecycle {
     /// token, no new opt-in.
     public func handleBackgroundRefresh() async -> WatchScheduleRefreshReport {
         guard let stored = try? await optIn.load() else {
-            // Never resurrect a torn-down session: if a teardown is pending,
-            // it still blocks and must be finished in the foreground.
+            // Never resurrect a torn-down session. A crash may still have left
+            // durable teardown work; finish it even without an opt-in.
+            _ = await recoverPendingTeardown()
             return await report(.deferred(.inactive), scope: nil)
         }
         return await refresh(
@@ -818,16 +856,6 @@ public actor WatchScheduleLifecycle {
         generation &+= 1
         await reconciler.activate(generation: generation, for: scope)
         activeScope = scope
-        stateScope = scope
-        clearSyncState()
-    }
-
-    private func clearSyncState() {
-        lastSuccessAt = nil
-        lastAttemptAt = nil
-        lastErrorCode = nil
-        counts = .none
-        skipped = []
     }
 
     private func pass(
@@ -835,7 +863,6 @@ public actor WatchScheduleLifecycle {
         scope: AccountScope,
         entryEpoch: UInt64
     ) async -> WatchScheduleRefreshReport {
-        lastAttemptAt = now()
         let snapshot: ScheduleSnapshot
         do {
             snapshot = try await loadSnapshot(scope, now(), calendar)
@@ -856,6 +883,9 @@ public actor WatchScheduleLifecycle {
         guard entryEpoch == epoch else {
             return await report(.deferred(.inactive), scope: scope)
         }
+        var state = syncStates[scope] ?? SyncState()
+        state.lastAttemptAt = now()
+        syncStates[scope] = state
 
         do {
             let summary = try await reconciler.reconcile(
@@ -863,10 +893,11 @@ public actor WatchScheduleLifecycle {
                 scope: scope,
                 generation: generation
             )
-            lastSuccessAt = now()
-            lastErrorCode = nil
-            counts = WatchScheduleCounts(summary)
-            skipped = summary.skipped
+            state.lastSuccessAt = now()
+            state.lastErrorCode = nil
+            state.counts = WatchScheduleCounts(summary)
+            state.skipped = summary.skipped
+            syncStates[scope] = state
             return await report(.synced(summary), scope: scope)
         } catch is CancellationError {
             return await report(.deferred(.inactive), scope: scope)
@@ -888,16 +919,12 @@ public actor WatchScheduleLifecycle {
         case .scopeMismatch:
             return await report(.deferred(.scopeMismatch), scope: scope)
         case .calendarUnavailable:
-            lastErrorCode = "calendarUnavailable"
+            return await report(.failed("calendarUnavailable"), scope: scope)
         case .invalidCalendarResponse:
-            lastErrorCode = "invalidCalendarResponse"
+            return await report(.failed("invalidCalendarResponse"), scope: scope)
         case .invalidCalendar:
-            lastErrorCode = "invalidCalendar"
+            return await report(.failed("invalidCalendar"), scope: scope)
         }
-        return await report(
-            .failed(lastErrorCode ?? "calendarUnavailable"),
-            scope: scope
-        )
     }
 
     private func reconcileFailure(
@@ -910,7 +937,6 @@ public actor WatchScheduleLifecycle {
         case .scopeMismatch:
             return await report(.deferred(.scopeMismatch), scope: scope)
         case .schedulingDenied:
-            lastErrorCode = "permissionDenied"
             permissionCache = .denied
             return await report(
                 .deferred(.permissionDenied),
@@ -924,22 +950,18 @@ public actor WatchScheduleLifecycle {
                 permission: .unsupported
             )
         case .invalidSnapshot:
-            lastErrorCode = "invalidSnapshot"
+            return await report(.failed("invalidSnapshot"), scope: scope)
         case .staleSnapshot:
-            lastErrorCode = "staleSnapshot"
+            return await report(.failed("staleSnapshot"), scope: scope)
         case .storeUnavailable:
-            lastErrorCode = "storeUnavailable"
+            return await report(.failed("storeUnavailable"), scope: scope)
         case .journalUnavailable:
-            lastErrorCode = "journalUnavailable"
+            return await report(.failed("journalUnavailable"), scope: scope)
         case .pendingCleanup:
-            lastErrorCode = "pendingCleanup"
+            return await report(.failed("pendingCleanup"), scope: scope)
         case .unresolvedWrite:
-            lastErrorCode = "unresolvedWrite"
+            return await report(.failed("unresolvedWrite"), scope: scope)
         }
-        return await report(
-            .failed(lastErrorCode ?? "storeUnavailable"),
-            scope: scope
-        )
     }
 
     /// Removes every owned upcoming entry under the exact authorized scope and
@@ -947,12 +969,13 @@ public actor WatchScheduleLifecycle {
     /// the next attempt; nothing is reset or guessed.
     private func teardownScope(
         _ target: AccountScope
-    ) async -> WatchScheduleDisconnectReport {
+    ) async -> TeardownOutcome {
         generation &+= 1
         await reconciler.activate(generation: generation, for: target)
 
         var removed: [Int] = []
         var retained: [Int] = []
+        var cleanupProven = false
         do {
             let summary = try await reconciler.cleanup(
                 scope: target,
@@ -960,15 +983,17 @@ public actor WatchScheduleLifecycle {
             )
             removed = summary.removedEventIDs
             retained = summary.retainedEventIDs
+            cleanupProven = true
         } catch {
             // Cleanup persisted its intents before the fallible scheduler
-            // read. Every receipt that still needs work stays.
+            // read. Every receipt that still needs work stays. A failed or
+            // unreadable cleanup is uncertain, never an empty success.
             let receipts = (try? await journal.receipts(for: target)) ?? []
             retained = receipts.map(\.eventID)
         }
         await reconciler.invalidate()
         activeScope = nil
-        stateScope = nil
+        syncStates[target] = nil
         let permission = await authorization.permission()
         permissionCache = permission
 
@@ -985,15 +1010,16 @@ public actor WatchScheduleLifecycle {
             // A token that could not be removed is never reported as purged,
             // and its stored copy stays blocked from reuse.
         }
-        clearSyncState()
-
-        return WatchScheduleDisconnectReport(
-            scope: target,
-            removedEventIDs: removed.sorted(),
-            retainedEventIDs: retainedAll,
-            unresolvedEventIDs: unresolved,
-            purgedCredential: purged,
-            permission: permission
+        return TeardownOutcome(
+            report: WatchScheduleDisconnectReport(
+                scope: target,
+                removedEventIDs: removed.sorted(),
+                retainedEventIDs: retainedAll,
+                unresolvedEventIDs: unresolved,
+                purgedCredential: purged,
+                permission: permission
+            ),
+            fullyRetired: cleanupProven && retainedAll.isEmpty && purged
         )
     }
 
@@ -1001,9 +1027,20 @@ public actor WatchScheduleLifecycle {
     /// when an account still has unconfirmed work or its credential could not be
     /// retired; callers must then refuse to schedule for anyone else.
     private func recoverPendingTeardown() async -> Bool {
-        let scopes = (try? await teardown.load()) ?? []
+        let scopes: [AccountScope]
+        do {
+            scopes = try await teardown.load()
+        } catch {
+            // Unreadable is not empty: refuse to schedule for anyone.
+            return false
+        }
         guard !scopes.isEmpty else {
             return true
+        }
+        // Crash window after teardown.add but before optIn.clear: never leave
+        // the stale opt-in to re-enable the same account.
+        if let stored = try? await optIn.load(), scopes.contains(stored) {
+            try? await optIn.clear()
         }
         let ordered = scopes.sorted {
             if $0.instanceURL != $1.instanceURL {
@@ -1014,7 +1051,7 @@ public actor WatchScheduleLifecycle {
         }
         for scope in ordered {
             let result = await teardownScope(scope)
-            guard result.retainedEventIDs.isEmpty, result.purgedCredential else {
+            guard result.fullyRetired else {
                 return false
             }
             do {
@@ -1033,8 +1070,10 @@ public actor WatchScheduleLifecycle {
         scope: AccountScope?,
         permission: WatchSchedulePermission? = nil
     ) async -> WatchScheduleRefreshReport {
-        if case .failed(let code) = outcome {
-            lastErrorCode = code
+        if case .failed(let code) = outcome, let scope {
+            var state = syncStates[scope] ?? SyncState()
+            state.lastErrorCode = code
+            syncStates[scope] = state
         }
         let resolvedPermission = permission ?? permissionCache
         if let permission {
@@ -1052,8 +1091,17 @@ public actor WatchScheduleLifecycle {
         permission: WatchSchedulePermission
     ) async -> WatchScheduleStatus {
         let storedScope = try? await optIn.load()
-        let receipts = (try? await journal.allReceipts()) ?? []
-        let teardownScopes = (try? await teardown.load()) ?? []
+        let journalResult = try? await journal.allReceipts()
+        let receipts = journalResult ?? []
+        let teardownResult: [AccountScope]?
+        do {
+            teardownResult = try await teardown.load()
+        } catch {
+            teardownResult = nil
+        }
+        // An unreadable teardown or journal is not "nothing pending".
+        let cleanupUnknown = teardownResult == nil || journalResult == nil
+        let teardownScopes = teardownResult ?? []
         let scoped = scope.map { current in
             receipts.filter { $0.scope == current }
         } ?? []
@@ -1062,8 +1110,10 @@ public actor WatchScheduleLifecycle {
         let pendingCleanup = scoped.filter(isPendingCleanup).map(\.eventID)
         // Sync state belongs to one account only; another scope gets a blank
         // state instead of this account's last refresh, counts or skipped IDs.
-        let ownsSyncState = scope != nil && stateScope == scope
-        let otherPending = !teardownScopes.isEmpty
+        let syncState = scope.flatMap { syncStates[$0] } ?? SyncState()
+        let sameScopeTeardown = scope.map(teardownScopes.contains) ?? false
+        let otherTeardown = teardownScopes.contains { $0 != scope }
+        let otherPending = otherTeardown
             || receipts.contains { receipt in
                 guard let scope else {
                     return needsWork(receipt)
@@ -1071,20 +1121,24 @@ public actor WatchScheduleLifecycle {
                 return receipt.scope != scope && needsWork(receipt)
             }
         return WatchScheduleStatus(
-            enabled: storedScope != nil && (scope == nil || storedScope == scope),
+            enabled: storedScope != nil
+                && (scope == nil || storedScope == scope)
+                && !sameScopeTeardown,
             hasOtherAccountOptIn: (storedScope != nil
                 && scope != nil
-                && storedScope != scope) || !teardownScopes.isEmpty,
+                && storedScope != scope) || otherTeardown,
             permission: permission,
-            lastSuccessAt: ownsSyncState ? lastSuccessAt : nil,
-            lastAttemptAt: ownsSyncState ? lastAttemptAt : nil,
-            lastErrorCode: ownsSyncState ? lastErrorCode : nil,
-            counts: ownsSyncState ? counts : .none,
-            skipped: ownsSyncState ? skipped : [],
+            lastSuccessAt: syncState.lastSuccessAt,
+            lastAttemptAt: syncState.lastAttemptAt,
+            lastErrorCode: syncState.lastErrorCode,
+            counts: syncState.counts,
+            skipped: syncState.skipped,
             pendingCleanupEventIDs: Array(Set(pendingCleanup)).sorted(),
             unresolvedEventIDs: Array(Set(unresolved)).sorted(),
             localPendingEventIDs: Array(Set(localPending)).sorted(),
-            otherAccountPending: otherPending
+            otherAccountPending: otherPending,
+            cleanupPending: !teardownScopes.isEmpty,
+            cleanupUnknown: cleanupUnknown
         )
     }
 

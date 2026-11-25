@@ -3233,5 +3233,9 @@
   "apple_watch_skip_zone": "Für diese Einheit konnte keine Trainingszone aufgelöst werden.",
   "apple_watch_skip_structure": "Die Struktur dieser Einheit kann in Apples Workout-App nicht ausgedrückt werden.",
   "apple_watch_skip_other": "Diese Einheit kann in Apples Workout-App nicht dargestellt werden.",
-  "apple_watch_local_pending": "{count} Trainings warten auf einen neuen Versuch bei der nächsten Aktualisierung."
+  "apple_watch_local_pending": "{count} Trainings warten auf einen neuen Versuch bei der nächsten Aktualisierung.",
+  "apple_watch_cleanup_incomplete": "Die Apple-Watch-Bereinigung ist nicht abgeschlossen. Die Planung bleibt pausiert; aktualisiere, um es erneut zu versuchen.",
+  "apple_watch_cleanup_unknown": "OpenAthlete konnte die ausstehende Apple-Watch-Bereinigung nicht lesen. Die Planung bleibt pausiert, bis das möglich ist.",
+  "apple_watch_server_switch_blocked": "Die Apple-Watch-Planung konnte auf diesem iPhone nicht gestoppt werden. Sie blockiert den Serverwechsel, bis sie bestätigt ist.",
+  "apple_watch_fence_unconfirmed": "Die Apple-Watch-Planung konnte auf diesem iPhone nicht gestoppt werden. Melde dich erneut an, um die Bereinigung abzuschließen."
 }

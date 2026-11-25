@@ -510,11 +510,29 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func fence(_ call: CAPPluginCall) {
         #if canImport(HealthKit) && canImport(WorkoutKit)
-        if #available(iOS 17.0, *),
-           let runtime = WatchScheduleRuntime.shared {
+        if #available(iOS 17.0, *) {
+            guard let runtime = WatchScheduleRuntime.shared else {
+                // Do not acknowledge a fence that could not run: the web must
+                // surface this rather than assume scheduling is disabled.
+                call.reject(
+                    "watch scheduling unavailable",
+                    "WATCH_SCHEDULE_UNAVAILABLE"
+                )
+                return
+            }
             Task {
                 await runtime.lifecycle.fence()
-                call.resolve()
+                // If the opt-in could not be retired (for example the teardown
+                // file was not writable), do not acknowledge a successful
+                // fence: the web surfaces it and fails closed.
+                if await runtime.lifecycle.isBackgroundRefreshEnabled() {
+                    call.reject(
+                        "cleanup authorization not persisted",
+                        "WATCH_SCHEDULE_FENCE_INCOMPLETE"
+                    )
+                } else {
+                    call.resolve()
+                }
             }
             return
         }
@@ -619,6 +637,8 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
             "unresolvedEventIDs": status.unresolvedEventIDs,
             "localPendingEventIDs": status.localPendingEventIDs,
             "otherAccountPending": status.otherAccountPending,
+            "cleanupPending": status.cleanupPending,
+            "cleanupUnknown": status.cleanupUnknown,
         ]
     }
 
@@ -683,6 +703,8 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
             "unresolvedEventIDs": [Int](),
             "localPendingEventIDs": [Int](),
             "otherAccountPending": false,
+            "cleanupPending": false,
+            "cleanupUnknown": false,
         ]
     }
 

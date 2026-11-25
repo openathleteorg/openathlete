@@ -6,8 +6,11 @@ import { queryClient } from '@/utils/query-client';
 import {
   type WatchScheduleScope,
   type WatchScheduleTrigger,
+  clearFenceUnconfirmed,
   disconnectWatchSchedule,
+  fenceWatchScheduleOnExit,
   getWatchScheduleStatus,
+  hasFenceUnconfirmed,
   isAppleWatchScheduleAvailable,
   refreshWatchSchedule,
   watchScheduleCredential,
@@ -68,13 +71,23 @@ export function useWatchScheduleSync() {
     let cancelled = false;
 
     const launch = async () => {
+      if (hasFenceUnconfirmed()) {
+        const acknowledged = await fenceWatchScheduleOnExit();
+        if (acknowledged) clearFenceUnconfirmed();
+        if (cancelled) return;
+      }
       const status = await getWatchScheduleStatus(scope);
       if (cancelled) return;
-      if (status.hasOtherAccountOptIn) {
+      if (
+        status.hasOtherAccountOptIn ||
+        status.cleanupPending ||
+        status.cleanupUnknown
+      ) {
         await disconnectWatchSchedule();
         if (cancelled) return;
       }
-      if (!status.enabled) return;
+      const current = await getWatchScheduleStatus(scope);
+      if (cancelled || !current.enabled) return;
       await runPass(scope, 'launch');
     };
 

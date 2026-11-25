@@ -11,6 +11,7 @@ import { saveTimeZone } from '@/utils/time-zone';
 import {
   disconnectWatchScheduleOnExit,
   fenceWatchScheduleOnExit,
+  markFenceUnconfirmed,
 } from '@/utils/watch-schedule';
 import posthog from 'posthog-js';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
@@ -180,8 +181,13 @@ export function AuthProvider({ children }: Props) {
     };
     // Fence Apple scheduling before the tokens disappear, and wait for that
     // acknowledgement (bounded) so a stale permission/fetch continuation cannot
-    // opt the signed-out account in after storage was cleared.
-    void fenceWatchScheduleOnExit().then(finish, finish);
+    // opt the signed-out account in after storage was cleared. If native does
+    // not acknowledge, sign-out still escapes and the unconfirmed state is
+    // surfaced in settings instead of being reported as a successful fence.
+    void fenceWatchScheduleOnExit().then((acknowledged) => {
+      if (!acknowledged) markFenceUnconfirmed();
+      finish();
+    });
   }, []);
 
   useEffect(() => {

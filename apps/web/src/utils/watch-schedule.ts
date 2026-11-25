@@ -66,6 +66,8 @@ export type WatchScheduleStatus = {
   /** Local/planning stage or a safe-to-retry removal. */
   localPendingEventIDs: number[];
   otherAccountPending: boolean;
+  cleanupPending: boolean;
+  cleanupUnknown: boolean;
 };
 
 export type WatchScheduleResult = {
@@ -189,27 +191,57 @@ export async function disconnectWatchSchedule(
 }
 
 const FENCE_ACK_TIMEOUT_MS = 1500;
+const FENCE_UNCONFIRMED_KEY = 'watch_schedule_fence_unconfirmed';
 
 /**
- * Waits for the native fence acknowledgement before the app clears auth state.
- * The native epoch takes effect synchronously and this does not wait for Apple
- * reads or removals; cleanup continues after the acknowledgement. A timeout
- * prevents a stuck bridge from blocking sign-out.
+ * Waits for the native fence acknowledgement. Returns true only when the
+ * native bridge confirmed that writes and stored credentials are revoked.
+ * A timeout or rejection is **not** an acknowledgement: logout may still
+ * escape, but the caller must surface that scheduling was not confirmed off.
  */
-export async function fenceWatchScheduleOnExit(): Promise<void> {
-  if (!isAppleWatchScheduleAvailable()) return;
+export async function fenceWatchScheduleOnExit(): Promise<boolean> {
+  if (!isAppleWatchScheduleAvailable()) return true;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     await Promise.race([
       nativePlugin.fence(),
-      new Promise<void>((resolve) => {
-        timer = setTimeout(resolve, FENCE_ACK_TIMEOUT_MS);
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('watch_schedule_fence_timeout')),
+          FENCE_ACK_TIMEOUT_MS,
+        );
       }),
     ]);
+    return true;
   } catch {
-    // The next launch reports any cleanup Apple did not confirm.
+    return false;
   } finally {
     if (timer) clearTimeout(timer);
+  }
+}
+
+/** Persisted only in session storage, and cleared when a later fence succeeds. */
+export function markFenceUnconfirmed(): void {
+  try {
+    sessionStorage.setItem(FENCE_UNCONFIRMED_KEY, '1');
+  } catch {
+    // Storage disabled: the settings warning degrades, sign-out still works.
+  }
+}
+
+export function hasFenceUnconfirmed(): boolean {
+  try {
+    return sessionStorage.getItem(FENCE_UNCONFIRMED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function clearFenceUnconfirmed(): void {
+  try {
+    sessionStorage.removeItem(FENCE_UNCONFIRMED_KEY);
+  } catch {
+    // Nothing to clear.
   }
 }
 

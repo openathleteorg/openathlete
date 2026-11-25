@@ -64,11 +64,19 @@ matching entry.
   for Apple; the web clears auth state after that acknowledgement (bounded by a
   short timeout), then cleanup continues.
 - Cleanup authorization is written to a separate device-protected teardown file
-  **before** the opt-in is cleared. If the app crashes, the journal is
-  unreadable or a Keychain purge fails, the teardown survives and the next
-  account must finish it before scheduling. If Application Support itself is
-  unavailable, the runtime stays disabled: there is no temporary-directory
-  fallback.
+  **before** the opt-in is cleared, and only after writes and credential use
+  have already been revoked: a stalled storage write cannot let a paused
+  session continue. If the app crashes, the journal is unreadable or a Keychain
+  purge fails, the teardown survives and the next account must finish it before
+  scheduling. Unreadable teardown/journal state is reported as unknown, never
+  as empty. A crash between the teardown write and the opt-in clear is repaired
+  by clearing the stale opt-in; that account is not re-enabled automatically.
+  If Application Support itself is unavailable, the runtime stays disabled:
+  there is no temporary-directory fallback.
+- The native fence acknowledges only when the opt-in was actually retired. A
+  timeout, bridge rejection or incomplete fence is not treated as success:
+  sign-out still escapes, but the app keeps an unconfirmed marker, the settings
+  screen surfaces it, and a server switch is refused until acknowledged.
 - Cleanup runs under the **exact stored scope and generation**: the reconciler
   is re-activated for that scope only after the pass drained, cleanup removes
   only journal-owned, non-completed entries, then the fence and credential are
@@ -95,10 +103,14 @@ matching entry.
 - Native Capacitor bridge logging is off in every build mode
   (`ios.loggingBehavior: 'none'`) because bridge calls carry access tokens.
   The JS bridge never persists credentials and logs none.
-- Status exposes only the current account's event IDs. Another account's
-  pending work is a single `otherAccountPending` flag; token expiry is not
-  exposed. Submitted writes (Apple may have them) are separated from local or
-  planning-stage work that is safe to retry.
+- Status exposes only the current account's event IDs and its own sync state.
+  Per-account state means a speculative or failed pass for one scope cannot
+  rewrite another account's last success, error or counts. Another account
+  contributes only `otherAccountPending`; a same-account teardown is
+  `cleanupPending`, not an "other account" flag. `cleanupUnknown` means the
+  durable state could not be read. Token expiry is not exposed. Submitted
+  writes (Apple may have them) are separated from local or planning-stage work
+  that is safe to retry.
 
 ## Device acceptance — required before release
 
@@ -164,7 +176,7 @@ length to match the prescription exactly. Until then, keep
 
 | Check | Result |
 | --- | --- |
-| Portable core tests (Linux Swift 6.1.2) | 191 passed, debug and release |
+| Portable core tests (Linux Swift 6.1.2) | 202 passed, debug and release |
 | Web unit tests (`pnpm web test`) | passed, including settings, lifecycle hook, bridge logging/storage audit and server no-op |
 | `scripts/verify.sh` | see the task report; lint/types/translations/unit run |
 | `scripts/verify.sh --e2e` | blocked on this host: Docker is unavailable, no stack was started |

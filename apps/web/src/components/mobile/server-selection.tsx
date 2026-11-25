@@ -56,9 +56,13 @@ export function ServerSelection({ onCancel }: Props) {
       // A no-op canonical save (same instance) must keep scheduling enabled.
       if (isServerChange(url, defaultUrl)) {
         // Another instance must never inherit this account's scheduled
-        // workouts or its stored access credential. Acknowledge the fence
-        // before storage is cleared; Apple cleanup can finish afterwards.
-        await fenceWatchScheduleOnExit();
+        // workouts or its stored access credential. Do not switch without an
+        // acknowledged fence; Apple cleanup can finish afterwards.
+        const acknowledged = await fenceWatchScheduleOnExit();
+        if (!acknowledged) {
+          setError(m.apple_watch_server_switch_blocked());
+          return;
+        }
         void disconnectWatchSchedule().catch(() => undefined);
       }
       if (saveSelectedServerUrl(url, defaultUrl)) {

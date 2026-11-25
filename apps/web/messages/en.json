@@ -3233,5 +3233,9 @@
   "apple_watch_skip_zone": "A training zone could not be resolved for this session.",
   "apple_watch_skip_structure": "This session's structure cannot be expressed in Apple's Workout app.",
   "apple_watch_skip_other": "This session cannot be represented in Apple's Workout app.",
-  "apple_watch_local_pending": "{count} workouts are safely waiting to be retried on the next refresh."
+  "apple_watch_local_pending": "{count} workouts are safely waiting to be retried on the next refresh.",
+  "apple_watch_cleanup_incomplete": "Apple Watch cleanup did not finish. Scheduling stays paused; refresh to try again.",
+  "apple_watch_cleanup_unknown": "OpenAthlete could not read its pending Apple Watch cleanup. Scheduling stays paused until it can.",
+  "apple_watch_server_switch_blocked": "Could not stop Apple Watch scheduling on this iPhone. Apple Watch scheduling blocks the server switch until it is acknowledged.",
+  "apple_watch_fence_unconfirmed": "Apple Watch scheduling could not be stopped on this iPhone. Sign in again to finish cleanup."
 }

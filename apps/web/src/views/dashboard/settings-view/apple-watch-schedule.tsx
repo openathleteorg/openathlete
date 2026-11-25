@@ -6,9 +6,12 @@ import {
   type WatchScheduleResult,
   type WatchScheduleSkippedEvent,
   type WatchScheduleStatus,
+  clearFenceUnconfirmed,
   connectWatchSchedule,
   disconnectWatchSchedule,
+  fenceWatchScheduleOnExit,
   getWatchScheduleStatus,
+  hasFenceUnconfirmed,
   isAppleWatchScheduleAvailable,
   refreshWatchSchedule,
   watchScheduleCredential,
@@ -122,8 +125,11 @@ function AppleWatchScheduleSectionIOS() {
     null,
   );
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
-  const [failure, setFailure] = useState<'unavailable' | 'expired' | null>(
-    null,
+  const [failure, setFailure] = useState<
+    'unavailable' | 'expired' | 'cleanup' | null
+  >(null);
+  const [fenceUnconfirmed, setFenceUnconfirmed] = useState(
+    hasFenceUnconfirmed(),
   );
   const mounted = useRef(true);
 
@@ -160,8 +166,13 @@ function AppleWatchScheduleSectionIOS() {
       try {
         const next = await getWatchScheduleStatus(currentScope);
         if (cancelled || !mounted.current) return;
-        if (next.hasOtherAccountOptIn) {
-          // Finish the previous account's cleanup before offering this one.
+        if (
+          next.hasOtherAccountOptIn ||
+          next.cleanupPending ||
+          next.cleanupUnknown
+        ) {
+          // Finish any durable teardown, including a crashed same-account one,
+          // before offering this account again.
           await disconnectWatchSchedule();
           if (cancelled || !mounted.current) return;
           setStatus(await getWatchScheduleStatus(currentScope));
@@ -255,8 +266,16 @@ function AppleWatchScheduleSectionIOS() {
     if (!scope || busy) return;
     setBusy('disconnect');
     try {
-      await disconnectWatchSchedule(scope);
+      const report = await disconnectWatchSchedule(scope);
       setConfirmDisconnect(false);
+      if (
+        report &&
+        (!report.purgedCredential ||
+          report.retainedEventIDs.length > 0 ||
+          report.unresolvedEventIDs.length > 0)
+      ) {
+        setFailure('cleanup');
+      }
       await loadStatus();
     } catch {
       if (mounted.current) setFailure('unavailable');
@@ -342,6 +361,44 @@ function AppleWatchScheduleSectionIOS() {
         {failure === 'expired' && (
           <SettingsRow stacked description={m.apple_watch_sign_in_again()} />
         )}
+
+        {failure === 'cleanup' && (
+          <SettingsRow
+            stacked
+            description={m.apple_watch_cleanup_incomplete()}
+          />
+        )}
+
+        {status.cleanupUnknown && (
+          <SettingsRow stacked description={m.apple_watch_cleanup_unknown()} />
+        )}
+
+        {fenceUnconfirmed && (
+          <SettingsRow stacked description={m.apple_watch_fence_unconfirmed()}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                void fenceWatchScheduleOnExit().then((acknowledged) => {
+                  if (!acknowledged) return;
+                  clearFenceUnconfirmed();
+                  setFenceUnconfirmed(false);
+                });
+              }}
+            >
+              {m.apple_watch_refresh()}
+            </Button>
+          </SettingsRow>
+        )}
+
+        {status.cleanupPending &&
+          !status.cleanupUnknown &&
+          status.pendingCleanupEventIDs.length === 0 && (
+            <SettingsRow
+              stacked
+              description={m.apple_watch_cleanup_incomplete()}
+            />
+          )}
 
         {failure === 'unavailable' && status.lastErrorCode && (
           <SettingsRow stacked description={m.apple_watch_error_refresh()} />

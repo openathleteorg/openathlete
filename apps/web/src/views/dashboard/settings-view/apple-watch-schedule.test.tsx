@@ -23,6 +23,9 @@ const state = vi.hoisted(() => ({
 
 vi.mock('@/utils/watch-schedule', () => ({
   isAppleWatchScheduleAvailable: () => state.available,
+  hasFenceUnconfirmed: () => false,
+  clearFenceUnconfirmed: vi.fn(),
+  fenceWatchScheduleOnExit: vi.fn().mockResolvedValue(true),
   getWatchScheduleStatus: state.getStatus,
   connectWatchSchedule: state.connect,
   refreshWatchSchedule: state.refresh,
@@ -98,6 +101,8 @@ function status(
     unresolvedEventIDs: [],
     localPendingEventIDs: [],
     otherAccountPending: false,
+    cleanupPending: false,
+    cleanupUnknown: false,
     ...overrides,
   };
 }
@@ -359,5 +364,38 @@ describe('Apple Watch settings', () => {
 
     expect(state.disconnect).toHaveBeenCalledWith(scope);
     expect(text()).toContain('apple_watch_enable');
+  });
+
+  it('surfaces a cleanup or credential retirement that did not finish', async () => {
+    state.getStatus.mockResolvedValue(status({ enabled: true }));
+    state.disconnect.mockResolvedValue({
+      athleteId: 7,
+      instanceURL: 'https://train.example.org/api',
+      removedEventIDs: [12],
+      retainedEventIDs: [],
+      unresolvedEventIDs: [],
+      purgedCredential: false,
+      permission: 'authorized',
+    });
+
+    await render();
+    await act(async () => button('apple_watch_disconnect')!.click());
+    await flush();
+    await act(async () =>
+      element.querySelector<HTMLButtonElement>('[data-confirm]')!.click(),
+    );
+    await flush();
+
+    expect(text()).toContain('apple_watch_cleanup_incomplete');
+  });
+
+  it('shows an unreadable cleanup state instead of claiming it is clear', async () => {
+    state.getStatus.mockResolvedValue(
+      status({ enabled: true, cleanupUnknown: true }),
+    );
+
+    await render();
+
+    expect(text()).toContain('apple_watch_cleanup_unknown');
   });
 });

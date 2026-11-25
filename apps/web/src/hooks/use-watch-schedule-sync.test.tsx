@@ -32,6 +32,8 @@ const state = vi.hoisted(() => ({
     unresolvedEventIDs: [],
     localPendingEventIDs: [],
     otherAccountPending: false,
+    cleanupPending: false,
+    cleanupUnknown: false,
   },
   getStatus: vi.fn(),
   refresh: vi.fn(),
@@ -57,6 +59,9 @@ vi.mock('@/utils/query-client', () => ({
 }));
 vi.mock('@/utils/watch-schedule', () => ({
   isAppleWatchScheduleAvailable: () => state.available,
+  hasFenceUnconfirmed: () => false,
+  clearFenceUnconfirmed: vi.fn(),
+  fenceWatchScheduleOnExit: vi.fn().mockResolvedValue(true),
   getWatchScheduleStatus: state.getStatus,
   refreshWatchSchedule: state.refresh,
   disconnectWatchSchedule: state.disconnect,
@@ -164,6 +169,17 @@ describe('Apple Watch sync lifecycle', () => {
 
     expect(state.disconnect).toHaveBeenCalledWith();
     expect(state.refresh).toHaveBeenCalledWith(scope, credential, 'launch');
+  });
+
+  it('finishes a durable same-account cleanup before refreshing', async () => {
+    state.getStatus
+      .mockResolvedValueOnce({ ...state.status, cleanupPending: true })
+      .mockResolvedValue({ ...state.status, enabled: false });
+
+    await render();
+
+    expect(state.disconnect).toHaveBeenCalledWith();
+    expect(state.refresh).not.toHaveBeenCalled();
   });
 
   it('does nothing at all without the native bridge', async () => {
