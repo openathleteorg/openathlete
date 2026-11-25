@@ -1,9 +1,10 @@
 import { getAccessToken } from '@/utils/auth';
 import {
   type AuthAttempt,
-  captureAuthAttempt,
+  captureAuthSession,
   clearAuthTokens,
   isAuthAttemptCurrent,
+  isAuthSessionCurrent,
 } from '@/utils/auth-attempt';
 import { QueryClient } from '@tanstack/react-query';
 import axios, { isAxiosError } from 'axios';
@@ -398,6 +399,18 @@ const client = axios.create({
 export const isNetworkError = (error: unknown) =>
   isAxiosError(error) && !error.response;
 
+/**
+ * The session that started a request was replaced while its token was being
+ * refreshed. Sending it now would run account A's mutation as account B, so
+ * the request stops before the adapter instead.
+ */
+export class AuthSessionChangedError extends Error {
+  constructor() {
+    super('auth_session_changed');
+    this.name = 'AuthSessionChangedError';
+  }
+}
+
 client.interceptors.request.use(async (config) => {
   // An auth continuation pins the token and instance it started with. Taking
   // whatever is in storage later is how account A's getMe could be sent with
@@ -412,11 +425,15 @@ client.interceptors.request.use(async (config) => {
     return config;
   }
 
-  config.baseURL = getApiBaseUrl();
-  await getAccessToken();
-  // getAccessToken installs a refreshed session through the generation-aware
-  // helper, so a stale refresh cannot overwrite a newer login.
-  const attempt = captureAuthAttempt();
+  // Capture the destination and owner before refreshing. A refresh may rotate
+  // this owner's token, but it must never make an already-started request
+  // adopt a successor login's bearer or API instance.
+  const initiated = captureAuthSession();
+  config.baseURL = initiated.instanceURL;
+  await getAccessToken(initiated);
+  if (!isAuthSessionCurrent(initiated)) throw new AuthSessionChangedError();
+
+  const attempt = captureAuthSession();
   config.authAttempt = attempt;
   if (attempt.accessToken) {
     config.headers.Authorization = `Bearer ${attempt.accessToken}`;

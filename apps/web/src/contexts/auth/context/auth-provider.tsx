@@ -2,10 +2,11 @@ import { UserAPI } from '@/api/user';
 import { getPath } from '@/routes/paths';
 import { getAccessToken } from '@/utils/auth';
 import {
-  type AuthAttempt,
-  captureAuthAttempt,
+  type AuthSessionSnapshot,
+  captureAuthSession,
   clearAuthTokens,
   isAuthAttemptCurrent,
+  isAuthSessionCurrent,
 } from '@/utils/auth-attempt';
 import { isNetworkError } from '@/utils/axios';
 import { signOutFirebase } from '@/utils/firebase-auth';
@@ -108,7 +109,8 @@ export function AuthProvider({ children }: Props) {
       if (bootstrapIsStale()) return;
       // Without an answer from the API the session is unknown, not signed out:
       // treating it as signed out would send the user to the login page
-      let attempt = captureAuthAttempt();
+      const session = captureAuthSession();
+      let attempt = session;
       const signedOutOrOffline = (error: unknown) => {
         // A 401 for a bearer that is no longer installed must not clear the
         // account that won the race. A cleared store means this attempt's own
@@ -125,17 +127,17 @@ export function AuthProvider({ children }: Props) {
         );
       };
 
-      const complete = async (user: User, attempt: AuthAttempt) => {
+      const complete = async (user: User, session: AuthSessionSnapshot) => {
         // A getMe carries the bearer it actually used. If another login or
         // logout installed a newer session while it was in flight, publishing
         // this user would pair account A's profile with account B's token.
-        if (!isAuthAttemptCurrent(attempt)) return;
-        if (authenticated && attempt.accessToken === null) return;
+        if (!isAuthSessionCurrent(session)) return;
+        if (authenticated && session.accessToken === null) return;
 
         await saveLanguageChoice(user.language);
-        // Not awaited: reminders can wait, the app should not
-        void saveTimeZone(user.timeZone);
-
+        // The language write may take a whole request: a successor can commit
+        // while it is pending. Nothing below may then touch its session.
+        if (!isAuthSessionCurrent(session)) return;
         if (authenticated) {
           // A newer exit or successor may have won while getMe was in flight.
           // Its boundary/epoch differs, so this result must not release it.
@@ -146,8 +148,12 @@ export function AuthProvider({ children }: Props) {
           // this old bearer response is stale even if no latch remains.
           return;
         }
+        if (!isAuthSessionCurrent(session)) return;
         if (isWatchScheduleExitLatched()) return;
-        if (!isAuthAttemptCurrent(attempt)) return;
+
+        // Not awaited: reminders can wait, the app should not. Only now that
+        // the owner is proven current may it write the profile.
+        void saveTimeZone(user.timeZone);
 
         dispatch({
           type: Types.INITIAL,
@@ -172,11 +178,12 @@ export function AuthProvider({ children }: Props) {
       };
 
       try {
-        // Resolve the token before capturing the attempt. A refresh installs
-        // through the generation-aware helper; getMe is then pinned to this
+        // Resolve the token without ever adopting a successor's session. A
+        // refresh may rotate this owner's token; getMe is then pinned to the
         // exact token and instance instead of re-reading storage later.
-        await getAccessToken();
-        attempt = captureAuthAttempt();
+        await getAccessToken(session);
+        if (!isAuthSessionCurrent(session)) return;
+        attempt = captureAuthSession();
         if (bootstrapIsStale()) return;
 
         if (attempt.accessToken !== null) {
@@ -201,7 +208,12 @@ export function AuthProvider({ children }: Props) {
 
   const logout = useCallback((navigate?: (path: string) => void) => {
     const exitScope = watchScheduleActiveScope();
+    // The sign-out belongs to the login that existed when the user asked. A
+    // successor may commit while the native fence waits.
+    const session = captureAuthSession();
     const finish = () => {
+      // Never tear down a session that replaced this one during the wait.
+      if (!isAuthSessionCurrent(session)) return;
       // Cleanup can finish later on the phone; it never holds up navigation.
       // The captured scope makes a delayed teardown unable to retire the
       // account that signs in next.
@@ -215,9 +227,9 @@ export function AuthProvider({ children }: Props) {
           markFenceUnconfirmed(exitScope, 'disconnect');
         }
       });
+      if (!clearAuthTokens(session)) return;
       posthog.capture('user_logged_out');
       posthog.reset();
-      clearAuthTokens();
       forgetWatchScheduleScope();
       clear();
       // The cache outlives an in-app logout. The next account to sign in on
@@ -249,6 +261,7 @@ export function AuthProvider({ children }: Props) {
       // A successor (or a newer exit) owns the session now. Its storage and
       // latch must not be cleared by this older sign-out continuation.
       if (watchScheduleExitBoundary() !== exitBoundary) return;
+      if (!isAuthSessionCurrent(session)) return;
       if (!acknowledged) markFenceUnconfirmed(exitScope, 'fence');
       finish();
     });

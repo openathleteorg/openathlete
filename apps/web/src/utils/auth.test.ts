@@ -13,7 +13,8 @@ vi.mock('./axios', () => ({
 }));
 
 const { refreshToken } = await import('./auth');
-const { installAuthTokens } = await import('./auth-attempt');
+const { captureAuthSession, installAuthTokens, isAuthSessionCurrent } =
+  await import('./auth-attempt');
 const { ACCESS_TOKEN, REFRESH_TOKEN } = await import('./local-storage');
 
 describe('auth token attempts', () => {
@@ -46,6 +47,7 @@ describe('auth token attempts', () => {
 
   it('installs a refresh while the same session is current', async () => {
     installAuthTokens('old-access', 'old-refresh');
+    const before = captureAuthSession();
     post.mockResolvedValue({
       data: { accessToken: 'fresh-access', refreshToken: 'fresh-refresh' },
     });
@@ -56,5 +58,10 @@ describe('auth token attempts', () => {
       refreshed: true,
     });
     expect(localStorage.getItem(ACCESS_TOKEN)).toBe('fresh-access');
+    // Rotating within one login must not look like a successor session.
+    expect(isAuthSessionCurrent(before)).toBe(true);
+    const after = captureAuthSession();
+    expect(after.owner).toBe(before.owner);
+    expect(after.accessToken).toBe('fresh-access');
   });
 });

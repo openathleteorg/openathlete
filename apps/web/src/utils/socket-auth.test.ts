@@ -3,6 +3,7 @@ import type { Socket } from 'socket.io-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getAccessToken, refreshToken } from './auth';
+import { installAuthTokens } from './auth-attempt';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './local-storage';
 import { keepSocketAuthenticated } from './socket-auth';
 
@@ -53,7 +54,8 @@ describe('keepSocketAuthenticated', () => {
     localStorage.clear();
   });
 
-  it('sends the current token with every handshake', async () => {
+  it('sends the current token with every handshake without installing it', async () => {
+    installAuthTokens('installed-access', 'installed-refresh');
     const socket = fakeSocket();
     keepSocketAuthenticated(socket as unknown as Socket);
     const first = tokenExpiringIn(3600);
@@ -71,8 +73,10 @@ describe('keepSocketAuthenticated', () => {
       refreshed: true,
     });
     await expect(handshake(socket)).resolves.toEqual({ token: second });
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(second);
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('new-refresh');
+    // Refreshing is auth's job: a consumer must not write its result, or a
+    // late answer could restore the previous account.
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('installed-access');
+    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('installed-refresh');
   });
 
   // The server checks each event against the handshake token: a connected
@@ -99,6 +103,7 @@ describe('keepSocketAuthenticated', () => {
     keepSocketAuthenticated(socket as unknown as Socket);
     // The device's clock still deems the token valid
     const stale = tokenExpiringIn(600);
+    installAuthTokens(stale, 'stale-refresh');
     vi.mocked(getAccessToken).mockResolvedValueOnce({
       accessToken: stale,
       refreshed: false,
@@ -117,8 +122,46 @@ describe('keepSocketAuthenticated', () => {
 
     expect(refreshToken).toHaveBeenCalledTimes(1);
     expect(socket.disconnect).toHaveBeenCalledTimes(1);
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(fresh);
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('new-refresh');
+    // The refresh helper owns installation; the socket only reconnects.
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(stale);
+    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('stale-refresh');
+  });
+
+  it('ignores a refresh that resolves after a successor signed in', async () => {
+    const socket = fakeSocket();
+    keepSocketAuthenticated(socket as unknown as Socket);
+    const stale = tokenExpiringIn(600);
+    installAuthTokens(stale, 'stale-refresh');
+    vi.mocked(getAccessToken).mockResolvedValueOnce({
+      accessToken: stale,
+      refreshed: false,
+    });
+    await handshake(socket);
+
+    let resolveRefresh!: (
+      value: Awaited<ReturnType<typeof refreshToken>>,
+    ) => void;
+    vi.mocked(refreshToken).mockReturnValue(
+      new Promise((resolve) => {
+        resolveRefresh = resolve;
+      }),
+    );
+    socket.refuses('Unauthorized: jwt expired');
+    await vi.waitFor(() => expect(refreshToken).toHaveBeenCalled());
+
+    // Account B commits while the socket refresh is in flight.
+    installAuthTokens('token-b', 'refresh-b');
+    resolveRefresh({
+      accessToken: tokenExpiringIn(3600),
+      refreshToken: 'new-refresh',
+      refreshed: true,
+    });
+    await vi.waitFor(() =>
+      expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b'),
+    );
+
+    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(socket.disconnect).not.toHaveBeenCalled();
   });
 
   it('stays put when no new token can be obtained', async () => {

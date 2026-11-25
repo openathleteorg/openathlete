@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { useAuthContext } from '@/contexts/auth';
 import { installAuthTokens } from '@/utils/auth-attempt';
-import { ACCESS_TOKEN } from '@/utils/local-storage';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/utils/local-storage';
 import { AxiosError } from 'axios';
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
@@ -12,6 +12,7 @@ import { AuthProvider } from './auth-provider';
 
 const api = vi.hoisted(() => ({ getMe: vi.fn() }));
 const auth = vi.hoisted(() => ({ getAccessToken: vi.fn() }));
+const language = vi.hoisted(() => ({ save: vi.fn() }));
 const watch = vi.hoisted(() => ({
   latch: vi.fn(),
   establish: vi.fn(),
@@ -45,7 +46,7 @@ vi.mock('@/utils/firebase-auth', () => ({
   signOutFirebase: () => Promise.resolve(),
 }));
 vi.mock('@/utils/language-choice', () => ({
-  saveLanguageChoice: () => Promise.resolve(),
+  saveLanguageChoice: language.save,
 }));
 vi.mock('@/utils/time-zone', () => ({
   saveTimeZone: () => Promise.resolve(),
@@ -62,6 +63,14 @@ vi.mock('@/paraglide/messages', () => ({
 
 const offline = () =>
   new AxiosError('Network Error', AxiosError.ERR_NETWORK, undefined);
+const unauthorized = () =>
+  new AxiosError('Unauthorized', AxiosError.ERR_BAD_REQUEST, undefined, null, {
+    status: 401,
+    statusText: '',
+    data: {},
+    headers: {},
+    config: {} as never,
+  });
 const user = { userId: 1, roles: ['ATHLETE'], language: 'EN' };
 
 function LogoutProbe() {
@@ -70,11 +79,14 @@ function LogoutProbe() {
 }
 
 function InitializeProbe() {
-  const { initialize } = useAuthContext();
+  const { initialize, user } = useAuthContext();
   return (
-    <button onClick={() => void initialize({ authenticated: true })}>
-      authenticate
-    </button>
+    <>
+      <button onClick={() => void initialize({ authenticated: true })}>
+        authenticate
+      </button>
+      {user ? <p>user {user.userId}</p> : null}
+    </>
   );
 }
 
@@ -90,9 +102,16 @@ describe('auth start without a connection', () => {
       accessToken: 'token-a',
       refreshed: false,
     });
+    language.save.mockReset();
+    language.save.mockResolvedValue(undefined);
     watch.latch.mockReset();
     watch.establish.mockReset();
-    watch.establish.mockReturnValue(true);
+    // Mirrors the real boundary: establishing a session advances its epoch.
+    watch.establish.mockImplementation(() => {
+      watch.sessionEpoch += 1;
+      watch.latched = false;
+      return true;
+    });
     watch.fence.mockReset();
     watch.fence.mockResolvedValue(true);
     watch.disconnect.mockReset();
@@ -289,6 +308,56 @@ describe('auth start without a connection', () => {
     expect(watch.establish).not.toHaveBeenCalled();
   });
 
+  it('publishes nothing and advances no Watch epoch when a successor signs in during the language save', async () => {
+    api.getMe.mockRejectedValueOnce(unauthorized()).mockResolvedValue(user);
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <InitializeProbe />
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(text()).not.toContain('user');
+
+    let resolveLanguage!: () => void;
+    language.save.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveLanguage = resolve;
+      }),
+    );
+    watch.establish.mockClear();
+    const epochBefore = watch.sessionEpoch;
+
+    await act(async () => container.querySelector('button')!.click());
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(language.save).toHaveBeenCalledTimes(1);
+
+    // Account B commits while A is still saving its language.
+    act(() => installAuthTokens('token-b', 'refresh-b'));
+    await act(async () => {
+      resolveLanguage();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(watch.establish).not.toHaveBeenCalled();
+    expect(watch.sessionEpoch).toBe(epochBefore);
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    // The successor may publish its own user; this stale response may not.
+    expect(text()).not.toContain('user');
+  });
+
   it('marks a missed exit with its original scope and disconnects only it', async () => {
     const previous = {
       instanceURL: 'https://train.example.org/api',
@@ -358,6 +427,41 @@ describe('auth start without a connection', () => {
 
     expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
     expect(text()).not.toContain('offline_title');
+  });
+
+  it('keeps a successor session when an older logout fence resolves late', async () => {
+    api.getMe.mockResolvedValue(user);
+    watch.latch.mockReturnValue(1);
+    watch.boundary = 1;
+    let resolveFence!: (acknowledged: boolean) => void;
+    watch.fence.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveFence = resolve;
+      }),
+    );
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <LogoutProbe />
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    await act(async () => container.querySelector('button')!.click());
+    expect(watch.fence).toHaveBeenCalledTimes(1);
+
+    // The successor commits while the old sign-out still waits for native.
+    act(() => installAuthTokens('token-b', 'refresh-b'));
+    await act(async () => {
+      resolveFence(true);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(watch.disconnect).not.toHaveBeenCalled();
   });
 
   it('latches the watch exit before waiting for the native fence', async () => {

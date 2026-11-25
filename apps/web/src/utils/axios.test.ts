@@ -1,10 +1,19 @@
 // @vitest-environment jsdom
 import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { installAuthTokens } from './auth-attempt';
-import client, { isNetworkError } from './axios';
+import client, { AuthSessionChangedError, isNetworkError } from './axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './local-storage';
+
+const auth = vi.hoisted(() => ({ getAccessToken: vi.fn() }));
+const capacitor = vi.hoisted(() => ({
+  apiBaseUrl: 'https://api-a.example.org',
+}));
+vi.mock('@/utils/auth', () => ({ getAccessToken: auth.getAccessToken }));
+vi.mock('./capacitor', () => ({
+  getApiBaseUrl: () => capacitor.apiBaseUrl,
+}));
 
 // Answers every request with the given status, without any network.
 const respondWith =
@@ -23,8 +32,14 @@ const ACCESS = `header.${btoa(JSON.stringify({ exp: 4102444800 }))}.signature`;
 
 describe('API client errors', () => {
   beforeEach(() => {
-    localStorage.setItem(ACCESS_TOKEN, ACCESS);
-    localStorage.setItem(REFRESH_TOKEN, 'refresh');
+    localStorage.clear();
+    capacitor.apiBaseUrl = 'https://api-a.example.org';
+    auth.getAccessToken.mockReset();
+    auth.getAccessToken.mockResolvedValue({
+      accessToken: ACCESS,
+      refreshed: false,
+    });
+    installAuthTokens(ACCESS, 'refresh');
   });
 
   it('drops the tokens on 401 and still reports the failure', async () => {
@@ -69,6 +84,56 @@ describe('API client errors', () => {
     });
     expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
     expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+  });
+
+  it('never sends a request with a successor token after a refresh', async () => {
+    let resolveToken!: (value: unknown) => void;
+    auth.getAccessToken.mockReturnValue(
+      new Promise((resolve) => {
+        resolveToken = resolve;
+      }),
+    );
+    const adapter = vi.fn(async () => {
+      throw new Error('adapter reached');
+    });
+    const outcome = client.get('/event', { adapter }).then(
+      () => null,
+      (error: unknown) => error,
+    );
+    await vi.waitFor(() => expect(auth.getAccessToken).toHaveBeenCalled());
+
+    // Account B commits while A's refresh is still pending.
+    installAuthTokens('token-b', 'refresh-b');
+    resolveToken({ accessToken: 'fresh-a', refreshed: true });
+
+    await expect(outcome).resolves.toBeInstanceOf(AuthSessionChangedError);
+    expect(adapter).not.toHaveBeenCalled();
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+  });
+
+  it('never sends a request after its API instance changed during refresh', async () => {
+    let resolveToken!: (value: unknown) => void;
+    auth.getAccessToken.mockReturnValue(
+      new Promise((resolve) => {
+        resolveToken = resolve;
+      }),
+    );
+    const adapter = vi.fn(async () => {
+      throw new Error('adapter reached');
+    });
+    const outcome = client.get('/event', { adapter }).then(
+      () => null,
+      (error: unknown) => error,
+    );
+    await vi.waitFor(() => expect(auth.getAccessToken).toHaveBeenCalled());
+
+    capacitor.apiBaseUrl = 'https://api-b.example.org';
+    resolveToken({ accessToken: 'fresh-a', refreshed: true });
+
+    await expect(outcome).resolves.toBeInstanceOf(AuthSessionChangedError);
+    expect(adapter).not.toHaveBeenCalled();
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(ACCESS);
   });
 
   it('tells a request without any answer from an answered failure', async () => {

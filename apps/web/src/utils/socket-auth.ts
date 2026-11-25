@@ -1,22 +1,14 @@
 import type { Socket } from 'socket.io-client';
 
 import { getAccessToken, isValidToken, refreshToken } from './auth';
-import { installAuthTokens } from './auth-attempt';
+import { captureAuthSession, isAuthSessionCurrent } from './auth-attempt';
 
 const EXPIRY_CHECK_INTERVAL = 60 * 1000;
-
-type TokenInfo = Awaited<ReturnType<typeof getAccessToken>>;
 
 export type SocketAuthentication = {
   /** Reconnects with a fresh token when the one of the handshake expired. */
   reconnectIfExpired: () => void;
   stop: () => void;
-};
-
-const storeTokens = (info: TokenInfo) => {
-  if (info?.refreshToken) {
-    installAuthTokens(info.accessToken, info.refreshToken);
-  }
 };
 
 /**
@@ -31,10 +23,17 @@ export function keepSocketAuthenticated(socket: Socket): SocketAuthentication {
   let refreshing = false;
 
   socket.auth = (send) => {
-    void getAccessToken()
+    const session = captureAuthSession();
+    void getAccessToken(session)
       .catch(() => null)
       .then((info) => {
-        storeTokens(info);
+        // Auth owns credential writes. A late answer for a previous owner
+        // must neither install its refresh nor hand this socket its token.
+        if (!isAuthSessionCurrent(session)) {
+          handshakeToken = null;
+          send({ token: '' });
+          return;
+        }
         handshakeToken = info?.accessToken ?? null;
         send({ token: handshakeToken ?? '' });
       });
@@ -58,12 +57,14 @@ export function keepSocketAuthenticated(socket: Socket): SocketAuthentication {
       return;
     }
     refreshing = true;
-    void refreshToken()
+    const session = captureAuthSession();
+    void refreshToken(session)
       .catch(() => null)
       .then((info) => {
         refreshing = false;
-        if (!info || info.accessToken === handshakeToken) return;
-        storeTokens(info);
+        if (!info || !isAuthSessionCurrent(session)) return;
+        if (info.accessToken === handshakeToken) return;
+        handshakeToken = info.accessToken;
         socket.disconnect().connect();
       });
   };
