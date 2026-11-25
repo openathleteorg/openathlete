@@ -1,9 +1,16 @@
 import { m } from '@/paraglide/messages';
 
-import type { AmrapMoment, Moment, WorkMoment } from '@openathlete/shared';
+import type {
+  AmrapMoment,
+  Moment,
+  UnitSystem,
+  WorkMoment,
+} from '@openathlete/shared';
 import {
+  M_TO_YD,
   WORKOUT_DURATION_TYPE,
   WORKOUT_REPEAT_KIND,
+  toUnitWeight,
 } from '@openathlete/shared';
 
 import { stepTypeLabel } from '../session-builder/step-type-label';
@@ -26,9 +33,17 @@ export function clock(seconds: number): string {
 }
 
 /** What to do, in words: "8 reps at 60 kg", "45 s" */
-export function workText(moment: WorkMoment): string {
+export function workText(
+  moment: WorkMoment,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
   const work = moment.work;
-  const load = moment.load ? ` · ${moment.load} kg` : '';
+  const load = moment.load
+    ? (() => {
+        const w = toUnitWeight(moment.load, unitSystem);
+        return ` · ${w.value} ${w.unit}`;
+      })()
+    : '';
   if (work.type === 'open') return '';
   switch (work.type) {
     case WORKOUT_DURATION_TYPE.REPS:
@@ -36,7 +51,9 @@ export function workText(moment: WorkMoment): string {
     case WORKOUT_DURATION_TYPE.TIME:
       return `${spokenSeconds(work.value)}${load}`;
     default:
-      return `${work.value} m${load}`;
+      return unitSystem === 'IMPERIAL'
+        ? `${Math.round(work.value * M_TO_YD)} yd${load}`
+        : `${work.value} m${load}`;
   }
 }
 
@@ -57,6 +74,7 @@ export function positionText(moment: WorkMoment): string {
 export function announcement(
   moment: Moment,
   next: WorkMoment | AmrapMoment | null,
+  unitSystem: UnitSystem = 'METRIC',
 ): string {
   if (moment.kind === 'rest') {
     const after =
@@ -66,6 +84,6 @@ export function announcement(
   if (moment.kind === 'amrap') {
     return m.player_say_amrap({ length: spokenSeconds(moment.seconds) });
   }
-  const what = workText(moment);
+  const what = workText(moment, unitSystem);
   return what ? `${moment.name}. ${what}.` : `${moment.name}.`;
 }

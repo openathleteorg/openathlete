@@ -7,6 +7,7 @@ import { GarminAttribution } from '@/components/garmin-attribution/garmin-attrib
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { cn } from '@/utils/shadcn';
@@ -92,6 +93,7 @@ export function ThresholdZonesPanel({
   currentCount: number;
   onApply: (zones: Omit<ZoneDraft, 'key'>[]) => void;
 }) {
+  const units = useUnits();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [sourceId, setSourceId] = useState<string | null>(null);
@@ -182,7 +184,7 @@ export function ThresholdZonesPanel({
           id: `${kind}-${power.type}`,
           label: message({
             metric,
-            value: `${round(watts)} W → ${formatPace(pace)}/km`,
+            value: `${round(watts)} W → ${formatPace(pace * units.paceFactor)}${units.unitSystem === 'IMPERIAL' ? '/mi' : '/km'}`,
           }),
           value: pace,
         },
@@ -190,12 +192,18 @@ export function ThresholdZonesPanel({
     }),
   );
 
-  const threshold = isPace ? parsePace(input) : Number(input);
+  const parsedThreshold = isPace ? parsePace(input) : Number(input);
+  const threshold =
+    parsedThreshold !== null && isPace
+      ? parsedThreshold / units.paceFactor
+      : parsedThreshold;
   const valid = threshold !== null && threshold > 0;
 
   const pick = (source: Source) => {
     setSourceId(source.id);
-    setInput(isPace ? formatPace(source.value) : String(source.value));
+    setInput(
+      isPace ? formatPace(source.value * units.paceFactor) : String(source.value),
+    );
   };
 
   const choose = (id: string) => {
@@ -402,7 +410,9 @@ export function ThresholdZonesPanel({
           id="zones-threshold"
           inputMode={isPace ? 'text' : 'numeric'}
           type={isPace ? 'text' : 'number'}
-          placeholder={isPace ? '4:10' : undefined}
+          placeholder={
+            isPace ? (units.unitSystem === 'IMPERIAL' ? '6:40' : '4:10') : undefined
+          }
           value={input}
           onChange={(event) => {
             setInput(event.target.value);

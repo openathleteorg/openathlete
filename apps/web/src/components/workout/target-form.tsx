@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -162,6 +163,7 @@ export function TargetForm({
   cancelLabel = m.target_form_cancel(),
   sport,
 }: TargetFormProps) {
+  const units = useUnits();
   const { data: athlete } = useGetMyAthleteQuery();
   // Percentages read the session athlete's FTP or VMA, not the coach's
   const workoutAthleteId = useWorkoutAthleteId();
@@ -197,6 +199,13 @@ export function TargetForm({
     return value / 100;
   };
 
+  const isInitialWeight =
+    initialValues?.targetType === WORKOUT_TARGET_TYPE.WEIGHT;
+  const toDisplayWeight = (value: number | null | undefined): number | null =>
+    value === null || value === undefined
+      ? null
+      : Number((value * units.weightFactor).toFixed(1));
+
   const form = useForm<TargetFormValues>({
     resolver: zodResolver(targetFormSchema),
     defaultValues: {
@@ -206,19 +215,25 @@ export function TargetForm({
             initialValues?.targetMin,
             initialMetricType,
           )
-        : initialValues?.targetMin || null,
+        : isInitialWeight
+          ? toDisplayWeight(initialValues?.targetMin)
+          : initialValues?.targetMin || null,
       targetMax: hasInitialMetric
         ? convertFromStoredPercentage(
             initialValues?.targetMax,
             initialMetricType,
           )
-        : initialValues?.targetMax || null,
+        : isInitialWeight
+          ? toDisplayWeight(initialValues?.targetMax)
+          : initialValues?.targetMax || null,
       targetValue: hasInitialMetric
         ? convertFromStoredPercentage(
             initialValues?.targetValue,
             initialMetricType,
           )
-        : initialValues?.targetValue || null,
+        : isInitialWeight
+          ? toDisplayWeight(initialValues?.targetValue)
+          : initialValues?.targetValue || null,
       metricType: initialMetricType,
     },
   });
@@ -257,6 +272,12 @@ export function TargetForm({
         values.targetValue,
         values.metricType,
       );
+    } else if (values.targetType === WORKOUT_TARGET_TYPE.WEIGHT) {
+      const fromDisplayWeight = (v: number | null | undefined) =>
+        v === null || v === undefined ? null : v / units.weightFactor;
+      finalMin = fromDisplayWeight(values.targetMin);
+      finalMax = fromDisplayWeight(values.targetMax);
+      finalValue = fromDisplayWeight(values.targetValue);
     }
 
     // Clear unused fields based on range toggle and type
@@ -499,13 +520,13 @@ export function TargetForm({
               <RHFNumberWithUnit
                 name="targetMin"
                 label={m.target_form_min_value()}
-                unit="kg"
+                unit={units.weightLabel}
                 min={0}
               />
               <RHFNumberWithUnit
                 name="targetMax"
                 label={m.target_form_max_value()}
-                unit="kg"
+                unit={units.weightLabel}
                 min={0}
               />
             </div>
@@ -513,7 +534,7 @@ export function TargetForm({
             <RHFNumberWithUnit
               name="targetValue"
               label={m.target_form_single_value()}
-              unit="kg"
+              unit={units.weightLabel}
               min={0}
             />
           )

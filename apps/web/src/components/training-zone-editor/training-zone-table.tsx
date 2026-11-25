@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { SettingsPanel } from '@/views/dashboard/settings-view/settings-section';
 import { useMemo } from 'react';
@@ -18,6 +19,7 @@ import {
 } from '@openathlete/shared';
 
 import { describeSports } from './sport-summary';
+import { formatPace } from './zone-profiles';
 
 interface TrainingZoneTableProps {
   zones: (TrainingZone & { values: TrainingZoneValue[] })[];
@@ -25,6 +27,11 @@ interface TrainingZoneTableProps {
 }
 
 export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
+  const units = useUnits();
+  const formatBound = (type: TRAINING_ZONE_TYPE, value: number) =>
+    type === TRAINING_ZONE_TYPE.PACE && units.unitSystem === 'IMPERIAL'
+      ? formatPace(value * units.paceFactor)
+      : value;
   const displayData = useMemo(() => {
     const sportConfigs = new Map<
       string,
@@ -94,10 +101,10 @@ export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
                             {item.zone.description}
                           </TableCell>
                           <TableCell className="text-right font-mono">
-                            {item.value.min}
+                            {formatBound(item.zone.type, item.value.min)}
                           </TableCell>
                           <TableCell className="text-right font-mono">
-                            {item.value.max}
+                            {formatBound(item.zone.type, item.value.max)}
                             {isLastZone &&
                               item.zone.type !==
                                 TRAINING_ZONE_TYPE.HEARTRATE && (

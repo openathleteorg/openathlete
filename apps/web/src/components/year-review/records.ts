@@ -1,6 +1,6 @@
 import { m } from '@/paraglide/messages';
 
-import { YearReviewRecordDto } from '@openathlete/shared';
+import { UnitSystem, YearReviewRecordDto } from '@openathlete/shared';
 
 import { formatClock, formatNumber } from './format';
 
@@ -11,7 +11,10 @@ function duration(seconds: number) {
 }
 
 /** "10 km", "Half marathon", "1,500 m swim", "20 min power" */
-export function recordLabel(record: YearReviewRecordDto): string {
+export function recordLabel(
+  record: YearReviewRecordDto,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
   if (record.type === 'POWER') {
     return m.year_review_record_power({ duration: duration(record.duration!) });
   }
@@ -21,6 +24,10 @@ export function recordLabel(record: YearReviewRecordDto): string {
   }
   if (meters === 21097.5) return m.year_review_record_half();
   if (meters === 42195) return m.year_review_record_marathon();
+  if (unitSystem === 'IMPERIAL') {
+    const miles = meters / 1609.34;
+    return `${formatNumber(miles, Number.isInteger(Number(miles.toFixed(1))) ? 0 : 1)} mi`;
+  }
   return `${formatNumber(meters / 1000, meters % 1000 ? 1 : 0)} km`;
 }
 

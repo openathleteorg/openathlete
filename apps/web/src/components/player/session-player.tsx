@@ -1,6 +1,7 @@
 import { useCompleteStrengthSessionMutation } from '@/api/exercise';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { activityPath } from '@/routes/paths';
 import { hapticSuccess, hapticTap } from '@/utils/haptics';
@@ -270,6 +271,7 @@ function WorkView({
   onLoad: (value: number) => void;
   paused: boolean;
 }) {
+  const units = useUnits();
   const [howTo, setHowTo] = useState(false);
   const timed = moment.work.type === WORKOUT_DURATION_TYPE.TIME;
   const isReps = moment.work.type === WORKOUT_DURATION_TYPE.REPS;
@@ -323,7 +325,7 @@ function WorkView({
             className="text-2xl font-semibold text-muted-foreground md:text-3xl"
             data-player-target
           >
-            {workText(moment) || m.player_open()}
+            {workText(moment, units.unitSystem) || m.player_open()}
           </p>
         )}
         <div className="flex flex-wrap justify-center gap-1.5 md:justify-start">
@@ -363,10 +365,12 @@ function WorkView({
             {load !== null && (
               <Adjuster
                 label={m.strength_load()}
-                value={load}
-                step={2.5}
-                unit="kg"
-                onChange={onLoad}
+                value={units.weight(load)}
+                step={units.unitSystem === 'IMPERIAL' ? 5 : 2.5}
+                unit={units.weightLabel}
+                onChange={(display) =>
+                  onLoad(Number((display / units.weightFactor).toFixed(2)))
+                }
               />
             )}
           </div>
@@ -402,6 +406,7 @@ function NextUp({
   moment: WorkMoment | AmrapMoment | null;
   info: ExerciseInfo | null;
 }) {
+  const units = useUnits();
   if (!moment) {
     return (
       <p className="text-lg font-medium text-muted-foreground">
@@ -431,7 +436,7 @@ function NextUp({
         </p>
         {moment.kind === 'work' && (
           <p className="text-sm text-muted-foreground">
-            {positionText(moment)} · {workText(moment)}
+            {positionText(moment)} · {workText(moment, units.unitSystem)}
           </p>
         )}
       </div>
@@ -461,6 +466,7 @@ export function SessionPlayer({
   done,
   onExit,
 }: SessionPlayerProps) {
+  const units = useUnits();
   const navigate = useNavigate();
   const { resolve } = useExercises();
   const moments = useMemo(() => sessionTimeline(steps), [steps]);
@@ -521,8 +527,8 @@ export function SessionPlayer({
     announced.current = moment.key;
     hapticTap();
     vibrate(80);
-    if (!muted) speak(announcement(moment, next));
-  }, [running, moment, next, muted]);
+    if (!muted) speak(announcement(moment, next, units.unitSystem));
+  }, [running, moment, next, muted, units.unitSystem]);
   const remaining = momentRemaining(state, now);
   const lastBeep = useRef<string>('');
   useEffect(() => {
@@ -675,7 +681,7 @@ export function SessionPlayer({
         return [
           {
             exercise: block.exercise,
-            detail: setsSummary(block.exercise.sets),
+            detail: setsSummary(block.exercise.sets, units.unitSystem),
           },
         ];
       }
@@ -687,6 +693,7 @@ export function SessionPlayer({
               { length: block.group === 'AMRAP' ? 1 : block.rounds },
               () => ({ ...exercise.sets[0], rest: null }),
             ),
+            units.unitSystem,
           )}`,
         }));
       }
@@ -813,7 +820,9 @@ export function SessionPlayer({
             ],
             [String(totals.sets), m.player_total_sets()],
             [
-              totals.volume ? `${totals.volume} kg` : String(totals.reps),
+              totals.volume
+                ? `${Math.round(totals.volume * units.weightFactor)} ${units.weightLabel}`
+                : String(totals.reps),
               totals.volume ? m.player_total_volume() : m.player_total_reps(),
             ],
           ].map(([value, label]) => (
@@ -1129,6 +1138,7 @@ function AmrapView({
   remaining: number;
   infoOf: (work: WorkMoment) => ExerciseInfo | null;
 }) {
+  const units = useUnits();
   const progress = state.amrap[moment.key] ?? { position: 0, rounds: 0 };
   const work = moment.round[progress.position];
   return (
@@ -1155,7 +1165,9 @@ function AmrapView({
             className="size-48 md:size-64"
           />
           <h1 className="text-3xl font-bold">{work.name}</h1>
-          <p className="text-2xl text-muted-foreground">{workText(work)}</p>
+          <p className="text-2xl text-muted-foreground">
+            {workText(work, units.unitSystem)}
+          </p>
           <p className="text-sm text-muted-foreground">
             {m.player_amrap_position({
               position: progress.position + 1,

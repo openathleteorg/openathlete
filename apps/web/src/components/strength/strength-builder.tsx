@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import {
@@ -668,6 +669,7 @@ export function StrengthBuilder({
     past: [],
     future: [],
   }));
+  const units = useUnits();
   const [picker, setPicker] = useState<PickerRequest | null>(null);
   const [quick, setQuick] = useState('');
   const quickInput = useRef<HTMLInputElement>(null);
@@ -928,7 +930,7 @@ export function StrengthBuilder({
           {quick.trim()
             ? quickParsed
               ? quickMatch
-                ? `→ ${quickMatch.name} · ${quickParsed.sets} × ${quickParsed.work.type === 'REPS' ? quickParsed.work.value : formatSeconds(quickParsed.work.value)}${quickParsed.load ? ` @ ${quickParsed.load} kg` : ''}${quickParsed.rest ? ` · ${m.strength_rest()} ${formatSeconds(quickParsed.rest)}` : ''}`
+                ? `→ ${quickMatch.name} · ${quickParsed.sets} × ${quickParsed.work.type === 'REPS' ? quickParsed.work.value : formatSeconds(quickParsed.work.value)}${quickParsed.load ? ` @ ${units.weight(quickParsed.load)} ${units.weightLabel}` : ''}${quickParsed.rest ? ` · ${m.strength_rest()} ${formatSeconds(quickParsed.rest)}` : ''}`
                 : m.strength_quick_no_match({ query: quickParsed.query })
               : quickStep
                 ? `→ ${quickStep.map((step) => formatStepLength(step) ?? '').join(' + ')}`

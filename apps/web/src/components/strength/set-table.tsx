@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { Plus, X } from 'lucide-react';
@@ -66,13 +67,13 @@ export function CellInput({
   );
 }
 
-const loadOf = (text: string): number | null | undefined => {
-  const value = text.replace(',', '.').replace(/kg/i, '').trim();
+const loadOf = (text: string, factor = 1): number | null | undefined => {
+  const value = text.replace(',', '.').replace(/kg|lbs?/i, '').trim();
   if (!value) return null;
   const number = Number(value);
-  return Number.isFinite(number) && number >= 0 && number <= 1000
-    ? number
-    : undefined;
+  if (!Number.isFinite(number) || number < 0) return undefined;
+  const kg = number / factor;
+  return kg <= 1000 ? Number(kg.toFixed(2)) : undefined;
 };
 const rpeOf = (text: string): number | null | undefined => {
   const value = text.replace(',', '.').trim();
@@ -95,12 +96,15 @@ export function SetCells({
   onChange: (set: StrengthSet) => void;
   restLabel?: string;
 }) {
+  const units = useUnits();
   const unit =
     set.work.type === WORKOUT_DURATION_TYPE.REPS
       ? m.strength_reps_short()
       : set.work.type === WORKOUT_DURATION_TYPE.TIME
         ? ''
-        : 'm';
+        : units.unitSystem === 'IMPERIAL'
+          ? 'yd'
+          : 'm';
   return (
     <>
       <div className="relative">
@@ -123,10 +127,13 @@ export function SetCells({
       {columns.load && (
         <div className="relative">
           <CellInput
-            value={set.load === null ? '' : String(set.load)}
-            parse={(text) => loadOf(text) !== undefined}
+            value={set.load === null ? '' : String(units.weight(set.load))}
+            parse={(text) => loadOf(text, units.weightFactor) !== undefined}
             onCommit={(text) =>
-              onChange({ ...set, load: loadOf(text) ?? null })
+              onChange({
+                ...set,
+                load: loadOf(text, units.weightFactor) ?? null,
+              })
             }
             label={m.strength_load()}
             placeholder="—"
@@ -134,7 +141,7 @@ export function SetCells({
             className="pr-6"
           />
           <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
-            kg
+            {units.weightLabel}
           </span>
         </div>
       )}

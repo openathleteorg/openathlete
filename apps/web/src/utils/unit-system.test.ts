@@ -2,9 +2,12 @@ import { formatAxisValue } from '@/components/activity-analysis/format';
 import { formatDayTotal } from '@/components/calendar/utils/day-total';
 import { formatCompactKilometers } from '@/components/calendar/utils/week-summary';
 import { formatMeters } from '@/components/coach-dashboard/coach-dashboard-format';
+import { workText } from '@/components/player/player-text';
 import { formatRecordDistance } from '@/components/records/record-metrics';
 import { formatSportSpeed } from '@/components/session-builder/step-format';
 import { chartTotals } from '@/components/statistics/volume-data';
+import { setsSummary } from '@/components/strength/sets-summary';
+import { recordLabel } from '@/components/year-review/records';
 import { formatDuration as formatWorkoutDuration } from '@/utils/workout/formatters';
 import { describe, expect, it } from 'vitest';
 
@@ -201,6 +204,57 @@ describe('existing formatters', () => {
     expect(metricDisplayUnit(METRIC_TYPE.VERTICAL_SPEED_AVG, 'IMPERIAL')).toBe(
       'ft/h',
     );
+    expect(
+      setsSummary(
+        [
+          {
+            work: { type: WORKOUT_DURATION_TYPE.REPS, value: 8 },
+            load: 100,
+            rpe: null,
+            rest: null,
+          },
+        ],
+        'IMPERIAL',
+      ),
+    ).toBe('1 × 8 · 220.5 lb');
+    expect(
+      workText(
+        {
+          kind: 'work',
+          key: 'k',
+          block: 0,
+          name: 'Squat',
+          exerciseRef: null,
+          work: { type: WORKOUT_DURATION_TYPE.DISTANCE, value: 100 },
+          load: 100,
+          rpe: null,
+          tempo: null,
+          side: null,
+          notes: null,
+          set: 1,
+          sets: 3,
+          round: null,
+          rounds: null,
+          group: null,
+          stepType: null,
+        },
+        'IMPERIAL',
+      ),
+    ).toBe('109 yd · 220.5 lb');
+    expect(
+      recordLabel(
+        {
+          type: 'SPEED',
+          family: 'RUN',
+          distance: 1609.34,
+          duration: null,
+          value: 360,
+          previous: null,
+          date: new Date('2026-01-01'),
+        },
+        'IMPERIAL',
+      ),
+    ).toBe('1 mi');
     expect(formatRecordDistance(1609.34, 'IMPERIAL')).toBe('1 mi');
     expect(formatRecordDistance(400, 'IMPERIAL')).toBe('437 yd');
     expect(formatSportSpeed(10, SPORT_TYPE.CYCLING, 'IMPERIAL')).toBe(

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { ChevronDown, Trash2 } from 'lucide-react';
@@ -25,6 +26,7 @@ function PaceInput({
   invalid: boolean;
   onChange: (value: number) => void;
 }) {
+  const units = useUnits();
   const [draft, setDraft] = useState<string | null>(null);
   return (
     <Input
@@ -34,11 +36,11 @@ function PaceInput({
       inputMode="text"
       placeholder="m:ss"
       className={limitClass}
-      value={draft ?? formatPace(value)}
+      value={draft ?? formatPace(value * units.paceFactor)}
       onChange={(event) => {
         setDraft(event.target.value);
         const pace = parsePace(event.target.value);
-        if (pace !== null) onChange(pace);
+        if (pace !== null) onChange(pace / units.paceFactor);
       }}
       onBlur={() => setDraft(null)}
     />
@@ -81,6 +83,7 @@ export function ZoneRow({
   onChange,
   onRemove,
 }: ZoneRowProps) {
+  const units = useUnits();
   const [open, setOpen] = useState(false);
   const endField = startField === 'min' ? 'max' : 'min';
 
@@ -132,7 +135,9 @@ export function ZoneRow({
             limit(startField, m.minimum())
           ) : (
             <span className="w-11 text-right text-sm text-muted-foreground tabular-nums">
-              {isPace ? formatPace(zone[startField]) : zone[startField]}
+              {isPace
+                ? formatPace(zone[startField] * units.paceFactor)
+                : zone[startField]}
             </span>
           )}
           <span aria-hidden className="text-muted-foreground">

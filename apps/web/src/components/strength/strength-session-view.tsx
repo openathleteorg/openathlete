@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { useMemo } from 'react';
@@ -6,7 +7,11 @@ import type {
   CreateWorkoutStepDto,
   StrengthExercise,
 } from '@openathlete/shared';
-import { WORKOUT_REPEAT_KIND, strengthBlocks } from '@openathlete/shared';
+import {
+  WORKOUT_REPEAT_KIND,
+  strengthBlocks,
+  toUnitWeight,
+} from '@openathlete/shared';
 
 import { formatStepLength } from '../session-builder/step-summary';
 import { ExerciseVisual } from './exercise-visual';
@@ -60,6 +65,7 @@ export function StrengthSessionView({
   steps: CreateWorkoutStepDto[];
   className?: string;
 }) {
+  const units = useUnits();
   const blocks = useMemo(() => strengthBlocks(steps), [steps]);
   return (
     <ol className={cn('space-y-3', className)} data-strength-view>
@@ -69,7 +75,7 @@ export function StrengthSessionView({
             <ul key={index}>
               <ExerciseLine
                 exercise={block.exercise}
-                detail={setsSummary(block.exercise.sets)}
+                detail={setsSummary(block.exercise.sets, units.unitSystem)}
               />
             </ul>
           );
@@ -102,7 +108,14 @@ export function StrengthSessionView({
                         (exercise.sets[0].work.type === 'REPS'
                           ? `${exercise.sets[0].work.value} ${m.strength_reps_short()}`
                           : formatWork(exercise.sets[0].work)),
-                      exercise.sets[0]?.load && `${exercise.sets[0].load} kg`,
+                      exercise.sets[0]?.load &&
+                        (() => {
+                          const w = toUnitWeight(
+                            exercise.sets[0].load!,
+                            units.unitSystem,
+                          );
+                          return `${w.value} ${w.unit}`;
+                        })(),
                     ]
                       .filter(Boolean)
                       .join(' · ')}
