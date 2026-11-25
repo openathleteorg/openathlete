@@ -33,6 +33,7 @@ import {
 import {
   Workout,
   toStoredWorkout,
+  workoutProblems,
   workoutSchema,
   workoutSeconds,
   zoneIdsOf,
@@ -80,7 +81,9 @@ const sessionFields = {
     .describe('Races only: A the goal race, B important, C a training race'),
   workoutSteps: workoutSchema
     .optional()
-    .describe('Trainings only: the structured workout, sent to watches'),
+    .describe(
+      'Trainings only: the structured workout, sent to watches. Strength sessions read from get_session come as exercise and group items: send them back as read. A new exercise goes in a step with a name and reps',
+    ),
 };
 
 const sessionInput = z.object({
@@ -123,6 +126,15 @@ async function checkZones(
       `zone ${unknown.join(', ')} is not one of the athlete's zones (see get_athlete_context)`,
     );
   }
+}
+
+/** Reports what the stored model would drop, rather than dropping it */
+function checkWorkout(
+  workout: Workout | undefined,
+  where: (message: string) => ToolError,
+) {
+  const problems = workout ? workoutProblems(workout) : [];
+  if (problems.length) throw where(problems.join('; '));
 }
 
 function plannedFields(
@@ -339,6 +351,10 @@ export const registerCalendarWriteTools: ToolRegistrar = (
         for (const [index, session] of sessions.entries()) {
           try {
             dtos.push(toCreateDto(session, scope, index));
+            // Collected, not thrown: the zones are checked in the same pass
+            for (const message of workoutProblems(session.workoutSteps ?? [])) {
+              problems.push(at(index, message).message);
+            }
             await checkZones(
               deps,
               scope.athleteId,
@@ -407,6 +423,7 @@ export const registerCalendarWriteTools: ToolRegistrar = (
           events: [event],
           scope,
         } = await editable([eventId], 'update');
+        checkWorkout(fields.workoutSteps, (message) => new ToolError(message));
         await checkZones(
           deps,
           scope.athleteId,

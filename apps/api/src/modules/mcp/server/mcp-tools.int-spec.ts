@@ -3,7 +3,14 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { McpScope } from '@openathlete/shared';
+import {
+  EXERCISE_SIDE,
+  McpScope,
+  WORKOUT_DURATION_TYPE,
+  WORKOUT_REPEAT_KIND,
+  mapWorkoutDtoToPrisma,
+  strengthSteps,
+} from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -27,6 +34,7 @@ import { TrainingZoneService } from 'src/modules/core/services/training-zone.ser
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { McpServerFactory } from './mcp-server.factory';
+import { WORKOUT_STEPS_INCLUDE } from './presenters';
 
 // An ESM package Jest cannot load, pulled in by the FIT import; unused here
 jest.mock('@garmin/fitsdk', () => ({}));
@@ -581,6 +589,156 @@ describe('MCP tools (PostgreSQL)', () => {
         .goalDuration;
     expect(await goalOf(byHand.eventId)).toBe(45 * 60);
     expect(await goalOf(following.eventId)).toBe(30 * 60);
+  });
+
+  it('reads a strength session, writes it back unchanged', async () => {
+    const { call } = await connect(athlete);
+    const squat = {
+      exerciseRef: 'c:barbell-full-squat',
+      name: 'Barbell full squat',
+      tempo: '3-1-X-0',
+      side: null,
+      notes: null,
+    };
+    const steps = strengthSteps([
+      {
+        kind: 'exercise',
+        exercise: {
+          ...squat,
+          sets: [1, 2, 3].map(() => ({
+            work: { type: WORKOUT_DURATION_TYPE.REPS as const, value: 5 },
+            load: 61.2349,
+            rpe: 8,
+            rest: 90,
+          })),
+        },
+      },
+      {
+        kind: 'group',
+        group: WORKOUT_REPEAT_KIND.EMOM,
+        name: 'Finisher',
+        rounds: 8,
+        intervalSeconds: 60,
+        timeCapSeconds: null,
+        roundRest: null,
+        exercises: ['c:burpee', 'c:pull-up'].map((ref) => ({
+          ...squat,
+          exerciseRef: ref,
+          tempo: null,
+          side: EXERCISE_SIDE.EACH,
+          sets: [
+            {
+              work: { type: WORKOUT_DURATION_TYPE.REPS as const, value: 6 },
+              load: null,
+              rpe: null,
+              rest: null,
+            },
+          ],
+        })),
+      },
+      // A pyramid: sets that differ, each with its rest
+      {
+        kind: 'exercise',
+        exercise: {
+          ...squat,
+          exerciseRef: 'c:barbell-bench-press',
+          name: 'Bench press',
+          tempo: null,
+          sets: [
+            [10, 60],
+            [8, 70],
+            [6, 80],
+          ].map(([value, load]) => ({
+            work: { type: WORKOUT_DURATION_TYPE.REPS as const, value },
+            load,
+            rpe: null,
+            rest: 120,
+          })),
+        },
+      },
+      // A superset with a rest between its exercises and between rounds
+      {
+        kind: 'group',
+        group: WORKOUT_REPEAT_KIND.SUPERSET,
+        name: null,
+        rounds: 4,
+        intervalSeconds: null,
+        timeCapSeconds: null,
+        roundRest: 60,
+        exercises: [
+          ['c:pull-up', 8, 15],
+          ['c:push-up', 15, null],
+        ].map(([ref, value, rest]) => ({
+          ...squat,
+          exerciseRef: ref as string,
+          tempo: null,
+          sets: [
+            {
+              work: {
+                type: WORKOUT_DURATION_TYPE.REPS as const,
+                value: value as number,
+              },
+              load: null,
+              rpe: null,
+              rest: rest as number | null,
+            },
+          ],
+        })),
+      },
+    ]);
+    const { eventId } = await prisma.event.create({
+      data: {
+        name: 'Strength',
+        type: 'TRAINING',
+        startDate: new Date('2026-10-12T16:00:00Z'),
+        endDate: new Date('2026-10-12T17:00:00Z'),
+        athleteId: DELETED_ATHLETE_ID,
+        training: {
+          create: {
+            sport: 'STRENGTH',
+            workout: { create: mapWorkoutDtoToPrisma({ steps }) },
+          },
+        },
+      },
+    });
+    // Without ids, targets in no set order: what is stored, not where
+    const rowsOf = async () => {
+      const { workout } = await prisma.eventTraining.findUniqueOrThrow({
+        where: { eventId },
+        select: { workout: { include: WORKOUT_STEPS_INCLUDE } },
+      });
+      const clean = (value: unknown, key = ''): unknown => {
+        if (Array.isArray(value)) {
+          const items = value.map((entry) => clean(entry));
+          // Steps keep their order; targets have none
+          return key === 'targets'
+            ? items.sort((a, b) =>
+                JSON.stringify(a).localeCompare(JSON.stringify(b)),
+              )
+            : items;
+        }
+        if (value && typeof value === 'object' && !(value instanceof Date)) {
+          return Object.fromEntries(
+            Object.entries(value)
+              .filter(([name]) => !/Id$|^(createdAt|updatedAt)$/.test(name))
+              .map(([name, entry]) => [name, clean(entry, name)]),
+          );
+        }
+        return value;
+      };
+      return clean(workout?.steps);
+    };
+    const before = await rowsOf();
+
+    const { workoutSteps } = data<{ workoutSteps: unknown[] }>(
+      await call('get_session', { eventId }),
+    );
+    expect(workoutSteps.map((item) => (item as { kind: string }).kind)).toEqual(
+      ['exercise', 'group', 'exercise', 'group'],
+    );
+    data(await call('update_session', { eventId, workoutSteps }));
+
+    expect(await rowsOf()).toEqual(before);
   });
 
   it('records an illness and lists the sessions to adapt', async () => {
