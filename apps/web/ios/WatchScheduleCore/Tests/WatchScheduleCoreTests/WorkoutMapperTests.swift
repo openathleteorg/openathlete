@@ -123,7 +123,7 @@ final class WorkoutMapperTests: XCTestCase {
 
     // MARK: - Zones and targets
 
-    func testOwnerCyclingPowerZoneBecomesPowerAlert() {
+    func testOwnerCyclingPowerZoneBecomesPowerAlert() throws {
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 42)]),
         ])
@@ -131,9 +131,8 @@ final class WorkoutMapperTests: XCTestCase {
             zone(42, athlete: 7, type: "POWER", values: [(210, 245, ["CYCLING"])]),
         ]
 
-        guard let plan = plan(mapPrescription(event, zones: zones)),
-              let target = plan.blocks.first?.steps.first?.target
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: zones)))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
 
         XCTAssertEqual(target.metric, .power)
         let mappedPowerRange = powerRange(target)
@@ -169,7 +168,7 @@ final class WorkoutMapperTests: XCTestCase {
         )
     }
 
-    func testSportSpecificZoneValueWinsOverTheAllSportsDefault() {
+    func testSportSpecificZoneValueWinsOverTheAllSportsDefault() throws {
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 42)]),
         ])
@@ -180,14 +179,56 @@ final class WorkoutMapperTests: XCTestCase {
             ]),
         ]
 
-        guard let plan = plan(mapPrescription(event, zones: zones)),
-              let target = plan.blocks.first?.steps.first?.target
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: zones)))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
 
         XCTAssertEqual(powerRange(target), 210...245)
     }
 
-    func testSlowerPaceBecomesTheLowerSpeedBound() {
+    func testPowerZoneMayStartAtZero() throws {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 42)]),
+        ])
+        let zones = [
+            zone(42, athlete: 7, type: "POWER", values: [(0, 150, ["CYCLING"])]),
+        ]
+
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: zones)))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
+
+        XCTAssertEqual(powerRange(target), 0...150)
+    }
+
+    func testHeartRateZoneMayStartAtZero() throws {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 42)]),
+        ])
+        let zones = [
+            zone(42, athlete: 7, type: "HEARTRATE", values: [(0, 100, ["CYCLING"])]),
+        ]
+
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: zones)))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
+
+        XCTAssertEqual(target.metric, .heartRate)
+        XCTAssertEqual(target.range, 0...100)
+    }
+
+    func testPaceZoneMustStartAboveZero() {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 9)]),
+        ], sport: "RUNNING")
+        let zones = [
+            zone(9, athlete: 7, type: "PACE", values: [(0, 4.5, ["RUNNING"])]),
+        ]
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: zones)),
+            .invalidZoneBounds
+        )
+    }
+
+    func testSlowerPaceBecomesTheLowerSpeedBound() throws {
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 9)]),
         ], sport: "RUNNING")
@@ -195,9 +236,8 @@ final class WorkoutMapperTests: XCTestCase {
             zone(9, athlete: 7, type: "PACE", values: [(4.0, 4.5, ["RUNNING"])]),
         ]
 
-        guard let plan = plan(mapPrescription(event, zones: zones)),
-              let target = plan.blocks.first?.steps.first?.target
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: zones)))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
 
         XCTAssertEqual(target.metric, .speed)
         // 4:00 min/km is faster than 4:30 min/km, so 4:30 is the lower speed.
@@ -206,7 +246,7 @@ final class WorkoutMapperTests: XCTestCase {
         XCTAssertLessThan(target.lowerBound, target.upperBound)
     }
 
-    func testZoneEditChangesTheResolvedRange() {
+    func testZoneEditChangesTheResolvedRange() throws {
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 42)]),
         ])
@@ -214,11 +254,10 @@ final class WorkoutMapperTests: XCTestCase {
         let before = zone(42, athlete: 7, type: "POWER", values: [(200, 230, ["CYCLING"])])
         let after = zone(42, athlete: 7, type: "POWER", values: [(210, 245, ["CYCLING"])])
 
-        guard let beforePlan = plan(mapPrescription(event, zones: [before])),
-              let afterPlan = plan(mapPrescription(event, zones: [after])),
-              let beforeTarget = beforePlan.blocks.first?.steps.first?.target,
-              let afterTarget = afterPlan.blocks.first?.steps.first?.target
-        else { return }
+        let beforePlan = try XCTUnwrap(plan(mapPrescription(event, zones: [before])))
+        let afterPlan = try XCTUnwrap(plan(mapPrescription(event, zones: [after])))
+        let beforeTarget = try XCTUnwrap(beforePlan.blocks.first?.steps.first?.target)
+        let afterTarget = try XCTUnwrap(afterPlan.blocks.first?.steps.first?.target)
 
         XCTAssertEqual(powerRange(beforeTarget), 200...230)
         XCTAssertEqual(powerRange(afterTarget), 210...245)
@@ -240,6 +279,28 @@ final class WorkoutMapperTests: XCTestCase {
     func testZoneTargetWithoutAZoneIdentifierIsUnsupported() {
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("ZONE")]),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .zoneIdMissing
+        )
+    }
+
+    func testHugeZoneIdentifierIsRejectedInsteadOfTrapping() {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 1e30)]),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .zoneIdMissing
+        )
+    }
+
+    func testFractionalZoneIdentifierIsRejected() {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 42.5)]),
         ])
 
         XCTAssertEqual(
@@ -273,43 +334,55 @@ final class WorkoutMapperTests: XCTestCase {
         )
     }
 
-    func testDirectHeartRateRangeIsKept() {
+    func testDirectHeartRateRangeIsKept() throws {
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("HEARTRATE", min: 140, max: 160)]),
         ])
 
-        guard let plan = plan(mapPrescription(event, zones: [])),
-              let target = plan.blocks.first?.steps.first?.target
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
 
         XCTAssertEqual(target.metric, .heartRate)
         XCTAssertEqual(target.range, 140...160)
         XCTAssertNil(target.zoneId)
     }
 
-    func testDirectPaceRangeIsStoredInMetresPerSecondAndOrdered() {
+    func testDirectPaceRangeIsStoredInMetresPerSecondAndOrdered() throws {
         // Reversed on purpose: the bounds still describe one speed range.
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("PACE", min: 4.2, max: 3.3)]),
         ], sport: "RUNNING")
 
-        guard let plan = plan(mapPrescription(event, zones: [])),
-              let target = plan.blocks.first?.steps.first?.target
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
 
         XCTAssertEqual(target.metric, .speed)
         XCTAssertEqual(target.lowerBound, 3.3, accuracy: 1e-9)
         XCTAssertEqual(target.upperBound, 4.2, accuracy: 1e-9)
     }
 
-    func testDirectCadenceRangeIsKept() {
+    func testLowAbsoluteSwimPaceIsNotTreatedAsARatio() throws {
+        // A real easy swim pace is under 2 m/s. Do not mistake it for an
+        // untagged VMA ratio.
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("PACE", min: 0.95, max: 1.05)]),
+        ], sport: "SWIMMING")
+
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
+
+        XCTAssertEqual(target.metric, .speed)
+        XCTAssertEqual(target.lowerBound, 0.95, accuracy: 1e-9)
+        XCTAssertEqual(target.upperBound, 1.05, accuracy: 1e-9)
+    }
+
+    func testDirectCadenceRangeIsKept() throws {
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("CADENCE", min: 85, max: 95)]),
         ])
 
-        guard let plan = plan(mapPrescription(event, zones: [])),
-              let target = plan.blocks.first?.steps.first?.target
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
 
         XCTAssertEqual(target.metric, .cadence)
         XCTAssertEqual(target.range, 85...95)
@@ -339,6 +412,52 @@ final class WorkoutMapperTests: XCTestCase {
         )
     }
 
+    func testUntaggedPowerRatioIsRejectedAsAmbiguous() {
+        // Legacy rows stored a ratio without metricType. 0.9...1.05 W is not
+        // a real power range, and guessing FTP would invent a threshold.
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("POWER", min: 0.9, max: 1.05)]),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .ambiguousRelativeTarget
+        )
+    }
+
+    func testUntaggedHeartRateRatioIsRejectedAsAmbiguous() {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("HEARTRATE", min: 0.9, max: 1.05)]),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .ambiguousRelativeTarget
+        )
+    }
+
+    func testUntaggedRunningPaceRatioIsRejectedAsAmbiguous() {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("PACE", min: 0.9, max: 1.05)]),
+        ], sport: "RUNNING")
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .ambiguousRelativeTarget
+        )
+    }
+
+    func testDirectPowerRangeMayStartAtZero() throws {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("POWER", min: 0, max: 200)]),
+        ])
+
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
+
+        XCTAssertEqual(powerRange(target), 0...200)
+    }
+
     func testUnsupportedTargetTypeIsRejected() {
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("RPE", value: 7)]),
@@ -364,21 +483,20 @@ final class WorkoutMapperTests: XCTestCase {
         )
     }
 
-    func testOpenTargetAddsNoAlert() {
+    func testOpenTargetAddsNoAlert() throws {
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("OPEN")]),
         ])
 
-        guard let plan = plan(mapPrescription(event, zones: [])),
-              let step = plan.blocks.first?.steps.first
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let step = try XCTUnwrap(plan.blocks.first?.steps.first)
 
         XCTAssertNil(step.target)
     }
 
     // MARK: - Goals and structure
 
-    func testWarmupWorkRestAndCooldownKeepTheirOrderAndGoals() {
+    func testWarmupWorkRestAndCooldownKeepTheirOrderAndGoals() throws {
         let event = event([
             step("WARMUP", value: 600, order: 0),
             step("INTERVAL_REST", value: 120, order: 2),
@@ -386,7 +504,7 @@ final class WorkoutMapperTests: XCTestCase {
             step("COOLDOWN", value: 300, order: 3),
         ])
 
-        guard let plan = plan(mapPrescription(event, zones: [])) else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
 
         XCTAssertEqual(plan.title, "Threshold ride")
         XCTAssertEqual(plan.sport, .cycling)
@@ -403,7 +521,7 @@ final class WorkoutMapperTests: XCTestCase {
         XCTAssertEqual(plan.cooldown?.goal, .time(seconds: 300))
     }
 
-    func testFourRepeatsOfOneHundredMetresWithTwentySecondRests() {
+    func testFourRepeatsOfOneHundredMetresWithTwentySecondRests() throws {
         let event = event([
             step("WARMUP", value: 300, order: 0),
             step("REPEAT", duration: "OPEN", value: nil, repeatBlock: repeatBlock(4, [
@@ -413,9 +531,8 @@ final class WorkoutMapperTests: XCTestCase {
             step("COOLDOWN", value: 300, order: 2),
         ])
 
-        guard let plan = plan(mapPrescription(event, zones: [])),
-              let block = plan.blocks.first
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let block = try XCTUnwrap(plan.blocks.first)
 
         XCTAssertEqual(plan.blocks.count, 1)
         XCTAssertEqual(block.repetitions, 4)
@@ -424,7 +541,27 @@ final class WorkoutMapperTests: XCTestCase {
         XCTAssertEqual(block.steps.map(\.purpose), [.work, .recovery])
     }
 
-    func testFourYardRepeatsStayCanonicalMetres() {
+    func testFourMetreRepeatsInAPoolSession() throws {
+        let event = event([
+            step("WARMUP", value: 300, order: 0),
+            step("REPEAT", duration: "OPEN", value: nil, repeatBlock: repeatBlock(4, [
+                step("INTERVAL_ACTIVE", duration: "DISTANCE", value: 100, order: 0),
+                step("INTERVAL_REST", value: 20, order: 1),
+            ]), order: 1),
+            step("COOLDOWN", value: 300, order: 2),
+        ], sport: "SWIMMING")
+
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let block = try XCTUnwrap(plan.blocks.first)
+
+        XCTAssertEqual(plan.sport, .swimming)
+        XCTAssertEqual(plan.location, .pool)
+        XCTAssertEqual(block.repetitions, 4)
+        XCTAssertEqual(block.steps.first?.goal, .distance(metres: 100))
+        XCTAssertEqual(block.steps.last?.goal, .time(seconds: 20))
+    }
+
+    func testFourYardRepeatsStayCanonicalMetres() throws {
         // Task 1 stores 100 yd as 91.44 m. The mapper must not infer a unit
         // and must not restore 100.
         let event = event([
@@ -436,9 +573,8 @@ final class WorkoutMapperTests: XCTestCase {
             step("COOLDOWN", value: 300, order: 2),
         ], sport: "SWIMMING")
 
-        guard let plan = plan(mapPrescription(event, zones: [])),
-              let block = plan.blocks.first
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let block = try XCTUnwrap(plan.blocks.first)
 
         XCTAssertEqual(plan.sport, .swimming)
         XCTAssertEqual(plan.location, .pool)
@@ -447,14 +583,14 @@ final class WorkoutMapperTests: XCTestCase {
         XCTAssertEqual(block.steps.last?.goal, .time(seconds: 20))
     }
 
-    func testOpenTimeAndDistanceGoals() {
+    func testOpenTimeAndDistanceGoals() throws {
         let event = event([
             step("WARMUP", duration: "OPEN", value: nil, order: 0),
             step("INTERVAL_ACTIVE", duration: "DISTANCE", value: 2500, order: 1),
             step("COOLDOWN", value: 240, order: 2),
         ])
 
-        guard let plan = plan(mapPrescription(event, zones: [])) else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
 
         XCTAssertEqual(plan.warmup?.goal, .open)
         XCTAssertEqual(plan.blocks.first?.steps.first?.goal, .distance(metres: 2500))
@@ -467,6 +603,60 @@ final class WorkoutMapperTests: XCTestCase {
         XCTAssertEqual(
             reason(mapPrescription(event, zones: [])),
             .noExecutableSteps
+        )
+    }
+
+    func testSecondWarmupInTheBodyIsRejected() {
+        let event = event([
+            step("WARMUP", value: 300, order: 0),
+            step("WARMUP", value: 60, order: 1),
+            step("INTERVAL_ACTIVE", value: 60, order: 2),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .misplacedWarmupCooldown
+        )
+    }
+
+    func testCooldownBeforeTheEndIsRejected() {
+        let event = event([
+            step("INTERVAL_ACTIVE", value: 60, order: 0),
+            step("COOLDOWN", value: 120, order: 1),
+            step("INTERVAL_ACTIVE", value: 60, order: 2),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .misplacedWarmupCooldown
+        )
+    }
+
+    func testWarmupInsideARepeatIsRejected() {
+        let event = event([
+            step("REPEAT", duration: "OPEN", value: nil, repeatBlock: repeatBlock(2, [
+                step("WARMUP", value: 60, order: 0),
+                step("INTERVAL_ACTIVE", value: 60, order: 1),
+            ])),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .misplacedWarmupCooldown
+        )
+    }
+
+    func testCooldownInsideARepeatIsRejected() {
+        let event = event([
+            step("REPEAT", duration: "OPEN", value: nil, repeatBlock: repeatBlock(2, [
+                step("INTERVAL_ACTIVE", value: 60, order: 0),
+                step("COOLDOWN", value: 60, order: 1),
+            ])),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .misplacedWarmupCooldown
         )
     }
 
@@ -506,6 +696,47 @@ final class WorkoutMapperTests: XCTestCase {
         XCTAssertEqual(
             reason(mapPrescription(event, zones: [])),
             .repeatWithoutBlock
+        )
+    }
+
+    func testSteadyStepCarryingARepeatBlockIsRejected() {
+        let event = event([
+            step("STEADY", value: 600, repeatBlock: repeatBlock(2, [
+                step("INTERVAL_ACTIVE", value: 60),
+            ])),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .stepStructureMismatch
+        )
+    }
+
+    func testRepeatStepWithATimeGoalIsRejected() {
+        let event = event([
+            step("REPEAT", value: 600, repeatBlock: repeatBlock(2, [
+                step("INTERVAL_ACTIVE", value: 60),
+            ])),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .stepStructureMismatch
+        )
+    }
+
+    func testRepeatStepWithATargetIsRejected() {
+        let event = event([
+            step("REPEAT", duration: "OPEN", value: nil,
+                 targets: [target("POWER", min: 210, max: 245)],
+                 repeatBlock: repeatBlock(2, [
+                    step("INTERVAL_ACTIVE", value: 60),
+                 ])),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .stepStructureMismatch
         )
     }
 
@@ -590,6 +821,20 @@ final class WorkoutMapperTests: XCTestCase {
         XCTAssertEqual(
             reason(mapPrescription(event, zones: zones)),
             .missingAthlete
+        )
+    }
+
+    // MARK: - Release policy
+
+    func testPoolSwimNativeSchedulingStaysDisabledUntilPairedChecks() {
+        XCTAssertFalse(PoolSwimNativeScheduling.isEnabled)
+        XCTAssertEqual(
+            PoolSwimNativeScheduling.unverifiedReason,
+            .poolSwimmingUnverified
+        )
+        XCTAssertEqual(
+            PoolSwimNativeScheduling.unverifiedReason.rawValue,
+            "poolSwimmingUnverified"
         )
     }
 
@@ -724,9 +969,8 @@ final class WorkoutMapperTests: XCTestCase {
         )
         let zones = try decoder.decode([ZoneInput].self, from: Data(zonesJSON.utf8))
 
-        guard let plan = plan(mapPrescription(event, zones: zones)),
-              let block = plan.blocks.first
-        else { return }
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: zones)))
+        let block = try XCTUnwrap(plan.blocks.first)
 
         XCTAssertEqual(plan.title, "Threshold ride")
         XCTAssertEqual(plan.sport, .cycling)

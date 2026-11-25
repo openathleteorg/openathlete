@@ -375,6 +375,8 @@ public enum UnsupportedReason: String, Codable, Equatable, Sendable {
     case missingAthlete
     case unsupportedStepType
     case repeatWithoutBlock
+    case stepStructureMismatch
+    case misplacedWarmupCooldown
     case nestedRepeats
     case unsupportedRepeatKind
     case invalidRepetitions
@@ -384,6 +386,7 @@ public enum UnsupportedReason: String, Codable, Equatable, Sendable {
     case multipleTargets
     case unsupportedTarget
     case relativeTarget
+    case ambiguousRelativeTarget
     case missingTargetValue
     case invalidTargetValue
     case zoneIdMissing
@@ -393,5 +396,22 @@ public enum UnsupportedReason: String, Codable, Equatable, Sendable {
     case zoneTypeMismatch
     case missingZoneBounds
     case invalidZoneBounds
+    case poolSwimmingUnverified
     case noExecutableSteps
+}
+
+/// Release policy for native Apple Watch scheduling of pool sessions.
+///
+/// WWDC24 10084 shows Apple converting/scaling combined pool goals for the
+/// watch's pool length. Whether a standalone distance goal plus an explicit
+/// rest step survives the same conversion at a mismatched pool length is not
+/// established. Keep this gate off in releases until a paired iPhone/Apple
+/// Watch check covers both pool units and a mismatched pool length. Mapping
+/// itself stays available so the prescription can be inspected and tested.
+public enum PoolSwimNativeScheduling {
+    /// Never enable this in a release build without the paired checks above.
+    public static let isEnabled = false
+
+    /// Stable reason code the settings UI can localize and explain.
+    public static let unverifiedReason: UnsupportedReason = .poolSwimmingUnverified
 }

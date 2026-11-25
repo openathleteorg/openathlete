@@ -13,6 +13,7 @@ enum WorkoutPlanBuildError: Error, LocalizedError, Equatable {
     case unsupportedGoal(path: String)
     case unsupportedAlert(path: String, metric: PlannedTarget.Metric)
     case emptyBlocks
+    case poolSwimmingUnverified
     case poolSwimmingRequiresIOS18
 
     var errorDescription: String? {
@@ -25,8 +26,20 @@ enum WorkoutPlanBuildError: Error, LocalizedError, Equatable {
             return "WorkoutKit does not support the \(metric.rawValue) alert at \(path)"
         case .emptyBlocks:
             return "A custom workout needs at least one interval block"
+        case .poolSwimmingUnverified:
+            return "Pool sessions are disabled until both pool units and a mismatched pool length are verified on a paired watch"
         case .poolSwimmingRequiresIOS18:
             return "Pool swimming workouts require iOS 18 and watchOS 11"
+        }
+    }
+
+    /// Stable code for the settings UI, shared with the core mapper.
+    var unsupportedReason: UnsupportedReason? {
+        switch self {
+        case .poolSwimmingUnverified:
+            return PoolSwimNativeScheduling.unverifiedReason
+        default:
+            return nil
         }
     }
 }
@@ -42,9 +55,14 @@ enum WorkoutPlanBuildError: Error, LocalizedError, Equatable {
 /// WorkoutAlert factory methods.
 @available(iOS 17.0, *)
 func makeWorkoutPlan(_ input: PlanInput, id: UUID) throws -> WorkoutPlan {
-    // Pool swimming custom workouts and the pool goal are iOS 18 / watchOS 11
-    // additions. Do not rely on supportsActivity alone for this gate.
+    // Pool scheduling is gated off in releases: WWDC24 10084 shows Apple
+    // converting/scaling pool goals, and a standalone distance goal plus rest
+    // at a mismatched pool length is not verified. Mapping stays available;
+    // scheduling does not, until the paired checks in the task report pass.
     if input.sport == .swimming {
+        guard PoolSwimNativeScheduling.isEnabled else {
+            throw WorkoutPlanBuildError.poolSwimmingUnverified
+        }
         guard #available(iOS 18.0, *) else {
             throw WorkoutPlanBuildError.poolSwimmingRequiresIOS18
         }

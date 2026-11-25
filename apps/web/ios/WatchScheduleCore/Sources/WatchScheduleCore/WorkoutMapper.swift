@@ -51,12 +51,18 @@ private func buildPlan(
 
     var warmup: PlannedStep?
     // WorkoutKit has one warmup slot and one cooldown slot, not a role per
-    // step. Only the leading warmup and trailing cooldown are lifted; any
-    // other one stays in order inside a block with its goal intact.
+    // step. Only the leading warmup and trailing cooldown are lifted; a
+    // WARMUP or COOLDOWN anywhere else is rejected rather than shown as
+    // ordinary work.
     if let first = steps.first,
        first.repeatBlock == nil,
        first.stepType == "WARMUP" {
-        warmup = try plannedStep(first, event: event, zones: zones)
+        warmup = try plannedStep(
+            first,
+            event: event,
+            zones: zones,
+            allowTerminalStep: true
+        )
         steps.removeFirst()
     }
 
@@ -64,7 +70,12 @@ private func buildPlan(
     if let last = steps.last,
        last.repeatBlock == nil,
        last.stepType == "COOLDOWN" {
-        cooldown = try plannedStep(last, event: event, zones: zones)
+        cooldown = try plannedStep(
+            last,
+            event: event,
+            zones: zones,
+            allowTerminalStep: true
+        )
         steps.removeLast()
     }
 
@@ -79,6 +90,22 @@ private func buildPlan(
 
     for step in steps {
         if let repeatBlock = step.repeatBlock {
+            // A repeat payload only belongs on a REPEAT container, and the
+            // container itself has no goal: otherwise the enclosing goal
+            // would be silently dropped.
+            guard step.stepType == "REPEAT" else {
+                throw fail(.stepStructureMismatch)
+            }
+            guard step.durationType == nil || step.durationType == "OPEN",
+                  step.durationValue == nil
+            else {
+                throw fail(.stepStructureMismatch)
+            }
+            // The container's own alert would be dropped by the block. Only
+            // steps inside the block carry targets.
+            guard step.targets.allSatisfy({ $0.targetType == "OPEN" }) else {
+                throw fail(.stepStructureMismatch)
+            }
             flushPlainSteps()
             blocks.append(try plannedBlock(repeatBlock, event: event, zones: zones))
             continue
@@ -148,10 +175,17 @@ private func plannedBlock(
 private func plannedStep(
     _ step: WorkoutStepInput,
     event: TrainingEventInput,
-    zones: [ZoneInput]
+    zones: [ZoneInput],
+    allowTerminalStep: Bool = false
 ) throws -> PlannedStep {
     guard supportedStepTypes.contains(step.stepType) else {
         throw fail(.unsupportedStepType)
+    }
+    // WorkoutKit has exactly one warmup and one cooldown. Any other WARMUP or
+    // COOLDOWN, including one inside a repeat block, has no faithful slot.
+    if (step.stepType == "WARMUP" || step.stepType == "COOLDOWN")
+        && !allowTerminalStep {
+        throw fail(.misplacedWarmupCooldown)
     }
     return PlannedStep(
         stepType: step.stepType,
@@ -209,6 +243,9 @@ private func plannedTarget(
     event: TrainingEventInput,
     zones: [ZoneInput]
 ) throws -> PlannedTarget? {
+    guard let sport = PlanSport(rawValue: event.sport) else {
+        throw fail(.unsupportedSport)
+    }
     let active = step.targets.filter { $0.targetType != "OPEN" }
     guard active.count <= 1 else {
         throw fail(.multipleTargets)
@@ -227,13 +264,13 @@ private func plannedTarget(
     case "ZONE":
         return try zoneTarget(target, event: event, zones: zones)
     case "POWER":
-        return try absoluteTarget(target, metric: .power)
+        return try absoluteTarget(target, metric: .power, sport: sport)
     case "HEARTRATE":
-        return try absoluteTarget(target, metric: .heartRate)
+        return try absoluteTarget(target, metric: .heartRate, sport: sport)
     case "CADENCE":
-        return try absoluteTarget(target, metric: .cadence)
+        return try absoluteTarget(target, metric: .cadence, sport: sport)
     case "PACE":
-        return try absoluteTarget(target, metric: .speed)
+        return try absoluteTarget(target, metric: .speed, sport: sport)
     default:
         throw fail(.unsupportedTarget)
     }
@@ -241,21 +278,61 @@ private func plannedTarget(
 
 private func absoluteTarget(
     _ target: WorkoutTargetInput,
-    metric: PlannedTarget.Metric
+    metric: PlannedTarget.Metric,
+    sport: PlanSport
 ) throws -> PlannedTarget {
     guard let lower = target.targetMin ?? target.targetValue,
           let upper = target.targetMax ?? target.targetValue
     else {
         throw fail(.missingTargetValue)
     }
-    guard lower.isFinite, upper.isFinite, lower > 0, upper > 0 else {
+    guard lower.isFinite, upper.isFinite, upper > 0 else {
         throw fail(.invalidTargetValue)
     }
+    switch metric {
+    case .power, .heartRate:
+        // A recovery range may start at 0 W/bpm.
+        guard lower >= 0 else { throw fail(.invalidTargetValue) }
+    case .speed, .cadence:
+        guard lower > 0 else { throw fail(.invalidTargetValue) }
+    }
+
+    let bounds = min(lower, upper)...max(lower, upper)
+    try rejectAmbiguousUntaggedRatio(bounds, metric: metric, sport: sport)
     return PlannedTarget(
         metric: metric,
-        lowerBound: min(lower, upper),
-        upperBound: max(lower, upper)
+        lowerBound: bounds.lowerBound,
+        upperBound: bounds.upperBound
     )
+}
+
+/// The target-intensity wire format marks a ratio with `metricType`.
+/// Untagged values are absolute. Legacy rows can still hold a ratio
+/// (0.9...1.05) without that marker, which is also the shape of a genuine
+/// low absolute range for some metrics. Do not pick a threshold for them.
+///
+/// - Power and heart rate cannot be below 2 W/bpm, so a whole range in
+///   (0, 2] is a legacy ratio.
+/// - Running and cycling paces in (0, 2] m/s are not usable absolute targets
+///   either.
+/// - A swim pace in (0, 2] m/s is a real easy pace, so it stays absolute.
+/// - Cadence has no ratio metric; a whole range in (0, 2] rpm is invalid.
+private func rejectAmbiguousUntaggedRatio(
+    _ bounds: ClosedRange<Double>,
+    metric: PlannedTarget.Metric,
+    sport: PlanSport
+) throws {
+    guard bounds.lowerBound > 0, bounds.upperBound <= 2 else { return }
+    switch metric {
+    case .power, .heartRate:
+        throw fail(.ambiguousRelativeTarget)
+    case .speed:
+        if sport != .swimming {
+            throw fail(.ambiguousRelativeTarget)
+        }
+    case .cadence:
+        throw fail(.invalidTargetValue)
+    }
 }
 
 private func zoneTarget(
@@ -265,12 +342,13 @@ private func zoneTarget(
 ) throws -> PlannedTarget {
     guard let rawZoneId = target.targetValue,
           rawZoneId.isFinite,
-          rawZoneId > 0,
-          rawZoneId.rounded() == rawZoneId
+          // Int(Double) traps above Int.max. `Int(exactly:)` is the only
+          // safe conversion for ids coming from JSON.
+          let zoneId = Int(exactly: rawZoneId),
+          zoneId > 0
     else {
         throw fail(.zoneIdMissing)
     }
-    let zoneId = Int(rawZoneId)
 
     guard let athleteId = event.athleteId else {
         throw fail(.missingAthlete)
@@ -310,13 +388,23 @@ private func zoneTarget(
     let value = applicable.first(where: { $0.sports.contains(event.sport) })
         ?? applicable[0]
 
-    guard value.min.isFinite,
-          value.max.isFinite,
-          value.min > 0,
-          value.max > 0,
-          value.min <= value.max
-    else {
+    // Power and heart-rate zones may legitimately start at 0. Pace must be
+    // positive (0 min/km has no speed). WorkoutKit's own support checks run
+    // later in the native adapter; these are only physical constraints.
+    guard value.min.isFinite, value.max.isFinite, value.min <= value.max else {
         throw fail(.invalidZoneBounds)
+    }
+    switch metric {
+    case .power, .heartRate:
+        guard value.min >= 0, value.max > 0 else {
+            throw fail(.invalidZoneBounds)
+        }
+    case .speed:
+        guard value.min > 0, value.max > 0 else {
+            throw fail(.invalidZoneBounds)
+        }
+    case .cadence:
+        throw fail(.zoneTypeMismatch)
     }
 
     if metric == .speed {
