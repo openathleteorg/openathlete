@@ -1,7 +1,7 @@
 import { useStatisticsFiltersQuery } from '@/api/statistics';
 import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
 import { EfficiencyCard } from '@/components/statistics/efficiency-card';
-import { RUNNING_SPORTS } from '@/components/statistics/efficiency-data';
+import { hasEfficiencyRuns } from '@/components/statistics/efficiency-data';
 import { EnduranceSection } from '@/components/statistics/endurance-section';
 import { IntensitySection } from '@/components/statistics/intensity-section';
 import {
@@ -65,12 +65,9 @@ export function StatisticsView({ athleteId }: P) {
 
   // A view on one sport opens on the most practised one, never on a dead end
   const oneSport = sport ?? options?.sports[0] ?? null;
-  // Efficiency is a runner's figure: the chosen sport, or the main run
-  const runSport = sport
-    ? RUNNING_SPORTS.has(sport)
-      ? sport
-      : null
-    : (options?.sports.find((value) => RUNNING_SPORTS.has(value)) ?? null);
+  // Efficiency is a runner's figure: every run the filter leaves, road and
+  // trail together, as they are grade adjusted
+  const showEfficiency = hasEfficiencyRuns(options?.sports ?? [], sport, group);
 
   return (
     <div className="w-full space-y-4 p-4 md:space-y-6 md:p-8 md:pt-6">
@@ -130,11 +127,12 @@ export function StatisticsView({ athleteId }: P) {
             group={group}
           />
           <RecoverySection athleteId={athleteId} period={period} />
-          {runSport && (
+          {showEfficiency && (
             <EfficiencyCard
               athleteId={athleteId}
               period={period}
-              sport={runSport}
+              sport={sport}
+              group={group}
               visible
             />
           )}

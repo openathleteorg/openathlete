@@ -33,6 +33,7 @@ import {
   StatisticsTotalsDto,
   StatisticsTrendsDto,
   StatisticsVolumeDto,
+  runEfficiencySports,
   statisticsGranularity,
 } from '@openathlete/shared';
 
@@ -474,11 +475,12 @@ export class StatisticsService {
   /**
    * Efficiency of each run of the period: the efficiency factor of pace and
    * of power and the decoupling (Friel), and running effectiveness (Coggan),
-   * with the athlete's weight on the day.
+   * with the athlete's weight on the day. Without a sport, road, trail and
+   * treadmill runs together.
    */
   async getEfficiency(
     user: AuthUser,
-    { athleteId, from, to, sport }: GetStatisticsTrendsQueryDto,
+    { athleteId, from, to, sport, group }: GetStatisticsSectionQueryDto,
   ): Promise<StatisticsEfficiencyDto> {
     await this.assertCanRead(user, athleteId);
     const [runs, weights] = await Promise.all([
@@ -488,7 +490,7 @@ export class StatisticsService {
           type: 'ACTIVITY',
           startDate: { gte: from, lte: to },
           activity: {
-            sport: sport as SportType,
+            sport: { in: runEfficiencySports(sport, group) as SportType[] },
             OR: [
               { efficiencyFactor: { not: null } },
               { powerEfficiencyFactor: { not: null } },

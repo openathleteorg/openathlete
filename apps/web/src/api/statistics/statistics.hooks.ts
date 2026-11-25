@@ -134,7 +134,7 @@ export const useStatisticsCardiacCostQuery = (
   });
 
 export const useStatisticsEfficiencyQuery = (
-  params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  params: StatisticsSectionParams,
   enabled: boolean,
 ) =>
   useQuery({

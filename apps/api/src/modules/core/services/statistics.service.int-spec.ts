@@ -67,7 +67,7 @@ describe('StatisticsService (PostgreSQL)', () => {
     externalId: string,
     start: string,
     data: {
-      sport?: 'RUNNING' | 'CYCLING';
+      sport?: 'RUNNING' | 'TRAIL_RUNNING' | 'CYCLING';
       distance?: number;
       movingTime?: number;
       averageHeartrate?: number;
@@ -413,6 +413,37 @@ describe('StatisticsService (PostgreSQL)', () => {
         sport: 'RUNNING' as SPORT_TYPE,
       }),
     ).rejects.toThrow();
+  });
+
+  it('reads road and trail runs together when no sport is chosen', async () => {
+    const figures = { efficiencyFactor: 1.4 };
+    for (const [name, day, sport] of [
+      ['road', '05', 'RUNNING'],
+      ['trail', '10', 'TRAIL_RUNNING'],
+      ['ride', '12', 'CYCLING'],
+    ] as const) {
+      const { eventId } = await activity(name, `2026-03-${day}T08:00:00Z`, {
+        sport,
+      });
+      await prisma.eventActivity.update({ where: { eventId }, data: figures });
+    }
+    const names = async (filter: {
+      sport?: SPORT_TYPE;
+      group?: 'RUNNING' | 'CYCLING';
+    }) =>
+      (await service.getEfficiency(athlete, { ...period, ...filter })).runs.map(
+        (run) => run.name,
+      );
+
+    // The most practised running sport alone would hide the other runs
+    expect(await names({})).toEqual(['road', 'trail']);
+    expect(await names({ group: 'RUNNING' })).toEqual(['road', 'trail']);
+    expect(await names({ sport: 'TRAIL_RUNNING' as SPORT_TYPE })).toEqual([
+      'trail',
+    ]);
+    // A ride has no such figure, whatever its columns hold
+    expect(await names({ group: 'CYCLING' })).toEqual([]);
+    expect(await names({ sport: 'CYCLING' as SPORT_TYPE })).toEqual([]);
   });
 
   it('reads the median vertical speed of a slope across activities', async () => {
