@@ -134,7 +134,7 @@ export function AuthProvider({ children }: Props) {
         if (!isAuthSessionCurrent(session)) return;
         if (authenticated && session.accessToken === null) return;
 
-        await saveLanguageChoice(user.language);
+        await saveLanguageChoice(user.language, undefined, session);
         // The language write may take a whole request: a successor can commit
         // while it is pending. Nothing below may then touch its session.
         if (!isAuthSessionCurrent(session)) return;

@@ -43,6 +43,14 @@ const handshake = (socket: ReturnType<typeof fakeSocket>) =>
     socket.auth((data) => resolve(data));
   });
 
+const startHandshake = (
+  socket: ReturnType<typeof fakeSocket>,
+  send: (data: unknown) => void,
+) => {
+  if (typeof socket.auth !== 'function') throw new Error('auth not set');
+  socket.auth(send);
+};
+
 describe('keepSocketAuthenticated', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -79,6 +87,75 @@ describe('keepSocketAuthenticated', () => {
     expect(localStorage.getItem(REFRESH_TOKEN)).toBe('installed-refresh');
   });
 
+  it('does not send a handshake for a session replaced while resolving', async () => {
+    installAuthTokens('token-a', 'refresh-a');
+    const socket = fakeSocket();
+    keepSocketAuthenticated(socket as unknown as Socket);
+    const send = vi.fn();
+    let resolveToken!: (
+      value: Awaited<ReturnType<typeof getAccessToken>>,
+    ) => void;
+    vi.mocked(getAccessToken).mockReturnValue(
+      new Promise((resolve) => {
+        resolveToken = resolve;
+      }),
+    );
+
+    startHandshake(socket, send);
+    await vi.waitFor(() => expect(getAccessToken).toHaveBeenCalled());
+    installAuthTokens('token-b', 'refresh-b');
+    resolveToken({ accessToken: tokenExpiringIn(3600), refreshed: false });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('does not send a handshake after stop', async () => {
+    installAuthTokens('token-a', 'refresh-a');
+    const socket = fakeSocket();
+    const authentication = keepSocketAuthenticated(socket as unknown as Socket);
+    const send = vi.fn();
+    let resolveToken!: (
+      value: Awaited<ReturnType<typeof getAccessToken>>,
+    ) => void;
+    vi.mocked(getAccessToken).mockReturnValue(
+      new Promise((resolve) => {
+        resolveToken = resolve;
+      }),
+    );
+
+    startHandshake(socket, send);
+    authentication.stop();
+    resolveToken({ accessToken: tokenExpiringIn(3600), refreshed: false });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('ignores an expired event from a session that was replaced', async () => {
+    installAuthTokens('token-a', 'refresh-a');
+    const socket = fakeSocket();
+    keepSocketAuthenticated(socket as unknown as Socket);
+    vi.mocked(getAccessToken).mockResolvedValueOnce({
+      accessToken: tokenExpiringIn(600),
+      refreshed: false,
+    });
+    await handshake(socket);
+
+    installAuthTokens('token-b', 'refresh-b');
+    socket.refuses('Unauthorized: jwt expired');
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(refreshToken).not.toHaveBeenCalled();
+    expect(socket.disconnect).not.toHaveBeenCalled();
+  });
+
   // The server checks each event against the handshake token: a connected
   // socket must reconnect once that token expires, or every event fails.
   it('reconnects a connected socket once its token expired', async () => {
@@ -99,11 +176,11 @@ describe('keepSocketAuthenticated', () => {
   });
 
   it('reconnects with a new token when the server finds it expired', async () => {
-    const socket = fakeSocket();
-    keepSocketAuthenticated(socket as unknown as Socket);
     // The device's clock still deems the token valid
     const stale = tokenExpiringIn(600);
     installAuthTokens(stale, 'stale-refresh');
+    const socket = fakeSocket();
+    keepSocketAuthenticated(socket as unknown as Socket);
     vi.mocked(getAccessToken).mockResolvedValueOnce({
       accessToken: stale,
       refreshed: false,
@@ -128,10 +205,10 @@ describe('keepSocketAuthenticated', () => {
   });
 
   it('ignores a refresh that resolves after a successor signed in', async () => {
-    const socket = fakeSocket();
-    keepSocketAuthenticated(socket as unknown as Socket);
     const stale = tokenExpiringIn(600);
     installAuthTokens(stale, 'stale-refresh');
+    const socket = fakeSocket();
+    keepSocketAuthenticated(socket as unknown as Socket);
     vi.mocked(getAccessToken).mockResolvedValueOnce({
       accessToken: stale,
       refreshed: false,
@@ -141,13 +218,13 @@ describe('keepSocketAuthenticated', () => {
     let resolveRefresh!: (
       value: Awaited<ReturnType<typeof refreshToken>>,
     ) => void;
-    vi.mocked(refreshToken).mockReturnValue(
+    vi.mocked(refreshToken).mockReturnValueOnce(
       new Promise((resolve) => {
         resolveRefresh = resolve;
       }),
     );
     socket.refuses('Unauthorized: jwt expired');
-    await vi.waitFor(() => expect(refreshToken).toHaveBeenCalled());
+    await vi.waitFor(() => expect(refreshToken).toHaveBeenCalledTimes(1));
 
     // Account B commits while the socket refresh is in flight.
     installAuthTokens('token-b', 'refresh-b');
@@ -156,10 +233,16 @@ describe('keepSocketAuthenticated', () => {
       refreshToken: 'new-refresh',
       refreshed: true,
     });
-    await vi.waitFor(() =>
-      expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b'),
-    );
+    // Let the stale refresh continuation settle before asserting that it had
+    // no effect on the successor's session or this socket.
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
 
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
     expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
     expect(socket.disconnect).not.toHaveBeenCalled();
   });

@@ -1,7 +1,11 @@
 import type { Socket } from 'socket.io-client';
 
 import { getAccessToken, isValidToken, refreshToken } from './auth';
-import { captureAuthSession, isAuthSessionCurrent } from './auth-attempt';
+import {
+  type AuthSessionSnapshot,
+  captureAuthSession,
+  isAuthSessionCurrent,
+} from './auth-attempt';
 
 const EXPIRY_CHECK_INTERVAL = 60 * 1000;
 
@@ -18,28 +22,31 @@ export type SocketAuthentication = {
  * fresh token and reconnects once it expires, so a tab or the app left open
  * keeps its real-time updates.
  */
-export function keepSocketAuthenticated(socket: Socket): SocketAuthentication {
+export function keepSocketAuthenticated(
+  socket: Socket,
+  session: AuthSessionSnapshot = captureAuthSession(),
+): SocketAuthentication {
   let handshakeToken: string | null = null;
   let refreshing = false;
+  let stopped = false;
+  const belongsToConnection = () => !stopped && isAuthSessionCurrent(session);
 
   socket.auth = (send) => {
-    const session = captureAuthSession();
+    if (!belongsToConnection()) return;
     void getAccessToken(session)
       .catch(() => null)
       .then((info) => {
         // Auth owns credential writes. A late answer for a previous owner
-        // must neither install its refresh nor hand this socket its token.
-        if (!isAuthSessionCurrent(session)) {
-          handshakeToken = null;
-          send({ token: '' });
-          return;
-        }
+        // must neither install its refresh nor hand this socket its token;
+        // an empty token would still make the stale socket look connected.
+        if (!belongsToConnection()) return;
         handshakeToken = info?.accessToken ?? null;
         send({ token: handshakeToken ?? '' });
       });
   };
 
   const reconnectIfExpired = () => {
+    if (!belongsToConnection()) return;
     if (socket.connected && handshakeToken && !isValidToken(handshakeToken)) {
       socket.disconnect().connect();
     }
@@ -51,18 +58,18 @@ export function keepSocketAuthenticated(socket: Socket): SocketAuthentication {
   const onException = (error: { message?: unknown }) => {
     if (
       refreshing ||
+      !belongsToConnection() ||
       typeof error?.message !== 'string' ||
       !error.message.includes('jwt expired')
     ) {
       return;
     }
     refreshing = true;
-    const session = captureAuthSession();
     void refreshToken(session)
       .catch(() => null)
       .then((info) => {
         refreshing = false;
-        if (!info || !isAuthSessionCurrent(session)) return;
+        if (!info || !belongsToConnection()) return;
         if (info.accessToken === handshakeToken) return;
         handshakeToken = info.accessToken;
         socket.disconnect().connect();
@@ -75,6 +82,7 @@ export function keepSocketAuthenticated(socket: Socket): SocketAuthentication {
   return {
     reconnectIfExpired,
     stop: () => {
+      stopped = true;
       clearInterval(interval);
       socket.off('exception', onException);
     },

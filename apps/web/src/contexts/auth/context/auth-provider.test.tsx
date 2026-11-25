@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { useAuthContext } from '@/contexts/auth';
 import { installAuthTokens } from '@/utils/auth-attempt';
+import client from '@/utils/axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/utils/local-storage';
 import { AxiosError } from 'axios';
 import { act } from 'react';
@@ -462,6 +463,63 @@ describe('auth start without a connection', () => {
     expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
     expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
     expect(watch.disconnect).not.toHaveBeenCalled();
+  });
+
+  it('finishes logout when its own 401 invalidates the session during the fence', async () => {
+    api.getMe.mockResolvedValue(user);
+    watch.latch.mockReturnValue(1);
+    watch.boundary = 1;
+    let resolveFence!: (acknowledged: boolean) => void;
+    watch.fence.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveFence = resolve;
+      }),
+    );
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <LogoutProbe />
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    await act(async () => container.querySelector('button')!.click());
+
+    // A request of the same login is refused while the fence is pending.
+    await act(async () => {
+      await client
+        .get('/user/me', {
+          adapter: async (config) => {
+            throw new AxiosError(
+              'Unauthorized',
+              AxiosError.ERR_BAD_REQUEST,
+              config,
+              null,
+              {
+                status: 401,
+                statusText: '',
+                data: {},
+                headers: {},
+                config,
+              },
+            );
+          },
+        })
+        .catch(() => undefined);
+    });
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+
+    await act(async () => {
+      resolveFence(true);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Invalidating A is not replacing it: sign-out still has to finish.
+    expect(watch.disconnect).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+    expect(localStorage.getItem(REFRESH_TOKEN)).toBeNull();
   });
 
   it('latches the watch exit before waiting for the native fence', async () => {

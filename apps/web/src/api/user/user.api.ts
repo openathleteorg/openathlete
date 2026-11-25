@@ -1,4 +1,7 @@
-import { type AuthAttempt } from '@/utils/auth-attempt';
+import {
+  type AuthAttempt,
+  type AuthSessionSnapshot,
+} from '@/utils/auth-attempt';
 import client, { routes } from '@/utils/axios';
 
 import {
@@ -31,8 +34,15 @@ export class UserAPI {
     return res.data;
   }
 
-  static async updateLanguage(language: EmailLanguage): Promise<void> {
-    await client.patch(routes.user.updateLanguage, { language });
+  static async updateLanguage(
+    language: EmailLanguage,
+    session?: AuthSessionSnapshot,
+  ): Promise<void> {
+    await client.patch(
+      routes.user.updateLanguage,
+      { language },
+      session ? { authSession: session } : undefined,
+    );
   }
 
   static async passwordResetRequest(

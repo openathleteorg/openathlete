@@ -1,6 +1,9 @@
 import { getApiBaseUrl } from './capacitor';
 import {
   ACCESS_TOKEN,
+  AUTH_LOGIN_ATTEMPT,
+  AUTH_SESSION_OWNER,
+  AUTH_TOKEN_GENERATION,
   REFRESH_TOKEN,
   getItem,
   removeItem,
@@ -12,15 +15,15 @@ import {
  *
  * `owner` names the login itself and is stable while refresh tokens rotate.
  * `generation` names the exact credential, so a response that used an older
- * token can still be recognised after a same-owner refresh. A request may only
- * publish a user or install a refreshed token while the owner and instance are
- * still current; another login in the same tab otherwise wins the bearer while
- * an older `getMe` response is still in flight.
+ * token can still be recognised after a same-owner refresh. Both counters are
+ * persisted, without secrets, so a reload or another tab sharing this storage
+ * sees the same boundary. A request may only publish a user or install a
+ * refreshed token while the owner and instance are still current.
  */
 export type AuthSessionSnapshot = {
   /** Changes only when a login starts or ends, not when tokens rotate. */
   owner: number;
-  /** Monotonic module counter, bumped on every token install or clear. */
+  /** Monotonic counter, bumped on every token install, rotation or clear. */
   generation: number;
   /** `null` for an unauthenticated bootstrap. */
   accessToken: string | null;
@@ -31,18 +34,42 @@ export type AuthSessionSnapshot = {
 /** Kept for the existing API surface: a snapshot is the attempt. */
 export type AuthAttempt = AuthSessionSnapshot;
 
-let owner = 0;
-let generation = 0;
+/**
+ * A login request started by one of the auth hooks. The newest-started attempt
+ * may commit its returned session; older responses must never overwrite it.
+ */
+export type AuthLoginAttempt = {
+  ticket: number;
+  owner: number;
+  instanceURL: string;
+};
+
+function readCounter(key: string): number {
+  const value = Number(getItem(key));
+  return Number.isSafeInteger(value) && value > 0 ? value : 0;
+}
+
+function writeCounter(key: string, value: number): void {
+  setItem(key, String(value));
+}
+
+function currentOwner(): number {
+  return readCounter(AUTH_SESSION_OWNER);
+}
+
+function currentGeneration(): number {
+  return readCounter(AUTH_TOKEN_GENERATION);
+}
 
 export function authTokenGeneration(): number {
-  return generation;
+  return currentGeneration();
 }
 
 /** Snapshot of the owner, token, instance and generation at this moment. */
 export function captureAuthSession(): AuthSessionSnapshot {
   return {
-    owner,
-    generation,
+    owner: currentOwner(),
+    generation: currentGeneration(),
     accessToken: getItem(ACCESS_TOKEN),
     instanceURL: getApiBaseUrl(),
   };
@@ -59,8 +86,10 @@ export function installAuthTokens(
   accessToken: string,
   refreshToken?: string,
 ): AuthSessionSnapshot {
-  owner += 1;
-  generation += 1;
+  const nextOwner = currentOwner() + 1;
+  const nextGeneration = currentGeneration() + 1;
+  writeCounter(AUTH_SESSION_OWNER, nextOwner);
+  writeCounter(AUTH_TOKEN_GENERATION, nextGeneration);
   setItem(ACCESS_TOKEN, accessToken);
   if (refreshToken) setItem(REFRESH_TOKEN, refreshToken);
   return captureAuthSession();
@@ -79,7 +108,7 @@ export function rotateAuthTokens(
   // The refresh caller already fenced its exact refresh token against a
   // concurrent rotation; here only the owner and instance must still match.
   if (!isAuthSessionCurrent(expected)) return null;
-  generation += 1;
+  writeCounter(AUTH_TOKEN_GENERATION, currentGeneration() + 1);
   setItem(ACCESS_TOKEN, accessToken);
   if (refreshToken) setItem(REFRESH_TOKEN, refreshToken);
   return captureAuthSession();
@@ -92,23 +121,63 @@ export function rotateAuthTokens(
  */
 export function clearAuthTokens(expected?: AuthSessionSnapshot): boolean {
   if (expected && !isAuthSessionCurrent(expected)) return false;
-  owner += 1;
-  generation += 1;
+  writeCounter(AUTH_SESSION_OWNER, currentOwner() + 1);
+  writeCounter(AUTH_TOKEN_GENERATION, currentGeneration() + 1);
   removeItem(ACCESS_TOKEN);
   removeItem(REFRESH_TOKEN);
   return true;
 }
 
+/**
+ * A 401 ends this login's credentials without replacing the login itself. The
+ * owner stays, so a sign-out already waiting for native cleanup can still
+ * finish; the bumped generation invalidates every exact credential attempt.
+ */
+export function invalidateAuthTokens(): void {
+  writeCounter(AUTH_TOKEN_GENERATION, currentGeneration() + 1);
+  removeItem(ACCESS_TOKEN);
+  removeItem(REFRESH_TOKEN);
+}
+
+/** Begin a login request that may only commit while it is the newest one. */
+export function beginAuthLogin(): AuthLoginAttempt {
+  const ticket = readCounter(AUTH_LOGIN_ATTEMPT) + 1;
+  writeCounter(AUTH_LOGIN_ATTEMPT, ticket);
+  return {
+    ticket,
+    owner: currentOwner(),
+    instanceURL: getApiBaseUrl(),
+  };
+}
+
+/**
+ * Commit a successful login only if no newer attempt started and neither the
+ * owner nor the API instance changed while the request was in flight.
+ */
+export function commitAuthLogin(
+  attempt: AuthLoginAttempt,
+  accessToken: string,
+  refreshToken?: string,
+): AuthSessionSnapshot | null {
+  if (attempt.ticket !== readCounter(AUTH_LOGIN_ATTEMPT)) return null;
+  if (attempt.owner !== currentOwner()) return null;
+  if (attempt.instanceURL !== getApiBaseUrl()) return null;
+  return installAuthTokens(accessToken, refreshToken);
+}
+
 /** True while a continuation still belongs to the same owner and instance. */
 export function isAuthSessionCurrent(snapshot: AuthSessionSnapshot): boolean {
-  return owner === snapshot.owner && getApiBaseUrl() === snapshot.instanceURL;
+  return (
+    currentOwner() === snapshot.owner &&
+    getApiBaseUrl() === snapshot.instanceURL
+  );
 }
 
 /** True only while this exact owner, token and generation are installed. */
 export function isAuthAttemptCurrent(attempt: AuthAttempt): boolean {
   return (
     isAuthSessionCurrent(attempt) &&
-    generation === attempt.generation &&
+    currentGeneration() === attempt.generation &&
     getItem(ACCESS_TOKEN) === attempt.accessToken
   );
 }
