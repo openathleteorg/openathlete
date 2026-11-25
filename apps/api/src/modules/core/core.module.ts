@@ -70,6 +70,7 @@ import {
 import { RecordService } from './services/record.service';
 import { StatisticsService } from './services/statistics.service';
 import { StrengthSessionService } from './services/strength-session.service';
+import { TrainingCheckService } from './services/training-check.service';
 import { TrainingLoadService } from './services/training-load.service';
 import { TrainingZoneService } from './services/training-zone.service';
 import { OpenMeteoWeatherProvider } from './services/weather/providers/openmeteo.provider';
@@ -122,6 +123,7 @@ import { YearReviewService } from './services/year-review.service';
     CoachService,
     AthleteCalendarExportService,
     StatisticsService,
+    TrainingCheckService,
     YearReviewService,
     RecordService,
     EquipmentService,
