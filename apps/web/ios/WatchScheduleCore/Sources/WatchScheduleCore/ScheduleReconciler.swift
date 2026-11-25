@@ -601,18 +601,20 @@ public actor ScheduleReconciler {
         var otherScopeCleanup: [ScheduleReceipt] = []
 
         for receipt in unresolvedReceipts {
-            let submittedDate = ScheduleDate.normalized(
-                receipt.submittedDate ?? receipt.scheduledDate
-            )
+            let submittedDate = confirmationDate(for: receipt)
             let entries = actual.filter { $0.planID == receipt.planID }
-            let hasTarget = entries.contains {
-                !$0.isComplete
-                    && ScheduleDate.areEqual($0.startDate, submittedDate)
-            }
-            let hasCompletedTarget = entries.contains {
-                $0.isComplete
-                    && ScheduleDate.areEqual($0.startDate, submittedDate)
-            }
+            let hasTarget = hasConfirmationEntry(
+                entries,
+                planID: receipt.planID,
+                date: submittedDate,
+                isComplete: false
+            )
+            let hasCompletedTarget = hasConfirmationEntry(
+                entries,
+                planID: receipt.planID,
+                date: submittedDate,
+                isComplete: true
+            )
             let isCurrent = receipt.scope == scope
             let isCandidate = isCurrent
                 && candidateByEvent[receipt.eventID] != nil
@@ -679,18 +681,20 @@ public actor ScheduleReconciler {
             guard var receipt = receiptsByEvent[eventID] else {
                 continue
             }
-            let submittedDate = ScheduleDate.normalized(
-                receipt.submittedDate ?? receipt.scheduledDate
-            )
+            let submittedDate = confirmationDate(for: receipt)
             let entries = actual.filter { $0.planID == receipt.planID }
-            let hasTarget = entries.contains {
-                !$0.isComplete
-                    && ScheduleDate.areEqual($0.startDate, submittedDate)
-            }
-            let hasCompletedTarget = entries.contains {
-                $0.isComplete
-                    && ScheduleDate.areEqual($0.startDate, submittedDate)
-            }
+            let hasTarget = hasConfirmationEntry(
+                entries,
+                planID: receipt.planID,
+                date: submittedDate,
+                isComplete: false
+            )
+            let hasCompletedTarget = hasConfirmationEntry(
+                entries,
+                planID: receipt.planID,
+                date: submittedDate,
+                isComplete: true
+            )
             let isCandidate = candidateByEvent[eventID] != nil
             let isRetryable = retryable.contains(eventID)
             let wantsRemoval = receipt.removalIntent == .cleanup
@@ -1204,11 +1208,22 @@ public actor ScheduleReconciler {
                 throw ScheduleReconcileError.storeUnavailable
             }
 
-            // The write returned. Record the confirm phase before reading so a
-            // retry after an interrupted confirmation performs no mutation.
-            receipt.pendingPhase = .confirming
-            try await saveReceipt(receipt, generation: generation)
-            receiptsByEvent[eventID] = receipt
+            // The write returned. Re-read the receipt saved by the submission
+            // fence so its durable submitted date and metadata survive this
+            // update. A store that did not mark the submission falls back to
+            // the date it was asked to write.
+            guard var confirmingReceipt = try await readReceipt(
+                scope: scope,
+                eventID: eventID
+            ) else {
+                throw ScheduleReconcileError.journalUnavailable
+            }
+            confirmingReceipt.pendingPhase = .confirming
+            if confirmingReceipt.submittedDate == nil {
+                confirmingReceipt.submittedDate = normalizedStart
+            }
+            try await saveReceipt(confirmingReceipt, generation: generation)
+            receiptsByEvent[eventID] = confirmingReceipt
 
             do {
                 actual = try await readActual()
@@ -1218,9 +1233,15 @@ public actor ScheduleReconciler {
                 throw ScheduleReconcileError.storeUnavailable
             }
 
-            if actual.contains(where: {
-                $0.planID == planID && $0.isComplete
-            }) {
+            let submittedDate = confirmationDate(for: confirmingReceipt)
+            let planEntries = actual.filter { $0.planID == planID }
+            let hasCompletedTarget = hasConfirmationEntry(
+                planEntries,
+                planID: planID,
+                date: submittedDate,
+                isComplete: true
+            )
+            if hasCompletedTarget {
                 try await recordCompletion(
                     scope: scope,
                     eventID: eventID,
@@ -1239,11 +1260,26 @@ public actor ScheduleReconciler {
                 continue
             }
 
-            let isConfirmed = actual.contains {
-                $0.planID == planID
-                    && !$0.isComplete
-                    && ScheduleDate.areEqual($0.startDate, normalizedStart)
+            if planEntries.contains(where: \.isComplete) {
+                // A completion at another date is real history, but it does not
+                // prove the submitted target landed. Record it and keep the
+                // receipt's ownership unresolved.
+                try await recordCompletion(
+                    scope: scope,
+                    eventID: eventID,
+                    planID: planID,
+                    at: snapshot.readAt,
+                    generation: generation
+                )
+                tombstonedEvents.insert(eventID)
             }
+
+            let isConfirmed = hasConfirmationEntry(
+                planEntries,
+                planID: planID,
+                date: submittedDate,
+                isComplete: false
+            )
             guard isConfirmed else {
                 pendingConfirmation.append(eventID)
                 failed.append(eventID)
@@ -1253,13 +1289,13 @@ public actor ScheduleReconciler {
                 )
             }
 
-            receipt.pendingOperation = nil
-            receipt.pendingPhase = nil
-            receipt.submittedDate = nil
-            receipt.pendingPreviousDate = nil
-            receipt.removalIntent = nil
-            try await saveReceipt(receipt, generation: generation)
-            receiptsByEvent[eventID] = receipt
+            confirmingReceipt.pendingOperation = nil
+            confirmingReceipt.pendingPhase = nil
+            confirmingReceipt.submittedDate = nil
+            confirmingReceipt.pendingPreviousDate = nil
+            confirmingReceipt.removalIntent = nil
+            try await saveReceipt(confirmingReceipt, generation: generation)
+            receiptsByEvent[eventID] = confirmingReceipt
             if operation == .replace && hadUsableEntry {
                 replaced.append(eventID)
             } else {
@@ -1300,37 +1336,70 @@ public actor ScheduleReconciler {
             throw ScheduleReconcileError.scopeMismatch
         }
         try requireActive(generation, scope: scope)
+        try Task.checkCancellation()
+
+        var receipts = try await readReceipts(for: scope).sorted {
+            $0.eventID < $1.eventID
+        }
+
+        // Persist explicit cleanup authorization before the fallible scheduler
+        // read. If the read fails and the account switches, another account may
+        // finish only these durable intents; it never infers permission from an
+        // absent or hidden entry.
+        for index in receipts.indices {
+            try requireActive(generation, scope: scope)
+            var receipt = receipts[index]
+            if isUnresolvedSubmitted(receipt) {
+                guard receipt.removalIntent != .cleanup else {
+                    continue
+                }
+                receipt.removalIntent = .cleanup
+                try await saveReceipt(receipt, generation: generation)
+                receipts[index] = receipt
+            } else {
+                guard receipt.pendingOperation != .remove
+                    || receipt.removalIntent != .cleanup
+                else {
+                    continue
+                }
+                receipt.pendingOperation = .remove
+                receipt.pendingPhase = nil
+                receipt.submittedDate = nil
+                receipt.pendingPreviousDate = nil
+                receipt.removalIntent = .cleanup
+                try await saveReceipt(receipt, generation: generation)
+                receipts[index] = receipt
+            }
+        }
+
         var actual = try await readActual()
-        let receipts = try await readReceipts(for: scope)
         var removed: [Int] = []
         var retained: [Int] = []
 
-        for receipt in receipts.sorted(by: { $0.eventID < $1.eventID }) {
+        for receipt in receipts {
             try requireActive(generation, scope: scope)
             try Task.checkCancellation()
 
             if isUnresolvedSubmitted(receipt) {
-                // A submitted write may still be hidden. Record cleanup durably
-                // and only remove what Apple positively shows.
-                var current = receipt
-                if current.removalIntent != .cleanup {
-                    current.removalIntent = .cleanup
-                    try await saveReceipt(current, generation: generation)
-                }
+                // A submitted write may still be hidden. Only remove what Apple
+                // positively shows at the submitted date.
+                let current = receipt
                 let entries = actual.filter {
                     $0.planID == current.planID
                 }
-                let submittedDate = ScheduleDate.normalized(
-                    current.submittedDate ?? current.scheduledDate
+                let submittedDate = confirmationDate(for: current)
+                let hasTarget = hasConfirmationEntry(
+                    entries,
+                    planID: current.planID,
+                    date: submittedDate,
+                    isComplete: false
                 )
-                let hasTarget = entries.contains {
-                    !$0.isComplete
-                        && ScheduleDate.areEqual($0.startDate, submittedDate)
-                }
-                let hasCompletedTarget = entries.contains {
-                    $0.isComplete
-                        && ScheduleDate.areEqual($0.startDate, submittedDate)
-                }
+                let hasCompletedTarget = hasConfirmationEntry(
+                    entries,
+                    planID: current.planID,
+                    date: submittedDate,
+                    isComplete: true
+                )
                 guard hasTarget || hasCompletedTarget else {
                     // UUID alone is not proof. A stale same-UUID copy at an old
                     // date must not clear the cleanup receipt.
@@ -1387,6 +1456,26 @@ public actor ScheduleReconciler {
             return false
         }
         return receipt.pendingPhase == .confirming
+    }
+
+    /// The identity of the entry a submission fence proved was attempted.
+    private func confirmationDate(for receipt: ScheduleReceipt) -> Date {
+        ScheduleDate.normalized(receipt.submittedDate ?? receipt.scheduledDate)
+    }
+
+    /// Confirmation matches plan UUID and date. A same-UUID entry at another
+    /// date is stale history, not proof of this submission.
+    private func hasConfirmationEntry(
+        _ entries: [ScheduledWorkoutState],
+        planID: UUID,
+        date: Date,
+        isComplete: Bool
+    ) -> Bool {
+        entries.contains {
+            $0.planID == planID
+                && $0.isComplete == isComplete
+                && ScheduleDate.areEqual($0.startDate, date)
+        }
     }
 
     private struct RemovalOutcome {
@@ -1584,6 +1673,18 @@ public actor ScheduleReconciler {
                 confirmed: true,
                 removed: false,
                 completed: !entries.isEmpty
+            )
+        }
+
+        if entries.contains(where: \.isComplete) {
+            // A completed copy is Apple history. Persist it before mutating an
+            // incomplete sibling; the removal read-back may lose that history.
+            try await recordCompletion(
+                scope: receipt.scope,
+                eventID: receipt.eventID,
+                planID: receipt.planID,
+                at: completedAt,
+                generation: generation
             )
         }
 

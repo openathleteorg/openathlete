@@ -2803,6 +2803,210 @@ final class ScheduleReconcilerTests: XCTestCase {
         XCTAssertEqual(requestsAfter.count, 1)
     }
 
+    // MARK: - Fix round 4: submission identity, cleanup authorization
+
+    func testImmediatePostSubmitReadRecordsOldCompletionWithoutClearingTarget() async throws {
+        let store = FakeStore()
+        let journal = FakeJournal()
+        let reconciler = await makeReconciler(store: store, journal: journal)
+        let oldDate = "2026-06-02T12:00:00.000Z"
+        let newDate = "2026-06-03T12:00:00.000Z"
+
+        await store.hideNextWriteWithOldCompletion(at: try date(oldDate))
+        do {
+            _ = try await reconciler.reconcile(
+                try snapshot(candidates: [try candidate(1101, start: newDate)]),
+                scope: scope,
+                generation: 1
+            )
+            XCTFail("An old-date completion must not confirm the submitted target")
+        } catch let error as ScheduleReconcileError {
+            XCTAssertEqual(
+                error,
+                .unresolvedWrite(scope: scope, eventID: 1101)
+            )
+        }
+
+        let requests = await store.scheduleRequests
+        let workouts = await store.workouts
+        let hidden = await store.hiddenWorkoutCount()
+        let receiptValue = try await journal.receipt(
+            scope: scope,
+            eventID: 1101
+        )
+        let receipt = try XCTUnwrap(receiptValue)
+        let tombstone = try await journal.completionTombstone(
+            scope: scope,
+            eventID: 1101
+        )
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertEqual(hidden, 1)
+        XCTAssertEqual(workouts.count, 1)
+        XCTAssertEqual(workouts.first?.isComplete, true)
+        XCTAssertEqual(receipt.pendingOperation, .schedule)
+        XCTAssertEqual(receipt.pendingPhase, .confirming)
+        XCTAssertEqual(receipt.submittedDate, try date(newDate))
+        XCTAssertNotNil(tombstone)
+    }
+
+    func testCleanupPersistsAuthorizationBeforeAFailedSchedulerRead() async throws {
+        let store = FakeStore()
+        let journal = FakeJournal()
+        let reconciler = await makeReconciler(store: store, journal: journal)
+        let start = "2026-06-02T12:00:00.000Z"
+
+        await store.acceptButHideNextWrite()
+        do {
+            _ = try await reconciler.reconcile(
+                try snapshot(candidates: [try candidate(1102, start: start)]),
+                scope: scope,
+                generation: 1
+            )
+            XCTFail("A hidden write is unresolved")
+        } catch let error as ScheduleReconcileError {
+            XCTAssertEqual(
+                error,
+                .unresolvedWrite(scope: scope, eventID: 1102)
+            )
+        }
+        let submittedDate = try date(start)
+
+        await store.failNextRead()
+        do {
+            _ = try await reconciler.cleanup(scope: scope, generation: 1)
+            XCTFail("The cleanup scheduler read must fail")
+        } catch let error as ScheduleReconcileError {
+            XCTAssertEqual(error, .storeUnavailable)
+        }
+
+        let authorizedValue = try await journal.receipt(
+            scope: scope,
+            eventID: 1102
+        )
+        let authorized = try XCTUnwrap(authorizedValue)
+        XCTAssertEqual(authorized.removalIntent, .cleanup)
+        XCTAssertEqual(authorized.pendingPhase, .confirming)
+        XCTAssertEqual(authorized.submittedDate, submittedDate)
+
+        await reconciler.activate(generation: 2, for: otherScope)
+        let bSnapshot = try snapshot(
+            candidates: [try candidate(1103, start: "2026-06-03T12:00:00.000Z")],
+            scope: otherScope
+        )
+        do {
+            _ = try await reconciler.reconcile(
+                bSnapshot,
+                scope: otherScope,
+                generation: 2
+            )
+            XCTFail("Account B must wait for account A's authorized cleanup")
+        } catch let error as ScheduleReconcileError {
+            XCTAssertEqual(
+                error,
+                .unresolvedWrite(scope: scope, eventID: 1102)
+            )
+        }
+
+        await store.revealHiddenWorkouts()
+        _ = try await reconciler.reconcile(
+            bSnapshot,
+            scope: otherScope,
+            generation: 2
+        )
+
+        let requests = await store.scheduleRequests
+        let workouts = await store.workouts
+        let aReceipt = try await journal.receipt(scope: scope, eventID: 1102)
+        let bReceipt = try await journal.receipt(
+            scope: otherScope,
+            eventID: 1103
+        )
+        XCTAssertEqual(requests.count, 2)
+        XCTAssertEqual(workouts.count, 1)
+        XCTAssertNil(aReceipt)
+        XCTAssertNotNil(bReceipt)
+    }
+
+    func testCrossScopeCompletionPersistsBeforeHistoryLossDuringRemoval() async throws {
+        let store = FakeStore()
+        let journal = FakeJournal()
+        let planID = UUID()
+        let aStart = try date("2026-06-02T09:00:00.000Z")
+        try await journal.save(
+            ScheduleReceipt(
+                scope: otherScope,
+                eventID: 1104,
+                planID: planID,
+                scheduledDate: aStart,
+                fingerprint: "a",
+                pendingOperation: .remove,
+                removalIntent: .cleanup
+            )
+        )
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: planID,
+                startDate: aStart,
+                isComplete: true
+            )
+        )
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: planID,
+                startDate: aStart,
+                isComplete: false
+            )
+        )
+        await store.loseCompletedHistoryOnNextRemove()
+        let reconciler = await makeReconciler(
+            store: store,
+            journal: journal,
+            generation: 2
+        )
+
+        _ = try await reconciler.reconcile(
+            try snapshot(
+                candidates: [
+                    try candidate(1105, start: "2026-06-03T12:00:00.000Z"),
+                ]
+            ),
+            scope: scope,
+            generation: 2
+        )
+
+        let tombstone = try await journal.completionTombstone(
+            scope: otherScope,
+            eventID: 1104
+        )
+        let aReceipt = try await journal.receipt(
+            scope: otherScope,
+            eventID: 1104
+        )
+        let schedulesAfterB = await store.scheduleRequests.count
+        let workoutsAfterB = await store.workouts
+        XCTAssertNotNil(tombstone)
+        XCTAssertNil(aReceipt)
+        XCTAssertEqual(schedulesAfterB, 1)
+        XCTAssertEqual(workoutsAfterB.count, 1)
+
+        await reconciler.activate(generation: 3, for: otherScope)
+        let recurring = try await reconciler.reconcile(
+            try snapshot(
+                candidates: [
+                    try candidate(1104, start: "2026-06-02T09:00:00.000Z"),
+                ],
+                readAt: "2026-06-01T14:00:00.000Z",
+                scope: otherScope
+            ),
+            scope: otherScope,
+            generation: 3
+        )
+
+        let schedulesAfterRecurrence = await store.scheduleRequests.count
+        XCTAssertEqual(recurring.completedEventIDs, [1104])
+        XCTAssertEqual(schedulesAfterRecurrence, schedulesAfterB)
+    }
+
     // MARK: - Durability
 
     func testFileJournalKeepsReceiptsAcrossReconcilerInstances() async throws {
@@ -2875,6 +3079,8 @@ private actor FakeStore: ScheduleWorkoutStore {
     private var shouldSuspendBeforeFence = false
     private var shouldSuspendRemoveBeforeFence = false
     private var shouldHideNextAcceptedWrite = false
+    private var oldCompletionDateOnNextWrite: Date?
+    private var shouldLoseCompletedHistoryOnNextRemove = false
     private var hiddenWorkouts: [ScheduledWorkoutState] = []
     private var writeIsSuspended = false
     private var resumeWaiters: [CheckedContinuation<Void, Never>] = []
@@ -2948,6 +3154,16 @@ private actor FakeStore: ScheduleWorkoutStore {
         if shouldHideNextAcceptedWrite {
             shouldHideNextAcceptedWrite = false
             hiddenWorkouts.append(state)
+            if let oldDate = oldCompletionDateOnNextWrite {
+                oldCompletionDateOnNextWrite = nil
+                workouts.append(
+                    ScheduledWorkoutState(
+                        planID: request.planID,
+                        startDate: oldDate,
+                        isComplete: true
+                    )
+                )
+            }
         } else {
             workouts.append(state)
         }
@@ -2993,6 +3209,11 @@ private actor FakeStore: ScheduleWorkoutStore {
                     isComplete: true
                 )
             }
+            return
+        }
+        if shouldLoseCompletedHistoryOnNextRemove {
+            shouldLoseCompletedHistoryOnNextRemove = false
+            workouts.removeAll { $0.planID == planID }
             return
         }
         if shouldCompleteAndLeaveIncompleteOnNextRemove {
@@ -3073,6 +3294,15 @@ private actor FakeStore: ScheduleWorkoutStore {
 
     func acceptButHideNextWrite() {
         shouldHideNextAcceptedWrite = true
+    }
+
+    func hideNextWriteWithOldCompletion(at date: Date) {
+        shouldHideNextAcceptedWrite = true
+        oldCompletionDateOnNextWrite = date
+    }
+
+    func loseCompletedHistoryOnNextRemove() {
+        shouldLoseCompletedHistoryOnNextRemove = true
     }
 
     func revealHiddenWorkouts() {
