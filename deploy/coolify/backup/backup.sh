@@ -2,7 +2,11 @@
 # Backs up the hosted database to the restic repository in RESTIC_REPOSITORY
 # (Cloudflare R2). Run nightly by a Coolify scheduled task in this container.
 #
-# Restore: restic dump latest /openathlete.sql | psql -d <empty database>
+# Restore, into an empty database: the dump's row-level security policies name
+# the posthog_reader role, so create it first or psql stops on it.
+#   psql -d <empty database> -c 'create role posthog_reader nologin'
+#   restic dump latest /openathlete.sql | psql -d <empty database> -v ON_ERROR_STOP=1
+# Then run deploy/coolify/posthog/reader.sql again to give it its password.
 set -eu
 
 # Tells the monitor (Constellation, /api/heartbeats/backup?token=...) that the
