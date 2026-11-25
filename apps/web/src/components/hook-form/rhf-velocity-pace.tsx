@@ -20,11 +20,7 @@ import {
 } from '../ui/select';
 
 export type VelocityUnit =
-  | 'm_per_s'
-  | 'km_per_h'
-  | 'mph'
-  | 'min_per_km'
-  | 'min_per_mi';
+  'm_per_s' | 'km_per_h' | 'mph' | 'min_per_km' | 'min_per_mi';
 
 type Props = Omit<ComponentProps<'input'>, 'onChange'> & {
   name: string;

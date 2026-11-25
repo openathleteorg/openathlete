@@ -2845,7 +2845,7 @@
   "zones_threshold_power_label": "Potencia umbral (W)",
   "zones_threshold_hr_label": "Frecuencia cardíaca umbral (ppm)",
   "zones_threshold_hr_help": "Friel: tras calentar, 30 minutos tan fuerte como aguantes, en solitario. Tu frecuencia cardiaca media de los últimos 20 minutos es el umbral.",
-  "zones_threshold_pace_label": "Ritmo umbral (min/km)",
+  "zones_threshold_pace_label": "Ritmo umbral ({unit})",
   "zones_threshold_source_modeled": "{metric} modelada: {value}",
   "zones_threshold_source_entered": "{metric} introducida: {value}",
   "zones_threshold_economy": "Ritmo desde la potencia: {value} J/m, de {count} carreras llanas de los últimos {days} días. Sigue a tu propio medidor: Stryd y Garmin miden distinto.",

@@ -63,8 +63,12 @@ export function RecordsSummary({
             ? m.records_season_record({ year })
             : m.records_season_gap({
                 year,
-                value: formatRecordValue(metric, season, sport, units.unitSystem)
-                  .value,
+                value: formatRecordValue(
+                  metric,
+                  season,
+                  sport,
+                  units.unitSystem,
+                ).value,
                 gap: percent.format(recordGap(season, record) * 100),
               });
         return (

@@ -2845,7 +2845,7 @@
   "zones_threshold_power_label": "Potência de limiar (W)",
   "zones_threshold_hr_label": "Frequência cardíaca de limiar (bpm)",
   "zones_threshold_hr_help": "Friel: depois do aquecimento, 30 minutos o mais forte que conseguir manter, sozinho. Sua frequência cardíaca média nos últimos 20 minutos é o limiar.",
-  "zones_threshold_pace_label": "Ritmo de limiar (min/km)",
+  "zones_threshold_pace_label": "Ritmo de limiar ({unit})",
   "zones_threshold_source_modeled": "{metric} modelada: {value}",
   "zones_threshold_source_entered": "{metric} informada: {value}",
   "zones_threshold_economy": "Ritmo a partir da potência: {value} J/m, de {count} corridas planas dos últimos {days} dias. Segue o seu próprio medidor: Stryd e Garmin medem diferente.",

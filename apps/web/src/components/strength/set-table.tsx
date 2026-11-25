@@ -6,7 +6,7 @@ import { Plus, X } from 'lucide-react';
 import { type KeyboardEvent, useEffect, useState } from 'react';
 
 import type { StrengthSet } from '@openathlete/shared';
-import { WORKOUT_DURATION_TYPE } from '@openathlete/shared';
+import { M_TO_YD, WORKOUT_DURATION_TYPE } from '@openathlete/shared';
 
 import { type SetColumns, gridColumns } from './set-columns';
 import {
@@ -68,7 +68,10 @@ export function CellInput({
 }
 
 const loadOf = (text: string, factor = 1): number | null | undefined => {
-  const value = text.replace(',', '.').replace(/kg|lbs?/i, '').trim();
+  const value = text
+    .replace(',', '.')
+    .replace(/kg|lbs?/i, '')
+    .trim();
   if (!value) return null;
   const number = Number(value);
   if (!Number.isFinite(number) || number < 0) return undefined;
@@ -105,14 +108,22 @@ export function SetCells({
         : units.unitSystem === 'IMPERIAL'
           ? 'yd'
           : 'm';
+  const workValue =
+    set.work.type === WORKOUT_DURATION_TYPE.DISTANCE
+      ? String(
+          units.unitSystem === 'IMPERIAL'
+            ? Math.round(set.work.value * M_TO_YD)
+            : set.work.value,
+        )
+      : formatWork(set.work, units.unitSystem);
   return (
     <>
       <div className="relative">
         <CellInput
-          value={formatWork(set.work)}
-          parse={(text) => !!parseWork(text, set.work.type)}
+          value={workValue}
+          parse={(text) => !!parseWork(text, set.work.type, units.unitSystem)}
           onCommit={(text) => {
-            const work = parseWork(text, set.work.type);
+            const work = parseWork(text, set.work.type, units.unitSystem);
             if (work) onChange({ ...set, work });
           }}
           label={m.strength_work()}

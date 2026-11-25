@@ -105,9 +105,16 @@ export function MetricForm({
   }, [selectedType]);
 
   const onFormSubmit = handleSubmit(async (data) => {
+    const originalValue = defaultValues?.value;
+    const keepOriginal =
+      !methods.formState.dirtyFields.value &&
+      originalValue !== undefined &&
+      data.type === initialType;
     onSubmit({
       ...data,
-      value: metricFromDisplay(data.type, data.value, units.unitSystem),
+      value: keepOriginal
+        ? originalValue
+        : metricFromDisplay(data.type, data.value, units.unitSystem),
     });
   });
 

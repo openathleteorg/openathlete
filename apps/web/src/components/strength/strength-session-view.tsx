@@ -107,7 +107,10 @@ export function StrengthSessionView({
                       exercise.sets[0] &&
                         (exercise.sets[0].work.type === 'REPS'
                           ? `${exercise.sets[0].work.value} ${m.strength_reps_short()}`
-                          : formatWork(exercise.sets[0].work)),
+                          : formatWork(
+                              exercise.sets[0].work,
+                              units.unitSystem,
+                            )),
                       exercise.sets[0]?.load &&
                         (() => {
                           const w = toUnitWeight(
@@ -128,7 +131,7 @@ export function StrengthSessionView({
         return (
           <li key={index} className="text-sm text-muted-foreground">
             <span className="font-medium text-foreground">
-              {formatStepLength(block.step)}
+              {formatStepLength(block.step, units.unitSystem)}
             </span>{' '}
             {block.step.name}
           </li>

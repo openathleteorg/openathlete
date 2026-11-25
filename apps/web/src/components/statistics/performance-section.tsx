@@ -135,10 +135,11 @@ function CoherenceCard({ records }: { records: BestRecordDto[] }) {
           otherAsDots
           points={points.map((point) => ({
             x: point.distance / 1000,
-            low: point.fast,
-            median: point.expected,
-            high: point.slow,
-            other: point.actual,
+            low: point.fast * units.paceFactor,
+            median: point.expected * units.paceFactor,
+            high: point.slow * units.paceFactor,
+            other:
+              point.actual !== null ? point.actual * units.paceFactor : null,
           }))}
           logX
           formatX={(km) => formatRecordDistance(km * 1000, units.unitSystem)}

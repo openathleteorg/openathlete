@@ -9,10 +9,10 @@ import {
 
 import { formatSeconds, formatWork } from './strength-input';
 
-const workLabel = (set: StrengthSet) =>
+const workLabel = (set: StrengthSet, unitSystem: UnitSystem) =>
   set.work.type === WORKOUT_DURATION_TYPE.REPS
     ? String(set.work.value)
-    : formatWork(set.work);
+    : formatWork(set.work, unitSystem);
 
 /** "4 × 8 · 60 kg · rest 2'", or "10 / 8 / 6 · 60–70 kg" for a pyramid */
 export function setsSummary(
@@ -42,7 +42,7 @@ export function setsSummary(
   const work = sets.every((set) =>
     sameSet({ ...set, rest: null }, { ...first, rest: null }),
   )
-    ? `${sets.length} × ${workLabel(first)}`
-    : sets.map(workLabel).join(' / ');
+    ? `${sets.length} × ${workLabel(first, unitSystem)}`
+    : sets.map((set) => workLabel(set, unitSystem)).join(' / ');
   return [work, load, rest].filter(Boolean).join(' · ');
 }

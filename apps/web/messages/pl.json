@@ -2845,7 +2845,7 @@
   "zones_threshold_power_label": "Moc progowa (W)",
   "zones_threshold_hr_label": "Tętno progowe (bpm)",
   "zones_threshold_hr_help": "Friel: po rozgrzewce 30 minut tak mocno, jak dasz radę utrzymać, w pojedynkę. Twoje średnie tętno z ostatnich 20 minut to próg.",
-  "zones_threshold_pace_label": "Tempo progowe (min/km)",
+  "zones_threshold_pace_label": "Tempo progowe ({unit})",
   "zones_threshold_source_modeled": "{metric} z modelu: {value}",
   "zones_threshold_source_entered": "{metric} wpisane: {value}",
   "zones_threshold_economy": "Tempo z mocy: {value} J/m, z {count} płaskich biegów z ostatnich {days} dni. Zależy od twojego czujnika mocy: Stryd i Garmin mierzą inaczej.",

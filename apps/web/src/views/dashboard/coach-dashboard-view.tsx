@@ -1,6 +1,5 @@
 import { useCoachDashboardQuery } from '@/api/coach';
 import { useSupporterBadges } from '@/api/subscription';
-import { useUnits } from '@/hooks/use-units';
 import {
   GroupFilterOption,
   useGroupFilterOptions,
@@ -44,6 +43,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { useFeature } from '@/hooks/use-feature';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { cn } from '@/utils/shadcn';

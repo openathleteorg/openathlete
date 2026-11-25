@@ -17,6 +17,7 @@ import { useState } from 'react';
 import {
   METRIC_TYPE,
   TRAINING_ZONE_TYPE,
+  formatSpeedUnit,
   powerToPace,
 } from '@openathlete/shared';
 
@@ -202,7 +203,9 @@ export function ThresholdZonesPanel({
   const pick = (source: Source) => {
     setSourceId(source.id);
     setInput(
-      isPace ? formatPace(source.value * units.paceFactor) : String(source.value),
+      isPace
+        ? formatPace(source.value * units.paceFactor)
+        : String(source.value),
     );
   };
 
@@ -241,7 +244,9 @@ export function ThresholdZonesPanel({
   }
 
   const label = isPace
-    ? m.zones_threshold_pace_label()
+    ? m.zones_threshold_pace_label({
+        unit: formatSpeedUnit(units.speedUnit('min/km')),
+      })
     : isPower
       ? m.zones_threshold_power_label()
       : m.zones_threshold_hr_label();
@@ -411,7 +416,11 @@ export function ThresholdZonesPanel({
           inputMode={isPace ? 'text' : 'numeric'}
           type={isPace ? 'text' : 'number'}
           placeholder={
-            isPace ? (units.unitSystem === 'IMPERIAL' ? '6:40' : '4:10') : undefined
+            isPace
+              ? units.unitSystem === 'IMPERIAL'
+                ? '6:40'
+                : '4:10'
+              : undefined
           }
           value={input}
           onChange={(event) => {

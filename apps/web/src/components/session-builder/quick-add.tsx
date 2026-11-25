@@ -86,7 +86,7 @@ export const QuickAdd = forwardRef<HTMLInputElement, QuickAddProps>(
               </span>
             ) : (
               <span className="text-muted-foreground" role="status">
-                → {describeSteps(result.steps)}
+                → {describeSteps(result.steps, env.unitSystem)}
               </span>
             )
           ) : (

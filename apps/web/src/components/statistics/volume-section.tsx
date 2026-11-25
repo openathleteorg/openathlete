@@ -18,11 +18,7 @@ import {
   YAxis,
 } from 'recharts';
 
-import {
-  SPORT_TYPE,
-  SportGroup,
-  formatDuration,
-} from '@openathlete/shared';
+import { SPORT_TYPE, SportGroup, formatDuration } from '@openathlete/shared';
 
 import { SportDistributionChart } from '../charts/sport-distribution-chart';
 import { Card, CardContent } from '../ui/card';

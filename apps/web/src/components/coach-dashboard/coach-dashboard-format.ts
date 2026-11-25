@@ -38,7 +38,11 @@ export function alertText(
         : m.coach_alert_threshold_below({
             metric,
             value,
-            bound: formatMetricValue(type, alert.min ?? alert.value, unitSystem),
+            bound: formatMetricValue(
+              type,
+              alert.min ?? alert.value,
+              unitSystem,
+            ),
           });
     }
   }

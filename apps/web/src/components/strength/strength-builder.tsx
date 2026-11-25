@@ -61,6 +61,7 @@ import { type SetColumns, gridColumns } from './set-columns';
 import { CellInput, SetCells, SetTable } from './set-table';
 import {
   formatSeconds,
+  formatWork,
   parseQuickExercise,
   parseSeconds,
   quickSets,
@@ -621,10 +622,11 @@ function GroupCard({
 }
 
 function StepCard({ block, index, count, apply }: CardProps<Block<'step'>>) {
+  const units = useUnits();
   const step = block.step;
   const length = step.repeatBlock
     ? `${step.repeatBlock.repetitions} × …`
-    : (formatStepLength(step) ?? '');
+    : (formatStepLength(step, units.unitSystem) ?? '');
   return (
     <div
       className="flex items-center gap-3 rounded-xl border border-dashed bg-card px-3 py-2"
@@ -696,7 +698,10 @@ export function StrengthBuilder({
       blocks.map((item) => (item.uid === block.uid ? block : item)),
     );
 
-  const quickParsed = useMemo(() => parseQuickExercise(quick), [quick]);
+  const quickParsed = useMemo(
+    () => parseQuickExercise(quick, units.unitSystem),
+    [quick, units.unitSystem],
+  );
   const quickMatch = useMemo(
     () =>
       quickParsed
@@ -930,10 +935,10 @@ export function StrengthBuilder({
           {quick.trim()
             ? quickParsed
               ? quickMatch
-                ? `→ ${quickMatch.name} · ${quickParsed.sets} × ${quickParsed.work.type === 'REPS' ? quickParsed.work.value : formatSeconds(quickParsed.work.value)}${quickParsed.load ? ` @ ${units.weight(quickParsed.load)} ${units.weightLabel}` : ''}${quickParsed.rest ? ` · ${m.strength_rest()} ${formatSeconds(quickParsed.rest)}` : ''}`
+                ? `→ ${quickMatch.name} · ${quickParsed.sets} × ${quickParsed.work.type === 'REPS' ? quickParsed.work.value : formatWork(quickParsed.work, units.unitSystem)}${quickParsed.load ? ` @ ${units.weight(quickParsed.load)} ${units.weightLabel}` : ''}${quickParsed.rest ? ` · ${m.strength_rest()} ${formatSeconds(quickParsed.rest)}` : ''}`
                 : m.strength_quick_no_match({ query: quickParsed.query })
               : quickStep
-                ? `→ ${quickStep.map((step) => formatStepLength(step) ?? '').join(' + ')}`
+                ? `→ ${quickStep.map((step) => formatStepLength(step, units.unitSystem) ?? '').join(' + ')}`
                 : m.strength_quick_hint()
             : m.strength_quick_hint()}
         </p>

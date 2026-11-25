@@ -30,6 +30,7 @@ export function TextEditor({ steps, env, onChange }: TextEditorProps) {
       sport: env.sport,
       zones: env.zones,
       locale: env.locale,
+      unitSystem: env.unitSystem,
     }),
   );
   const area = useRef<HTMLTextAreaElement>(null);

@@ -1,4 +1,5 @@
 import { Loader } from '@/components/ui/loader';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
@@ -367,6 +368,7 @@ function FileBlock({ block }: { block: AgentMessageBlock }) {
 
 // ==================== Activity List Block ====================
 function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
+  const units = useUnits();
   const activities = (block.metadata?.activities as ActivityEvent[]) || [];
   const totalCount =
     (block.metadata?.totalCount as number) || activities.length;
@@ -408,7 +410,10 @@ function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
                       </span>
                     )}
                     {activity.distance && (
-                      <span>{(activity.distance / 1000).toFixed(2)} km</span>
+                      <span>
+                        {units.formatDist(activity.distance)}{' '}
+                        {units.distanceLabel}
+                      </span>
                     )}
                     {getActivityDuration(activity) && (
                       <span>
@@ -417,7 +422,12 @@ function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
                       </span>
                     )}
                     {activity.elevationGain && (
-                      <span>{activity.elevationGain}m D+</span>
+                      <span>
+                        {units.elevation(activity.elevationGain)}
+                        {units.unitSystem === 'IMPERIAL'
+                          ? ` ${units.elevationLabel}`
+                          : 'm D+'}
+                      </span>
                     )}
                     {activity.startDate && (
                       <span className="text-xs">
@@ -452,6 +462,7 @@ function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
 
 // ==================== Activity Created Block ====================
 function ActivityCreatedBlock({ block }: { block: AgentMessageBlock }) {
+  const units = useUnits();
   const activity = block.metadata?.activity as ActivityEvent;
 
   if (!activity) {
@@ -486,7 +497,9 @@ function ActivityCreatedBlock({ block }: { block: AgentMessageBlock }) {
               (activity.distance || getActivityDuration(activity)) &&
               ' • '}
             {activity.distance && (
-              <span>{(activity.distance / 1000).toFixed(2)} km</span>
+              <span>
+                {units.formatDist(activity.distance)} {units.distanceLabel}
+              </span>
             )}
             {activity.distance && getActivityDuration(activity) && ' • '}
             {getActivityDuration(activity) && (

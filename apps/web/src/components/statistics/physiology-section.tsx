@@ -1,4 +1,5 @@
 import { useStatisticsCardiacCostQuery } from '@/api/statistics';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 
 import { SPORT_TYPE, StatisticsCardiacCostDto } from '@openathlete/shared';
@@ -29,6 +30,7 @@ function Cost({
   data: StatisticsCardiacCostDto;
   before?: StatisticsCardiacCostDto;
 }) {
+  const units = useUnits();
   if (data.bins.length === 0) {
     return (
       <Card className="gap-0 py-0">
@@ -39,7 +41,8 @@ function Cost({
     );
   }
   const power = data.unit === 'power';
-  const output = (value: number) => (power ? `${value} W` : `${value} km/h`);
+  const output = (value: number) =>
+    power ? `${value} W` : units.formatKmh(value);
   const reference = referenceOutput(data, before);
   const lines: QuickReadLine[] = [
     ...(reference?.current && reference.previous

@@ -5,11 +5,7 @@ import { Units } from '@/utils/units';
 import { Check } from 'lucide-react';
 import { ReactNode } from 'react';
 
-import {
-  SPORT_TYPE,
-  formatSpeed,
-  formatSpeedUnit,
-} from '@openathlete/shared';
+import { SPORT_TYPE, formatSpeed, formatSpeedUnit } from '@openathlete/shared';
 
 import { formatClock, formatLongDate, formatNumber } from '../format';
 import { after } from '../story/after';
@@ -65,7 +61,10 @@ export function HighlightSlide({ review }: SlideProps) {
     units,
   );
   const figures: [ReactNode, string][] = [
-    [formatNumber(units.distanceValue(highlight.distance), 1), units.distanceLabel],
+    [
+      formatNumber(units.distanceValue(highlight.distance), 1),
+      units.distanceLabel,
+    ],
     [pace, paceUnit],
     highlight.averageHeartrate
       ? [formatNumber(highlight.averageHeartrate), m.year_review_heartrate()]

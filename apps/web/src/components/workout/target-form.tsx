@@ -273,11 +273,32 @@ export function TargetForm({
         values.metricType,
       );
     } else if (values.targetType === WORKOUT_TARGET_TYPE.WEIGHT) {
-      const fromDisplayWeight = (v: number | null | undefined) =>
-        v === null || v === undefined ? null : v / units.weightFactor;
-      finalMin = fromDisplayWeight(values.targetMin);
-      finalMax = fromDisplayWeight(values.targetMax);
-      finalValue = fromDisplayWeight(values.targetValue);
+      const dirty = form.formState.dirtyFields;
+      const fromDisplayWeight = (
+        v: number | null | undefined,
+        isDirty: boolean | undefined,
+        original: number | null | undefined,
+      ) => {
+        if (!isDirty && isInitialWeight && original !== undefined) {
+          return original;
+        }
+        return v === null || v === undefined ? null : v / units.weightFactor;
+      };
+      finalMin = fromDisplayWeight(
+        values.targetMin,
+        dirty.targetMin,
+        initialValues?.targetMin,
+      );
+      finalMax = fromDisplayWeight(
+        values.targetMax,
+        dirty.targetMax,
+        initialValues?.targetMax,
+      );
+      finalValue = fromDisplayWeight(
+        values.targetValue,
+        dirty.targetValue,
+        initialValues?.targetValue,
+      );
     }
 
     // Clear unused fields based on range toggle and type

@@ -2845,7 +2845,7 @@
   "zones_threshold_power_label": "Drempelvermogen (W)",
   "zones_threshold_hr_label": "Drempelhartslag (bpm)",
   "zones_threshold_hr_help": "Friel: na een warming-up 30 minuten zo hard als je kunt volhouden, alleen. Je gemiddelde hartslag over de laatste 20 minuten is de drempel.",
-  "zones_threshold_pace_label": "Drempeltempo (min/km)",
+  "zones_threshold_pace_label": "Drempeltempo ({unit})",
   "zones_threshold_source_modeled": "Gemodelleerd {metric}: {value}",
   "zones_threshold_source_entered": "Ingevoerd {metric}: {value}",
   "zones_threshold_economy": "Tempo vanuit vermogen: {value} J/m, uit {count} vlakke runs van de laatste {days} dagen. Het volgt je eigen vermogensmeter: Stryd en Garmin meten anders.",

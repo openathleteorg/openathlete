@@ -2845,7 +2845,7 @@
   "zones_threshold_power_label": "Potenza di soglia (W)",
   "zones_threshold_hr_label": "Frequenza cardiaca di soglia (bpm)",
   "zones_threshold_hr_help": "Friel: dopo il riscaldamento, 30 minuti più forte che puoi sostenere, da solo. La frequenza cardiaca media degli ultimi 20 minuti è la soglia.",
-  "zones_threshold_pace_label": "Passo di soglia (min/km)",
+  "zones_threshold_pace_label": "Passo di soglia ({unit})",
   "zones_threshold_source_modeled": "{metric} modellata: {value}",
   "zones_threshold_source_entered": "{metric} inserita: {value}",
   "zones_threshold_economy": "Passo dalla potenza: {value} J/m, da {count} corse piane degli ultimi {days} giorni. Segue il tuo misuratore: Stryd e Garmin misurano in modo diverso.",

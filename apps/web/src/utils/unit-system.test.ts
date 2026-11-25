@@ -5,6 +5,10 @@ import { formatMeters } from '@/components/coach-dashboard/coach-dashboard-forma
 import { workText } from '@/components/player/player-text';
 import { formatRecordDistance } from '@/components/records/record-metrics';
 import { formatSportSpeed } from '@/components/session-builder/step-format';
+import {
+  formatKm,
+  formatStepLength,
+} from '@/components/session-builder/step-summary';
 import { chartTotals } from '@/components/statistics/volume-data';
 import { setsSummary } from '@/components/strength/sets-summary';
 import { recordLabel } from '@/components/year-review/records';
@@ -27,6 +31,8 @@ import {
   metricFromDisplay,
   metricToDisplay,
   paceDistanceMeters,
+  parseWorkoutText,
+  serializeStepLine,
   toUnitElevation,
   toUnitTemperature,
   toUnitWeight,
@@ -183,7 +189,11 @@ describe('existing formatters', () => {
       ),
     ).toBe('1 mi');
     expect(
-      formatWorkoutDuration(WORKOUT_DURATION_TYPE.DISTANCE, 1609.34, 'IMPERIAL'),
+      formatWorkoutDuration(
+        WORKOUT_DURATION_TYPE.DISTANCE,
+        1609.34,
+        'IMPERIAL',
+      ),
     ).toBe('1 mi');
     expect(
       formatWorkoutDuration(WORKOUT_DURATION_TYPE.DISTANCE, 400, 'IMPERIAL'),
@@ -217,6 +227,57 @@ describe('existing formatters', () => {
         'IMPERIAL',
       ),
     ).toBe('1 × 8 · 220.5 lb');
+    expect(
+      setsSummary(
+        [
+          {
+            work: { type: WORKOUT_DURATION_TYPE.DISTANCE, value: 100 },
+            load: null,
+            rpe: null,
+            rest: null,
+          },
+        ],
+        'IMPERIAL',
+      ),
+    ).toBe('1 × 109yd');
+    expect(formatKm(1609.344, 'IMPERIAL')).toBe('1 mi');
+    expect(formatKm(400, 'IMPERIAL')).toBe('437 yd');
+    expect(
+      formatStepLength(
+        { durationType: WORKOUT_DURATION_TYPE.DISTANCE, durationValue: 400 },
+        'IMPERIAL',
+      ),
+    ).toBe('437 yd');
+    const imperialRun = parseWorkoutText('- 1mi 7:30/mi', {
+      sport: SPORT_TYPE.RUNNING,
+    });
+    expect(imperialRun.issues).toEqual([]);
+    expect(
+      serializeStepLine(imperialRun.steps[0], {
+        sport: SPORT_TYPE.RUNNING,
+        unitSystem: 'IMPERIAL',
+      }),
+    ).toBe('1mi 7:30/mi');
+    const imperialBike = parseWorkoutText('- 10m 20mph', {
+      sport: SPORT_TYPE.CYCLING,
+    });
+    expect(imperialBike.issues).toEqual([]);
+    expect(
+      serializeStepLine(imperialBike.steps[0], {
+        sport: SPORT_TYPE.CYCLING,
+        unitSystem: 'IMPERIAL',
+      }),
+    ).toBe('10m 20mph');
+    const imperialWeight = parseWorkoutText('- 10reps 135lb', {
+      sport: SPORT_TYPE.STRENGTH,
+    });
+    expect(imperialWeight.issues).toEqual([]);
+    expect(
+      serializeStepLine(imperialWeight.steps[0], {
+        sport: SPORT_TYPE.STRENGTH,
+        unitSystem: 'IMPERIAL',
+      }),
+    ).toBe('10reps 135lb');
     expect(
       workText(
         {

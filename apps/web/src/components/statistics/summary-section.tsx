@@ -95,7 +95,9 @@ export function SummarySection({
       {(config?.showElevation ?? true) && (
         <StatTile
           label={m.elevation_gain()}
-          value={units.elevation(overview.totals.elevationGain).toLocaleString()}
+          value={units
+            .elevation(overview.totals.elevationGain)
+            .toLocaleString()}
           unit={
             units.unitSystem === 'IMPERIAL'
               ? units.elevationLabel

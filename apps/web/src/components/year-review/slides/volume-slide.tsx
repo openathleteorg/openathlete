@@ -25,7 +25,10 @@ export function VolumeSlide({ review }: SlideProps) {
       <Eyebrow>{m.year_review_volume_eyebrow()}</Eyebrow>
       <Title>{m.year_review_volume_title()}</Title>
       <div className="yr-mega yr-reveal" style={after(200)}>
-        <CountUp value={Math.round(units.distanceValue(distance))} format={integer} />
+        <CountUp
+          value={Math.round(units.distanceValue(distance))}
+          format={integer}
+        />
         <small>{units.distanceLabel}</small>
       </div>
       <div className="yr-stats yr-volume-stats">
@@ -41,7 +44,9 @@ export function VolumeSlide({ review }: SlideProps) {
         />
         <Stat
           delay={700}
-          value={<CountUp value={units.elevation(elevationGain)} format={integer} />}
+          value={
+            <CountUp value={units.elevation(elevationGain)} format={integer} />
+          }
           label={
             units.unitSystem === 'IMPERIAL'
               ? units.elevationLabel

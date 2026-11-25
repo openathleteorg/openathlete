@@ -28,7 +28,7 @@ interface TrainingZoneTableProps {
 
 export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
   const units = useUnits();
-  const formatBound = (type: TRAINING_ZONE_TYPE, value: number) =>
+  const formatBound = (type: TrainingZone['type'], value: number) =>
     type === TRAINING_ZONE_TYPE.PACE && units.unitSystem === 'IMPERIAL'
       ? formatPace(value * units.paceFactor)
       : value;

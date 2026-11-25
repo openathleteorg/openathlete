@@ -53,6 +53,7 @@ export function lineOf(step: CreateWorkoutStepDto, env: BuilderEnv): string {
     sport: env.sport,
     zones: env.zones,
     locale: env.locale,
+    unitSystem: env.unitSystem,
   });
 }
 

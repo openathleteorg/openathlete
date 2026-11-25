@@ -2845,7 +2845,7 @@
   "zones_threshold_power_label": "Threshold power (W)",
   "zones_threshold_hr_label": "Threshold heart rate (bpm)",
   "zones_threshold_hr_help": "Friel: after a warm-up, 30 minutes as hard as you can hold, alone. Your average heart rate over the last 20 minutes is the threshold.",
-  "zones_threshold_pace_label": "Threshold pace (min/km)",
+  "zones_threshold_pace_label": "Threshold pace ({unit})",
   "zones_threshold_source_modeled": "Modeled {metric}: {value}",
   "zones_threshold_source_entered": "Entered {metric}: {value}",
   "zones_threshold_economy": "Pace from power: {value} J/m, from {count} flat runs of the last {days} days. It follows your own power meter: Stryd and Garmin read differently.",

@@ -49,36 +49,68 @@ function DistanceFieldAdapter({
   const units = useUnits();
   const [distanceInput, setDistanceInput] = useState<string>('');
   const [unit, setUnit] = useState<DistanceUnit>(units.distanceUnit);
+  const [userPickedUnit, setUserPickedUnit] = useState(false);
+  const [lastSynced, setLastSynced] = useState<
+    { value: number | null | undefined; unit: DistanceUnit } | undefined
+  >(undefined);
+
+  useEffect(() => {
+    if (!userPickedUnit) {
+      setUnit(units.distanceUnit);
+    }
+  }, [units.distanceUnit, userPickedUnit]);
 
   // Convert stored value (in meters) to display value in selected unit
   useEffect(() => {
+    if (
+      lastSynced !== undefined &&
+      field.value === lastSynced.value &&
+      unit === lastSynced.unit
+    ) {
+      return;
+    }
+
     if (field.value === undefined || field.value === null) {
       setDistanceInput('');
+      setLastSynced({ value: field.value, unit });
     } else {
       // Convert from meters to current unit
       const convertedValue = (field.value as number) / UNIT_CONVERSION[unit];
-      setDistanceInput(convertedValue.toString());
+      setDistanceInput(Number(convertedValue.toFixed(4)).toString());
+      setLastSynced({ value: field.value as number, unit });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [field.value, unit]);
 
   const updateFormValue = (distance: string) => {
     if (distance === '') {
+      setLastSynced({ value: undefined, unit });
       field.onChange(undefined);
     } else {
       // Store the value in meters (base unit)
       const distanceNum = parseFloat(distance);
-      field.onChange(distanceNum * UNIT_CONVERSION[unit]);
+      if (!Number.isNaN(distanceNum)) {
+        const meters = distanceNum * UNIT_CONVERSION[unit];
+        setLastSynced({ value: meters, unit });
+        field.onChange(meters);
+      }
     }
   };
 
   // Handle unit change with conversion
   const handleUnitChange = (newUnit: DistanceUnit) => {
+    setUserPickedUnit(true);
     if (distanceInput !== '') {
-      // Convert current value to meters
-      const valueInMeters = parseFloat(distanceInput) * UNIT_CONVERSION[unit];
-      // Then convert to new unit
-      const convertedValue = valueInMeters / UNIT_CONVERSION[newUnit];
-      setDistanceInput(convertedValue.toFixed(2));
+      const distanceNum = parseFloat(distanceInput);
+      if (!Number.isNaN(distanceNum)) {
+        const valueInMeters = distanceNum * UNIT_CONVERSION[unit];
+        const convertedValue = valueInMeters / UNIT_CONVERSION[newUnit];
+        setDistanceInput(Number(convertedValue.toFixed(2)).toString());
+        setLastSynced({
+          value: field.value as number | null | undefined,
+          unit: newUnit,
+        });
+      }
     }
     setUnit(newUnit);
   };

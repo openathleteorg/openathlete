@@ -36,7 +36,10 @@ export interface RecordMetric {
   ) => string;
 }
 
-const speedUnit = (sport: SPORT_TYPE, unitSystem: UnitSystem = 'METRIC'): SpeedUnit =>
+const speedUnit = (
+  sport: SPORT_TYPE,
+  unitSystem: UnitSystem = 'METRIC',
+): SpeedUnit =>
   localSpeedUnit(SPORT_CONFIG[sport]?.speedUnit ?? 'km/h', unitSystem);
 
 export const RECORD_METRICS: RecordMetric[] = [
@@ -130,7 +133,11 @@ export function formatRecordValue(
   sport: SPORT_TYPE,
   unitSystem: UnitSystem = 'METRIC',
 ): { value: string; unit: string } {
-  const plotted = metric.format(metric.plotted(record, sport), sport, unitSystem);
+  const plotted = metric.format(
+    metric.plotted(record, sport),
+    sport,
+    unitSystem,
+  );
   return metric.type === RECORD_TYPE.SPEED
     ? {
         value: formatRecordTime(record),

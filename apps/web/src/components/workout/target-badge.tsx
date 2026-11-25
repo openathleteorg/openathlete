@@ -73,7 +73,13 @@ export function TargetBadge({
         trainingZones ? m.workout_target_unknown_zone() : '…',
         units.unitSystem,
       ),
-    [target, metricsForFormat, showAbsoluteValues, trainingZones, units.unitSystem],
+    [
+      target,
+      metricsForFormat,
+      showAbsoluteValues,
+      trainingZones,
+      units.unitSystem,
+    ],
   );
 
   const label = getTargetTypeLabel(target.targetType);

@@ -91,11 +91,9 @@ export function ThresholdsDialog({
     value === null
       ? '–'
       : Number(
-          metricToDisplay(
-            type as METRIC_TYPE,
-            value,
-            units.unitSystem,
-          ).toFixed(1),
+          metricToDisplay(type as METRIC_TYPE, value, units.unitSystem).toFixed(
+            1,
+          ),
         );
 
   const save = () =>

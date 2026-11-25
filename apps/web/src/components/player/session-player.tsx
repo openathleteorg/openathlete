@@ -709,7 +709,7 @@ export function SessionPlayer({
           },
           detail: [
             stepTypeLabel(block.step.stepType),
-            formatStepLength(block.step),
+            formatStepLength(block.step, units.unitSystem),
           ]
             .filter(Boolean)
             .join(' · '),
