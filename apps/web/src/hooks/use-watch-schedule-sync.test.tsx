@@ -176,16 +176,18 @@ describe('Apple Watch sync lifecycle', () => {
     expect(state.refresh).not.toHaveBeenCalled();
   });
 
-  it('recovers a previous account opt-in without disconnecting this one', async () => {
-    state.getStatus
-      .mockResolvedValueOnce({ ...state.status, hasOtherAccountOptIn: true })
-      .mockResolvedValue({ ...state.status });
+  it('leaves a previous account opt-in to an explicit connect', async () => {
+    state.getStatus.mockResolvedValue({
+      ...state.status,
+      enabled: false,
+      hasOtherAccountOptIn: true,
+    });
 
     await render();
 
-    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.recover).not.toHaveBeenCalled();
     expect(state.disconnect).not.toHaveBeenCalled();
-    expect(state.refresh).toHaveBeenCalledWith(scope, credential, 'launch');
+    expect(state.refresh).not.toHaveBeenCalled();
   });
 
   it('recovers authorized teardown while keeping the current opt-in', async () => {
@@ -199,7 +201,7 @@ describe('Apple Watch sync lifecycle', () => {
 
     await render();
 
-    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.recover).toHaveBeenCalledWith();
     expect(state.disconnect).not.toHaveBeenCalled();
     expect(state.refresh).toHaveBeenCalledWith(scope, credential, 'launch');
   });
@@ -222,7 +224,7 @@ describe('Apple Watch sync lifecycle', () => {
 
   it('drops a second status read that resolves after logout', async () => {
     state.getStatus
-      .mockResolvedValueOnce({ ...state.status, hasOtherAccountOptIn: true })
+      .mockResolvedValueOnce({ ...state.status, cleanupPending: true })
       .mockImplementationOnce(
         () =>
           new Promise((resolve) => {

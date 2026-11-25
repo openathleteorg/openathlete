@@ -96,7 +96,7 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
 
   const loginMutation = useLoginMutation({
     onSuccess: async () => {
-      await initialize();
+      await initialize({ authenticated: true });
       navigate(getPath(['dashboard', 'onboarding']));
     },
     onError: () => toast.error(m.signup_login_failed()),

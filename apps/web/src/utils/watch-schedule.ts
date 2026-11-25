@@ -107,9 +107,7 @@ type WatchScheduleNativePlugin = {
     scope?: WatchScheduleScope;
   }): Promise<WatchScheduleDisconnectReport | Record<string, never>>;
   fence(): Promise<void>;
-  recover(options?: {
-    scope?: WatchScheduleScope;
-  }): Promise<{ recovered: boolean }>;
+  recover(): Promise<{ recovered: boolean }>;
 };
 
 const nativePlugin = registerPlugin<WatchScheduleNativePlugin>('WatchSchedule');
@@ -331,17 +329,15 @@ export function disconnectWatchScheduleOnExit(): void {
 }
 
 /**
- * Retries an existing durable teardown only. Unlike `disconnect`, it never uses
- * the current opt-in as cleanup authorization and never clears the session.
- * Passing the current scope lets native retire a *foreign* stored opt-in
- * safely; the current account's own opt-in is never touched.
+ * Retries existing durable teardown only. Unlike `disconnect`, it never uses an
+ * opt-in as cleanup authorization and never clears the session. A foreign
+ * opt-in is left for an explicit `connect` of the current account, which
+ * persists its own cleanup authorization before replacing it.
  */
-export async function recoverWatchScheduleCleanup(
-  scope?: WatchScheduleScope,
-): Promise<boolean> {
+export async function recoverWatchScheduleCleanup(): Promise<boolean> {
   if (!isAppleWatchScheduleAvailable()) return true;
   try {
-    const result = await nativePlugin.recover(scope ? { scope } : undefined);
+    const result = await nativePlugin.recover();
     return result.recovered === true;
   } catch {
     return false;

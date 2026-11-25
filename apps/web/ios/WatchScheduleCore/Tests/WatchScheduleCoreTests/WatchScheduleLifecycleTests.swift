@@ -614,8 +614,10 @@ final class WatchScheduleLifecycleTests: XCTestCase {
 
         let writesAfterLogout = await store.scheduleCount
         await store.setDisconnectStarted()
-        // Logout waits for the in-flight pass to drain; the fetch finishes
-        // concurrently, as it would on a real network.
+        // The web exit fences first (urgent revocation), then starts the
+        // scoped teardown. The in-flight fetch finishes concurrently, as it
+        // would on a real network, and must not schedule.
+        _ = await lifecycle.fence()
         let disconnectTask = Task {
             await lifecycle.disconnect(scope: scope)
         }
@@ -681,6 +683,7 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         await Task.yield()
 
         await store.setDisconnectStarted()
+        _ = await lifecycle.fence()
         let disconnectTask = Task {
             await lifecycle.disconnect(scope: scope)
         }
@@ -1062,10 +1065,12 @@ final class WatchScheduleLifecycleTests: XCTestCase {
             )
         }
         await authorization.waitUntilRequestStarted()
+        await optIn.suspendNextLoad()
         let fence = Task { await lifecycle.fence() }
-        await Task.yield()
+        await optIn.waitUntilLoadSuspended()
         await authorization.resumeRequest(.authorized)
         let report = await connect.value
+        await optIn.resumeSuspendedLoad()
         _ = await fence.value
 
         XCTAssertEqual(report.outcome, .deferred(.inactive))
@@ -1113,12 +1118,14 @@ final class WatchScheduleLifecycleTests: XCTestCase {
     func testFenceDuringFetchStopsTheStalePassWithoutReadingAgain() async throws {
         let store = LifecycleFakeStore()
         let (journal, _) = temporaryJournal()
+        let optInStore = LifecycleFakeOptIn(scope: scope)
         let loader = LifecycleSnapshotLoader { _ in
             self.snapshot(candidates: [self.candidate(1101)])
         }
         let (lifecycle, _, _) = makeLifecycle(
             store: store,
             journal: journal,
+            optIn: optInStore,
             loader: loader
         )
         _ = await lifecycle.connect(
@@ -1136,10 +1143,12 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         }
         await loader.waitUntilSuspended()
         let readsBeforeFence = await store.readCount
+        await optInStore.suspendNextLoad()
         let fence = Task { await lifecycle.fence() }
-        await Task.yield()
+        await optInStore.waitUntilLoadSuspended()
         await loader.resumeSuspended()
         let report = await refresh.value
+        await optInStore.resumeSuspendedLoad()
         _ = await fence.value
 
         XCTAssertEqual(report.outcome, .deferred(.inactive))
@@ -1603,20 +1612,17 @@ final class WatchScheduleLifecycleTests: XCTestCase {
             )
         }
         await store.waitUntilScheduleSuspended()
+        await optIn.suspendNextLoad()
         await teardown.suspendNextAdd()
         let fence = Task { await lifecycle.fence() }
-
-        // Wait until the fence has revoked credential reuse. It cannot reach
-        // the suspended teardown write yet: the refresh still holds the gate.
-        var pinned = try await credentials.credential(for: scope)
-        for _ in 0..<100 where pinned != nil {
-            await Task.yield()
-            pinned = try await credentials.credential(for: scope)
-        }
+        // Credential reuse is revoked before the fence touches storage.
+        await optIn.waitUntilLoadSuspended()
+        let pinned = try await credentials.credential(for: scope)
         XCTAssertNil(pinned)
 
         await store.resumeSuspendedSchedule()
         let report = await refresh.value
+        await optIn.resumeSuspendedLoad()
         await teardown.waitUntilAddSuspended()
         await teardown.resumeSuspendedAdd()
         let acknowledged = await fence.value
@@ -1663,10 +1669,12 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         // release test executor.
         try await Task.sleep(nanoseconds: 20_000_000)
 
+        await optIn.suspendNextLoad()
         let fence = Task { await lifecycle.fence() }
-        await Task.yield()
+        await optIn.waitUntilLoadSuspended()
         await loader.resumeSuspended()
         _ = await first.value
+        await optIn.resumeSuspendedLoad()
         _ = await fence.value
         let report = await queuedConnect.value
 
@@ -2224,7 +2232,10 @@ final class WatchScheduleLifecycleTests: XCTestCase {
                 requestPermission: true
             )
         }
-        await Task.yield()
+        // The fence is active before the gate, so the queued connect is
+        // rejected without waiting for the suspended cleanup read.
+        let queuedReport = await queued.value
+        XCTAssertEqual(queuedReport.outcome, .deferred(.inactive))
 
         let stillStale = await optInValue(lifecycle, scope: otherScope)
         XCTAssertNil(stillStale)
@@ -2233,10 +2244,8 @@ final class WatchScheduleLifecycleTests: XCTestCase {
 
         await store.resumeSuspendedRead()
         _ = await disconnect.value
-        let queuedReport = await queued.value
         // A connect attempted while the old scope was recovering is rejected;
         // it must not interleave with the teardown.
-        XCTAssertEqual(queuedReport.outcome, .deferred(.inactive))
         let watched3010 = await store.scheduleCount
         XCTAssertEqual(watched3010, 0)
         let pendingAfterRecovery = try await teardown.load()
@@ -2464,12 +2473,13 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         await teardown.waitUntilAddSuspended()
         await optIn.suspendNextLoad()
         let wrong = Task { await lifecycle.disconnect(scope: self.otherScope) }
-        await optIn.waitUntilLoadSuspended()
+        await Task.yield()
 
         await teardown.resumeSuspendedAdd()
+        await optIn.waitUntilLoadSuspended()
+        await optIn.resumeSuspendedLoad()
         let acknowledged = await fence.value
         XCTAssertTrue(acknowledged)
-        await optIn.resumeSuspendedLoad()
         let rejected = await wrong.value
         XCTAssertNil(rejected)
 
@@ -2531,9 +2541,7 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         XCTAssertTrue(status.otherAccountPending)
         XCTAssertTrue(status.enabled)
 
-        let recovered = await lifecycle.recoverCleanup(
-            currentScope: otherScope
-        )
+        let recovered = await lifecycle.recoverCleanup()
 
         XCTAssertTrue(recovered)
         let storedOptIn = try await optIn.load()
@@ -2548,9 +2556,10 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         XCTAssertEqual(scheduled, 0)
     }
 
-    /// Recovery with the current scope retires only the stored opt-in that is
-    /// actually foreign; the caller's own opt-in is never implicit cleanup.
-    func testRecoveryRetiresOnlyAnActuallyForeignOptIn() async throws {
+    /// An opt-in is not teardown authorization. Recovery only acts on an
+    /// existing durable teardown, so a foreign opt-in is left for an explicit
+    /// connect (which persists its own cleanup authorization first).
+    func testRecoveryNeverRetiresAForeignOptIn() async throws {
         let planA = UUID()
         let store = LifecycleFakeStore(
             workouts: [
@@ -2582,15 +2591,13 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         let status = await lifecycle.status(scope: otherScope)
         XCTAssertTrue(status.hasOtherAccountOptIn)
 
-        let recovered = await lifecycle.recoverCleanup(
-            currentScope: otherScope
-        )
+        let recovered = await lifecycle.recoverCleanup()
 
         XCTAssertTrue(recovered)
         let storedOptIn = try await optIn.load()
-        XCTAssertNil(storedOptIn)
+        XCTAssertEqual(storedOptIn, scope)
         let removed = await store.removeCount
-        XCTAssertEqual(removed, 1)
+        XCTAssertEqual(removed, 0)
     }
 
     /// An unreadable opt-in is unknown, not absent: status, connect and fence
@@ -2715,10 +2722,311 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         XCTAssertEqual(pending, [scope])
     }
 
+    // MARK: - Round 5: scoped revocation, recovery boundaries, fence latency
+
+    /// A scoped disconnect validates the account under the same lock that
+    /// owns opt-in mutation. When B has already won, A is read-only: no epoch
+    /// bump, no reconciler fence, no credential or opt-in change.
+    func testColdDisconnectForAnOutdatedScopeDoesNotFenceTheConnectingAccount() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn(scope: scope)
+        let nextCredential = credential(scope: otherScope)
+        let vault = LifecycleFakeVault(credential: nextCredential)
+        let teardown = LifecycleFakeTeardown()
+        let loader = LifecycleSnapshotLoader { requested in
+            self.snapshot(candidates: [self.candidate(2801)], scope: requested)
+        }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            optIn: optIn,
+            teardown: teardown,
+            loader: loader
+        )
+        await teardown.suspendNextAdd()
+        let connecting = Task {
+            await lifecycle.connect(
+                scope: self.otherScope,
+                credential: nextCredential,
+                requestPermission: true
+            )
+        }
+        await teardown.waitUntilAddSuspended()
+
+        let outdated = Task { await lifecycle.disconnect(scope: self.scope) }
+        await Task.yield()
+        await Task.yield()
+
+        await teardown.resumeSuspendedAdd()
+        let connected = await connecting.value
+        let refused = await outdated.value
+
+        guard case .synced = connected.outcome else {
+            return XCTFail(
+                "B must keep its in-flight connect, got \(connected.outcome)"
+            )
+        }
+        XCTAssertNil(refused)
+        let stored = try await optIn.load()
+        XCTAssertEqual(stored, otherScope)
+        let kept = try await vault.load()
+        XCTAssertEqual(kept?.scope, otherScope)
+        let scheduled = await store.scheduleCount
+        XCTAssertEqual(scheduled, 1)
+        let pending = try await teardown.load()
+        XCTAssertEqual(pending, [])
+    }
+
+    /// A fence acknowledgement waits for opt-in mutation, never for a network
+    /// snapshot. The suspended pass resumes under its stale epoch and writes
+    /// nothing.
+    func testFenceAcknowledgesWhileANetworkPassIsSuspended() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn(scope: scope)
+        let loader = LifecycleSnapshotLoader { _ in
+            self.snapshot(candidates: [self.candidate(2901)])
+        }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            loader: loader
+        )
+        await loader.suspendNextLoad()
+        let refreshing = Task {
+            await lifecycle.refresh(
+                trigger: .calendar,
+                scope: self.scope,
+                credential: self.credential()
+            )
+        }
+        await loader.waitUntilSuspended()
+
+        let acknowledged = LifecycleCompletionFlag()
+        let fencing = Task {
+            let result = await lifecycle.fence()
+            await acknowledged.complete(result)
+            return result
+        }
+        var polls = 0
+        while !(await acknowledged.isComplete) && polls < 100 {
+            try await Task.sleep(nanoseconds: 10_000_000)
+            polls += 1
+        }
+        let acknowledgedWithoutNetwork = await acknowledged.isComplete
+        XCTAssertTrue(
+            acknowledgedWithoutNetwork,
+            "fence must acknowledge without waiting for the network"
+        )
+
+        await loader.resumeSuspended()
+        let fenceResult = await fencing.value
+        XCTAssertTrue(fenceResult)
+        let report = await refreshing.value
+        XCTAssertEqual(report.outcome, .deferred(.inactive))
+        let scheduled = await store.scheduleCount
+        XCTAssertEqual(scheduled, 0)
+        let stored = try await optIn.load()
+        XCTAssertNil(stored)
+    }
+
+    /// The permission sheet can stay open indefinitely. A fence acknowledges
+    /// the durable opt-in retirement without waiting for it, and the late
+    /// authorization cannot enable the account.
+    func testFenceAcknowledgesWhileThePermissionSheetIsSuspended() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let authorization = LifecycleFakeAuthorization(
+            permission: .notDetermined
+        )
+        await authorization.suspendNextRequest()
+        let optIn = LifecycleFakeOptIn()
+        let (lifecycle, _, vault) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            authorization: authorization,
+            loader: LifecycleSnapshotLoader { _ in self.snapshot() }
+        )
+        let connecting = Task {
+            await lifecycle.connect(
+                scope: self.scope,
+                credential: self.credential(),
+                requestPermission: true
+            )
+        }
+        await authorization.waitUntilRequestStarted()
+
+        let acknowledged = LifecycleCompletionFlag()
+        let fencing = Task {
+            let result = await lifecycle.fence()
+            await acknowledged.complete(result)
+            return result
+        }
+        var polls = 0
+        while !(await acknowledged.isComplete) && polls < 100 {
+            try await Task.sleep(nanoseconds: 10_000_000)
+            polls += 1
+        }
+        let acknowledgedWithoutPermission = await acknowledged.isComplete
+        XCTAssertTrue(
+            acknowledgedWithoutPermission,
+            "fence must acknowledge without waiting for the permission sheet"
+        )
+
+        await authorization.resumeRequest(.authorized)
+        let fenceResult = await fencing.value
+        XCTAssertTrue(fenceResult)
+        let report = await connecting.value
+        XCTAssertEqual(report.outcome, .deferred(.inactive))
+        let stored = try await optIn.load()
+        XCTAssertNil(stored)
+        let kept = try await vault.load()
+        XCTAssertNil(kept)
+        let scheduled = await store.scheduleCount
+        XCTAssertEqual(scheduled, 0)
+    }
+
+    /// Recovery of nothing is a no-op. An in-flight pass for the signed-in
+    /// account must not be fenced by a retry that finds no durable teardown.
+    func testRecoveryOfAnAbsentTeardownDoesNotFenceAnActivePass() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn(scope: scope)
+        let loader = LifecycleSnapshotLoader { _ in
+            self.snapshot(candidates: [self.candidate(3001)])
+        }
+        let (lifecycle, _, vault) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            teardown: LifecycleFakeTeardown(),
+            loader: loader
+        )
+        _ = await lifecycle.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: true
+        )
+        await loader.suspendNextLoad()
+        let refreshing = Task {
+            await lifecycle.refresh(
+                trigger: .manual,
+                scope: self.scope,
+                credential: self.credential()
+            )
+        }
+        await loader.waitUntilSuspended()
+
+        let recovery = Task { await lifecycle.recoverCleanup() }
+        await Task.yield()
+        await loader.resumeSuspended()
+
+        let report = await refreshing.value
+        let recovered = await recovery.value
+        XCTAssertTrue(recovered)
+        guard case .synced = report.outcome else {
+            return XCTFail(
+                "an absent recovery must not fence the active pass, got \(report.outcome)"
+            )
+        }
+        let stored = try await optIn.load()
+        XCTAssertEqual(stored, scope)
+        let kept = try await vault.load()
+        XCTAssertEqual(kept?.scope, scope)
+    }
+
+    /// Recovering another scope's durable teardown waits for the current
+    /// account's pass and leaves its opt-in/credential intact.
+    func testRecoveryOfAnotherScopesTeardownKeepsTheActivePass() async throws {
+        let planA = UUID()
+        let store = LifecycleFakeStore(
+            workouts: [
+                ScheduledWorkoutState(
+                    planID: planA,
+                    startDate: readAt.addingTimeInterval(3_600),
+                    isComplete: false
+                ),
+            ]
+        )
+        let (journal, _) = temporaryJournal()
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 3101,
+                planID: planA,
+                scheduledDate: readAt.addingTimeInterval(3_600),
+                fingerprint: "a"
+            )
+        )
+        let nextCredential = credential(scope: otherScope)
+        let vault = LifecycleFakeVault(credential: nextCredential)
+        let optIn = LifecycleFakeOptIn(scope: otherScope)
+        let teardown = LifecycleFakeTeardown()
+        let loader = LifecycleSnapshotLoader { requested in
+            self.snapshot(candidates: [self.candidate(3102)], scope: requested)
+        }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            optIn: optIn,
+            teardown: teardown,
+            loader: loader
+        )
+        _ = await lifecycle.connect(
+            scope: otherScope,
+            credential: nextCredential,
+            requestPermission: true
+        )
+        try await teardown.add(scope)
+        await loader.suspendNextLoad()
+        let refreshing = Task {
+            await lifecycle.refresh(
+                trigger: .manual,
+                scope: self.otherScope,
+                credential: nextCredential
+            )
+        }
+        await loader.waitUntilSuspended()
+
+        let recovery = Task { await lifecycle.recoverCleanup() }
+        await Task.yield()
+        await loader.resumeSuspended()
+
+        let report = await refreshing.value
+        let recovered = await recovery.value
+        XCTAssertTrue(recovered)
+        guard case .synced = report.outcome else {
+            return XCTFail(
+                "another scope's recovery must not fence B, got \(report.outcome)"
+            )
+        }
+        let stored = try await optIn.load()
+        XCTAssertEqual(stored, otherScope)
+        let kept = try await vault.load()
+        XCTAssertEqual(kept?.scope, otherScope)
+        let pending = try await teardown.load()
+        XCTAssertEqual(pending, [])
+        let removed = await store.removeCount
+        XCTAssertEqual(removed, 1)
+    }
+
 }
 
 
+private actor LifecycleCompletionFlag {
+    private(set) var isComplete = false
+    private(set) var value: Bool?
 
+    func complete(_ value: Bool) {
+        self.value = value
+        isComplete = true
+    }
+}
 
 // MARK: - Fakes
 

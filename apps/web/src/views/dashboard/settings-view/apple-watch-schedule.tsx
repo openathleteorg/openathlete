@@ -193,11 +193,11 @@ function AppleWatchScheduleSectionIOS() {
         // dedicated retry.
         if (next.cleanupUnknown) {
           setStatus(next);
-        } else if (next.hasOtherAccountOptIn || next.cleanupPending) {
-          // A foreign opt-in and existing durable teardown are both recovered
-          // through the dedicated path, never by disconnecting this account.
+        } else if (next.cleanupPending) {
+          // Only existing durable teardown is recovered, never a foreign
+          // opt-in and never by disconnecting this account.
           setStatus(next);
-          const recovered = await recoverWatchScheduleCleanup(currentScope);
+          const recovered = await recoverWatchScheduleCleanup();
           if (
             cancelled ||
             !mounted.current ||
@@ -274,7 +274,7 @@ function AppleWatchScheduleSectionIOS() {
   };
 
   const connect = async () => {
-    if (!scope || busy) return;
+    if (!scope || busy || isWatchScheduleExitLatched()) return;
     const session = watchScheduleSessionEpoch();
     setBusy('connect');
     setFailure(null);
@@ -306,7 +306,7 @@ function AppleWatchScheduleSectionIOS() {
   };
 
   const refresh = async () => {
-    if (!scope || busy) return;
+    if (!scope || busy || isWatchScheduleExitLatched()) return;
     const session = watchScheduleSessionEpoch();
     setBusy('refresh');
     setFailure(null);
@@ -338,7 +338,7 @@ function AppleWatchScheduleSectionIOS() {
   };
 
   const disconnect = async () => {
-    if (!scope || busy) return;
+    if (!scope || busy || isWatchScheduleExitLatched()) return;
     const session = watchScheduleSessionEpoch();
     setBusy('disconnect');
     try {
@@ -369,12 +369,12 @@ function AppleWatchScheduleSectionIOS() {
   };
 
   const retryCleanup = async () => {
-    if (!scope || busy) return;
+    if (!scope || busy || isWatchScheduleExitLatched()) return;
     const session = watchScheduleSessionEpoch();
     setBusy('recover');
     setFailure(null);
     try {
-      const recovered = await recoverWatchScheduleCleanup(scope);
+      const recovered = await recoverWatchScheduleCleanup();
       if (!isWatchScheduleSessionCurrent(session)) return;
       if (!recovered) {
         setFailure('cleanup');
@@ -476,9 +476,7 @@ function AppleWatchScheduleSectionIOS() {
           />
         )}
 
-        {(status.cleanupUnknown ||
-          status.cleanupPending ||
-          status.hasOtherAccountOptIn) && (
+        {(status.cleanupUnknown || status.cleanupPending) && (
           <SettingsRow
             stacked
             description={
@@ -505,14 +503,31 @@ function AppleWatchScheduleSectionIOS() {
           </SettingsRow>
         )}
 
+        {status.hasOtherAccountOptIn && (
+          <SettingsRow
+            stacked
+            description={m.apple_watch_other_account_pending()}
+          />
+        )}
+
         {fenceUnconfirmed && (
           <SettingsRow stacked description={m.apple_watch_fence_unconfirmed()}>
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
+                if (isWatchScheduleExitLatched()) return;
+                const before = watchScheduleSessionEpoch();
                 void fenceWatchScheduleOnExit().then((acknowledged) => {
                   if (!acknowledged) return;
+                  // A retry that started in an older session must not clear a
+                  // newer exit's marker or latch.
+                  if (
+                    isWatchScheduleExitLatched() ||
+                    !isWatchScheduleSessionCurrent(before + 1)
+                  ) {
+                    return;
+                  }
                   clearFenceUnconfirmed();
                   setFenceUnconfirmed(false);
                 });

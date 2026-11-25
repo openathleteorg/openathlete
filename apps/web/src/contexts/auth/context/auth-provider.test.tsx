@@ -15,6 +15,9 @@ const watch = vi.hoisted(() => ({
   fence: vi.fn(),
   disconnect: vi.fn(),
   mark: vi.fn(),
+  boundary: null as number | null,
+  latched: false,
+  sessionEpoch: 0,
 }));
 vi.mock('@/api/user', () => ({ UserAPI: api }));
 vi.mock('@/utils/watch-schedule', () => ({
@@ -23,7 +26,9 @@ vi.mock('@/utils/watch-schedule', () => ({
   fenceWatchScheduleOnExit: watch.fence,
   disconnectWatchScheduleOnExit: watch.disconnect,
   markFenceUnconfirmed: watch.mark,
-  watchScheduleExitBoundary: () => null,
+  watchScheduleExitBoundary: () => watch.boundary,
+  isWatchScheduleExitLatched: () => watch.latched,
+  watchScheduleSessionEpoch: () => watch.sessionEpoch,
 }));
 vi.mock('@/utils/push-notifications', () => ({
   initializePushNotifications: () => Promise.resolve(),
@@ -57,6 +62,15 @@ function LogoutProbe() {
   return <button onClick={() => logout(() => undefined)}>logout</button>;
 }
 
+function InitializeProbe() {
+  const { initialize } = useAuthContext();
+  return (
+    <button onClick={() => void initialize({ authenticated: true })}>
+      authenticate
+    </button>
+  );
+}
+
 describe('auth start without a connection', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -64,10 +78,14 @@ describe('auth start without a connection', () => {
     api.getMe.mockReset();
     watch.latch.mockReset();
     watch.establish.mockReset();
+    watch.establish.mockReturnValue(true);
     watch.fence.mockReset();
     watch.fence.mockResolvedValue(true);
     watch.disconnect.mockReset();
     watch.mark.mockReset();
+    watch.boundary = null;
+    watch.latched = false;
+    watch.sessionEpoch = 0;
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -127,14 +145,102 @@ describe('auth start without a connection', () => {
     expect(text()).toBe('app');
   });
 
-  it('establishes the watch session only after an authenticated successor', async () => {
+  it('does not establish a successor from a bootstrap getMe', async () => {
     api.getMe.mockResolvedValue(user);
     await start();
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
+    expect(watch.establish).not.toHaveBeenCalled();
+    expect(text()).toBe('app');
+  });
+
+  it('establishes the successor only for an explicit authentication', async () => {
+    api.getMe.mockResolvedValue(user);
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <InitializeProbe />
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    watch.establish.mockClear();
+
+    await act(async () => container.querySelector('button')!.click());
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
     expect(watch.establish).toHaveBeenCalledTimes(1);
+    expect(watch.establish).toHaveBeenCalledWith(null);
+  });
+
+  it('never publishes a stale user or clears a newer exit', async () => {
+    let resolveGetMe: ((value: unknown) => void) | null = null;
+    api.getMe.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveGetMe = resolve;
+        }),
+    );
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <p>app</p>
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    watch.boundary = 7;
+    watch.latched = true;
+    await act(async () => {
+      resolveGetMe?.(user);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(watch.establish).not.toHaveBeenCalled();
+    expect(watch.latched).toBe(true);
+    expect(text()).not.toBe('app');
+  });
+
+  it('drops a bootstrap response after a successor already signed in', async () => {
+    let resolveGetMe: ((value: unknown) => void) | null = null;
+    api.getMe.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveGetMe = resolve;
+        }),
+    );
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <p>app</p>
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    // The successor establishes and releases the latch, but this old getMe is
+    // still in flight with the previous bearer.
+    watch.sessionEpoch += 1;
+    watch.latched = false;
+    await act(async () => {
+      resolveGetMe?.(user);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(text()).not.toBe('app');
   });
 
   it('latches the watch exit before waiting for the native fence', async () => {

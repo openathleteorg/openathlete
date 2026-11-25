@@ -54,7 +54,7 @@ export function OAuthButtons({
       posthog?.capture(`user_logged_in_with_${lastProvider.current}`, {
         has_invitation: !!variables.invitationToken,
       });
-      await initialize();
+      await initialize({ authenticated: true });
       nav(takeReturnTo(redirectTo || getPath(['dashboard'])));
     },
     onError: (error) => {

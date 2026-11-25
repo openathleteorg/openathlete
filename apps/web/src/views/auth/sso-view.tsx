@@ -28,7 +28,7 @@ export function SsoView() {
   const [error, setError] = useState<OidcError | null>(null);
   const exchange = useExchangeOidcCodeMutation({
     onSuccess: async () => {
-      await initialize();
+      await initialize({ authenticated: true });
       nav(takeReturnTo(getPath(['dashboard'])), { replace: true });
     },
     onError: () => setError('failed'),

@@ -1317,12 +1317,15 @@ final class ScheduleReconcilerTests: XCTestCase {
         let invalidation = Task {
             await reconciler.invalidate()
         }
-        for _ in 0..<100 {
+        var fenced = false
+        for _ in 0..<200 {
             if await reconciler.isActive(generation: 1, for: scope) == false {
+                fenced = true
                 break
             }
-            await Task.yield()
+            try await Task.sleep(nanoseconds: 1_000_000)
         }
+        XCTAssertTrue(fenced, "invalidation must fence before the write resumes")
         await store.resumeSuspendedWrite()
 
         do {
@@ -1361,12 +1364,15 @@ final class ScheduleReconcilerTests: XCTestCase {
         let invalidation = Task {
             await reconciler.invalidate()
         }
-        for _ in 0..<100 {
+        var fenced = false
+        for _ in 0..<200 {
             if await reconciler.isActive(generation: 1, for: scope) == false {
+                fenced = true
                 break
             }
-            await Task.yield()
+            try await Task.sleep(nanoseconds: 1_000_000)
         }
+        XCTAssertTrue(fenced, "invalidation must fence before the write resumes")
         await store.resumeSuspendedWrite()
 
         do {
@@ -1415,12 +1421,15 @@ final class ScheduleReconcilerTests: XCTestCase {
         let invalidation = Task {
             await reconciler.invalidate()
         }
-        for _ in 0..<100 {
+        var fenced = false
+        for _ in 0..<200 {
             if await reconciler.isActive(generation: 1, for: scope) == false {
+                fenced = true
                 break
             }
-            await Task.yield()
+            try await Task.sleep(nanoseconds: 1_000_000)
         }
+        XCTAssertTrue(fenced, "invalidation must fence before the write resumes")
         await store.resumeSuspendedWrite()
 
         do {

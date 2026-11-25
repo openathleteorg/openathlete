@@ -193,14 +193,10 @@ describe('watch schedule bridge', () => {
     expect(isWatchScheduleExitLatched()).toBe(true);
   });
 
-  it('passes the current scope to the dedicated recovery', async () => {
+  it('asks the dedicated recovery to act on durable teardown only', async () => {
     state.recover.mockResolvedValue({ recovered: true });
-    const scope = {
-      instanceURL: 'https://train.example.org/api',
-      athleteId: 7,
-    };
 
-    await expect(recoverWatchScheduleCleanup(scope)).resolves.toBe(true);
-    expect(state.recover).toHaveBeenCalledWith({ scope });
+    await expect(recoverWatchScheduleCleanup()).resolves.toBe(true);
+    expect(state.recover).toHaveBeenCalledWith();
   });
 });

@@ -12,9 +12,11 @@ import {
   disconnectWatchScheduleOnExit,
   establishWatchScheduleSession,
   fenceWatchScheduleOnExit,
+  isWatchScheduleExitLatched,
   latchWatchScheduleExit,
   markFenceUnconfirmed,
   watchScheduleExitBoundary,
+  watchScheduleSessionEpoch,
 } from '@/utils/watch-schedule';
 import posthog from 'posthog-js';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
@@ -79,35 +81,51 @@ const initialState: AuthStateType = {
 export function AuthProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const initialize = useCallback(async () => {
-    // Capture the exit latch before the first await. An initialization that
-    // started before a logout must not release that newer exit when its old
-    // token happens to resolve successfully later.
-    const watchExitBoundary = watchScheduleExitBoundary();
-    // Without an answer from the API the session is unknown, not signed out:
-    // treating it as signed out would send the user to the login page
-    const signedOutOrOffline = (error: unknown) =>
-      dispatch(
-        isNetworkError(error)
-          ? { type: Types.OFFLINE }
-          : { type: Types.INITIAL, payload: { user: null } },
-      );
+  const initialize = useCallback(
+    async (options?: { authenticated?: boolean }) => {
+      // Only a new explicit authentication (login, signup, provider or SSO)
+      // may establish the successor and release the exit latch. A bootstrap or
+      // refresh getMe still uses the old bearer and must never clear a newer
+      // exit or publish its user.
+      const authenticated = options?.authenticated === true;
+      // Capture the exit latch before the first await. An initialization that
+      // started before a logout must not release that newer exit when its old
+      // token happens to resolve successfully later.
+      const watchExitBoundary = watchScheduleExitBoundary();
+      const startEpoch = watchScheduleSessionEpoch();
+      const bootstrapIsStale = () =>
+        !authenticated &&
+        (isWatchScheduleExitLatched() ||
+          watchScheduleSessionEpoch() !== startEpoch);
+      if (bootstrapIsStale()) return;
+      // Without an answer from the API the session is unknown, not signed out:
+      // treating it as signed out would send the user to the login page
+      const signedOutOrOffline = (error: unknown) => {
+        if (bootstrapIsStale()) return;
+        if (isWatchScheduleExitLatched()) return;
+        dispatch(
+          isNetworkError(error)
+            ? { type: Types.OFFLINE }
+            : { type: Types.INITIAL, payload: { user: null } },
+        );
+      };
 
-    try {
-      const accessToken = getItem(ACCESS_TOKEN);
-
-      if (accessToken && isValidToken(accessToken)) {
-        setItem(ACCESS_TOKEN, accessToken);
-
-        const user = await UserAPI.getMe();
-
+      const complete = async (user: User) => {
         await saveLanguageChoice(user.language);
         // Not awaited: reminders can wait, the app should not
         void saveTimeZone(user.timeZone);
 
-        // An authenticated successor exists: release the exit latch only now,
-        // so no new watch work can start against the previous token.
-        establishWatchScheduleSession(watchExitBoundary);
+        if (authenticated) {
+          // A newer exit or successor may have won while getMe was in flight.
+          // Its boundary/epoch differs, so this result must not release it.
+          if (watchScheduleSessionEpoch() !== startEpoch) return;
+          if (!establishWatchScheduleSession(watchExitBoundary)) return;
+        } else if (bootstrapIsStale()) {
+          // A logout or a newer authenticated successor owns the session now;
+          // this old bearer response is stale even if no latch remains.
+          return;
+        }
+        if (isWatchScheduleExitLatched()) return;
 
         dispatch({
           type: Types.INITIAL,
@@ -129,44 +147,31 @@ export function AuthProvider({ children }: Props) {
           .catch((error) => {
             console.error('Failed to initialize push notifications:', error);
           });
-      } else {
-        try {
+      };
+
+      try {
+        const accessToken = getItem(ACCESS_TOKEN);
+
+        if (accessToken && isValidToken(accessToken)) {
+          setItem(ACCESS_TOKEN, accessToken);
           const user = await UserAPI.getMe();
-
-          await saveLanguageChoice(user.language);
-          // Not awaited: reminders can wait, the app should not
-          void saveTimeZone(user.timeZone);
-
-          establishWatchScheduleSession(watchExitBoundary);
-
-          dispatch({
-            type: Types.INITIAL,
-            payload: {
-              user,
-            },
-          });
-
-          // Initialize push notifications and send any pending token
-          initializePushNotifications()
-            .then(() => {
-              // Import dynamically to avoid circular dependency
-              import('@/utils/push-notifications').then(
-                ({ sendPendingTokenIfAny }) => {
-                  sendPendingTokenIfAny();
-                },
-              );
-            })
-            .catch((error) => {
-              console.error('Failed to initialize push notifications:', error);
-            });
-        } catch (error) {
-          signedOutOrOffline(error);
+          if (bootstrapIsStale()) return;
+          await complete(user);
+        } else {
+          try {
+            const user = await UserAPI.getMe();
+            if (bootstrapIsStale()) return;
+            await complete(user);
+          } catch (error) {
+            signedOutOrOffline(error);
+          }
         }
+      } catch (error) {
+        signedOutOrOffline(error);
       }
-    } catch (error) {
-      signedOutOrOffline(error);
-    }
-  }, []);
+    },
+    [],
+  );
 
   const logout = useCallback((navigate?: (path: string) => void) => {
     const finish = () => {

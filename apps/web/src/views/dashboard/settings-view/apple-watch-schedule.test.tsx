@@ -374,18 +374,17 @@ describe('Apple Watch settings', () => {
     expect(text()).toContain('apple_watch_sign_in_again');
   });
 
-  it('recovers a previous account opt-in without disconnecting this account', async () => {
-    state.getStatus
-      .mockResolvedValueOnce(status({ hasOtherAccountOptIn: true }))
-      .mockResolvedValueOnce(status());
-    state.recover.mockResolvedValue(true);
+  it('never treats a previous account opt-in as cleanup permission', async () => {
+    state.getStatus.mockResolvedValue(
+      status({ hasOtherAccountOptIn: true, enabled: false }),
+    );
 
     await render();
 
-    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.recover).not.toHaveBeenCalled();
     expect(state.disconnect).not.toHaveBeenCalled();
-    expect(state.getStatus).toHaveBeenCalledTimes(2);
-    expect(text()).toContain('apple_watch_enable');
+    expect(text()).toContain('apple_watch_other_account_pending');
+    expect(button('apple_watch_enable')).toBeDefined();
   });
 
   it('recovers teardown for another account without disconnecting this one', async () => {
@@ -402,7 +401,7 @@ describe('Apple Watch settings', () => {
 
     await render();
 
-    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.recover).toHaveBeenCalledWith();
     expect(state.disconnect).not.toHaveBeenCalled();
     expect(text()).toContain('apple_watch_connected');
   });
@@ -423,24 +422,13 @@ describe('Apple Watch settings', () => {
     await act(async () => button('apple_watch_cleanup_retry')!.click());
     await flush();
 
-    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.recover).toHaveBeenCalledWith();
     expect(state.disconnect).not.toHaveBeenCalled();
-  });
-
-  it('keeps a safe retry when foreign opt-in recovery fails', async () => {
-    state.getStatus.mockResolvedValue(status({ hasOtherAccountOptIn: true }));
-    state.recover.mockResolvedValue(false);
-
-    await render();
-
-    expect(state.disconnect).not.toHaveBeenCalled();
-    expect(button('apple_watch_cleanup_retry')).toBeDefined();
-    expect(text()).toContain('apple_watch_cleanup_incomplete');
   });
 
   it('ignores a second status result that resolves after logout', async () => {
     state.getStatus
-      .mockResolvedValueOnce(status({ hasOtherAccountOptIn: true }))
+      .mockResolvedValueOnce(status({ cleanupPending: true }))
       .mockImplementationOnce(
         () =>
           new Promise((resolve) => {
@@ -470,6 +458,18 @@ describe('Apple Watch settings', () => {
     await flush();
 
     expect(state.refresh).not.toHaveBeenCalled();
+  });
+
+  it('refuses to start a connect while an exit is latched', async () => {
+    await render();
+    state.exitLatched = true;
+    state.sessionEpoch += 1;
+
+    await act(async () => button('apple_watch_enable')!.click());
+    await flush();
+
+    expect(state.credential).not.toHaveBeenCalled();
+    expect(state.connect).not.toHaveBeenCalled();
   });
 
   it('disconnects only this account after confirmation', async () => {

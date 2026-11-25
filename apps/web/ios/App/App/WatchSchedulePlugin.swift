@@ -133,11 +133,6 @@ enum WatchScheduleOptInError: Error {
 /// The opt-in is not a credential: it only lets a background wake-up know that
 /// this account asked for scheduling.
 final class UserDefaultsWatchScheduleOptIn: WatchScheduleOptInStore {
-    private struct Stored: Codable {
-        let instanceURL: String
-        let athleteId: Int
-    }
-
     static let shared = UserDefaultsWatchScheduleOptIn()
 
     private let key = "org.openathlete.watch-schedule.opt-in"
@@ -148,40 +143,35 @@ final class UserDefaultsWatchScheduleOptIn: WatchScheduleOptInStore {
     }
 
     func load() async throws -> AccountScope? {
-        guard let data = defaults.data(forKey: key) else {
-            return nil
-        }
-        guard let stored = try? JSONDecoder().decode(Stored.self, from: data),
-              stored.athleteId > 0,
-              let url = URL(string: stored.instanceURL)
-        else {
+        // `object(forKey:)` distinguishes absent from a present value of the
+        // wrong type. `data(forKey:)` returns nil for both, which would let a
+        // corrupt opt-in be erased or acknowledged as "nothing to retire".
+        do {
+            return try WatchScheduleOptInDocument.decode(
+                object: defaults.object(forKey: key)
+            )
+        } catch {
             throw WatchScheduleOptInError.corrupt
         }
-        return AccountScope(instanceURL: url, athleteId: stored.athleteId)
     }
 
     func save(_ scope: AccountScope) async throws {
-        let stored = Stored(
-            instanceURL: scope.instanceURL.absoluteString,
-            athleteId: scope.athleteId
-        )
-        defaults.set(try JSONEncoder().encode(stored), forKey: key)
+        guard let data = WatchScheduleOptInDocument.encode(scope) else {
+            throw WatchScheduleOptInError.corrupt
+        }
+        defaults.set(data, forKey: key)
     }
 
     func clear() async throws {
         defaults.removeObject(forKey: key)
     }
 
-    /// Background task scheduling is synchronous; the same value is read here.
+    /// Background task scheduling is synchronous. A corrupt value yields nil so
+    /// no background request is submitted; it is never erased or acknowledged.
     func loadSync() -> AccountScope? {
-        guard let data = defaults.data(forKey: key),
-              let stored = try? JSONDecoder().decode(Stored.self, from: data),
-              stored.athleteId > 0,
-              let url = URL(string: stored.instanceURL)
-        else {
-            return nil
-        }
-        return AccountScope(instanceURL: url, athleteId: stored.athleteId)
+        try? WatchScheduleOptInDocument.decode(
+            object: defaults.object(forKey: key)
+        )
     }
 }
 
@@ -564,7 +554,6 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func recover(_ call: CAPPluginCall) {
-        let currentScope = Self.scope(from: call)
         #if canImport(HealthKit) && canImport(WorkoutKit)
         if #available(iOS 17.0, *) {
             guard let runtime = WatchScheduleRuntime.shared else {
@@ -572,12 +561,9 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
                 return
             }
             Task {
-                let recovered = await runtime.lifecycle.recoverCleanup(
-                    currentScope: currentScope
-                )
-                if recovered {
-                    WatchScheduleBackgroundRefresh.cancel()
-                }
+                // Existing durable teardown only. Recovery of another scope
+                // must not cancel the signed-in account's background request.
+                let recovered = await runtime.lifecycle.recoverCleanup()
                 call.resolve(["recovered": recovered])
             }
             return

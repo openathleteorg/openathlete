@@ -83,18 +83,26 @@ matching entry.
   connect, foreground and background passes while teardown authorization is
   pending, including on a cold runtime.
 - Each fence-persisting, recovery and drain operation owns its own guard token;
-  releasing one operation can never clear another's. Fence, disconnect, recovery,
-  opt-in save and cleanup drain all pass through the same lifecycle gate, so a
-  recovery cannot interleave with a suspended teardown write. A cold wrong-scope
-  disconnect is read-only: it does not touch the epoch, guard, opt-in,
-  credential, reconciler generation or the background refresh request.
+  releasing one operation can never clear another's. The urgent fence and its
+  durable acknowledgement serialize only with opt-in mutation (a second, narrow
+  lock), never with a network pass, the permission sheet or Apple work: a
+  suspended fetch or permission request cannot delay logout's acknowledgement.
+  Opt-in saves and clears recheck the fence and session epoch inside that lock.
+- A scoped disconnect waits for the pass that owns the lifecycle gate, then
+  validates the exact account under the opt-in lock before touching the epoch,
+  guard, opt-in, credential, reconciler generation or the background refresh
+  request. A stale request for a previous account is read-only: B's connect or
+  pass is not fenced by it.
 - The web keeps a synchronous session/exit latch as well as an epoch. Logout and
   instance switches set the latch before their first await; while it is set,
   even work started at the newest epoch is refused because the previous access
-  token is still in storage. Only an authenticated successor (a completed
-  `getMe` after sign-in) clears it. A launch that retries a fence accepts only
-  the exact epoch boundary it created, never an arbitrary newer epoch. Every
-  second status read is rechecked against the session after it resolves.
+  token is still in storage. Only an explicit successful authentication
+  (login, signup, provider or SSO) establishes the successor and clears it; a
+  bootstrap or refresh `getMe` never does, never publishes its user after a
+  logout and never releases a newer exit. A launch or settings retry that
+  fences accepts only the exact epoch boundary it created, never an arbitrary
+  newer epoch. Every second status read is rechecked after it resolves, and
+  each settings action checks the latch before it starts and after each await.
 - A persisted zero-byte teardown document is corrupt/unknown, never an empty
   allow-list. Recovery proves the old opt-in read and clear (including a
   read-back) before deleting teardown authorization. `cleanupUnknown` dominates
@@ -103,14 +111,22 @@ matching entry.
   and the screen offers a safe retry that only acts on authorized teardown.
 - `hasOtherAccountOptIn` means exactly a readable opt-in for another account. A
   teardown for A with an opt-in for B is cleanup for A and never authorizes
-  disconnecting B. Recovery with the current scope may retire an actually
-  foreign stored opt-in, but never the caller's own; an unreadable or malformed
-  opt-in fails closed.
-- Cold disconnect and background recovery share the lifecycle gate. Credential
-  retirement is scope-aware, so recovering an old account never purges the
-  account currently signed in. A scoped disconnect for the wrong account is
-  rejected before touching the epoch, credential, opt-in or reconciler
-  generation, and it does not cancel the background refresh chain.
+  disconnecting B. Recovery acts only on existing durable teardown: it never
+  reads an opt-in as cleanup permission and never retires a foreign opt-in.
+  An explicit connect of the signed-in account is what persists that account's
+  own teardown authorization before replacing a foreign opt-in. An unreadable
+  or malformed opt-in fails closed.
+- Recovery of an absent teardown is a no-op: it does not bump the epoch, fence
+  the reconciler or cancel a background request. Recovering another scope's
+  teardown waits for the signed-in account's pass and preserves its opt-in,
+  credential and active generation; it never cancels the current background
+  request. Credential retirement is scope-aware, so recovering an old account
+  never purges the account currently signed in.
+- The opt-in document is decoded from `UserDefaults.object(forKey:)`: only a
+  missing key is absent. A present value of the wrong type, invalid JSON, an
+  empty document or a non-positive athlete is corrupt and is never erased or
+  acknowledged as a successful retirement. Synchronous background scheduling
+  submits nothing for a corrupt value.
 - Cleanup runs under the **exact stored scope and generation**: the reconciler
   is re-activated for that scope only after the pass drained, cleanup removes
   only journal-owned, non-completed entries, then the fence and credential are

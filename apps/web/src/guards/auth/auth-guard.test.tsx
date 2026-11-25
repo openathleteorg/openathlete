@@ -58,7 +58,7 @@ function SignIn() {
     <button
       onClick={async () => {
         localStorage.setItem(ACCESS_TOKEN, tokenOf(2));
-        await initialize();
+        await initialize({ authenticated: true });
         navigate('/dashboard/calendar');
       }}
     >

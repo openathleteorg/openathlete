@@ -59,7 +59,7 @@ export function LoginView({ className }: React.ComponentProps<'form'>) {
   const loginMutation = useLoginMutation({
     onSuccess: async () => {
       posthog?.capture('user_logged_in');
-      await initialize();
+      await initialize({ authenticated: true });
       navigate(takeReturnTo(getPath(['dashboard'])));
     },
     onError: (error) => toast.error(loginErrorMessage(error)),

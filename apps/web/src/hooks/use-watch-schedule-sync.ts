@@ -99,10 +99,11 @@ export function useWatchScheduleSync() {
       // Unknown state dominates: it is not authorization to disconnect or
       // recover anything. The settings screen offers the dedicated retry.
       if (status.cleanupUnknown) return;
-      if (status.hasOtherAccountOptIn || status.cleanupPending) {
-        // Only existing durable authorization, plus a genuinely foreign
-        // opt-in, is recovered. Never an unscoped disconnect of this account.
-        const recovered = await recoverWatchScheduleCleanup(scope);
+      if (status.cleanupPending) {
+        // Only existing durable authorization is recovered. A foreign opt-in
+        // is not cleanup permission; an explicit connect of this account
+        // persists its own teardown authorization first.
+        const recovered = await recoverWatchScheduleCleanup();
         if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
         if (!recovered) return;
         const current = await getWatchScheduleStatus(scope);

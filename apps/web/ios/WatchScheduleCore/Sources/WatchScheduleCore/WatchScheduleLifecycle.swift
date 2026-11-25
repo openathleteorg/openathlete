@@ -344,6 +344,9 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
     /// The pass uses this exact credential, even if another token arrives while
     /// the pass is waiting on the network.
     public func beginPass(_ credential: WatchScheduleCredential) {
+        guard !reuseBlocked else {
+            return
+        }
         pinned = credential
     }
 
@@ -465,6 +468,14 @@ private struct TeardownOutcome {
     let fullyRetired: Bool
 }
 
+/// Result of an opt-in mutation attempted under the opt-in lock. `stale` means
+/// a fence or a newer session won; the caller must not publish anything.
+private enum OptInUpdate {
+    case applied
+    case stale
+    case failed
+}
+
 // MARK: - Lifecycle
 
 /// Serialized owner of the opt-in, the account generation and the refresh
@@ -507,6 +518,12 @@ public actor WatchScheduleLifecycle {
 
     private var gateIsHeld = false
     private var gateWaiters: [CheckedContinuation<Void, Never>] = []
+
+    /// Serializes only opt-in reads/mutations. A fence acknowledgement must not
+    /// wait for a network pass or the permission sheet, but it must still be
+    /// ordered against a connect that is saving or clearing the opt-in.
+    private var optInLockIsHeld = false
+    private var optInLockWaiters: [CheckedContinuation<Void, Never>] = []
 
     public init(
         reconciler: ScheduleReconciler,
@@ -559,12 +576,18 @@ public actor WatchScheduleLifecycle {
         let token = beginFence()
         // Revoke writes and credential use before any fallible storage await,
         // so a stalled teardown write cannot let a paused submission through.
+        // This path never waits for the lifecycle gate, a network pass, Apple
+        // or the permission sheet.
         await reconciler.fence()
         await credentials.blockReuse()
         syncStates.removeAll()
-        await acquireGate()
+
+        // Only opt-in mutation is serialized from here on. A connect that is
+        // still in its permission sheet cannot save after this fence: it checks
+        // the same guard inside the lock.
+        await acquireOptInLock()
         defer {
-            releaseGate()
+            releaseOptInLock()
             endFence(token)
         }
 
@@ -636,23 +659,21 @@ public actor WatchScheduleLifecycle {
             // Unknown opt-in or cleanup state is not an absent opt-in.
             return await report(.failed("pendingCleanup"), scope: scope)
         }
-        if let stored, stored != scope {
+        if stored != nil && stored != scope {
             // Persist explicit authorization before the old opt-in/scope can be
-            // lost, then recover it before this account may schedule.
-            do {
-                try await teardown.add(stored)
-                try await optIn.clear()
-                guard try await optIn.load() == nil else {
-                    return await report(
-                        .failed("pendingCleanup"),
-                        scope: scope
-                    )
-                }
-            } catch {
-                return await report(
-                    .failed("pendingCleanup"),
-                    scope: scope
-                )
+            // lost, then recover it before this account may schedule. The
+            // mutation re-reads the opt-in under the lock, because a disconnect
+            // or another connect may have won while this connect was reading.
+            switch await retireForeignOptIn(
+                keeping: scope,
+                epoch: entryEpoch
+            ) {
+            case .applied:
+                break
+            case .stale:
+                return await report(.deferred(.inactive), scope: scope)
+            case .failed:
+                return await report(.failed("pendingCleanup"), scope: scope)
             }
         }
         guard await recoverPendingTeardown() else {
@@ -688,10 +709,13 @@ public actor WatchScheduleLifecycle {
             // The athlete asked to enable scheduling but iOS refused. Keep the
             // opt-in so the settings screen can explain how to re-enable it;
             // writes remain blocked by the store's authorization check.
-            try? await optIn.save(scope)
-            guard entryEpoch == epoch else {
-                try? await optIn.clear()
+            switch await saveOptInIfCurrent(scope, epoch: entryEpoch) {
+            case .applied:
+                break
+            case .stale:
                 return await report(.deferred(.inactive), scope: scope)
+            case .failed:
+                return await report(.failed("pendingCleanup"), scope: scope)
             }
         }
         guard resolved == .authorized else {
@@ -718,20 +742,31 @@ public actor WatchScheduleLifecycle {
             )
         }
 
-        try? await optIn.save(scope)
+        switch await saveOptInIfCurrent(scope, epoch: entryEpoch) {
+        case .applied:
+            break
+        case .stale:
+            return await report(.deferred(.inactive), scope: scope)
+        case .failed:
+            return await report(.failed("pendingCleanup"), scope: scope)
+        }
         guard entryEpoch == epoch else {
-            // The save may have completed after a fence. Undo it so a stale
-            // continuation cannot opt a signed-out account in.
-            try? await optIn.clear()
             return await report(.deferred(.inactive), scope: scope)
         }
         await credentials.adopt(credential)
         guard entryEpoch == epoch else {
-            try? await optIn.clear()
+            // The fence already retired the opt-in; only undo our own save if
+            // the session is still the one that started this connect.
+            _ = await clearOptInIfCurrent(scope, epoch: entryEpoch)
             try? await credentials.purge()
             return await report(.deferred(.inactive), scope: scope)
         }
         await credentials.beginPass(credential)
+        guard entryEpoch == epoch else {
+            await credentials.endPass()
+            try? await credentials.purge()
+            return await report(.deferred(.inactive), scope: scope)
+        }
         let result = await pass(
             trigger: .connect,
             scope: scope,
@@ -894,6 +929,10 @@ public actor WatchScheduleLifecycle {
             return await report(.deferred(.inactive), scope: scope)
         }
         await credentials.beginPass(chosen)
+        guard entryEpoch == epoch else {
+            await credentials.endPass()
+            return await report(.deferred(.inactive), scope: scope)
+        }
         let result = await pass(
             trigger: trigger,
             scope: scope,
@@ -911,61 +950,100 @@ public actor WatchScheduleLifecycle {
     public func disconnect(
         scope requested: AccountScope?
     ) async -> WatchScheduleDisconnectReport? {
-        // A scoped disconnect for another account is read-only: it must reject
-        // before touching the epoch, credential, opt-in or another operation's
-        // fence. An unreadable opt-in is unknown and therefore a rejection.
         if let requested {
-            guard await knownScopeMatches(requested) else {
+            // A scoped disconnect is not an exit. Wait for the pass or connect
+            // that owns the gate, then validate the account that actually
+            // exists at revocation. A stale caller must never fence the
+            // account that won the session.
+            await acquireGate()
+            defer { releaseGate() }
+            await acquireOptInLock()
+            guard await knownScopeMatchesLocked(requested) else {
+                releaseOptInLock()
                 return nil
             }
+
+            let target = requested
+            let token = beginFence()
+            defer { endFence(token) }
+            // Revocation and the durable opt-in retirement are serialized with
+            // the validation above, not with another pass or the network. The
+            // validated scope cannot change while the lock is held, so no
+            // post-revocation refusal can leave the winner fenced.
+            await reconciler.fence()
+            await credentials.blockReuse()
+            syncStates.removeAll()
+
+            do {
+                try await teardown.add(target)
+                try await optIn.clear()
+            } catch {
+                cleanupBlocked = true
+                releaseOptInLock()
+                return nil
+            }
+            let remaining: AccountScope?
+            do {
+                remaining = try await optIn.load()
+            } catch {
+                cleanupBlocked = true
+                releaseOptInLock()
+                return nil
+            }
+            releaseOptInLock()
+            guard remaining == nil else {
+                cleanupBlocked = true
+                return nil
+            }
+            await reconciler.invalidate()
+
+            let result = await teardownScope(target)
+            if result.fullyRetired {
+                do {
+                    try await teardown.remove(target)
+                } catch {
+                    cleanupBlocked = true
+                    return result.report
+                }
+                cleanupBlocked = false
+            } else {
+                cleanupBlocked = true
+            }
+            return result.report
         }
 
+        // Unscoped logout/exit: revoke immediately, before any storage wait.
         let token = beginFence()
-        // Urgent revoke before waiting for the gate or any storage await.
+        defer { endFence(token) }
         await reconciler.fence()
-        await acquireGate()
-        defer {
-            releaseGate()
-            endFence(token)
-        }
-
-        // The session may have changed while this request waited. Do not retire
-        // an opt-in the caller did not authorize.
-        if let requested {
-            guard await knownScopeMatches(requested) else {
-                return nil
-            }
-        }
-
         await credentials.blockReuse()
         syncStates.removeAll()
 
+        await acquireOptInLock()
         let stored: AccountScope?
         do {
             stored = try await optIn.load()
         } catch {
-            // Keep scheduling paused; cleanup authorization is unproven.
             cleanupBlocked = true
+            releaseOptInLock()
             return nil
         }
         guard let target = stored ?? activeScope else {
+            releaseOptInLock()
             // Cold logout after a crash: recover only the existing durable
-            // teardown authorization, under the same gate a pass would use.
+            // teardown authorization under the same gate a pass would use.
+            await acquireGate()
             let recovered = await recoverPendingTeardown()
+            releaseGate()
             cleanupBlocked = !recovered
             return nil
         }
-        if let requested, requested != target {
-            // The session changed while validating; still fenced, but do not
-            // attribute cleanup to a scope the caller did not authorize.
-            return nil
-        }
-
         do {
             try await teardown.add(target)
             try await optIn.clear()
         } catch {
             cleanupBlocked = true
+            releaseOptInLock()
             return nil
         }
         let remaining: AccountScope?
@@ -973,12 +1051,17 @@ public actor WatchScheduleLifecycle {
             remaining = try await optIn.load()
         } catch {
             cleanupBlocked = true
+            releaseOptInLock()
             return nil
         }
+        releaseOptInLock()
         guard remaining == nil else {
             cleanupBlocked = true
             return nil
         }
+
+        await acquireGate()
+        defer { releaseGate() }
         await reconciler.invalidate()
 
         let result = await teardownScope(target)
@@ -996,49 +1079,39 @@ public actor WatchScheduleLifecycle {
         return result.report
     }
 
-    /// Dedicated recovery for an existing, durable teardown authorization. It
-    /// never uses the current opt-in as authorization and never clears another
-    /// session; unknown or unreadable state returns false without acting.
-    ///
-    /// When the caller supplies its current scope, a stored opt-in for a
-    /// different account is *also* authorized cleanup: it is made durable,
-    /// cleared and recovered. That is the only safe way to clean a foreign
-    /// opt-in without disconnecting the account that is actually signed in.
-    public func recoverCleanup(
-        currentScope: AccountScope? = nil
-    ) async -> Bool {
-        let token = beginFence()
-        await reconciler.fence()
+    /// Dedicated recovery for existing, durable teardown authorizations only.
+    /// It never reads the opt-in as cleanup permission, never retires a foreign
+    /// opt-in, and an absent teardown is a no-op: no epoch bump, no reconciler
+    /// fence, no credential change. Other scopes' cleanup waits behind the
+    /// lifecycle gate so the signed-in account's pass completes first.
+    public func recoverCleanup() async -> Bool {
+        let scopes: [AccountScope]
+        do {
+            scopes = try await teardown.load()
+        } catch {
+            // Unreadable is not empty: keep scheduling paused.
+            cleanupBlocked = true
+            return false
+        }
+        guard !scopes.isEmpty else {
+            // Nothing durable to recover. A later successful check clears a
+            // previous pause without disturbing the active account, but never
+            // while another fence still owns the durable state.
+            if fenceTokens.isEmpty {
+                cleanupBlocked = false
+            }
+            return true
+        }
         await acquireGate()
-        defer {
-            releaseGate()
-            endFence(token)
-        }
-
-        if let currentScope {
-            let stored: AccountScope?
-            do {
-                stored = try await optIn.load()
-            } catch {
-                cleanupBlocked = true
-                return false
-            }
-            if let stored, stored != currentScope {
-                do {
-                    try await teardown.add(stored)
-                    try await optIn.clear()
-                    guard try await optIn.load() == nil else {
-                        cleanupBlocked = true
-                        return false
-                    }
-                } catch {
-                    cleanupBlocked = true
-                    return false
-                }
-            }
-        }
         let recovered = await recoverPendingTeardown()
-        cleanupBlocked = !recovered
+        releaseGate()
+        if recovered {
+            if fenceTokens.isEmpty {
+                cleanupBlocked = false
+            }
+        } else {
+            cleanupBlocked = true
+        }
         return recovered
     }
 
@@ -1059,15 +1132,9 @@ public actor WatchScheduleLifecycle {
             return await report(.deferred(.inactive), scope: nil)
         }
         guard let stored else {
-            // Never resurrect a torn-down session. Finish a crash's durable
-            // teardown under the same lifecycle token a connect would use.
-            let token = beginFence()
-            await reconciler.fence()
-            await acquireGate()
-            let recovered = await recoverPendingTeardown()
-            cleanupBlocked = !recovered
-            releaseGate()
-            endFence(token)
+            // Never resurrect a torn-down session. Only existing durable
+            // teardown is recovered; absent teardown leaves the runtime alone.
+            _ = await recoverCleanup()
             return await report(.deferred(.inactive), scope: nil)
         }
         return await refresh(
@@ -1198,7 +1265,8 @@ public actor WatchScheduleLifecycle {
     /// retires the credential. Receipts Apple cannot confirm are retained for
     /// the next attempt; nothing is reset or guessed.
     private func teardownScope(
-        _ target: AccountScope
+        _ target: AccountScope,
+        preserving active: AccountScope? = nil
     ) async -> TeardownOutcome {
         generation &+= 1
         await reconciler.activate(generation: generation, for: target)
@@ -1222,7 +1290,14 @@ public actor WatchScheduleLifecycle {
             retained = receipts.map(\.eventID)
         }
         await reconciler.invalidate()
-        activeScope = nil
+        // Recovering another scope must not clear the account that is signed in
+        // and still usable. Only the cleaned scope loses its active binding.
+        if let active, active != target {
+            await reconciler.activate(generation: generation, for: active)
+            activeScope = active
+        } else {
+            activeScope = nil
+        }
         syncStates[target] = nil
         let permission = await authorization.permission()
         permissionCache = permission
@@ -1268,27 +1343,8 @@ public actor WatchScheduleLifecycle {
         }
         // Crash window after teardown.add but before optIn.clear: prove the
         // stale opt-in is gone before deleting any teardown authorization.
-        let storedOptIn: AccountScope?
-        do {
-            storedOptIn = try await optIn.load()
-        } catch {
+        guard await clearStaleOptInIfAuthorized(by: scopes) else {
             return false
-        }
-        if let storedOptIn, scopes.contains(storedOptIn) {
-            do {
-                try await optIn.clear()
-            } catch {
-                return false
-            }
-            let afterClear: AccountScope?
-            do {
-                afterClear = try await optIn.load()
-            } catch {
-                return false
-            }
-            guard afterClear == nil else {
-                return false
-            }
         }
         let ordered = scopes.sorted {
             if $0.instanceURL != $1.instanceURL {
@@ -1297,8 +1353,9 @@ public actor WatchScheduleLifecycle {
             }
             return $0.athleteId < $1.athleteId
         }
+        let active = activeScope
         for scope in ordered {
-            let result = await teardownScope(scope)
+            let result = await teardownScope(scope, preserving: active)
             guard result.fullyRetired else {
                 return false
             }
@@ -1457,8 +1514,12 @@ public actor WatchScheduleLifecycle {
     }
 
     /// A scoped disconnect may only address what this instance can prove is the
-    /// request's account. Unknown storage is a mismatch, never a wildcard.
-    private func knownScopeMatches(_ requested: AccountScope) async -> Bool {
+    /// request's account. The caller holds the opt-in lock, so the validation
+    /// and the following revocation cannot be split by a connect's save.
+    /// Unknown storage is a mismatch, never a wildcard.
+    private func knownScopeMatchesLocked(
+        _ requested: AccountScope
+    ) async -> Bool {
         var sawScope = false
         if let active = activeScope {
             guard active == requested else {
@@ -1481,6 +1542,104 @@ public actor WatchScheduleLifecycle {
         return sawScope
     }
 
+    /// Saves the opt-in only when the caller's session is still current and no
+    /// fence has started. The check and the save are one critical section, so a
+    /// fence cannot clear between them.
+    private func saveOptInIfCurrent(
+        _ scope: AccountScope,
+        epoch expected: UInt64
+    ) async -> OptInUpdate {
+        await acquireOptInLock()
+        defer { releaseOptInLock() }
+        guard !isFenceActive, epoch == expected else {
+            return .stale
+        }
+        do {
+            try await optIn.save(scope)
+            return .applied
+        } catch {
+            return .failed
+        }
+    }
+
+    /// Undoes only this session's save. A fence or a newer session already owns
+    /// the value; this must not erase it.
+    private func clearOptInIfCurrent(
+        _ scope: AccountScope,
+        epoch expected: UInt64
+    ) async -> OptInUpdate {
+        await acquireOptInLock()
+        defer { releaseOptInLock() }
+        guard !isFenceActive, epoch == expected else {
+            return .stale
+        }
+        do {
+            guard try await optIn.load() == scope else {
+                return .applied
+            }
+            try await optIn.clear()
+            return .applied
+        } catch {
+            return .failed
+        }
+    }
+
+    /// A connect for B may only replace A after persisting A's teardown
+    /// authorization. Re-read under the lock: B must see the opt-in that is
+    /// actually there at the mutation, not the value it read minutes ago.
+    private func retireForeignOptIn(
+        keeping scope: AccountScope,
+        epoch expected: UInt64
+    ) async -> OptInUpdate {
+        await acquireOptInLock()
+        defer { releaseOptInLock() }
+        guard !isFenceActive, epoch == expected else {
+            return .stale
+        }
+        do {
+            guard let stored = try await optIn.load() else {
+                return .applied
+            }
+            guard stored != scope else {
+                return .applied
+            }
+            try await teardown.add(stored)
+            try await optIn.clear()
+            guard try await optIn.load() == nil else {
+                return .failed
+            }
+            return .applied
+        } catch {
+            return .failed
+        }
+    }
+
+    /// The crash window after teardown.add but before optIn.clear. Only a scope
+    /// already named by durable teardown authorizes the clear.
+    private func clearStaleOptInIfAuthorized(
+        by scopes: [AccountScope]
+    ) async -> Bool {
+        await acquireOptInLock()
+        defer { releaseOptInLock() }
+        do {
+            guard let stored = try await optIn.load() else {
+                return true
+            }
+            guard scopes.contains(stored) else {
+                return true
+            }
+            try await optIn.clear()
+            guard try await optIn.load() == nil else {
+                return false
+            }
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    // MARK: Mutexes
+
     // One lifecycle pass at a time. Actor reentrancy must not let two snapshot
     // reads allocate different generations, nor a disconnect interleave with a
     // pass. Fence/disconnect fence the reconciler before waiting for this gate.
@@ -1499,6 +1658,24 @@ public actor WatchScheduleLifecycle {
             gateIsHeld = false
         } else {
             gateWaiters.removeFirst().resume()
+        }
+    }
+
+    private func acquireOptInLock() async {
+        if !optInLockIsHeld {
+            optInLockIsHeld = true
+            return
+        }
+        await withCheckedContinuation { continuation in
+            optInLockWaiters.append(continuation)
+        }
+    }
+
+    private func releaseOptInLock() {
+        if optInLockWaiters.isEmpty {
+            optInLockIsHeld = false
+        } else {
+            optInLockWaiters.removeFirst().resume()
         }
     }
 }
