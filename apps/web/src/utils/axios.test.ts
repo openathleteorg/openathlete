@@ -2,6 +2,7 @@
 import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { installAuthTokens } from './auth-attempt';
 import client, { isNetworkError } from './axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './local-storage';
 
@@ -45,6 +46,29 @@ describe('API client errors', () => {
       response: { status: 500 },
     });
     expect(localStorage.getItem(ACCESS_TOKEN)).toBe(ACCESS);
+  });
+
+  it('does not clear a newer session from a stale 401', async () => {
+    const request = client.get('/user/me', {
+      adapter: async (config) => {
+        // Account B signs in while A's request is in flight, then A's old
+        // bearer is rejected.
+        installAuthTokens('token-b', 'refresh-b');
+        throw new AxiosError(
+          'HTTP 401',
+          AxiosError.ERR_BAD_REQUEST,
+          config,
+          null,
+          { status: 401, statusText: '', data: {}, headers: {}, config },
+        );
+      },
+    });
+
+    await expect(request).rejects.toMatchObject({
+      response: { status: 401 },
+    });
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
   });
 
   it('tells a request without any answer from an answered failure', async () => {

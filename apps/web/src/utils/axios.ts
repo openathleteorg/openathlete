@@ -1,11 +1,24 @@
 import { getAccessToken } from '@/utils/auth';
+import {
+  type AuthAttempt,
+  captureAuthAttempt,
+  clearAuthTokens,
+  isAuthAttemptCurrent,
+} from '@/utils/auth-attempt';
 import { QueryClient } from '@tanstack/react-query';
 import axios, { isAxiosError } from 'axios';
 
 import { ConnectorProvider, Event } from '@openathlete/shared';
 
 import { getApiBaseUrl } from './capacitor';
-import { ACCESS_TOKEN, REFRESH_TOKEN, setItem } from './local-storage';
+import { ACCESS_TOKEN, getItem } from './local-storage';
+
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    /** Pin this request to the exact token/instance that started the attempt. */
+    authAttempt?: AuthAttempt;
+  }
+}
 
 export const routes = {
   auth: {
@@ -386,28 +399,55 @@ export const isNetworkError = (error: unknown) =>
   isAxiosError(error) && !error.response;
 
 client.interceptors.request.use(async (config) => {
-  config.baseURL = getApiBaseUrl();
-  const token = await getAccessToken();
-  if (token?.refreshToken) {
-    setItem(REFRESH_TOKEN, token.refreshToken);
-    setItem(ACCESS_TOKEN, token.accessToken);
+  // An auth continuation pins the token and instance it started with. Taking
+  // whatever is in storage later is how account A's getMe could be sent with
+  // account B's bearer after a second login in the same tab.
+  if (config.authAttempt) {
+    config.baseURL = config.authAttempt.instanceURL;
+    if (config.authAttempt.accessToken) {
+      config.headers.Authorization = `Bearer ${config.authAttempt.accessToken}`;
+    } else {
+      delete config.headers.Authorization;
+    }
+    return config;
   }
-  if (token) {
-    config.headers.Authorization = `Bearer ${token.accessToken}`;
+
+  config.baseURL = getApiBaseUrl();
+  await getAccessToken();
+  // getAccessToken installs a refreshed session through the generation-aware
+  // helper, so a stale refresh cannot overwrite a newer login.
+  const attempt = captureAuthAttempt();
+  config.authAttempt = attempt;
+  if (attempt.accessToken) {
+    config.headers.Authorization = `Bearer ${attempt.accessToken}`;
   }
   return config;
 });
 
 client.interceptors.response.use(undefined, async (error) => {
   if (isAxiosError(error) && error.response?.status === 401) {
-    localStorage.removeItem(ACCESS_TOKEN);
-    localStorage.removeItem(REFRESH_TOKEN);
-    const queryClient = new QueryClient();
-    queryClient.clear();
+    const attempt = error.config?.authAttempt;
+    const requestToken = bearerToken(error.config?.headers?.Authorization);
+    const currentToken = getItem(ACCESS_TOKEN);
+    // A delayed 401 for an attempt (or a token) that is no longer current
+    // must not erase the session that won meanwhile.
+    const attemptIsStale = attempt ? !isAuthAttemptCurrent(attempt) : false;
+    const tokenIsStale = currentToken !== null && requestToken !== currentToken;
+    if (!attemptIsStale && !tokenIsStale) {
+      clearAuthTokens();
+      const queryClient = new QueryClient();
+      queryClient.clear();
+    }
   }
   // Callers still need the failure: swallowing it made a wrong password look
   // like a broken response, and an unauthorized change like a success.
   throw error;
 });
+
+function bearerToken(header: unknown): string | null {
+  if (typeof header !== 'string') return null;
+  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+  return match ? match[1] : null;
+}
 
 export default client;

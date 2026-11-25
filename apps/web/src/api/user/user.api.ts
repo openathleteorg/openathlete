@@ -1,3 +1,4 @@
+import { type AuthAttempt } from '@/utils/auth-attempt';
 import client, { routes } from '@/utils/axios';
 
 import {
@@ -22,8 +23,11 @@ export class UserAPI {
     return res.data;
   }
 
-  static async getMe(): Promise<User> {
-    const res = await client.get(routes.user.getMe);
+  static async getMe(attempt?: AuthAttempt): Promise<User> {
+    const res = await client.get(
+      routes.user.getMe,
+      attempt ? { authAttempt: attempt } : undefined,
+    );
     return res.data;
   }
 

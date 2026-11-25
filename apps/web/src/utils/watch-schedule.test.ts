@@ -30,13 +30,16 @@ vi.mock('@capacitor/core', () => ({
 const {
   clearFenceUnconfirmed,
   disconnectWatchSchedule,
+  disconnectWatchScheduleOnExit,
   establishWatchScheduleSession,
   fenceWatchScheduleOnExit,
+  forgetWatchScheduleScope,
   hasFenceUnconfirmed,
   isWatchScheduleExitLatched,
   isWatchScheduleSessionCurrent,
   latchWatchScheduleExit,
   markFenceUnconfirmed,
+  readFenceUnconfirmed,
   recoverWatchScheduleCleanup,
   releaseWatchScheduleExit,
   watchScheduleCredential,
@@ -62,6 +65,7 @@ describe('watch schedule bridge', () => {
     state.disconnect.mockReset();
     state.recover.mockReset();
     state.getAccessToken.mockReset();
+    forgetWatchScheduleScope();
     establishWatchScheduleSession();
   });
 
@@ -126,6 +130,35 @@ describe('watch schedule bridge', () => {
     expect(hasFenceUnconfirmed()).toBe(true);
     clearFenceUnconfirmed();
     expect(hasFenceUnconfirmed()).toBe(false);
+  });
+
+  it('binds the marker to the original scope and operation', () => {
+    const a = { instanceURL: 'https://train.example.org/api', athleteId: 7 };
+    const b = { instanceURL: 'https://train.example.org/api', athleteId: 9 };
+    markFenceUnconfirmed(a, 'fence');
+
+    expect(readFenceUnconfirmed()).toEqual({
+      scope: a,
+      operation: 'fence',
+    });
+    // An older retry may not clear (or act on) another account's marker.
+    expect(clearFenceUnconfirmed({ scope: b, operation: 'fence' })).toBe(false);
+    expect(hasFenceUnconfirmed()).toBe(true);
+    expect(clearFenceUnconfirmed({ scope: a, operation: 'fence' })).toBe(true);
+    expect(hasFenceUnconfirmed()).toBe(false);
+  });
+
+  it('never sends an unscoped disconnect for a missed exit', async () => {
+    state.disconnect.mockResolvedValue({ athleteId: 7 });
+
+    await expect(disconnectWatchScheduleOnExit()).resolves.toBeNull();
+    expect(state.disconnect).not.toHaveBeenCalled();
+
+    const a = { instanceURL: 'https://train.example.org/api', athleteId: 7 };
+    await expect(disconnectWatchScheduleOnExit(a)).resolves.toEqual({
+      athleteId: 7,
+    });
+    expect(state.disconnect).toHaveBeenCalledWith({ scope: a });
   });
 
   it('does not call the bridge off iOS', async () => {

@@ -1,4 +1,4 @@
-import { ACCESS_TOKEN, REFRESH_TOKEN, setItem } from '@/utils/local-storage';
+import { installAuthTokens } from '@/utils/auth-attempt';
 import { MutationOptions, useMutation } from '@tanstack/react-query';
 
 import { AuthAPI } from './auth.api';
@@ -14,8 +14,7 @@ export const useLoginMutation = (
     ...opt,
     mutationFn: AuthAPI.login,
     onSuccess: (data, variables, onMutateResult, context) => {
-      setItem(REFRESH_TOKEN, data.refreshToken);
-      setItem(ACCESS_TOKEN, data.accessToken);
+      installAuthTokens(data.accessToken, data.refreshToken);
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);
     },
@@ -33,8 +32,7 @@ export const useLoginWithFirebaseMutation = (
     ...opt,
     mutationFn: AuthAPI.loginWithFirebase,
     onSuccess: (data, variables, onMutateResult, context) => {
-      setItem(REFRESH_TOKEN, data.refreshToken);
-      setItem(ACCESS_TOKEN, data.accessToken);
+      installAuthTokens(data.accessToken, data.refreshToken);
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);
     },
@@ -52,8 +50,7 @@ export const useExchangeOidcCodeMutation = (
     ...opt,
     mutationFn: AuthAPI.exchangeOidcCode,
     onSuccess: (data, variables, onMutateResult, context) => {
-      setItem(REFRESH_TOKEN, data.refreshToken);
-      setItem(ACCESS_TOKEN, data.accessToken);
+      installAuthTokens(data.accessToken, data.refreshToken);
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);
     },

@@ -118,7 +118,10 @@ export function isAppleWatchScheduleAvailable(): boolean {
 
 /** The account/instance identity used for credentials, receipts and cleanup. */
 export function watchScheduleScope(athleteId: number): WatchScheduleScope {
-  return { instanceURL: getApiBaseUrl(), athleteId };
+  return rememberScope({
+    instanceURL: getApiBaseUrl(),
+    athleteId,
+  });
 }
 
 /**
@@ -193,6 +196,34 @@ export async function disconnectWatchSchedule(
 
 const FENCE_ACK_TIMEOUT_MS = 1500;
 const FENCE_UNCONFIRMED_KEY = 'watch_schedule_fence_unconfirmed';
+
+export type WatchScheduleFenceOperation = 'fence' | 'disconnect';
+
+export type WatchScheduleUnconfirmedExit = {
+  /** The account whose retrieval never acknowledged, when it was known. */
+  scope: WatchScheduleScope | null;
+  operation: WatchScheduleFenceOperation;
+};
+
+/**
+ * The last account this tab actually used for watch scheduling. Logout needs
+ * it to mark a missed acknowledgement with the original scope, so a later
+ * retry cannot fence whichever account signs in next.
+ */
+let activeScope: WatchScheduleScope | null = null;
+
+function rememberScope(scope: WatchScheduleScope): WatchScheduleScope {
+  activeScope = scope;
+  return scope;
+}
+
+export function watchScheduleActiveScope(): WatchScheduleScope | null {
+  return activeScope;
+}
+
+export function forgetWatchScheduleScope(): void {
+  activeScope = null;
+}
 
 /**
  * Synchronous marker for the signed-in web session. Logout and instance
@@ -294,38 +325,87 @@ export async function fenceWatchScheduleOnExit(): Promise<boolean> {
 }
 
 /** Persisted only in session storage, and cleared when a later fence succeeds. */
-export function markFenceUnconfirmed(): void {
+export function markFenceUnconfirmed(
+  scope: WatchScheduleScope | null = activeScope,
+  operation: WatchScheduleFenceOperation = 'fence',
+): void {
   try {
-    sessionStorage.setItem(FENCE_UNCONFIRMED_KEY, '1');
+    sessionStorage.setItem(
+      FENCE_UNCONFIRMED_KEY,
+      JSON.stringify({ scope, operation }),
+    );
   } catch {
     // Storage disabled: the settings warning degrades, sign-out still works.
   }
 }
 
+export function readFenceUnconfirmed(): WatchScheduleUnconfirmedExit | null {
+  try {
+    const raw = sessionStorage.getItem(FENCE_UNCONFIRMED_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<WatchScheduleUnconfirmedExit>;
+    const scope =
+      parsed.scope &&
+      typeof parsed.scope.instanceURL === 'string' &&
+      typeof parsed.scope.athleteId === 'number'
+        ? (parsed.scope as WatchScheduleScope)
+        : null;
+    const operation: WatchScheduleFenceOperation =
+      parsed.operation === 'disconnect' ? 'disconnect' : 'fence';
+    return { scope, operation };
+  } catch {
+    // Unknown or legacy marker: never turn it into a global fence.
+    return { scope: null, operation: 'fence' };
+  }
+}
+
 export function hasFenceUnconfirmed(): boolean {
   try {
-    return sessionStorage.getItem(FENCE_UNCONFIRMED_KEY) === '1';
+    return sessionStorage.getItem(FENCE_UNCONFIRMED_KEY) !== null;
   } catch {
     return false;
   }
 }
 
-export function clearFenceUnconfirmed(): void {
+/**
+ * Clears only the marker this caller proved resolved. A newer account's
+ * unconfirmed exit is never erased by an older retry.
+ */
+export function clearFenceUnconfirmed(
+  expected?: WatchScheduleUnconfirmedExit,
+): boolean {
+  const current = readFenceUnconfirmed();
+  if (!current) return true;
+  if (
+    expected &&
+    (current.scope?.instanceURL !== expected.scope?.instanceURL ||
+      current.scope?.athleteId !== expected.scope?.athleteId ||
+      current.operation !== expected.operation)
+  ) {
+    return false;
+  }
   try {
     sessionStorage.removeItem(FENCE_UNCONFIRMED_KEY);
+    return true;
   } catch {
-    // Nothing to clear.
+    return false;
   }
 }
 
 /**
  * Best-effort cleanup after the fence acknowledgement: the next launch reports
- * and retries any cleanup Apple did not confirm.
+ * and retries any cleanup Apple did not confirm. It only ever addresses the
+ * captured original scope; it never sends an unscoped disconnect that could
+ * retire whichever account signed in next.
  */
-export function disconnectWatchScheduleOnExit(): void {
+export function disconnectWatchScheduleOnExit(
+  scope: WatchScheduleScope | null = activeScope,
+): Promise<WatchScheduleDisconnectReport | null> {
   invalidateWatchScheduleSession();
-  if (!isAppleWatchScheduleAvailable()) return;
-  void disconnectWatchSchedule().catch(() => undefined);
+  if (!isAppleWatchScheduleAvailable() || !scope) {
+    return Promise.resolve(null);
+  }
+  return disconnectWatchSchedule(scope).catch(() => null);
 }
 
 /**

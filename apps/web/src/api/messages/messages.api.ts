@@ -1,7 +1,6 @@
 import { socketUrl } from '@/config';
 import { getAccessToken } from '@/utils/auth';
 import client, { routes } from '@/utils/axios';
-import { ACCESS_TOKEN, setItem } from '@/utils/local-storage';
 import {
   type SocketAuthentication,
   keepSocketAuthenticated,
@@ -167,10 +166,6 @@ export class MessagesAPI {
             '[MessagesAPI] No valid token available for connection',
           );
           return;
-        }
-
-        if (tokenInfo.refreshToken) {
-          setItem(ACCESS_TOKEN, tokenInfo.accessToken);
         }
 
         socket.connect();

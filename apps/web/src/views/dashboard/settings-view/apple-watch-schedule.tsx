@@ -9,12 +9,12 @@ import {
   clearFenceUnconfirmed,
   connectWatchSchedule,
   disconnectWatchSchedule,
-  fenceWatchScheduleOnExit,
   getWatchScheduleStatus,
   hasFenceUnconfirmed,
   isAppleWatchScheduleAvailable,
   isWatchScheduleExitLatched,
   isWatchScheduleSessionCurrent,
+  readFenceUnconfirmed,
   recoverWatchScheduleCleanup,
   refreshWatchSchedule,
   watchScheduleCredential,
@@ -36,6 +36,7 @@ import {
 function skipReasonMessage(code: string): string {
   switch (code) {
     case 'poolSwimmingUnverified':
+    case 'poolSwimmingRequiresIOS18':
       return m.apple_watch_skip_pool();
     case 'detailUnavailable':
     case 'zonesUnavailable':
@@ -43,6 +44,7 @@ function skipReasonMessage(code: string): string {
     case 'foreignEvent':
       return m.apple_watch_skip_foreign_event();
     case 'unsupportedSport':
+    case 'nativeActivityUnsupported':
       return m.apple_watch_skip_sport();
     case 'zoneIdMissing':
     case 'zoneNotFound':
@@ -58,6 +60,8 @@ function skipReasonMessage(code: string): string {
     case 'ambiguousRelativeTarget':
     case 'missingTargetValue':
     case 'invalidTargetValue':
+    case 'nativeGoalUnsupported':
+    case 'nativeAlertUnsupported':
       return m.apple_watch_skip_target();
     case 'unsupportedStepType':
     case 'repeatWithoutBlock':
@@ -71,6 +75,7 @@ function skipReasonMessage(code: string): string {
     case 'invalidDurationValue':
     case 'missingAthlete':
     case 'noExecutableSteps':
+    case 'ambiguousLocalTime':
       return m.apple_watch_skip_structure();
     default:
       return m.apple_watch_skip_other();
@@ -392,6 +397,62 @@ function AppleWatchScheduleSectionIOS() {
     }
   };
 
+  /**
+   * A missed exit acknowledgement is retried against the account and operation
+   * it was recorded for. It never sends an unscoped fence/disconnect: if the
+   * marker belongs to A and B is now signed in, only A's exact durable cleanup
+   * or scoped retirement may run.
+   */
+  const retryUnconfirmedExit = async () => {
+    if (busy || isWatchScheduleExitLatched()) return;
+    const marker = readFenceUnconfirmed();
+    if (!marker) {
+      setFenceUnconfirmed(false);
+      return;
+    }
+    const session = watchScheduleSessionEpoch();
+    setBusy('recover');
+    setFailure(null);
+    try {
+      if (marker.scope) {
+        await disconnectWatchSchedule(marker.scope);
+        if (!isWatchScheduleSessionCurrent(session)) return;
+      }
+      const recovered = await recoverWatchScheduleCleanup();
+      if (!isWatchScheduleSessionCurrent(session)) return;
+      if (!marker.scope) {
+        if (!recovered) {
+          setFailure('cleanup');
+          return;
+        }
+      } else {
+        // Positive proof for the original scope only: it is neither enabled
+        // nor retaining cleanup. The signed-in account's status is untouched.
+        const markerStatus = await getWatchScheduleStatus(marker.scope);
+        if (!isWatchScheduleSessionCurrent(session)) return;
+        if (
+          markerStatus.enabled ||
+          markerStatus.cleanupPending ||
+          markerStatus.cleanupUnknown
+        ) {
+          setFailure('cleanup');
+          return;
+        }
+      }
+      if (clearFenceUnconfirmed(marker)) {
+        setFenceUnconfirmed(false);
+      }
+    } catch {
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setFailure('unavailable');
+      }
+    } finally {
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setBusy(null);
+      }
+    }
+  };
+
   const skipped = skippedSummary(status.skipped);
   const enabled = status.enabled;
   const permissionDenied =
@@ -515,23 +576,8 @@ function AppleWatchScheduleSectionIOS() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                if (isWatchScheduleExitLatched()) return;
-                const before = watchScheduleSessionEpoch();
-                void fenceWatchScheduleOnExit().then((acknowledged) => {
-                  if (!acknowledged) return;
-                  // A retry that started in an older session must not clear a
-                  // newer exit's marker or latch.
-                  if (
-                    isWatchScheduleExitLatched() ||
-                    !isWatchScheduleSessionCurrent(before + 1)
-                  ) {
-                    return;
-                  }
-                  clearFenceUnconfirmed();
-                  setFenceUnconfirmed(false);
-                });
-              }}
+              onClick={() => void retryUnconfirmedExit()}
+              disabled={busy !== null}
             >
               {m.apple_watch_refresh()}
             </Button>

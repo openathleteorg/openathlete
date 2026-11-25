@@ -1,7 +1,7 @@
 import type { Socket } from 'socket.io-client';
 
 import { getAccessToken, isValidToken, refreshToken } from './auth';
-import { ACCESS_TOKEN, REFRESH_TOKEN, setItem } from './local-storage';
+import { installAuthTokens } from './auth-attempt';
 
 const EXPIRY_CHECK_INTERVAL = 60 * 1000;
 
@@ -15,8 +15,7 @@ export type SocketAuthentication = {
 
 const storeTokens = (info: TokenInfo) => {
   if (info?.refreshToken) {
-    setItem(ACCESS_TOKEN, info.accessToken);
-    setItem(REFRESH_TOKEN, info.refreshToken);
+    installAuthTokens(info.accessToken, info.refreshToken);
   }
 };
 

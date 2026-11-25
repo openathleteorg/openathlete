@@ -24,12 +24,18 @@ const state = vi.hoisted(() => ({
   recover: vi.fn(),
   credential: vi.fn(),
   scope: vi.fn(),
+  unconfirmed: null as {
+    scope: { instanceURL: string; athleteId: number } | null;
+    operation: 'fence' | 'disconnect';
+  } | null,
+  clearUnconfirmed: vi.fn(),
 }));
 
 vi.mock('@/utils/watch-schedule', () => ({
   isAppleWatchScheduleAvailable: () => state.available,
-  hasFenceUnconfirmed: () => false,
-  clearFenceUnconfirmed: vi.fn(),
+  hasFenceUnconfirmed: () => state.unconfirmed !== null,
+  readFenceUnconfirmed: () => state.unconfirmed,
+  clearFenceUnconfirmed: state.clearUnconfirmed,
   fenceWatchScheduleOnExit: vi.fn().mockResolvedValue(true),
   watchScheduleSessionEpoch: () => state.sessionEpoch,
   isWatchScheduleExitLatched: () => state.exitLatched,
@@ -166,6 +172,9 @@ describe('Apple Watch settings', () => {
     state.exitLatched = false;
     state.resolveCredential = null;
     state.resolveSecondStatus = null;
+    state.unconfirmed = null;
+    state.clearUnconfirmed.mockReset();
+    state.clearUnconfirmed.mockReturnValue(true);
     state.scope.mockReset();
     state.scope.mockReturnValue(scope);
     state.credential.mockResolvedValue(credential);
@@ -385,6 +394,36 @@ describe('Apple Watch settings', () => {
     expect(state.disconnect).not.toHaveBeenCalled();
     expect(text()).toContain('apple_watch_other_account_pending');
     expect(button('apple_watch_enable')).toBeDefined();
+  });
+
+  it('retries a missed exit only for its original scope', async () => {
+    const previous = {
+      instanceURL: 'https://train.example.org/api',
+      athleteId: 9,
+    };
+    state.unconfirmed = { scope: previous, operation: 'fence' };
+    state.getStatus.mockResolvedValue(status({ enabled: false }));
+    state.disconnect.mockResolvedValue({
+      athleteId: 9,
+      instanceURL: previous.instanceURL,
+      removedEventIDs: [],
+      retainedEventIDs: [],
+      unresolvedEventIDs: [],
+      purgedCredential: true,
+      permission: 'authorized',
+    });
+
+    await render();
+    const retry = button('apple_watch_refresh');
+    expect(retry).toBeDefined();
+
+    await act(async () => retry!.click());
+    await flush();
+
+    expect(state.disconnect).toHaveBeenCalledWith(previous);
+    expect(state.disconnect).not.toHaveBeenCalledWith(scope);
+    expect(state.getStatus).toHaveBeenCalledWith(previous);
+    expect(state.clearUnconfirmed).toHaveBeenCalledWith(state.unconfirmed);
   });
 
   it('recovers teardown for another account without disconnecting this one', async () => {

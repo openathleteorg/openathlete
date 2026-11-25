@@ -1,10 +1,16 @@
 import { UserAPI } from '@/api/user';
 import { getPath } from '@/routes/paths';
-import { isValidToken } from '@/utils/auth';
+import { getAccessToken } from '@/utils/auth';
+import {
+  type AuthAttempt,
+  captureAuthAttempt,
+  clearAuthTokens,
+  isAuthAttemptCurrent,
+} from '@/utils/auth-attempt';
 import { isNetworkError } from '@/utils/axios';
 import { signOutFirebase } from '@/utils/firebase-auth';
 import { saveLanguageChoice } from '@/utils/language-choice';
-import { ACCESS_TOKEN, clear, getItem, setItem } from '@/utils/local-storage';
+import { clear } from '@/utils/local-storage';
 import { initializePushNotifications } from '@/utils/push-notifications';
 import { queryClient } from '@/utils/query-client';
 import { saveTimeZone } from '@/utils/time-zone';
@@ -12,9 +18,11 @@ import {
   disconnectWatchScheduleOnExit,
   establishWatchScheduleSession,
   fenceWatchScheduleOnExit,
+  forgetWatchScheduleScope,
   isWatchScheduleExitLatched,
   latchWatchScheduleExit,
   markFenceUnconfirmed,
+  watchScheduleActiveScope,
   watchScheduleExitBoundary,
   watchScheduleSessionEpoch,
 } from '@/utils/watch-schedule';
@@ -100,7 +108,11 @@ export function AuthProvider({ children }: Props) {
       if (bootstrapIsStale()) return;
       // Without an answer from the API the session is unknown, not signed out:
       // treating it as signed out would send the user to the login page
+      let attempt = captureAuthAttempt();
       const signedOutOrOffline = (error: unknown) => {
+        // A 401 for a bearer that is no longer installed must not clear the
+        // account that won the race.
+        if (!isAuthAttemptCurrent(attempt)) return;
         if (bootstrapIsStale()) return;
         if (isWatchScheduleExitLatched()) return;
         dispatch(
@@ -110,7 +122,13 @@ export function AuthProvider({ children }: Props) {
         );
       };
 
-      const complete = async (user: User) => {
+      const complete = async (user: User, attempt: AuthAttempt) => {
+        // A getMe carries the bearer it actually used. If another login or
+        // logout installed a newer session while it was in flight, publishing
+        // this user would pair account A's profile with account B's token.
+        if (!isAuthAttemptCurrent(attempt)) return;
+        if (authenticated && attempt.accessToken === null) return;
+
         await saveLanguageChoice(user.language);
         // Not awaited: reminders can wait, the app should not
         void saveTimeZone(user.timeZone);
@@ -126,6 +144,7 @@ export function AuthProvider({ children }: Props) {
           return;
         }
         if (isWatchScheduleExitLatched()) return;
+        if (!isAuthAttemptCurrent(attempt)) return;
 
         dispatch({
           type: Types.INITIAL,
@@ -150,18 +169,22 @@ export function AuthProvider({ children }: Props) {
       };
 
       try {
-        const accessToken = getItem(ACCESS_TOKEN);
+        // Resolve the token before capturing the attempt. A refresh installs
+        // through the generation-aware helper; getMe is then pinned to this
+        // exact token and instance instead of re-reading storage later.
+        await getAccessToken();
+        attempt = captureAuthAttempt();
+        if (bootstrapIsStale()) return;
 
-        if (accessToken && isValidToken(accessToken)) {
-          setItem(ACCESS_TOKEN, accessToken);
-          const user = await UserAPI.getMe();
+        if (attempt.accessToken !== null) {
+          const user = await UserAPI.getMe(attempt);
           if (bootstrapIsStale()) return;
-          await complete(user);
+          await complete(user, attempt);
         } else {
           try {
-            const user = await UserAPI.getMe();
+            const user = await UserAPI.getMe(attempt);
             if (bootstrapIsStale()) return;
-            await complete(user);
+            await complete(user, attempt);
           } catch (error) {
             signedOutOrOffline(error);
           }
@@ -174,11 +197,25 @@ export function AuthProvider({ children }: Props) {
   );
 
   const logout = useCallback((navigate?: (path: string) => void) => {
+    const exitScope = watchScheduleActiveScope();
     const finish = () => {
       // Cleanup can finish later on the phone; it never holds up navigation.
-      disconnectWatchScheduleOnExit();
+      // The captured scope makes a delayed teardown unable to retire the
+      // account that signs in next.
+      void disconnectWatchScheduleOnExit(exitScope).then((report) => {
+        if (
+          report &&
+          (!report.purgedCredential ||
+            report.retainedEventIDs.length > 0 ||
+            report.unresolvedEventIDs.length > 0)
+        ) {
+          markFenceUnconfirmed(exitScope, 'disconnect');
+        }
+      });
       posthog.capture('user_logged_out');
       posthog.reset();
+      clearAuthTokens();
+      forgetWatchScheduleScope();
       clear();
       // The cache outlives an in-app logout. The next account to sign in on
       // this tab would get this one's data, including the profile that tells
@@ -204,9 +241,12 @@ export function AuthProvider({ children }: Props) {
     // refused because the old token is still in storage. If native does not
     // acknowledge, sign-out still escapes and the unconfirmed state is surfaced
     // in settings instead of being reported as a successful fence.
-    latchWatchScheduleExit();
+    const exitBoundary = latchWatchScheduleExit();
     void fenceWatchScheduleOnExit().then((acknowledged) => {
-      if (!acknowledged) markFenceUnconfirmed();
+      // A successor (or a newer exit) owns the session now. Its storage and
+      // latch must not be cleared by this older sign-out continuation.
+      if (watchScheduleExitBoundary() !== exitBoundary) return;
+      if (!acknowledged) markFenceUnconfirmed(exitScope, 'fence');
       finish();
     });
   }, []);

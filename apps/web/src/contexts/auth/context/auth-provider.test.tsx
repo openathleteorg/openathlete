@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 import { useAuthContext } from '@/contexts/auth';
+import { installAuthTokens } from '@/utils/auth-attempt';
+import { ACCESS_TOKEN } from '@/utils/local-storage';
 import { AxiosError } from 'axios';
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
@@ -9,6 +11,7 @@ import { AuthConsumer } from './auth-consumer';
 import { AuthProvider } from './auth-provider';
 
 const api = vi.hoisted(() => ({ getMe: vi.fn() }));
+const auth = vi.hoisted(() => ({ getAccessToken: vi.fn() }));
 const watch = vi.hoisted(() => ({
   latch: vi.fn(),
   establish: vi.fn(),
@@ -18,8 +21,10 @@ const watch = vi.hoisted(() => ({
   boundary: null as number | null,
   latched: false,
   sessionEpoch: 0,
+  activeScope: null as { instanceURL: string; athleteId: number } | null,
 }));
 vi.mock('@/api/user', () => ({ UserAPI: api }));
+vi.mock('@/utils/auth', () => ({ getAccessToken: auth.getAccessToken }));
 vi.mock('@/utils/watch-schedule', () => ({
   latchWatchScheduleExit: watch.latch,
   establishWatchScheduleSession: watch.establish,
@@ -29,6 +34,8 @@ vi.mock('@/utils/watch-schedule', () => ({
   watchScheduleExitBoundary: () => watch.boundary,
   isWatchScheduleExitLatched: () => watch.latched,
   watchScheduleSessionEpoch: () => watch.sessionEpoch,
+  watchScheduleActiveScope: () => watch.activeScope,
+  forgetWatchScheduleScope: vi.fn(),
 }));
 vi.mock('@/utils/push-notifications', () => ({
   initializePushNotifications: () => Promise.resolve(),
@@ -76,16 +83,25 @@ describe('auth start without a connection', () => {
   let root: Root;
   beforeEach(() => {
     api.getMe.mockReset();
+    auth.getAccessToken.mockReset();
+    localStorage.clear();
+    localStorage.setItem(ACCESS_TOKEN, 'token-a');
+    auth.getAccessToken.mockResolvedValue({
+      accessToken: 'token-a',
+      refreshed: false,
+    });
     watch.latch.mockReset();
     watch.establish.mockReset();
     watch.establish.mockReturnValue(true);
     watch.fence.mockReset();
     watch.fence.mockResolvedValue(true);
     watch.disconnect.mockReset();
+    watch.disconnect.mockResolvedValue(null);
     watch.mark.mockReset();
     watch.boundary = null;
     watch.latched = false;
     watch.sessionEpoch = 0;
+    watch.activeScope = null;
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -241,6 +257,107 @@ describe('auth start without a connection', () => {
     });
 
     expect(text()).not.toBe('app');
+  });
+
+  it('never publishes an old getMe response with the winning token', async () => {
+    let resolveGetMe: ((value: unknown) => void) | null = null;
+    api.getMe.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveGetMe = resolve;
+        }),
+    );
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <p>app</p>
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    // Another login commits its token while A's getMe is still in flight.
+    act(() => installAuthTokens('token-b', 'refresh-b'));
+    await act(async () => {
+      resolveGetMe?.(user);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(text()).not.toBe('app');
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(watch.establish).not.toHaveBeenCalled();
+  });
+
+  it('marks a missed exit with its original scope and disconnects only it', async () => {
+    const previous = {
+      instanceURL: 'https://train.example.org/api',
+      athleteId: 7,
+    };
+    watch.activeScope = previous;
+    watch.latch.mockReturnValue(1);
+    watch.boundary = 1;
+    watch.fence.mockResolvedValue(false);
+    api.getMe.mockResolvedValue(user);
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <LogoutProbe />
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    await act(async () => container.querySelector('button')!.click());
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(watch.mark).toHaveBeenCalledWith(previous, 'fence');
+    expect(watch.disconnect).toHaveBeenCalledWith(previous);
+  });
+
+  it('never signs out a newer session from a stale 401', async () => {
+    let rejectGetMe!: (error: unknown) => void;
+    api.getMe.mockImplementation(
+      () =>
+        new Promise((_, reject) => {
+          rejectGetMe = reject;
+        }),
+    );
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <p>app</p>
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    act(() => installAuthTokens('token-b', 'refresh-b'));
+    await act(async () => {
+      rejectGetMe(
+        new AxiosError(
+          'Unauthorized',
+          AxiosError.ERR_BAD_REQUEST,
+          undefined,
+          null,
+          {
+            status: 401,
+            statusText: '',
+            data: {},
+            headers: {},
+            config: {} as never,
+          },
+        ),
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(text()).not.toContain('offline_title');
   });
 
   it('latches the watch exit before waiting for the native fence', async () => {

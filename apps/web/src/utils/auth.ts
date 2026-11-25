@@ -1,5 +1,11 @@
 import axios from 'axios';
 
+import {
+  type AuthAttempt,
+  authTokenGeneration,
+  captureAuthAttempt,
+  installAuthTokens,
+} from './auth-attempt';
 import { routes } from './axios';
 import { getApiBaseUrl } from './capacitor';
 import { ACCESS_TOKEN, REFRESH_TOKEN, getItem } from './local-storage';
@@ -33,9 +39,15 @@ type TokenInfo = {
     }
 );
 
+/**
+ * Refresh the stored session. A response is installed only if no newer token
+ * was installed and the same refresh token is still stored; otherwise a slow
+ * refresh for account A could overwrite account B's freshly installed bearer.
+ */
 export async function refreshToken(): Promise<TokenInfo | null> {
   const token = getItem(REFRESH_TOKEN);
   if (!token) return null;
+  const startGeneration = authTokenGeneration();
 
   try {
     const tokenData = await axios.post(
@@ -47,7 +59,15 @@ export async function refreshToken(): Promise<TokenInfo | null> {
 
     if (!tokenData.data) return null;
     const { accessToken, refreshToken } = tokenData.data;
-
+    if (
+      authTokenGeneration() !== startGeneration ||
+      getItem(REFRESH_TOKEN) !== token
+    ) {
+      // A newer session won while this refresh was in flight. Never install
+      // its predecessor over it.
+      return null;
+    }
+    installAuthTokens(accessToken, refreshToken);
     return {
       accessToken,
       refreshToken,
@@ -91,8 +111,19 @@ export function isTokenExpiringSoon(
 }
 
 export async function getAccessToken(): Promise<TokenInfo | null> {
+  const start = captureAuthAttempt();
   const token = getItem(ACCESS_TOKEN);
   if (!token) return refreshToken();
   if (!isValidToken(token)) return refreshToken();
+  // A login or logout may have installed another session while the JWT was
+  // being inspected. This caller's token is no longer the session.
+  if (!isTokenStillInstalled(start)) return null;
   return { accessToken: token, refreshed: false };
+}
+
+function isTokenStillInstalled(attempt: AuthAttempt): boolean {
+  return (
+    authTokenGeneration() === attempt.generation &&
+    getItem(ACCESS_TOKEN) === attempt.accessToken
+  );
 }

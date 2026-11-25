@@ -1,6 +1,5 @@
 import { socketUrl } from '@/config';
 import { getAccessToken } from '@/utils/auth';
-import { ACCESS_TOKEN, setItem } from '@/utils/local-storage';
 import {
   type SocketAuthentication,
   keepSocketAuthenticated,
@@ -134,10 +133,6 @@ export class CalendarAPI {
           );
           this.connectingPromise = null;
           return;
-        }
-
-        if (tokenInfo.refreshToken) {
-          setItem(ACCESS_TOKEN, tokenInfo.accessToken);
         }
 
         // Connect the socket
