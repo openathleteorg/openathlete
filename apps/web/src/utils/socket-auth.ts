@@ -9,6 +9,13 @@ import {
 
 const EXPIRY_CHECK_INTERVAL = 60 * 1000;
 
+/** The login and instance a cached socket belongs to; refresh rotation keeps it. */
+export function socketSessionKey(
+  session: AuthSessionSnapshot = captureAuthSession(),
+): string {
+  return `${session.owner}|${session.instanceURL}`;
+}
+
 export type SocketAuthentication = {
   /** Reconnects with a fresh token when the one of the handshake expired. */
   reconnectIfExpired: () => void;

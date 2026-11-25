@@ -15,16 +15,15 @@ import {
  *
  * `owner` names the login itself and is stable while refresh tokens rotate.
  * `generation` names the exact credential, so a response that used an older
- * token can still be recognised after a same-owner refresh. Both counters are
- * persisted, without secrets, so a reload or another tab sharing this storage
- * sees the same boundary. A request may only publish a user or install a
- * refreshed token while the owner and instance are still current.
+ * token can still be recognised after a same-owner refresh. Both are opaque
+ * IDs persisted without secrets, so a reload or another tab sharing this
+ * storage sees the same boundary without relying on a shared counter.
  */
 export type AuthSessionSnapshot = {
   /** Changes only when a login starts or ends, not when tokens rotate. */
-  owner: number;
-  /** Monotonic counter, bumped on every token install, rotation or clear. */
-  generation: number;
+  owner: string;
+  /** Changes on every token install, rotation or invalidation. */
+  generation: string;
   /** `null` for an unauthenticated bootstrap. */
   accessToken: string | null;
   /** The API instance the attempt was started against. */
@@ -35,33 +34,43 @@ export type AuthSessionSnapshot = {
 export type AuthAttempt = AuthSessionSnapshot;
 
 /**
- * A login request started by one of the auth hooks. The newest-started attempt
- * may commit its returned session; older responses must never overwrite it.
+ * A login request started by one of the auth hooks. The ID last published in
+ * storage is the only attempt allowed to commit; no counter is read+written.
  */
-export type AuthLoginAttempt = {
-  ticket: number;
-  owner: number;
-  instanceURL: string;
+export type AuthLoginAttempt = AuthSessionSnapshot & {
+  ticket: string;
 };
 
-function readCounter(key: string): number {
-  const value = Number(getItem(key));
-  return Number.isSafeInteger(value) && value > 0 ? value : 0;
+/** The boundary before the first login or after storage was reset. */
+const NO_SESSION_ID = 'none';
+
+function createAuthId(): string {
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.randomUUID === 'function'
+  ) {
+    return globalThis.crypto.randomUUID();
+  }
+  // Non-secret uniqueness fallback for environments without randomUUID.
+  return `${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2)}-${Math.random().toString(36).slice(2)}`;
 }
 
-function writeCounter(key: string, value: number): void {
-  setItem(key, String(value));
+function readAuthId(key: string): string {
+  const value = getItem(key);
+  return value && value.length > 0 ? value : NO_SESSION_ID;
 }
 
-function currentOwner(): number {
-  return readCounter(AUTH_SESSION_OWNER);
+function currentOwner(): string {
+  return readAuthId(AUTH_SESSION_OWNER);
 }
 
-function currentGeneration(): number {
-  return readCounter(AUTH_TOKEN_GENERATION);
+function currentGeneration(): string {
+  return readAuthId(AUTH_TOKEN_GENERATION);
 }
 
-export function authTokenGeneration(): number {
+export function authTokenGeneration(): string {
   return currentGeneration();
 }
 
@@ -86,12 +95,12 @@ export function installAuthTokens(
   accessToken: string,
   refreshToken?: string,
 ): AuthSessionSnapshot {
-  const nextOwner = currentOwner() + 1;
-  const nextGeneration = currentGeneration() + 1;
-  writeCounter(AUTH_SESSION_OWNER, nextOwner);
-  writeCounter(AUTH_TOKEN_GENERATION, nextGeneration);
-  setItem(ACCESS_TOKEN, accessToken);
+  // Publish credentials first and the owner last. A reader in another context
+  // can therefore never see the new owner paired with the previous bearer.
   if (refreshToken) setItem(REFRESH_TOKEN, refreshToken);
+  setItem(ACCESS_TOKEN, accessToken);
+  setItem(AUTH_TOKEN_GENERATION, createAuthId());
+  setItem(AUTH_SESSION_OWNER, createAuthId());
   return captureAuthSession();
 }
 
@@ -108,9 +117,9 @@ export function rotateAuthTokens(
   // The refresh caller already fenced its exact refresh token against a
   // concurrent rotation; here only the owner and instance must still match.
   if (!isAuthSessionCurrent(expected)) return null;
-  writeCounter(AUTH_TOKEN_GENERATION, currentGeneration() + 1);
-  setItem(ACCESS_TOKEN, accessToken);
   if (refreshToken) setItem(REFRESH_TOKEN, refreshToken);
+  setItem(ACCESS_TOKEN, accessToken);
+  setItem(AUTH_TOKEN_GENERATION, createAuthId());
   return captureAuthSession();
 }
 
@@ -121,45 +130,42 @@ export function rotateAuthTokens(
  */
 export function clearAuthTokens(expected?: AuthSessionSnapshot): boolean {
   if (expected && !isAuthSessionCurrent(expected)) return false;
-  writeCounter(AUTH_SESSION_OWNER, currentOwner() + 1);
-  writeCounter(AUTH_TOKEN_GENERATION, currentGeneration() + 1);
-  removeItem(ACCESS_TOKEN);
   removeItem(REFRESH_TOKEN);
+  removeItem(ACCESS_TOKEN);
+  setItem(AUTH_TOKEN_GENERATION, createAuthId());
+  // Publish the replacement owner last, after no credential remains.
+  setItem(AUTH_SESSION_OWNER, createAuthId());
   return true;
 }
 
 /**
  * A 401 ends this login's credentials without replacing the login itself. The
  * owner stays, so a sign-out already waiting for native cleanup can still
- * finish; the bumped generation invalidates every exact credential attempt.
+ * finish; the new generation invalidates every exact credential attempt.
  */
 export function invalidateAuthTokens(): void {
-  writeCounter(AUTH_TOKEN_GENERATION, currentGeneration() + 1);
+  setItem(AUTH_TOKEN_GENERATION, createAuthId());
   removeItem(ACCESS_TOKEN);
   removeItem(REFRESH_TOKEN);
 }
 
-/** Begin a login request that may only commit while it is the newest one. */
+/** Begin a login request and publish it as the newest attempt. */
 export function beginAuthLogin(): AuthLoginAttempt {
-  const ticket = readCounter(AUTH_LOGIN_ATTEMPT) + 1;
-  writeCounter(AUTH_LOGIN_ATTEMPT, ticket);
-  return {
-    ticket,
-    owner: currentOwner(),
-    instanceURL: getApiBaseUrl(),
-  };
+  const ticket = createAuthId();
+  setItem(AUTH_LOGIN_ATTEMPT, ticket);
+  return { ...captureAuthSession(), ticket };
 }
 
 /**
- * Commit a successful login only if no newer attempt started and neither the
- * owner nor the API instance changed while the request was in flight.
+ * Commit a successful login only if its attempt ID is still the last one
+ * published and neither the owner nor the API instance changed meanwhile.
  */
 export function commitAuthLogin(
   attempt: AuthLoginAttempt,
   accessToken: string,
   refreshToken?: string,
 ): AuthSessionSnapshot | null {
-  if (attempt.ticket !== readCounter(AUTH_LOGIN_ATTEMPT)) return null;
+  if (attempt.ticket !== readAuthId(AUTH_LOGIN_ATTEMPT)) return null;
   if (attempt.owner !== currentOwner()) return null;
   if (attempt.instanceURL !== getApiBaseUrl()) return null;
   return installAuthTokens(accessToken, refreshToken);

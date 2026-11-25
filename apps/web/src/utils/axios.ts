@@ -426,6 +426,7 @@ const rawPatch = client.patch.bind(client);
 const rawPostForm = client.postForm.bind(client);
 const rawPutForm = client.putForm.bind(client);
 const rawPatchForm = client.patchForm.bind(client);
+const rawQuery = client.query.bind(client);
 
 client.request = ((config: AxiosRequestConfig) =>
   rawRequest(withInitiatedSession(config))) as AxiosInstance['request'];
@@ -465,6 +466,20 @@ client.patchForm = ((
     data,
     withInitiatedSession(config),
   )) as AxiosInstance['patchForm'];
+client.query = ((url: string, data?: unknown, config?: AxiosRequestConfig) =>
+  rawQuery(url, data, withInitiatedSession(config))) as AxiosInstance['query'];
+
+// Axios instances are callable too (`client(config)` and `client(url, config)`).
+// Route those through the same synchronous capture as the named methods.
+const callableClient = new Proxy(client, {
+  apply(target, _thisArg, args: unknown[]) {
+    const first = args[0] as AxiosRequestConfig | string | undefined;
+    const second = args[1] as AxiosRequestConfig | undefined;
+    const config =
+      typeof first === 'string' ? { ...(second ?? {}), url: first } : first;
+    return target(withInitiatedSession(config) as AxiosRequestConfig);
+  },
+}) as AxiosInstance;
 
 /** The request got no answer: the device is offline or the API unreachable. */
 export const isNetworkError = (error: unknown) =>
@@ -563,4 +578,4 @@ function bearerToken(header: unknown): string | null {
   return match ? match[1] : null;
 }
 
-export default client;
+export default callableClient;

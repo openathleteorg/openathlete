@@ -22,11 +22,11 @@ describe('auth session storage ownership', () => {
     firstContext.installAuthTokens('token-a', 'refresh-a');
     const snapshot = firstContext.captureAuthSession();
 
-    expect(localStorage.getItem(OWNER_KEY)).toBe(String(snapshot.owner));
-    expect(localStorage.getItem(GENERATION_KEY)).toBe(
-      String(snapshot.generation),
-    );
-    expect(localStorage.getItem(OWNER_KEY)).toMatch(/^\d+$/);
+    expect(localStorage.getItem(OWNER_KEY)).toBe(snapshot.owner);
+    expect(localStorage.getItem(GENERATION_KEY)).toBe(snapshot.generation);
+    // Opaque IDs, never a shared read-modify-write counter.
+    expect(snapshot.owner).not.toMatch(/^\d+$/);
+    expect(snapshot.generation).not.toMatch(/^\d+$/);
 
     // A reload or a second tab rehydrates the same non-secret boundary.
     vi.resetModules();
@@ -42,9 +42,33 @@ describe('auth session storage ownership', () => {
     expect(firstContext.isAuthSessionCurrent(snapshot)).toBe(true);
     expect(firstContext.isAuthAttemptCurrent(snapshot)).toBe(false);
 
-    secondContext.installAuthTokens('token-b', 'refresh-b');
+    const successor = secondContext.installAuthTokens('token-b', 'refresh-b');
     // A login in the other context replaces the owner everywhere.
     expect(firstContext.isAuthSessionCurrent(snapshot)).toBe(false);
+    expect(successor.owner).not.toBe(snapshot.owner);
+    expect(successor.generation).not.toBe(snapshot.generation);
+  });
+
+  it('publishes one attempt pointer and lets only it commit', async () => {
+    const firstContext = await import('./auth-attempt');
+    const first = firstContext.beginAuthLogin();
+    vi.resetModules();
+    const secondContext = await import('./auth-attempt');
+    const second = secondContext.beginAuthLogin();
+
+    expect(second.ticket).not.toBe(first.ticket);
+    expect(String(first.ticket)).not.toMatch(/^\d+$/);
+    expect(
+      firstContext.commitAuthLogin(first, 'token-a', 'refresh-a'),
+    ).toBeNull();
+
+    const committed = secondContext.commitAuthLogin(
+      second,
+      'token-b',
+      'refresh-b',
+    );
+    expect(committed).not.toBeNull();
+    expect(firstContext.captureAuthSession().owner).toBe(committed?.owner);
   });
 
   it('keeps the non-secret boundary when logout clears device storage', async () => {
@@ -57,10 +81,8 @@ describe('auth session storage ownership', () => {
     clear();
 
     expect(localStorage.getItem(ACCESS_KEY)).toBeNull();
-    expect(localStorage.getItem(OWNER_KEY)).toBe(String(snapshot.owner));
-    expect(localStorage.getItem(GENERATION_KEY)).toBe(
-      String(snapshot.generation),
-    );
+    expect(localStorage.getItem(OWNER_KEY)).toBe(snapshot.owner);
+    expect(localStorage.getItem(GENERATION_KEY)).toBe(snapshot.generation);
     // A cleared credential is not a replacement: logout continuations for
     // this login may still finish.
     expect(isAuthSessionCurrent(snapshot)).toBe(true);

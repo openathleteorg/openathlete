@@ -522,6 +522,109 @@ describe('auth start without a connection', () => {
     expect(localStorage.getItem(REFRESH_TOKEN)).toBeNull();
   });
 
+  it('does not publish an authenticated user with invalidated credentials', async () => {
+    api.getMe.mockRejectedValueOnce(unauthorized()).mockResolvedValue(user);
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <LogoutProbe />
+            <InitializeProbe />
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(text()).not.toContain('user');
+
+    let resolveFence!: (acknowledged: boolean) => void;
+    watch.fence.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveFence = resolve;
+      }),
+    );
+    watch.latch.mockImplementation(() => {
+      watch.sessionEpoch += 1;
+      watch.latched = true;
+      watch.boundary = watch.sessionEpoch;
+      return watch.sessionEpoch;
+    });
+    let resolveLanguage!: () => void;
+    language.save.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveLanguage = resolve;
+      }),
+    );
+    const clickButton = (label: string) =>
+      [...container.querySelectorAll('button')]
+        .find((button) => button.textContent === label)!
+        .click();
+
+    await act(async () => clickButton('logout'));
+    expect(watch.fence).toHaveBeenCalledTimes(1);
+    watch.establish.mockClear();
+    const epochBefore = watch.sessionEpoch;
+
+    await act(async () => clickButton('authenticate'));
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(language.save).toHaveBeenCalledTimes(1);
+
+    // The locale PATCH of A is refused while its logout waits for native.
+    await act(async () => {
+      await client
+        .patch(
+          '/user/language',
+          { language: 'FR' },
+          {
+            adapter: async (config) => {
+              throw new AxiosError(
+                'Unauthorized',
+                AxiosError.ERR_BAD_REQUEST,
+                config,
+                null,
+                {
+                  status: 401,
+                  statusText: '',
+                  data: {},
+                  headers: {},
+                  config,
+                },
+              );
+            },
+          },
+        )
+        .catch(() => undefined);
+    });
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+
+    await act(async () => {
+      resolveLanguage();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Same owner, but no credential: no user, no Watch release.
+    expect(watch.establish).not.toHaveBeenCalled();
+    expect(watch.sessionEpoch).toBe(epochBefore);
+    expect(text()).not.toContain('user');
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+
+    await act(async () => {
+      resolveFence(true);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(watch.disconnect).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+  });
+
   it('latches the watch exit before waiting for the native fence', async () => {
     api.getMe.mockResolvedValue(user);
     await act(async () =>

@@ -2,6 +2,7 @@
 import {
   type AxiosAdapter,
   AxiosError,
+  type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from 'axios';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -144,6 +145,11 @@ describe('API client errors', () => {
 
   const starts: [string, (adapter: AxiosAdapter) => Promise<unknown>][] = [
     ['request', (adapter) => client.request({ url: '/event', adapter })],
+    ['callable config', (adapter) => client({ url: '/event', adapter })],
+    [
+      'callable url',
+      (adapter) => client('/event', { adapter } as AxiosRequestConfig),
+    ],
     ['get', (adapter) => client.get('/event', { adapter })],
     ['delete', (adapter) => client.delete('/event', { adapter })],
     ['head', (adapter) => client.head('/event', { adapter })],
@@ -151,6 +157,7 @@ describe('API client errors', () => {
     ['post', (adapter) => client.post('/event', {}, { adapter })],
     ['put', (adapter) => client.put('/event', {}, { adapter })],
     ['patch', (adapter) => client.patch('/event', {}, { adapter })],
+    ['query', (adapter) => client.query('/event', {}, { adapter })],
   ];
 
   it.each(starts)(

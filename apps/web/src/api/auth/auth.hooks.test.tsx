@@ -3,7 +3,11 @@ import { installAuthTokens } from '@/utils/auth-attempt';
 import client from '@/utils/axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/utils/local-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import {
+  AxiosError,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -28,6 +32,7 @@ vi.mock('@/utils/capacitor', () => ({
 type Pending = {
   config: InternalAxiosRequestConfig;
   respond: (accessToken: string) => void;
+  reject: (status: number) => void;
 };
 const pending: Pending[] = [];
 
@@ -78,7 +83,7 @@ describe('auth login hooks', () => {
     capacitor.apiBaseUrl = 'https://api-a.example.org';
     pending.length = 0;
     client.defaults.adapter = async (config) =>
-      new Promise<AxiosResponse>((resolve) => {
+      new Promise<AxiosResponse>((resolve, reject) => {
         pending.push({
           config,
           respond: (accessToken) =>
@@ -92,6 +97,22 @@ describe('auth login hooks', () => {
               headers: {},
               config,
             }),
+          reject: (status) =>
+            reject(
+              new AxiosError(
+                `HTTP ${status}`,
+                AxiosError.ERR_BAD_REQUEST,
+                config,
+                null,
+                {
+                  status,
+                  statusText: '',
+                  data: {},
+                  headers: {},
+                  config,
+                },
+              ),
+            ),
         });
       });
     queryClient = new QueryClient({
@@ -155,17 +176,7 @@ describe('auth login hooks', () => {
     expect(successes).toEqual(['firebase']);
   });
 
-  it('captures the attempt before a successor commits in the same tick', async () => {
-    client.defaults.adapter = async (config) => ({
-      data: {
-        accessToken: 'token-a',
-        refreshToken: 'refresh-token-a',
-      },
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config,
-    });
+  it('pins login dispatch to the owner captured at invocation', async () => {
     const successes: string[] = [];
     await render((name) => successes.push(name));
     // A real access token, so the login request does not try to refresh it.
@@ -180,6 +191,28 @@ describe('auth login hooks', () => {
     });
     await act(async () => {
       await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // The old login must not dispatch at all, let alone with B's bearer.
+    expect(pending).toHaveLength(0);
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(successor);
+    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(successes).toEqual([]);
+  });
+
+  it('does not clear a successor session when an older login is refused', async () => {
+    const successes: string[] = [];
+    await render((name) => successes.push(name));
+
+    await click('email');
+    await vi.waitFor(() => expect(pending).toHaveLength(1));
+    const successor = `header.${btoa(JSON.stringify({ exp: 4102444800 }))}.sig`;
+    installAuthTokens(successor, 'refresh-b');
+
+    pending[0].reject?.(401);
+    await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });

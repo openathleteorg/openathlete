@@ -1,8 +1,10 @@
 import { socketUrl } from '@/config';
 import { getAccessToken } from '@/utils/auth';
+import { captureAuthSession } from '@/utils/auth-attempt';
 import {
   type SocketAuthentication,
   keepSocketAuthenticated,
+  socketSessionKey,
 } from '@/utils/socket-auth';
 import { Socket, io } from 'socket.io-client';
 
@@ -54,8 +56,15 @@ export class CalendarAPI {
   private static socket: Socket | null = null;
   private static socketAuth: SocketAuthentication | null = null;
   private static connectingPromise: Promise<void> | null = null;
+  private static socketSessionKey: string | null = null;
 
   static getSocket(): Socket {
+    const session = captureAuthSession();
+    const sessionKey = socketSessionKey(session);
+    if (this.socket && this.socketSessionKey !== sessionKey) {
+      // Never reuse account A's handshake for account B or another instance.
+      this.disconnectSocket();
+    }
     if (!this.socket) {
       this.socket = io(socketUrl('calendar'), {
         transports: ['polling', 'websocket'],
@@ -71,7 +80,8 @@ export class CalendarAPI {
         timeout: 45000, // Connection timeout (matches server)
         // Socket.IO will handle ping/pong automatically
       });
-      this.socketAuth = keepSocketAuthenticated(this.socket);
+      this.socketSessionKey = sessionKey;
+      this.socketAuth = keepSocketAuthenticated(this.socket, session);
 
       // Handle session errors by forcing a fresh connection
       this.socket.io.on('error', (error: unknown) => {
@@ -95,6 +105,7 @@ export class CalendarAPI {
           // Disconnect and clear socket to force a fresh connection
           const oldSocket = this.socket;
           this.socket = null;
+          this.socketSessionKey = null;
           this.socketAuth?.stop();
           this.socketAuth = null;
           if (oldSocket) {
@@ -155,9 +166,11 @@ export class CalendarAPI {
   static disconnectSocket(): void {
     this.socketAuth?.stop();
     this.socketAuth = null;
+    this.socketSessionKey = null;
     this.connectingPromise = null;
     if (this.socket) {
       this.socket.disconnect();
+      this.socket.removeAllListeners();
       this.socket = null;
     }
   }

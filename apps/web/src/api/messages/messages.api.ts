@@ -1,9 +1,11 @@
 import { socketUrl } from '@/config';
 import { getAccessToken } from '@/utils/auth';
+import { captureAuthSession } from '@/utils/auth-attempt';
 import client, { routes } from '@/utils/axios';
 import {
   type SocketAuthentication,
   keepSocketAuthenticated,
+  socketSessionKey,
 } from '@/utils/socket-auth';
 import { Socket, io } from 'socket.io-client';
 
@@ -25,6 +27,7 @@ export class MessagesAPI {
   private static socket: Socket | null = null;
   private static socketAuth: SocketAuthentication | null = null;
   private static connectingPromise: Promise<void> | null = null;
+  private static socketSessionKey: string | null = null;
 
   // ==================== REST API Methods ====================
 
@@ -108,6 +111,12 @@ export class MessagesAPI {
   // ==================== WebSocket Methods ====================
 
   static getSocket(): Socket {
+    const session = captureAuthSession();
+    const sessionKey = socketSessionKey(session);
+    if (this.socket && this.socketSessionKey !== sessionKey) {
+      // Never reuse account A's handshake for account B or another instance.
+      this.disconnectSocket();
+    }
     if (!this.socket) {
       this.socket = io(socketUrl('messages'), {
         transports: ['polling', 'websocket'], // Allow polling first, then upgrade to websocket
@@ -120,7 +129,8 @@ export class MessagesAPI {
         upgrade: true, // Allow upgrade from polling to websocket
         rememberUpgrade: true, // Remember transport preference
       });
-      this.socketAuth = keepSocketAuthenticated(this.socket);
+      this.socketSessionKey = sessionKey;
+      this.socketAuth = keepSocketAuthenticated(this.socket, session);
 
       this.socket.io.on(
         'error',
@@ -133,6 +143,7 @@ export class MessagesAPI {
           ) {
             const oldSocket = this.socket;
             this.socket = null;
+            this.socketSessionKey = null;
             this.socketAuth?.stop();
             this.socketAuth = null;
             if (oldSocket) {
@@ -183,9 +194,11 @@ export class MessagesAPI {
   static disconnectSocket(): void {
     this.socketAuth?.stop();
     this.socketAuth = null;
+    this.socketSessionKey = null;
     this.connectingPromise = null;
     if (this.socket) {
       this.socket.disconnect();
+      this.socket.removeAllListeners();
       this.socket = null;
     }
   }

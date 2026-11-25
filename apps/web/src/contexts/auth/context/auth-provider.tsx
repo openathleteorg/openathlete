@@ -133,11 +133,14 @@ export function AuthProvider({ children }: Props) {
         // this user would pair account A's profile with account B's token.
         if (!isAuthSessionCurrent(session)) return;
         if (authenticated && session.accessToken === null) return;
+        if (authenticated && getItem(ACCESS_TOKEN) === null) return;
 
         await saveLanguageChoice(user.language, undefined, session);
         // The language write may take a whole request: a successor can commit
-        // while it is pending. Nothing below may then touch its session.
+        // while it is pending, and a 401 can invalidate the credential while
+        // keeping the same owner. Nothing below may then touch that session.
         if (!isAuthSessionCurrent(session)) return;
+        if (authenticated && getItem(ACCESS_TOKEN) === null) return;
         if (authenticated) {
           // A newer exit or successor may have won while getMe was in flight.
           // Its boundary/epoch differs, so this result must not release it.

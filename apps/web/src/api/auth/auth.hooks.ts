@@ -1,5 +1,6 @@
 import {
   type AuthLoginAttempt,
+  type AuthSessionSnapshot,
   beginAuthLogin,
   commitAuthLogin,
 } from '@/utils/auth-attempt';
@@ -28,7 +29,10 @@ type LoginContext = {
  * async mutation runner starts: another login may commit in between.
  */
 function useAuthLoginMutation<TVariables>(
-  mutationFn: (variables: TVariables) => Promise<AuthResponseDto>,
+  mutationFn: (
+    variables: TVariables,
+    session: AuthSessionSnapshot,
+  ) => Promise<AuthResponseDto>,
   opt?: MutationOptions<AuthResponseDto, Error, TVariables>,
 ) {
   const mutation = useMutation<
@@ -38,7 +42,7 @@ function useAuthLoginMutation<TVariables>(
     LoginContext
   >({
     ...opt,
-    mutationFn: (run) => mutationFn(run.variables),
+    mutationFn: (run) => mutationFn(run.variables, run.attempt),
     onMutate: async (run, context) => {
       const result = opt?.onMutate
         ? await opt.onMutate(run.variables, context)
