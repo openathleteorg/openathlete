@@ -86,9 +86,13 @@ final class AppleWorkoutStore: ScheduleWorkoutStore {
     ) async throws {
         try await requireSchedulingAccess()
         let plan = try makeWorkoutPlan(request.plan, id: request.planID)
+        let start = ScheduleDate.normalized(
+            request.startDate,
+            calendar: calendar
+        )
         let components = calendar.dateComponents(
             [.year, .month, .day, .hour, .minute, .second],
-            from: request.startDate
+            from: start
         )
         await WorkoutScheduler.shared.schedule(plan, at: components)
     }
