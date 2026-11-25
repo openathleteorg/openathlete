@@ -46,7 +46,7 @@ export class ManualFitImportController {
   @ApiOperation({
     summary: 'Import a recorded FIT activity',
     description:
-      'Multipart `file` (one .fit activity, up to 20 MB, 100,000 records and 1,000 laps) and `name`. The activity is saved for the authenticated athlete with its original date, streams and laps, then processed like a synced one, without AI feedback questions. The same file again returns the existing activity; another activity with the same start time is refused. Warnings report omitted or missing data.',
+      'Multipart `file` (one .fit activity, up to 20 MB, 100,000 records and 1,000 laps) and `name`. The activity is saved for the authenticated athlete with its original date, streams and laps, then processed like a synced one. An activity that started in the last 7 days is processed as new (weather, coach notice, push notification, AI summary and questions); an older one, or the same file again, as history. The same file again returns the existing activity; another activity with the same start time is refused. Warnings report omitted or missing data.',
   })
   @ApiResponse({ status: 201, description: 'Imported, or already imported' })
   @ApiResponse({

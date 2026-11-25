@@ -35,6 +35,10 @@ const user = (i: number) => ({ userId: 6000 + i }) as AuthUser;
 describe('manual imports at the same moment (PostgreSQL)', () => {
   let prisma: PrismaService;
   let service: ManualFitImportService;
+  const queue = {
+    addActivityProcessingJob: jest.fn().mockResolvedValue(undefined),
+  };
+  const emitter = { emit: jest.fn() };
 
   beforeAll(async () => {
     prisma = new PrismaService({ datasourceUrl: databaseUrl });
@@ -50,10 +54,9 @@ describe('manual imports at the same moment (PostgreSQL)', () => {
     );
     service = new ManualFitImportService(
       prisma,
-      {
-        addActivityProcessingJob: jest.fn().mockResolvedValue(undefined),
-      } as unknown as QueueService,
+      queue as unknown as QueueService,
       new ActivityDuplicateService(prisma, events, {} as never),
+      emitter as unknown as EventEmitter2,
     );
   });
 
@@ -62,6 +65,8 @@ describe('manual imports at the same moment (PostgreSQL)', () => {
   });
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
     const tables = await prisma.$queryRaw<{ table_name: string }[]>`
       SELECT table_name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_type = 'BASE TABLE' AND table_name <> '_prisma_migrations'`;
@@ -105,5 +110,30 @@ describe('manual imports at the same moment (PostgreSQL)', () => {
       true,
     ]);
     expect(await prisma.event.count({ where: { athleteId: 7000 } })).toBe(1);
+  });
+
+  // The fixture's run starts on 2024-05-02 at 07:00 UTC
+  const processedAs = () =>
+    queue.addActivityProcessingJob.mock.calls.map((call) => call[2]);
+  const notices = () => emitter.emit.mock.calls.length;
+
+  it('processes a run of the last days as new, once', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2024-05-02T18:00:00Z'));
+
+    await service.importGpx(user(0), file(), 'Morning run');
+    await service.importGpx(user(0), file(), 'Morning run');
+
+    // The same file again is history: no second notice nor AI summary
+    expect(processedAs()).toEqual([false, true]);
+    expect(notices()).toBe(1);
+  });
+
+  it('imports an older run as history, without a notice', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2024-05-20T18:00:00Z'));
+
+    await service.importGpx(user(0), file(), 'Morning run');
+
+    expect(processedAs()).toEqual([true]);
+    expect(notices()).toBe(0);
   });
 });

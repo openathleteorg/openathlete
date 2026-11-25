@@ -67,3 +67,8 @@ the user who approved the app.
 Sending the same file again returns the existing activity, and an activity
 starting at the same time as an existing one is refused, so retries are
 safe.
+
+An activity that started in the last 7 days is processed as a new one, as
+with a connected device: weather, the coach's notice, a push notification,
+and the AI summary and questions. Older activities are imported as history,
+without them, so sending the user's whole archive notifies no one.

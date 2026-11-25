@@ -17,6 +17,8 @@ import {
   isValidGpsPoint,
 } from '@openathlete/shared';
 
+import { isRecentActivity } from 'src/common/constants/recent-activity.constant';
+
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
 import { AuthUser } from '../../auth/decorators/user.decorator';
 import { PrismaService } from '../../prisma/services/prisma.service';
@@ -139,8 +141,9 @@ export class ManualFitImportService {
 
   /**
    * Stores a prepared file once: the same file again restores only missing
-   * GPS, another activity with the same start is refused, and new activities
-   * go through the normal processing pipeline without AI feedback.
+   * GPS, and another activity with the same start is refused. A new file of
+   * the last days is processed like a synced activity; an older one, or the
+   * same file again, as history.
    */
   private async save(
     athlete: Athlete,
@@ -255,7 +258,12 @@ export class ManualFitImportService {
       if (!existing) throw new ConflictException(`${format}_CONFLICT`);
       saved = { activity: existing, alreadyImported: true };
     }
-    if (!saved.alreadyImported)
+    // Apps send activities as they are recorded, as provider webhooks do: the
+    // same age rule tells them from an archive uploaded at once
+    const isNew =
+      !saved.alreadyImported &&
+      isRecentActivity(saved.activity.event.startDate);
+    if (isNew)
       this.emitter?.emit(
         CoachActivityNoticeEvent.SLUG,
         new CoachActivityNoticeEvent({
@@ -266,12 +274,11 @@ export class ManualFitImportService {
       );
     let processingQueued = true;
     try {
-      // Historical file import uses the normal pipeline without generating AI feedback.
       // Reimporting an identical file can retry queue submission without duplicating data.
       await this.queue.addActivityProcessingJob(
         saved.activity.eventActivityId,
         saved.activity.eventId,
-        true,
+        !isNew,
       );
     } catch {
       processingQueued = false;
