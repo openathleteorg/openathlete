@@ -143,6 +143,13 @@ export const useStatisticsEfficiencyQuery = (
     queryKey: [statisticsKeys.efficiency, ...paramsKey(params)],
   });
 
+export const useTrainingCheckQuery = (athleteId?: number) =>
+  useQuery({
+    queryFn: () => StatisticsAPI.getCheck(athleteId),
+    queryKey: [statisticsKeys.check, athleteId],
+    staleTime: STALE_TIME,
+  });
+
 export const useStatisticsDurabilityQuery = (
   params: StatisticsSectionParams & { sport: SPORT_TYPE },
   enabled: boolean,

@@ -252,6 +252,37 @@ export const METRIC_REGISTRY = {
       },
     ],
   },
+  trainingCheck: {
+    verdict: 'estimate',
+    formula:
+      '|Δ median| > spread × max(0.5, 1.6 × √(1/n₁ + 1/n₂)); critical speed or power: > 1%',
+    sources: [
+      {
+        label: 'Buchheit 2014',
+        url: 'https://doi.org/10.3389/fphys.2014.00073',
+      },
+      {
+        label: 'Vesterinen et al. 2014',
+        url: 'https://doi.org/10.1519/JSC.0000000000000349',
+      },
+      {
+        label: 'Shushan et al. 2023',
+        url: 'https://doi.org/10.1186/s40798-023-00564-w',
+      },
+      {
+        label: 'Hopkins 2004',
+        url: 'https://sportsci.org/jour/04/wghtests.htm',
+      },
+      {
+        label: 'Maunder et al. 2021',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/33886100/',
+      },
+      {
+        label: 'Smyth et al. 2022',
+        url: 'https://doi.org/10.1007/s40279-022-01680-5',
+      },
+    ],
+  },
 } as const satisfies Record<string, MetricEntry>;
 
 export type MetricKey = keyof typeof METRIC_REGISTRY;

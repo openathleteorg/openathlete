@@ -17,7 +17,9 @@ import {
   StatisticsTerrainDto,
   StatisticsTrendsDto,
   StatisticsVolumeDto,
+  TrainingCheckDto,
   statisticsFiltersSchema,
+  trainingCheckSchema,
 } from '@openathlete/shared';
 
 export interface StatisticsSectionParams {
@@ -98,6 +100,14 @@ export class StatisticsAPI {
   ): Promise<StatisticsEfficiencyDto> {
     const res = await client.get(routes.statistics.efficiency, { params });
     return res.data;
+  }
+
+  /** The training check of a runner. */
+  static async getCheck(athleteId?: number): Promise<TrainingCheckDto> {
+    const res = await client.get(routes.statistics.check, {
+      params: { athleteId },
+    });
+    return trainingCheckSchema.parse(res.data);
   }
 
   static async getDurability(
