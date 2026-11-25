@@ -243,9 +243,6 @@ private func plannedTarget(
     event: TrainingEventInput,
     zones: [ZoneInput]
 ) throws -> PlannedTarget? {
-    guard let sport = PlanSport(rawValue: event.sport) else {
-        throw fail(.unsupportedSport)
-    }
     let active = step.targets.filter { $0.targetType != "OPEN" }
     guard active.count <= 1 else {
         throw fail(.multipleTargets)
@@ -262,15 +259,17 @@ private func plannedTarget(
 
     switch target.targetType {
     case "ZONE":
+        // Zone-bound values come from the owner's zone, not from raw target
+        // fields, so the legacy-ratio marker does not apply to them.
         return try zoneTarget(target, event: event, zones: zones)
     case "POWER":
-        return try absoluteTarget(target, metric: .power, sport: sport)
+        return try absoluteTarget(target, metric: .power)
     case "HEARTRATE":
-        return try absoluteTarget(target, metric: .heartRate, sport: sport)
+        return try absoluteTarget(target, metric: .heartRate)
     case "CADENCE":
-        return try absoluteTarget(target, metric: .cadence, sport: sport)
+        return try absoluteTarget(target, metric: .cadence)
     case "PACE":
-        return try absoluteTarget(target, metric: .speed, sport: sport)
+        return try absoluteTarget(target, metric: .speed)
     default:
         throw fail(.unsupportedTarget)
     }
@@ -278,9 +277,10 @@ private func plannedTarget(
 
 private func absoluteTarget(
     _ target: WorkoutTargetInput,
-    metric: PlannedTarget.Metric,
-    sport: PlanSport
+    metric: PlannedTarget.Metric
 ) throws -> PlannedTarget {
+    try rejectAmbiguousUntaggedRatio(target)
+
     guard let lower = target.targetMin ?? target.targetValue,
           let upper = target.targetMax ?? target.targetValue
     else {
@@ -298,7 +298,6 @@ private func absoluteTarget(
     }
 
     let bounds = min(lower, upper)...max(lower, upper)
-    try rejectAmbiguousUntaggedRatio(bounds, metric: metric, sport: sport)
     return PlannedTarget(
         metric: metric,
         lowerBound: bounds.lowerBound,
@@ -306,32 +305,26 @@ private func absoluteTarget(
     )
 }
 
-/// The target-intensity wire format marks a ratio with `metricType`.
-/// Untagged values are absolute. Legacy rows can still hold a ratio
-/// (0.9...1.05) without that marker, which is also the shape of a genuine
-/// low absolute range for some metrics. Do not pick a threshold for them.
+/// The shared target-intensity detector (`looksLikePercentage` in
+/// `libs/shared/src/utils/target-intensity.ts`) treats any positive raw
+/// field up to 2 as a legacy ratio marker, even when another bound looks
+/// absolute. Once found, the wire alone cannot tell the two apart: an
+/// untagged PACE 1.0 could be 1 m/s or a ratio of 1, and 9:00 min/km
+/// (1.85 m/s) overlaps the same window. Fail closed instead of guessing a
+/// default FTP/VMA/HR threshold; there is no sport exception.
 ///
-/// - Power and heart rate cannot be below 2 W/bpm, so a whole range in
-///   (0, 2] is a legacy ratio.
-/// - Running and cycling paces in (0, 2] m/s are not usable absolute targets
-///   either.
-/// - A swim pace in (0, 2] m/s is a real easy pace, so it stays absolute.
-/// - Cadence has no ratio metric; a whole range in (0, 2] rpm is invalid.
+/// Zone targets never reach this check: their absolute bounds come from the
+/// owner's zone and keep explicit provenance.
 private func rejectAmbiguousUntaggedRatio(
-    _ bounds: ClosedRange<Double>,
-    metric: PlannedTarget.Metric,
-    sport: PlanSport
+    _ target: WorkoutTargetInput
 ) throws {
-    guard bounds.lowerBound > 0, bounds.upperBound <= 2 else { return }
-    switch metric {
-    case .power, .heartRate:
+    let fields = [target.targetValue, target.targetMin, target.targetMax]
+    let hasLegacyRatioMarker = fields.contains { value in
+        guard let value else { return false }
+        return value > 0 && value <= 2
+    }
+    guard !hasLegacyRatioMarker else {
         throw fail(.ambiguousRelativeTarget)
-    case .speed:
-        if sport != .swimming {
-            throw fail(.ambiguousRelativeTarget)
-        }
-    case .cadence:
-        throw fail(.invalidTargetValue)
     }
 }
 

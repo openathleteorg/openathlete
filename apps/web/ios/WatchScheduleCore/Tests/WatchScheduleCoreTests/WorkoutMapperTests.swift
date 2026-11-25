@@ -361,19 +361,30 @@ final class WorkoutMapperTests: XCTestCase {
         XCTAssertEqual(target.upperBound, 4.2, accuracy: 1e-9)
     }
 
-    func testLowAbsoluteSwimPaceIsNotTreatedAsARatio() throws {
-        // A real easy swim pace is under 2 m/s. Do not mistake it for an
-        // untagged VMA ratio.
+    func testLowSwimPaceIsAmbiguousWithoutZoneProvenance() {
+        // 1 m/s is a real swim pace, but the raw wire cannot tell it apart
+        // from an untagged legacy ratio of 1. The shared detector treats any
+        // raw field in (0, 2] as a ratio marker, with no sport exception.
         let event = event([
             step("INTERVAL_ACTIVE", targets: [target("PACE", min: 0.95, max: 1.05)]),
         ], sport: "SWIMMING")
 
-        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
-        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .ambiguousRelativeTarget
+        )
+    }
 
-        XCTAssertEqual(target.metric, .speed)
-        XCTAssertEqual(target.lowerBound, 0.95, accuracy: 1e-9)
-        XCTAssertEqual(target.upperBound, 1.05, accuracy: 1e-9)
+    func testLowRunPaceIsAmbiguousWithoutZoneProvenance() {
+        // 1.85 m/s is 9:00 min/km, which overlaps the (0, 2] ratio window.
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("PACE", min: 1.85, max: 1.9)]),
+        ], sport: "RUNNING")
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .ambiguousRelativeTarget
+        )
     }
 
     func testDirectCadenceRangeIsKept() throws {
@@ -445,6 +456,109 @@ final class WorkoutMapperTests: XCTestCase {
             reason(mapPrescription(event, zones: [])),
             .ambiguousRelativeTarget
         )
+    }
+
+    func testMixedBoundsWithALowMinimumAreRejectedAsAmbiguous() {
+        // Only the minimum is in (0, 2]. The shared legacy detector still
+        // treats the whole target as a ratio, so 2.1 must not be read as W.
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("POWER", min: 0.95, max: 2.1)]),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .ambiguousRelativeTarget
+        )
+    }
+
+    func testHiddenRatioSignalInTargetValueIsRejectedAsAmbiguous() {
+        // The bounds look absolute, but targetValue 1 makes the shared
+        // detector read the target as a ratio.
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [
+                target("POWER", min: 210, max: 245, value: 1),
+            ]),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .ambiguousRelativeTarget
+        )
+    }
+
+    func testHiddenRatioSignalInTargetMaxIsRejectedAsAmbiguous() {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [
+                target("POWER", min: 210, max: 1.5),
+            ]),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .ambiguousRelativeTarget
+        )
+    }
+
+    func testRatioMarkerBoundaryAtTwoIsRejectedAsAmbiguous() {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("POWER", value: 2)]),
+        ])
+
+        XCTAssertEqual(
+            reason(mapPrescription(event, zones: [])),
+            .ambiguousRelativeTarget
+        )
+    }
+
+    func testValuesAboveTwoAreNotRatioMarkers() throws {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("PACE", min: 2.1, max: 2.5)]),
+        ], sport: "RUNNING")
+
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
+
+        XCTAssertEqual(target.metric, .speed)
+        XCTAssertEqual(target.range, 2.1...2.5)
+        XCTAssertNil(target.zoneId)
+    }
+
+    func testUnambiguousAbsoluteTargetsStayAbsolute() throws {
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("POWER", min: 210, max: 245)], order: 0),
+            step("INTERVAL_ACTIVE", targets: [target("HEARTRATE", min: 140, max: 160)], order: 1),
+            step("INTERVAL_ACTIVE", targets: [target("CADENCE", min: 85, max: 95)], order: 2),
+        ])
+
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: [])))
+        let steps = try XCTUnwrap(plan.blocks.first?.steps)
+        XCTAssertEqual(steps.count, 3)
+        XCTAssertEqual(steps[0].target?.metric, .power)
+        XCTAssertEqual(steps[0].target?.range, 210...245)
+        XCTAssertEqual(steps[1].target?.metric, .heartRate)
+        XCTAssertEqual(steps[1].target?.range, 140...160)
+        XCTAssertEqual(steps[2].target?.metric, .cadence)
+        XCTAssertEqual(steps[2].target?.range, 85...95)
+    }
+
+    func testLowSpeedPaceZoneKeepsExplicitZoneProvenance() throws {
+        // 9:00-10:00 min/km resolves below 2 m/s, but the bounds come from
+        // the owner's pace zone, not from an untagged raw target field.
+        let event = event([
+            step("INTERVAL_ACTIVE", targets: [target("ZONE", value: 9)]),
+        ], sport: "RUNNING")
+        let zones = [
+            zone(9, athlete: 7, type: "PACE", values: [(9.0, 10.0, ["RUNNING"])]),
+        ]
+
+        let plan = try XCTUnwrap(plan(mapPrescription(event, zones: zones)))
+        let target = try XCTUnwrap(plan.blocks.first?.steps.first?.target)
+
+        XCTAssertEqual(target.metric, .speed)
+        XCTAssertEqual(target.lowerBound, 1000 / (10.0 * 60), accuracy: 1e-9)
+        XCTAssertEqual(target.upperBound, 1000 / (9.0 * 60), accuracy: 1e-9)
+        XCTAssertLessThan(target.upperBound, 2)
+        XCTAssertEqual(target.zoneId, 9)
     }
 
     func testDirectPowerRangeMayStartAtZero() throws {
