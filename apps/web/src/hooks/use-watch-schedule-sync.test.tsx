@@ -9,6 +9,8 @@ import { useWatchScheduleSync } from './use-watch-schedule-sync';
 const state = vi.hoisted(() => ({
   available: true,
   authenticated: true,
+  sessionEpoch: 0,
+  resolveCredential: null as ((value: unknown) => void) | null,
   status: {
     enabled: true,
     hasOtherAccountOptIn: false,
@@ -38,6 +40,7 @@ const state = vi.hoisted(() => ({
   getStatus: vi.fn(),
   refresh: vi.fn(),
   disconnect: vi.fn(),
+  recover: vi.fn(),
   credential: vi.fn(),
   scope: vi.fn(),
   appStateHandler: null as ((state: { isActive: boolean }) => void) | null,
@@ -62,6 +65,10 @@ vi.mock('@/utils/watch-schedule', () => ({
   hasFenceUnconfirmed: () => false,
   clearFenceUnconfirmed: vi.fn(),
   fenceWatchScheduleOnExit: vi.fn().mockResolvedValue(true),
+  watchScheduleSessionEpoch: () => state.sessionEpoch,
+  isWatchScheduleSessionCurrent: (epoch: number) =>
+    epoch === state.sessionEpoch,
+  recoverWatchScheduleCleanup: state.recover,
   getWatchScheduleStatus: state.getStatus,
   refreshWatchSchedule: state.refresh,
   disconnectWatchSchedule: state.disconnect,
@@ -121,6 +128,10 @@ describe('Apple Watch sync lifecycle', () => {
     state.getStatus.mockReset();
     state.refresh.mockReset();
     state.disconnect.mockReset();
+    state.recover.mockReset();
+    state.recover.mockResolvedValue(true);
+    state.sessionEpoch = 0;
+    state.resolveCredential = null;
     state.credential.mockReset();
     state.scope.mockReset();
     state.getStatus.mockResolvedValue(state.status);
@@ -171,14 +182,45 @@ describe('Apple Watch sync lifecycle', () => {
     expect(state.refresh).toHaveBeenCalledWith(scope, credential, 'launch');
   });
 
-  it('finishes a durable same-account cleanup before refreshing', async () => {
+  it('retries a durable cleanup without an unscoped disconnect', async () => {
     state.getStatus
       .mockResolvedValueOnce({ ...state.status, cleanupPending: true })
       .mockResolvedValue({ ...state.status, enabled: false });
 
     await render();
 
-    expect(state.disconnect).toHaveBeenCalledWith();
+    expect(state.recover).toHaveBeenCalledTimes(1);
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.refresh).not.toHaveBeenCalled();
+  });
+
+  it('pauses on unknown cleanup instead of acting on it', async () => {
+    state.getStatus.mockResolvedValue({
+      ...state.status,
+      cleanupUnknown: true,
+    });
+
+    await render();
+
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.recover).not.toHaveBeenCalled();
+    expect(state.refresh).not.toHaveBeenCalled();
+  });
+
+  it('drops a launch refresh when logout happens while the token loads', async () => {
+    state.credential.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          state.resolveCredential = resolve;
+        }),
+    );
+
+    await act(async () => root.render(<Probe />));
+    await flush();
+    state.sessionEpoch += 1;
+    state.resolveCredential?.(credential);
+    await flush();
+
     expect(state.refresh).not.toHaveBeenCalled();
   });
 

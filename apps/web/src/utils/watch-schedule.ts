@@ -107,6 +107,7 @@ type WatchScheduleNativePlugin = {
     scope?: WatchScheduleScope;
   }): Promise<WatchScheduleDisconnectReport | Record<string, never>>;
   fence(): Promise<void>;
+  recover(): Promise<{ recovered: boolean }>;
 };
 
 const nativePlugin = registerPlugin<WatchScheduleNativePlugin>('WatchSchedule');
@@ -194,12 +195,32 @@ const FENCE_ACK_TIMEOUT_MS = 1500;
 const FENCE_UNCONFIRMED_KEY = 'watch_schedule_fence_unconfirmed';
 
 /**
+ * Synchronous marker for the signed-in web session. Logout and instance
+ * switches bump it before their first await, so a settings or automatic action
+ * that resolves later cannot call the bridge against a newer native epoch.
+ */
+let sessionEpoch = 0;
+
+export function watchScheduleSessionEpoch(): number {
+  return sessionEpoch;
+}
+
+export function isWatchScheduleSessionCurrent(epoch: number): boolean {
+  return epoch === sessionEpoch;
+}
+
+export function invalidateWatchScheduleSession(): void {
+  sessionEpoch += 1;
+}
+
+/**
  * Waits for the native fence acknowledgement. Returns true only when the
  * native bridge confirmed that writes and stored credentials are revoked.
  * A timeout or rejection is **not** an acknowledgement: logout may still
  * escape, but the caller must surface that scheduling was not confirmed off.
  */
 export async function fenceWatchScheduleOnExit(): Promise<boolean> {
+  invalidateWatchScheduleSession();
   if (!isAppleWatchScheduleAvailable()) return true;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -250,6 +271,21 @@ export function clearFenceUnconfirmed(): void {
  * and retries any cleanup Apple did not confirm.
  */
 export function disconnectWatchScheduleOnExit(): void {
+  invalidateWatchScheduleSession();
   if (!isAppleWatchScheduleAvailable()) return;
   void disconnectWatchSchedule().catch(() => undefined);
+}
+
+/**
+ * Retries an existing durable teardown only. Unlike `disconnect`, it never uses
+ * the current opt-in as cleanup authorization and never clears the session.
+ */
+export async function recoverWatchScheduleCleanup(): Promise<boolean> {
+  if (!isAppleWatchScheduleAvailable()) return true;
+  try {
+    const result = await nativePlugin.recover();
+    return result.recovered === true;
+  } catch {
+    return false;
+  }
 }

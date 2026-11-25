@@ -55,6 +55,11 @@ public protocol WatchScheduleTeardownStore: Sendable {
     func remove(_ scope: AccountScope) async throws
 }
 
+public enum WatchScheduleTeardownError: Error, Equatable, Sendable {
+    /// A persisted teardown document exists but cannot be trusted.
+    case corrupt
+}
+
 /// File-backed teardown authorization with the same protection requirements as
 /// the schedule journal: atomic writes and no credentials.
 public actor FileWatchScheduleTeardownStore: WatchScheduleTeardownStore {
@@ -71,10 +76,17 @@ public actor FileWatchScheduleTeardownStore: WatchScheduleTeardownStore {
             return []
         }
         let data = try Data(contentsOf: fileURL)
+        // A persisted zero-byte document is corrupt, not an empty allow-list:
+        // treating it as empty would let the next account schedule past an
+        // authorized cleanup.
         guard !data.isEmpty else {
-            return []
+            throw WatchScheduleTeardownError.corrupt
         }
-        return try decoder.decode([AccountScope].self, from: data)
+        do {
+            return try decoder.decode([AccountScope].self, from: data)
+        } catch {
+            throw WatchScheduleTeardownError.corrupt
+        }
     }
 
     public func add(_ scope: AccountScope) async throws {
@@ -384,6 +396,40 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
         return try await vault.load()
     }
 
+    /// Retires the credential belonging to one account only. Another account's
+    /// stored token (for example the account signed in while an old teardown is
+    /// being recovered) is left untouched.
+    public func retireCredential(for scope: AccountScope) async throws -> Bool {
+        if pinned?.scope == scope {
+            pinned = nil
+        }
+        if foreground?.scope == scope {
+            foreground = nil
+        }
+        let stored: WatchScheduleCredential?
+        do {
+            stored = try await vault.load()
+        } catch {
+            reuseBlocked = true
+            throw error
+        }
+        guard let stored else {
+            return true
+        }
+        guard stored.scope == scope else {
+            // The old account's token was already replaced; do not purge the
+            // current account's credential.
+            return true
+        }
+        do {
+            try await vault.purge()
+            return true
+        } catch {
+            reuseBlocked = true
+            throw error
+        }
+    }
+
     /// Throws when the Keychain item could not be removed. The caller must not
     /// report a successful logout or retry stored background work in that case.
     public func purge() async throws {
@@ -443,6 +489,10 @@ public actor WatchScheduleLifecycle {
     /// a logout. A stale continuation must never save the opt-in or credential.
     private var epoch: UInt64 = 0
     private var permissionCache: WatchSchedulePermission = .notDetermined
+    /// Set before the first await of a fence/disconnect. Connect, foreground
+    /// and background passes are refused while teardown authorization is being
+    /// persisted, including on a cold runtime with no opt-in.
+    private var fenceInProgress = false
     /// Per-account sync state. A speculative or failed pass for one scope can
     /// never rewrite another account's last success, error or skipped IDs.
     private var syncStates: [AccountScope: SyncState] = [:]
@@ -493,7 +543,11 @@ public actor WatchScheduleLifecycle {
     /// reuse, opt-in cleared only after its cleanup authorization is durable.
     /// It deliberately does not read or wait for Apple; logout can acknowledge
     /// this and let cleanup continue in the background.
-    public func fence() async {
+    /// Returns true only when writes/credentials are revoked and the opt-in was
+    /// actually retired (or there was none). The caller may report success only
+    /// on true; false leaves the fence guard in place so no new pass can start.
+    public func fence() async -> Bool {
+        fenceInProgress = true
         epoch &+= 1
         // Revoke writes and credential use before any fallible storage await,
         // so a stalled teardown write cannot let a paused submission through.
@@ -501,18 +555,42 @@ public actor WatchScheduleLifecycle {
         await credentials.blockReuse()
         syncStates.removeAll()
 
-        let target = (try? await optIn.load()) ?? activeScope
-        if let target {
-            do {
-                try await teardown.add(target)
-                try? await optIn.clear()
-            } catch {
-                // Fail closed: keep the opt-in as the only durable authorization
-                // we have. Writes and credentials stay fenced.
-            }
-        } else {
-            try? await optIn.clear()
+        let stored: AccountScope?
+        do {
+            stored = try await optIn.load()
+        } catch {
+            // Cannot prove there is no opt-in; keep the guard and fail closed.
+            return false
         }
+        let target = stored ?? activeScope
+        guard let target else {
+            do {
+                try await optIn.clear()
+            } catch {
+                return false
+            }
+            fenceInProgress = false
+            return true
+        }
+        do {
+            try await teardown.add(target)
+            try await optIn.clear()
+        } catch {
+            // Keep the opt-in as the only durable authorization and keep the
+            // guard: teardown authorization is still pending.
+            return false
+        }
+        let remaining: AccountScope?
+        do {
+            remaining = try await optIn.load()
+        } catch {
+            return false
+        }
+        guard remaining == nil else {
+            return false
+        }
+        fenceInProgress = false
+        return true
     }
 
     // MARK: Connect
@@ -522,11 +600,14 @@ public actor WatchScheduleLifecycle {
         credential: WatchScheduleCredential,
         requestPermission: Bool
     ) async -> WatchScheduleRefreshReport {
+        guard !fenceInProgress else {
+            return await report(.deferred(.inactive), scope: scope)
+        }
         let waitEpoch = epoch
         await acquireGate()
         defer { releaseGate() }
         // A connect queued before a logout must not start a new session.
-        guard waitEpoch == epoch else {
+        guard !fenceInProgress, waitEpoch == epoch else {
             return await report(.deferred(.inactive), scope: scope)
         }
 
@@ -639,11 +720,14 @@ public actor WatchScheduleLifecycle {
         scope: AccountScope,
         credential: WatchScheduleCredential?
     ) async -> WatchScheduleRefreshReport {
+        guard !fenceInProgress else {
+            return await report(.deferred(.inactive), scope: scope)
+        }
         let entryEpoch = epoch
         await acquireGate()
         defer { releaseGate() }
 
-        guard entryEpoch == epoch else {
+        guard !fenceInProgress, entryEpoch == epoch else {
             return await report(.deferred(.inactive), scope: scope)
         }
 
@@ -792,30 +876,73 @@ public actor WatchScheduleLifecycle {
     public func disconnect(
         scope requested: AccountScope?
     ) async -> WatchScheduleDisconnectReport? {
+        // A scoped disconnect for another account must reject before touching
+        // this account's epoch, credential, opt-in or reconciler generation.
+        let guardBeforeValidation = fenceInProgress
+        if let requested {
+            // Set the guard before the storage read. A mismatched request only
+            // restores the previous guard and never touches the epoch, opt-in,
+            // credential or reconciler generation.
+            fenceInProgress = true
+            let known: AccountScope?
+            if let active = activeScope {
+                known = active
+            } else {
+                known = try? await optIn.load()
+            }
+            guard known == requested else {
+                fenceInProgress = guardBeforeValidation
+                return nil
+            }
+        }
+
+        fenceInProgress = true
         epoch &+= 1
         // Fence writes and credential use before any storage read or write.
         await reconciler.fence()
         await credentials.blockReuse()
         syncStates.removeAll()
 
-        let stored = try? await optIn.load()
-        guard let target = stored ?? activeScope else {
-            // A cold logout after a crash still has durable teardown work.
-            _ = await recoverPendingTeardown()
+        let stored: AccountScope?
+        do {
+            stored = try await optIn.load()
+        } catch {
+            // Keep the guard; cleanup authorization is unproven.
             return nil
         }
-        // Never clean a scope other than the authorized one.
+        guard let target = stored ?? activeScope else {
+            // Cold logout after a crash: share the lifecycle gate so a queued
+            // connect cannot interleave with the old account's recovery.
+            await acquireGate()
+            defer { releaseGate() }
+            let recovered = await recoverPendingTeardown()
+            fenceInProgress = !recovered
+            return nil
+        }
         if let requested, requested != target {
+            // The session changed while validating; still fenced, but do not
+            // attribute cleanup to a scope the caller did not authorize.
             return nil
         }
 
         do {
             try await teardown.add(target)
+            try await optIn.clear()
         } catch {
-            // No durable authorization: keep the opt-in (and the fence).
+            // No durable authorization/clear: keep the opt-in and the guard.
             return nil
         }
-        try? await optIn.clear()
+        let remaining: AccountScope?
+        do {
+            remaining = try await optIn.load()
+        } catch {
+            // Cannot prove the opt-in is gone: keep it, the guard and the
+            // teardown authorization.
+            return nil
+        }
+        guard remaining == nil else {
+            return nil
+        }
         await reconciler.invalidate()
 
         await acquireGate()
@@ -825,7 +952,22 @@ public actor WatchScheduleLifecycle {
         if result.fullyRetired {
             try? await teardown.remove(target)
         }
+        // Keep connect/refresh/background out until the old scope's teardown
+        // pass has drained; nothing may activate another session mid-cleanup.
+        fenceInProgress = false
         return result.report
+    }
+
+    /// Dedicated recovery for an existing, durable teardown authorization. It
+    /// never uses the current opt-in as authorization and never clears another
+    /// session; unknown or unreadable state returns false without acting.
+    public func recoverCleanup() async -> Bool {
+        await acquireGate()
+        defer { releaseGate() }
+        let recovered = await recoverPendingTeardown()
+        // Unknown/retained cleanup stays fail closed: no pass may start.
+        fenceInProgress = !recovered
+        return recovered
     }
 
     // MARK: Background entry point
@@ -834,10 +976,16 @@ public actor WatchScheduleLifecycle {
     /// pass with `background` triggers: no foreground credential, no refresh
     /// token, no new opt-in.
     public func handleBackgroundRefresh() async -> WatchScheduleRefreshReport {
+        guard !fenceInProgress else {
+            return await report(.deferred(.inactive), scope: nil)
+        }
         guard let stored = try? await optIn.load() else {
-            // Never resurrect a torn-down session. A crash may still have left
-            // durable teardown work; finish it even without an opt-in.
-            _ = await recoverPendingTeardown()
+            // Never resurrect a torn-down session. Finish a crash's durable
+            // teardown under the same lifecycle gate a connect would use.
+            await acquireGate()
+            let recovered = await recoverPendingTeardown()
+            releaseGate()
+            fenceInProgress = !recovered
             return await report(.deferred(.inactive), scope: nil)
         }
         return await refresh(
@@ -1004,8 +1152,7 @@ public actor WatchScheduleLifecycle {
 
         var purged = false
         do {
-            try await credentials.purge()
-            purged = true
+            purged = try await credentials.retireCredential(for: target)
         } catch {
             // A token that could not be removed is never reported as purged,
             // and its stored copy stays blocked from reuse.
@@ -1037,10 +1184,29 @@ public actor WatchScheduleLifecycle {
         guard !scopes.isEmpty else {
             return true
         }
-        // Crash window after teardown.add but before optIn.clear: never leave
-        // the stale opt-in to re-enable the same account.
-        if let stored = try? await optIn.load(), scopes.contains(stored) {
-            try? await optIn.clear()
+        // Crash window after teardown.add but before optIn.clear: prove the
+        // stale opt-in is gone before deleting any teardown authorization.
+        let storedOptIn: AccountScope?
+        do {
+            storedOptIn = try await optIn.load()
+        } catch {
+            return false
+        }
+        if let storedOptIn, scopes.contains(storedOptIn) {
+            do {
+                try await optIn.clear()
+            } catch {
+                return false
+            }
+            let afterClear: AccountScope?
+            do {
+                afterClear = try await optIn.load()
+            } catch {
+                return false
+            }
+            guard afterClear == nil else {
+                return false
+            }
         }
         let ordered = scopes.sorted {
             if $0.instanceURL != $1.instanceURL {

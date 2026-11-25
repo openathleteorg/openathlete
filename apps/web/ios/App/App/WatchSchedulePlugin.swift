@@ -392,6 +392,7 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "refresh", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "disconnect", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "fence", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "recover", returnType: CAPPluginReturnPromise),
     ]
 
     @objc func status(_ call: CAPPluginCall) {
@@ -521,23 +522,39 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
                 return
             }
             Task {
-                await runtime.lifecycle.fence()
-                // If the opt-in could not be retired (for example the teardown
-                // file was not writable), do not acknowledge a successful
-                // fence: the web surfaces it and fails closed.
-                if await runtime.lifecycle.isBackgroundRefreshEnabled() {
+                // The lifecycle returns the explicit acknowledgement; do not
+                // infer it from a second, later read.
+                if await runtime.lifecycle.fence() {
+                    call.resolve()
+                } else {
                     call.reject(
                         "cleanup authorization not persisted",
                         "WATCH_SCHEDULE_FENCE_INCOMPLETE"
                     )
-                } else {
-                    call.resolve()
                 }
             }
             return
         }
         #endif
         call.resolve()
+    }
+
+    @objc func recover(_ call: CAPPluginCall) {
+        #if canImport(HealthKit) && canImport(WorkoutKit)
+        if #available(iOS 17.0, *) {
+            guard let runtime = WatchScheduleRuntime.shared else {
+                call.resolve(["recovered": false])
+                return
+            }
+            Task {
+                call.resolve([
+                    "recovered": await runtime.lifecycle.recoverCleanup(),
+                ])
+            }
+            return
+        }
+        #endif
+        call.resolve(["recovered": false])
     }
 
     // MARK: Argument decoding

@@ -73,10 +73,27 @@ matching entry.
   by clearing the stale opt-in; that account is not re-enabled automatically.
   If Application Support itself is unavailable, the runtime stays disabled:
   there is no temporary-directory fallback.
-- The native fence acknowledges only when the opt-in was actually retired. A
-  timeout, bridge rejection or incomplete fence is not treated as success:
-  sign-out still escapes, but the app keeps an unconfirmed marker, the settings
-  screen surfaces it, and a server switch is refused until acknowledged.
+- The native fence acknowledges only when the opt-in was actually retired
+  (read/clear errors are not ignored). A timeout, bridge rejection or incomplete
+  fence is not treated as success: sign-out still escapes, but the app keeps an
+  unconfirmed marker, the settings screen surfaces it, and a server switch is
+  refused until acknowledged. A native fence guard is set before the first
+  await and blocks connect, foreground and background passes while teardown
+  authorization is pending, including on a cold runtime.
+- The web keeps a synchronous session/exit epoch. Logout and instance switches
+  bump it before their first await; settings actions and automatic launch/refresh
+  paths discard a credential or result that resolves under a newer epoch instead
+  of calling the bridge or writing state.
+- A persisted zero-byte teardown document is corrupt/unknown, never an empty
+  allow-list. Recovery proves the old opt-in read and clear (including a
+  read-back) before deleting teardown authorization. `cleanupUnknown` pauses
+  only: launch and settings do not issue an unscoped disconnect; a dedicated
+  retry acts solely on existing authorized teardown.
+- Cold disconnect and background recovery share the lifecycle gate. Credential
+  retirement is scope-aware, so recovering an old account never purges the
+  account currently signed in. A scoped disconnect for the wrong account is
+  rejected before touching the epoch, credential, opt-in or reconciler
+  generation.
 - Cleanup runs under the **exact stored scope and generation**: the reconciler
   is re-activated for that scope only after the pass drained, cleanup removes
   only journal-owned, non-completed entries, then the fence and credential are
@@ -176,7 +193,7 @@ length to match the prescription exactly. Until then, keep
 
 | Check | Result |
 | --- | --- |
-| Portable core tests (Linux Swift 6.1.2) | 202 passed, debug and release |
+| Portable core tests (Linux Swift 6.1.2) | 214 passed, debug and release |
 | Web unit tests (`pnpm web test`) | passed, including settings, lifecycle hook, bridge logging/storage audit and server no-op |
 | `scripts/verify.sh` | see the task report; lint/types/translations/unit run |
 | `scripts/verify.sh --e2e` | blocked on this host: Docker is unavailable, no stack was started |

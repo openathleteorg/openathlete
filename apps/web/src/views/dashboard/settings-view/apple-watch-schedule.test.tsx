@@ -13,10 +13,13 @@ import { AppleWatchScheduleSection } from './apple-watch-schedule';
 const state = vi.hoisted(() => ({
   available: true,
   status: null as unknown,
+  sessionEpoch: 0,
+  resolveCredential: null as ((value: unknown) => void) | null,
   getStatus: vi.fn(),
   connect: vi.fn(),
   refresh: vi.fn(),
   disconnect: vi.fn(),
+  recover: vi.fn(),
   credential: vi.fn(),
   scope: vi.fn(),
 }));
@@ -26,6 +29,10 @@ vi.mock('@/utils/watch-schedule', () => ({
   hasFenceUnconfirmed: () => false,
   clearFenceUnconfirmed: vi.fn(),
   fenceWatchScheduleOnExit: vi.fn().mockResolvedValue(true),
+  watchScheduleSessionEpoch: () => state.sessionEpoch,
+  isWatchScheduleSessionCurrent: (epoch: number) =>
+    epoch === state.sessionEpoch,
+  recoverWatchScheduleCleanup: state.recover,
   getWatchScheduleStatus: state.getStatus,
   connectWatchSchedule: state.connect,
   refreshWatchSchedule: state.refresh,
@@ -150,6 +157,10 @@ describe('Apple Watch settings', () => {
     state.refresh.mockReset();
     state.disconnect.mockReset();
     state.credential.mockReset();
+    state.recover.mockReset();
+    state.recover.mockResolvedValue(true);
+    state.sessionEpoch = 0;
+    state.resolveCredential = null;
     state.scope.mockReset();
     state.scope.mockReturnValue(scope);
     state.credential.mockResolvedValue(credential);
@@ -216,6 +227,36 @@ describe('Apple Watch settings', () => {
     expect(state.connect).toHaveBeenCalledWith(scope, credential);
     expect(text()).toContain('apple_watch_connected');
     expect(toast.success).toHaveBeenCalledWith('apple_watch_refreshed');
+  });
+
+  it('drops a connect whose token resolves after logout', async () => {
+    state.credential.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          state.resolveCredential = resolve;
+        }),
+    );
+
+    await render();
+    await act(async () => button('apple_watch_enable')!.click());
+    state.sessionEpoch += 1;
+    state.resolveCredential?.(credential);
+    await flush();
+
+    expect(state.connect).not.toHaveBeenCalled();
+    expect(text()).not.toContain('apple_watch_connected');
+  });
+
+  it('pauses on an unreadable cleanup without an unscoped disconnect', async () => {
+    state.getStatus.mockResolvedValue(
+      status({ enabled: true, cleanupUnknown: true }),
+    );
+
+    await render();
+
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.recover).not.toHaveBeenCalled();
+    expect(text()).toContain('apple_watch_cleanup_unknown');
   });
 
   it('refreshes explicitly on demand', async () => {

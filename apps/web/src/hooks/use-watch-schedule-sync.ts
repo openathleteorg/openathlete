@@ -12,9 +12,12 @@ import {
   getWatchScheduleStatus,
   hasFenceUnconfirmed,
   isAppleWatchScheduleAvailable,
+  isWatchScheduleSessionCurrent,
+  recoverWatchScheduleCleanup,
   refreshWatchSchedule,
   watchScheduleCredential,
   watchScheduleScope,
+  watchScheduleSessionEpoch,
 } from '@/utils/watch-schedule';
 import { App } from '@capacitor/app';
 import { useEffect, useMemo, useRef } from 'react';
@@ -42,7 +45,11 @@ async function runPass(
   scope: WatchScheduleScope,
   trigger: WatchScheduleTrigger,
 ) {
+  const session = watchScheduleSessionEpoch();
   const credential = await watchScheduleCredential();
+  // A logout while the token was being read must not call the bridge against
+  // the new native epoch.
+  if (!isWatchScheduleSessionCurrent(session)) return;
   await refreshWatchSchedule(scope, credential, trigger);
 }
 
@@ -71,23 +78,34 @@ export function useWatchScheduleSync() {
     let cancelled = false;
 
     const launch = async () => {
+      let session = watchScheduleSessionEpoch();
       if (hasFenceUnconfirmed()) {
         const acknowledged = await fenceWatchScheduleOnExit();
-        if (acknowledged) clearFenceUnconfirmed();
         if (cancelled) return;
+        if (acknowledged) clearFenceUnconfirmed();
+        // The fence is a session boundary; continue under the new epoch.
+        session = watchScheduleSessionEpoch();
       }
       const status = await getWatchScheduleStatus(scope);
-      if (cancelled) return;
-      if (
-        status.hasOtherAccountOptIn ||
-        status.cleanupPending ||
-        status.cleanupUnknown
-      ) {
+      if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
+      if (status.hasOtherAccountOptIn) {
+        // A foreign opt-in still authorizes that account's cleanup.
         await disconnectWatchSchedule();
-        if (cancelled) return;
+      } else if (status.cleanupPending) {
+        // Existing durable teardown only; never inferred from unknown state.
+        await recoverWatchScheduleCleanup();
+      } else if (status.cleanupUnknown) {
+        // Pause. Knowing cleanup is unknown is not authorization to act.
+        return;
+      } else {
+        if (!status.enabled) return;
+        await runPass(scope, 'launch');
+        return;
       }
+      if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
       const current = await getWatchScheduleStatus(scope);
-      if (cancelled || !current.enabled) return;
+      if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
+      if (!current.enabled) return;
       await runPass(scope, 'launch');
     };
 

@@ -13,9 +13,12 @@ import {
   getWatchScheduleStatus,
   hasFenceUnconfirmed,
   isAppleWatchScheduleAvailable,
+  isWatchScheduleSessionCurrent,
+  recoverWatchScheduleCleanup,
   refreshWatchSchedule,
   watchScheduleCredential,
   watchScheduleScope,
+  watchScheduleSessionEpoch,
 } from '@/utils/watch-schedule';
 import { RefreshCw, RotateCcw, Watch } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -146,43 +149,68 @@ function AppleWatchScheduleSectionIOS() {
 
   const loadStatus = useCallback(async () => {
     if (!athleteId || !instanceURL) return;
+    const session = watchScheduleSessionEpoch();
     try {
       const next = await getWatchScheduleStatus({
         instanceURL,
         athleteId,
       });
-      if (mounted.current) setStatus(next);
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setStatus(next);
+      }
     } catch {
-      if (mounted.current) setFailure('unavailable');
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setFailure('unavailable');
+      }
     }
   }, [athleteId, instanceURL]);
 
   useEffect(() => {
     if (!athleteId || !instanceURL) return;
     let cancelled = false;
+    const session = watchScheduleSessionEpoch();
     const currentScope = { instanceURL, athleteId };
     setLoading(true);
     const load = async () => {
       try {
         const next = await getWatchScheduleStatus(currentScope);
-        if (cancelled || !mounted.current) return;
         if (
-          next.hasOtherAccountOptIn ||
-          next.cleanupPending ||
-          next.cleanupUnknown
+          cancelled ||
+          !mounted.current ||
+          !isWatchScheduleSessionCurrent(session)
         ) {
-          // Finish any durable teardown, including a crashed same-account one,
-          // before offering this account again.
+          return;
+        }
+        if (next.hasOtherAccountOptIn) {
+          // A different account's opt-in still authorizes its cleanup.
           await disconnectWatchSchedule();
-          if (cancelled || !mounted.current) return;
+          if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
+          setStatus(await getWatchScheduleStatus(currentScope));
+        } else if (next.cleanupPending) {
+          // A durable teardown is retried only through the dedicated path.
+          await recoverWatchScheduleCleanup();
+          if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
           setStatus(await getWatchScheduleStatus(currentScope));
         } else {
+          // cleanupUnknown pauses only: no unscoped disconnect is inferred.
           setStatus(next);
         }
       } catch {
-        if (!cancelled && mounted.current) setFailure('unavailable');
+        if (
+          !cancelled &&
+          mounted.current &&
+          isWatchScheduleSessionCurrent(session)
+        ) {
+          setFailure('unavailable');
+        }
       } finally {
-        if (!cancelled && mounted.current) setLoading(false);
+        if (
+          !cancelled &&
+          mounted.current &&
+          isWatchScheduleSessionCurrent(session)
+        ) {
+          setLoading(false);
+        }
       }
     };
     void load();
@@ -218,15 +246,18 @@ function AppleWatchScheduleSectionIOS() {
 
   const connect = async () => {
     if (!scope || busy) return;
+    const session = watchScheduleSessionEpoch();
     setBusy('connect');
     setFailure(null);
     try {
       const credential = await watchScheduleCredential();
+      if (!isWatchScheduleSessionCurrent(session)) return;
       if (!credential) {
         setFailure('expired');
         return;
       }
       const result = await connectWatchSchedule(scope, credential);
+      if (!isWatchScheduleSessionCurrent(session)) return;
       await applyResult(result);
       if (result.outcome === 'synced') {
         toast.success(m.apple_watch_refreshed());
@@ -241,15 +272,18 @@ function AppleWatchScheduleSectionIOS() {
 
   const refresh = async () => {
     if (!scope || busy) return;
+    const session = watchScheduleSessionEpoch();
     setBusy('refresh');
     setFailure(null);
     try {
       const credential = await watchScheduleCredential();
+      if (!isWatchScheduleSessionCurrent(session)) return;
       if (!credential) {
         setFailure('expired');
         return;
       }
       const result = await refreshWatchSchedule(scope, credential, 'manual');
+      if (!isWatchScheduleSessionCurrent(session)) return;
       await applyResult(result);
       if (result.outcome === 'synced') {
         toast.success(m.apple_watch_refreshed());
@@ -264,9 +298,11 @@ function AppleWatchScheduleSectionIOS() {
 
   const disconnect = async () => {
     if (!scope || busy) return;
+    const session = watchScheduleSessionEpoch();
     setBusy('disconnect');
     try {
       const report = await disconnectWatchSchedule(scope);
+      if (!isWatchScheduleSessionCurrent(session)) return;
       setConfirmDisconnect(false);
       if (
         report &&

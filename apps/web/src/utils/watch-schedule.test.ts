@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({
   getAccessToken: vi.fn(),
   fence: vi.fn(),
   disconnect: vi.fn(),
+  recover: vi.fn(),
 }));
 
 vi.mock('@/utils/capacitor', () => ({
@@ -19,6 +20,7 @@ vi.mock('@capacitor/core', () => ({
   registerPlugin: () => ({
     fence: state.fence,
     disconnect: state.disconnect,
+    recover: state.recover,
     status: vi.fn(),
     connect: vi.fn(),
     refresh: vi.fn(),
@@ -31,6 +33,7 @@ const {
   fenceWatchScheduleOnExit,
   hasFenceUnconfirmed,
   markFenceUnconfirmed,
+  recoverWatchScheduleCleanup,
   watchScheduleCredential,
 } = await import('./watch-schedule');
 
@@ -50,6 +53,7 @@ describe('watch schedule bridge', () => {
     state.ios = true;
     state.fence.mockReset();
     state.disconnect.mockReset();
+    state.recover.mockReset();
     state.getAccessToken.mockReset();
   });
 
@@ -121,7 +125,16 @@ describe('watch schedule bridge', () => {
 
     await expect(fenceWatchScheduleOnExit()).resolves.toBe(true);
     await expect(disconnectWatchSchedule()).resolves.toBeNull();
+    await expect(recoverWatchScheduleCleanup()).resolves.toBe(true);
     expect(state.fence).not.toHaveBeenCalled();
     expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.recover).not.toHaveBeenCalled();
+  });
+
+  it('reports a failed dedicated recovery instead of success', async () => {
+    state.recover.mockResolvedValueOnce(false);
+    await expect(recoverWatchScheduleCleanup()).resolves.toBe(false);
+    state.recover.mockRejectedValueOnce(new Error('unavailable'));
+    await expect(recoverWatchScheduleCleanup()).resolves.toBe(false);
   });
 });
