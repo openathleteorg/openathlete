@@ -103,9 +103,13 @@ interface StepFormProps {
 function SwimDistanceInput({
   value,
   onChange,
+  invalid,
+  onInvalidChange,
 }: {
   value: number | null | undefined;
   onChange: (value: number | undefined) => void;
+  invalid: boolean;
+  onInvalidChange: (invalid: boolean) => void;
 }) {
   const [unit, setUnit] = useState<SwimDistanceUnit>('m');
   const [text, setText] = useState(
@@ -129,6 +133,7 @@ function SwimDistanceInput({
   const switchUnit = (next: SwimDistanceUnit) => {
     if (next === unit) return;
     setUnit(next);
+    onInvalidChange(false);
     setText(
       value === null || value === undefined
         ? ''
@@ -142,14 +147,19 @@ function SwimDistanceInput({
         type="text"
         inputMode="decimal"
         aria-label={m.step_form_duration_value()}
+        aria-invalid={invalid}
         value={text}
         onChange={(event) => {
           const next = event.target.value;
           setText(next);
-          if (next.trim() === '') return onChange(undefined);
+          if (next.trim() === '') {
+            onInvalidChange(false);
+            return onChange(undefined);
+          }
           const parsed = Number(next.replace(',', '.'));
-          if (Number.isFinite(parsed) && parsed >= 0)
-            onChange(toMetres(parsed, unit));
+          const valid = Number.isFinite(parsed) && parsed >= 0;
+          onInvalidChange(!valid);
+          if (valid) onChange(toMetres(parsed, unit));
         }}
         onFocus={(event) => event.target.select()}
         className="h-10 flex-1"
@@ -196,6 +206,7 @@ export function StepForm({
   );
   const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
   const [editingTargetId, setEditingTargetId] = useState<string | null>(null);
+  const [invalidSwimDistance, setInvalidSwimDistance] = useState(false);
 
   const form = useForm<StepFormValues>({
     resolver: zodResolver(stepFormSchema),
@@ -210,6 +221,12 @@ export function StepForm({
 
   const selectedDurationType = form.watch('durationType');
   const isSwimming = sport === 'SWIMMING';
+
+  useEffect(() => {
+    // Leaving the pool field drops the validation of a draft left in it
+    if (!isSwimming || selectedDurationType !== 'DISTANCE')
+      setInvalidSwimDistance(false);
+  }, [isSwimming, selectedDurationType]);
 
   const handleAddTarget = (
     targetValues: Partial<Omit<TargetWithId, 'id'>> & {
@@ -272,7 +289,12 @@ export function StepForm({
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          form.handleSubmit(handleSubmit)(e);
+          form.handleSubmit((values) => {
+            // The input kept its invalid text, so the form's last value would
+            // silently replace it
+            if (invalidSwimDistance) return;
+            handleSubmit(values);
+          })(e);
         }}
         className="space-y-3 md:space-y-4"
       >
@@ -374,7 +396,18 @@ export function StepForm({
                       <SwimDistanceInput
                         value={field.value}
                         onChange={field.onChange}
+                        invalid={invalidSwimDistance}
+                        onInvalidChange={setInvalidSwimDistance}
                       />
+                      {invalidSwimDistance && (
+                        <p
+                          role="alert"
+                          className="text-sm font-medium text-destructive"
+                          data-pool-distance-error
+                        >
+                          {m.metrics_value_positive()}
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

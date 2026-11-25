@@ -187,6 +187,23 @@ describe('pool distance step form', () => {
     container.querySelector<HTMLInputElement>('[data-pool-distance]')!;
   const unitButton = (unit: SwimDistanceUnit) =>
     container.querySelector<HTMLButtonElement>(`[data-pool-unit="${unit}"]`)!;
+  const error = () => container.querySelector('[data-pool-distance-error]');
+  const setDistance = async (value: string) => {
+    await act(async () => {
+      const field = input();
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set;
+      setter?.call(field, value);
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  };
+  const save = async () => {
+    await act(async () => {
+      container.querySelector('form')!.requestSubmit();
+    });
+  };
 
   it('saves the stored metres when only the display unit changes', async () => {
     const { onSubmit } = await renderForm();
@@ -195,9 +212,7 @@ describe('pool distance step form', () => {
     await act(async () => click(unitButton('yd')));
     expect(input().value).toBe('100');
 
-    await act(async () => {
-      container.querySelector('form')!.requestSubmit();
-    });
+    await save();
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({ durationValue: 91.44 }),
     );
@@ -207,21 +222,37 @@ describe('pool distance step form', () => {
     const { onSubmit } = await renderForm();
 
     await act(async () => click(unitButton('yd')));
-    await act(async () => {
-      const field = input();
-      const setter = Object.getOwnPropertyDescriptor(
-        HTMLInputElement.prototype,
-        'value',
-      )?.set;
-      setter?.call(field, '100');
-      field.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    await setDistance('100');
+    await save();
 
-    await act(async () => {
-      container.querySelector('form')!.requestSubmit();
-    });
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({ durationValue: 91.44 }),
+    );
+  });
+
+  it('rejects an invalid draft instead of saving the previous distance', async () => {
+    const { onSubmit } = await renderForm();
+
+    await setDistance('-5');
+    expect(input().value).toBe('-5');
+
+    await save();
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(error()).not.toBeNull();
+  });
+
+  it('clears the validation after a valid edit and saves it', async () => {
+    const { onSubmit } = await renderForm();
+
+    await setDistance('-5');
+    expect(error()).not.toBeNull();
+
+    await setDistance('100');
+    expect(error()).toBeNull();
+
+    await save();
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ durationValue: 100 }),
     );
   });
 });
