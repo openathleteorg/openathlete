@@ -5,6 +5,8 @@ import {
   advanceFitness,
   calculateTrimpFromAverage,
   calculateTrimpFromStream,
+  calculateWeeklyLoad,
+  describeWeeklyLoad,
   estimatePlannedSessionTrimp,
   estimatePlannedTrimp,
   getHeartRateProfile,
@@ -472,5 +474,60 @@ describe('getHeartRateProfile', () => {
       getHeartRateProfile([{ type: MetricType.HR_REST, value: 50 }], 'MALE'),
     ).toBeNull();
     expect(getHeartRateProfile([], 'MALE')).toBeNull();
+  });
+});
+
+describe('weekly training monotony and strain', () => {
+  it('counts rest days and uses population deviation across seven UTC days', () => {
+    const result = calculateWeeklyLoad(
+      new Map([['2026-03-08', 60]]),
+      new Date('2026-03-11T00:00:00Z'),
+    );
+
+    // This window crosses the spring DST change in America/New_York.
+    expect(result.days).toEqual([
+      { date: '2026-03-05', load: 0 },
+      { date: '2026-03-06', load: 0 },
+      { date: '2026-03-07', load: 0 },
+      { date: '2026-03-08', load: 60 },
+      { date: '2026-03-09', load: 0 },
+      { date: '2026-03-10', load: 0 },
+      { date: '2026-03-11', load: 0 },
+    ]);
+    expect(result.monotony).toBeCloseTo(1 / Math.sqrt(6));
+    expect(result.strain).toBeCloseTo(60 / Math.sqrt(6));
+  });
+
+  it.each([0, 0.1])('omits both metrics at constant load %s', (load) => {
+    const end = new Date('2026-03-11T00:00:00Z');
+    const dailyLoads = new Map<string, number>();
+    if (load) {
+      for (let offset = -6; offset <= 0; offset++) {
+        dailyLoads.set(toUtcDateKey(addUtcDays(end, offset)), load);
+      }
+    }
+    const result = calculateWeeklyLoad(dailyLoads, end);
+    expect(result).not.toHaveProperty('monotony');
+    expect(result).not.toHaveProperty('strain');
+  });
+
+  it('compares with the same athlete’s previous complete weeks', () => {
+    const end = new Date('2026-03-11T00:00:00Z');
+    const dailyLoads = new Map([
+      ['2026-02-11', 60],
+      ['2026-02-18', 60],
+      ['2026-02-25', 60],
+      ['2026-03-04', 60],
+      ['2026-03-10', 60],
+      ['2026-03-11', 60],
+    ]);
+    expect(describeWeeklyLoad(dailyLoads, end, '2026-02-05')).toMatchObject({
+      highMonotony: true,
+      highStrain: true,
+    });
+    expect(describeWeeklyLoad(dailyLoads, end, '2026-02-11')).toMatchObject({
+      highMonotony: false,
+      highStrain: false,
+    });
   });
 });

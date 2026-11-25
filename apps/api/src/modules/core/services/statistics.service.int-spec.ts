@@ -604,13 +604,13 @@ describe('StatisticsService (PostgreSQL)', () => {
     expect(running.ctl + cycling.ctl).toBeCloseTo(all.ctl, 0);
   });
 
-  it('reads the monotony of the last week', async () => {
+  it('reads monotony and strain from the last completed UTC week', async () => {
     const now = new Date('2026-03-10T12:00:00Z');
     for (const day of [3, 4, 5, 6, 7, 8, 9]) {
       const session = await activity(`day ${day}`, `2026-03-0${day}T08:00:00Z`);
       await trimp(session.eventId, `2026-03-0${day}`, day === 9 ? 80 : 60);
     }
-    const { monotony } = await service.getLoad(
+    const { monotony, weeklyLoad } = await service.getLoad(
       athlete,
       {
         athleteId: DELETED_ATHLETE_ID,
@@ -622,6 +622,10 @@ describe('StatisticsService (PostgreSQL)', () => {
     );
     // The week to today: 60 five times, then 80 and a rest day
     expect(monotony).toBeCloseTo(2.34, 1);
+    const completed = weeklyLoad?.[0];
+    expect(completed?.date).toBe('2026-03-09');
+    expect(completed?.monotony).toBeCloseTo(440 / (20 * Math.sqrt(6)));
+    expect(completed?.strain).toBeCloseTo((440 * 440) / (20 * Math.sqrt(6)));
   });
 
   it('marks races, and how much history backs the curve', async () => {

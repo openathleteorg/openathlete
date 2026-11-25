@@ -230,15 +230,16 @@ work = W′ + CP × t (2-20 min)
 
 **Sources:** [Jones et al. 2010](https://doi.org/10.1249/MSS.0b013e3181d9cf7f), [Karsten et al. 2014](https://doi.org/10.1007/s00421-014-3001-z)
 
-## Monotony (7 days)
+## Monotony and strain (7 days)
 
-**Estimate.** How alike your days of load were this week: the mean over the spread. Even days give a high figure, hard and easy days a low one.
+Each window covers seven completed UTC days. OpenAthlete sums recorded TRIMP by day and counts rest days as zero. It uses population standard deviation because all seven days in the window are included.
 
 ```text
-mean(daily load, 7 d) / SD(daily load, 7 d)
+monotony = mean daily load / population SD of daily load
+strain = total weekly load × monotony
 ```
 
-**Limits:** From a small study of 25 athletes, and the often-quoted limit of 2 is unverified: read it as a description.
+When all seven loads are equal, both values are undefined and the card leaves them blank. The history shows seven-day windows ending one week apart. A value is flagged if it exceeds the athlete's corresponding values in the preceding 12 non-overlapping weeks, with at least four defined results required. The comparison describes the athlete's training pattern for the selected sport filter.
 
 **Sources:** [Foster 1998](https://doi.org/10.1097/00005768-199807000-00023)
 

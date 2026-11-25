@@ -46,6 +46,7 @@ import { statisticsBuckets } from '../helpers/statistics-buckets';
 import {
   addUtcDays,
   advanceFitness,
+  describeWeeklyLoad,
   getUtcWeekStart,
   toUtcDateKey,
 } from '../helpers/training-load';
@@ -789,6 +790,22 @@ export class StatisticsService {
       }
     }
 
+    const completedThrough = addUtcDays(now, -1);
+    const analysisEnd = lastDay < today ? to : completedThrough;
+    const weeklyLoad: NonNullable<StatisticsLoadDto['weeklyLoad']> = [];
+    if (firstDay) {
+      // Sample rolling windows seven days apart, anchored to the latest
+      // completed UTC day in the selected range.
+      for (
+        let end = analysisEnd;
+        toUtcDateKey(end) >= fromDay &&
+        toUtcDateKey(addUtcDays(end, -6)) >= firstDay;
+        end = addUtcDays(end, -7)
+      ) {
+        weeklyLoad.push(describeWeeklyLoad(trimp, end, firstDay));
+      }
+    }
+
     const span = (to.getTime() - from.getTime()) / (24 * 3600 * 1000);
     const granularity = span <= LOAD_DAILY_MAX_DAYS ? 'day' : 'week';
     const points = granularity === 'day' ? days : this.loadWeeks(days);
@@ -796,6 +813,7 @@ export class StatisticsService {
     return {
       granularity,
       points,
+      weeklyLoad,
       monotony: this.monotony(days.filter(({ projected }) => !projected)),
       races: races.map(({ date }) => date),
       historyDays: firstDay
