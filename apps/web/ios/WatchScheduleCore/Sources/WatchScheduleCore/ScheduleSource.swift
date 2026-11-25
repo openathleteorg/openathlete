@@ -61,8 +61,13 @@ public enum ScheduleSourceError: Error, Equatable, Sendable {
     /// No usable credential: nothing may be read or rescheduled.
     case credentialExpired
     case unauthorized
+    /// The credential belongs to a different account or instance.
+    case scopeMismatch
     /// The list itself failed. It is never an empty, complete calendar.
     case calendarUnavailable
+    /// The list was not a complete, canonical representation (partial
+    /// content, a malformed owner or another invalid response).
+    case invalidCalendarResponse
     /// The supplied calendar could not produce the eight local dates.
     case invalidCalendar
 }
@@ -338,6 +343,16 @@ public struct ScheduleSource {
             throw error
         }
 
+        // GET /event always excludes events without an athlete (`athleteId:
+        // { not: null }`). A training row without an owner therefore means a
+        // truncated or rewritten response, not a calendar row to ignore; it
+        // must never become the authoritative keep/remove set.
+        guard !rows.contains(where: {
+            $0.type == "TRAINING" && $0.athleteId == nil
+        }) else {
+            throw ScheduleSourceError.invalidCalendarResponse
+        }
+
         let owned = rows
             .filter { row in
                 row.type == "TRAINING"
@@ -405,9 +420,28 @@ public struct ScheduleSource {
                 )
                 continue
             }
-            guard resolved.type == "TRAINING",
-                  resolved.athleteId == scope.athleteId
-            else {
+            guard resolved.type == "TRAINING" else {
+                skipped.append(
+                    SkippedScheduleEvent(
+                        eventId: row.eventId,
+                        startDate: row.startDate,
+                        reason: .detailUnavailable
+                    )
+                )
+                continue
+            }
+            guard let detailOwner = resolved.athleteId else {
+                // Same malformed-owner rule as the list: retry, never map.
+                skipped.append(
+                    SkippedScheduleEvent(
+                        eventId: row.eventId,
+                        startDate: row.startDate,
+                        reason: .detailUnavailable
+                    )
+                )
+                continue
+            }
+            guard detailOwner == scope.athleteId else {
                 skipped.append(
                     SkippedScheduleEvent(
                         eventId: row.eventId,
@@ -415,6 +449,28 @@ public struct ScheduleSource {
                         reason: .foreignEvent
                     )
                 )
+                continue
+            }
+            // The two reads describe the same event. Conflicting dates mean
+            // one response is stale or partial: keep the owned ID and retry
+            // instead of producing a candidate from a mix of both.
+            guard resolved.startDate == row.startDate,
+                  resolved.endDate == row.endDate
+            else {
+                skipped.append(
+                    SkippedScheduleEvent(
+                        eventId: row.eventId,
+                        startDate: row.startDate,
+                        reason: .detailUnavailable
+                    )
+                )
+                continue
+            }
+            // A detail fetched for a row without a workout may still carry a
+            // linked activity. Once the reads agree, that is completion, not
+            // a session to schedule.
+            if resolved.completedActivityId != nil {
+                completedEventIds.append(row.eventId)
                 continue
             }
             guard let input = resolved.trainingEvent else {
@@ -493,16 +549,22 @@ public struct ScheduleSource {
     }
 
     /// Today and the next seven local dates, as a half-open interval so a
-    /// session at 00:00 on day +8 is outside it.
+    /// session at the first moment of day +8 is outside it.
+    ///
+    /// Compute day +8 and then call `startOfDay` on it. Adding one day to the
+    /// day +7 start is wrong when midnight itself does not exist: São Paulo
+    /// skipped 00:00–01:00 on 2018-11-04, so the boundary is 01:00 local.
     static func window(now: Date, calendar: Calendar) throws -> DateInterval {
         let start = calendar.startOfDay(for: now)
-        guard let seventhDay = calendar.date(
+        guard let eighthDay = calendar.date(
             byAdding: .day,
-            value: 7,
+            value: 8,
             to: start
-        ),
-            let end = calendar.date(byAdding: .day, value: 1, to: seventhDay)
-        else {
+        ) else {
+            throw ScheduleSourceError.invalidCalendar
+        }
+        let end = calendar.startOfDay(for: eighthDay)
+        guard end > start else {
             throw ScheduleSourceError.invalidCalendar
         }
         return DateInterval(start: start, end: end)
@@ -517,6 +579,14 @@ public struct ScheduleSource {
             return .credentialExpired
         case .unauthorized:
             return .unauthorized
+        case .scopeMismatch:
+            // A token for another instance is exactly as unusable as an
+            // expired one, at any read stage.
+            return .scopeMismatch
+        case .invalidResponse:
+            // A partial or malformed list is not an authoritative calendar.
+            // A malformed detail or zone body stays retryable per event.
+            return listFailed ? .invalidCalendarResponse : nil
         default:
             return listFailed ? .calendarUnavailable : nil
         }

@@ -189,6 +189,42 @@ final class ScheduleSourceTests: XCTestCase {
         XCTAssertEqual(transport.zoneRequests, [])
     }
 
+    func testSaoPauloSkippedMidnightExcludesDayEightEvenAtHalfPastMidnight() async throws {
+        // Brazil started DST at midnight on 2018-11-04: local 00:00 became
+        // 01:00. The day +8 boundary is startOfDay(day +8), not a wall-clock
+        // 00:00, and a plan at the skipped 00:30 belongs to day +8.
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Sao_Paulo")!
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+
+        let transport = FixtureTransport(
+            events: [
+                try row(
+                    eventId: 1501,
+                    start: "2018-11-03T22:30:00.000Z"
+                ),
+                try row(
+                    eventId: 1502,
+                    start: "2018-11-04T00:30:00.000-03:00"
+                ),
+            ]
+        )
+
+        let snapshot = try await ScheduleSource(transport: transport)
+            .loadSnapshot(
+                scope: scope,
+                now: try date("2018-10-27T15:00:00.000Z"),
+                calendar: calendar
+            )
+
+        XCTAssertEqual(
+            snapshot.window.end,
+            try date("2018-11-04T03:00:00.000Z")
+        )
+        XCTAssertEqual(snapshot.ownedEventIds, [1501])
+        XCTAssertEqual(snapshot.candidates.map(\.eventId), [1501])
+    }
+
     // MARK: - Ownership
 
     func testCoachAuthoredSessionIsIncluded() async throws {
@@ -273,6 +309,52 @@ final class ScheduleSourceTests: XCTestCase {
         XCTAssertEqual(transport.listRequests.count, 1)
     }
 
+    func testMissingOwnerTrainingRowMakesTheCalendarInvalid() async throws {
+        // GET /event filters athleteId: { not: null }. A training row without
+        // an owner therefore means a truncated or rewritten response, not a
+        // calendar with one session to ignore.
+        let transport = FixtureTransport(
+            events: [
+                try row(
+                    eventId: 402,
+                    athleteId: nil,
+                    start: "2026-03-04T12:00:00.000Z"
+                ),
+            ]
+        )
+
+        do {
+            _ = try await ScheduleSource(transport: transport).loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T17:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+            XCTFail("A missing-owner training row must invalidate the calendar")
+        } catch let error as ScheduleSourceError {
+            XCTAssertEqual(error, .invalidCalendarResponse)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testInvalidListResponseIsNotAnAuthoritativeCalendar() async throws {
+        let transport = FixtureTransport(events: [])
+        transport.listError = ScheduleTransportError.invalidResponse
+
+        do {
+            _ = try await ScheduleSource(transport: transport).loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T17:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+            XCTFail("A partial or malformed list must not become authoritative")
+        } catch let error as ScheduleSourceError {
+            XCTAssertEqual(error, .invalidCalendarResponse)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
     func testCancelledEventVanishesFromTheNextAuthoritativeSnapshot() async throws {
         let transport = FixtureTransport(
             events: [
@@ -319,6 +401,24 @@ final class ScheduleSourceTests: XCTestCase {
         }
     }
 
+    func testScopeMismatchOnTheCalendarFailsTheWholeLoad() async throws {
+        let transport = FixtureTransport(events: [])
+        transport.listError = ScheduleTransportError.scopeMismatch
+
+        do {
+            _ = try await ScheduleSource(transport: transport).loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T17:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+            XCTFail("A list token for another instance must abort the snapshot")
+        } catch let error as ScheduleSourceError {
+            XCTAssertEqual(error, .scopeMismatch)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
     func testUnauthorizedDetailReadFailsTheWholeLoad() async throws {
         let transport = FixtureTransport(
             events: [
@@ -340,6 +440,59 @@ final class ScheduleSourceTests: XCTestCase {
             XCTFail("An invalid credential must fail the whole load")
         } catch let error as ScheduleSourceError {
             XCTAssertEqual(error, .unauthorized)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testScopeMismatchOnDetailAbortsTheWholeLoad() async throws {
+        let transport = FixtureTransport(
+            events: [
+                try row(
+                    eventId: 502,
+                    start: "2026-03-04T12:00:00.000Z",
+                    hasWorkout: false
+                ),
+            ]
+        )
+        transport.detailErrors[502] = ScheduleTransportError.scopeMismatch
+
+        do {
+            _ = try await ScheduleSource(transport: transport).loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T17:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+            XCTFail("A detail token for another instance must abort the snapshot")
+        } catch let error as ScheduleSourceError {
+            XCTAssertEqual(error, .scopeMismatch)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testScopeMismatchOnZoneReadAbortsTheWholeLoad() async throws {
+        let transport = FixtureTransport(
+            events: [
+                try row(
+                    eventId: 503,
+                    sport: "CYCLING",
+                    start: "2026-03-04T12:00:00.000Z",
+                    steps: [step(targets: [zoneTarget(42)])]
+                ),
+            ]
+        )
+        transport.zonesError = ScheduleTransportError.scopeMismatch
+
+        do {
+            _ = try await ScheduleSource(transport: transport).loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T17:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+            XCTFail("A zone token for another instance must abort the snapshot")
+        } catch let error as ScheduleSourceError {
+            XCTAssertEqual(error, .scopeMismatch)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -475,6 +628,101 @@ final class ScheduleSourceTests: XCTestCase {
         XCTAssertEqual(snapshot.skipped.first?.reason, .foreignEvent)
         XCTAssertEqual(snapshot.skipped.first?.reason.isRetryable, false)
         XCTAssertEqual(transport.zoneRequests, [])
+    }
+
+    func testMatchedDetailWithLinkedActivityStaysCompleted() async throws {
+        let transport = FixtureTransport(
+            events: [
+                try row(
+                    eventId: 902,
+                    start: "2026-03-04T12:00:00.000Z",
+                    hasWorkout: false
+                ),
+            ]
+        )
+        transport.details[902] = try row(
+            eventId: 902,
+            start: "2026-03-04T12:00:00.000Z",
+            relatedActivityId: 9001
+        )
+
+        let snapshot = try await ScheduleSource(transport: transport)
+            .loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T17:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+
+        XCTAssertEqual(snapshot.ownedEventIds, [902])
+        XCTAssertEqual(snapshot.completedEventIds, [902])
+        XCTAssertEqual(snapshot.candidates, [])
+        XCTAssertEqual(snapshot.skipped, [])
+        XCTAssertEqual(transport.detailRequests, [902])
+        XCTAssertEqual(transport.zoneRequests, [])
+    }
+
+    func testConflictingDetailDatesAreRetryableAndKeepTheOwnedID() async throws {
+        let transport = FixtureTransport(
+            events: [
+                try row(
+                    eventId: 903,
+                    start: "2026-03-04T12:00:00.000Z",
+                    end: "2026-03-04T13:00:00.000Z",
+                    hasWorkout: false
+                ),
+            ]
+        )
+        // The list and detail disagree about the same event. The read is
+        // inconsistent, so it must stay retryable and must not leave the
+        // previous candidate in place as if it were fresh.
+        transport.details[903] = try row(
+            eventId: 903,
+            start: "2026-03-04T14:00:00.000Z",
+            end: "2026-03-04T15:00:00.000Z"
+        )
+
+        let snapshot = try await ScheduleSource(transport: transport)
+            .loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T17:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+
+        XCTAssertEqual(snapshot.ownedEventIds, [903])
+        XCTAssertEqual(snapshot.candidates, [])
+        XCTAssertEqual(snapshot.skipped.first?.eventId, 903)
+        XCTAssertEqual(snapshot.skipped.first?.reason, .detailUnavailable)
+        XCTAssertEqual(snapshot.skipped.first?.reason.isRetryable, true)
+    }
+
+    func testConflictingDatesWinOverACompletedDetail() async throws {
+        let transport = FixtureTransport(
+            events: [
+                try row(
+                    eventId: 904,
+                    start: "2026-03-04T12:00:00.000Z",
+                    hasWorkout: false
+                ),
+            ]
+        )
+        transport.details[904] = try row(
+            eventId: 904,
+            start: "2026-03-04T14:00:00.000Z",
+            relatedActivityId: 9002
+        )
+
+        let snapshot = try await ScheduleSource(transport: transport)
+            .loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T17:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+
+        XCTAssertEqual(snapshot.ownedEventIds, [904])
+        XCTAssertEqual(snapshot.completedEventIds, [])
+        XCTAssertEqual(snapshot.candidates, [])
+        XCTAssertEqual(snapshot.skipped.first?.reason, .detailUnavailable)
+        XCTAssertEqual(snapshot.skipped.first?.reason.isRetryable, true)
     }
 
     // MARK: - Zone reads

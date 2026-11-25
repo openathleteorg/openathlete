@@ -124,9 +124,6 @@ final class WatchScheduleClient: NSObject, ScheduleTransport {
     ) async throws -> Response {
         let credential = try await credential(for: scope)
         let url = try makeURL(scope: scope, path: path, queryItems: queryItems)
-        guard let origin = RequestOrigin(url) else {
-            throw ScheduleTransportError.invalidURL
-        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -135,8 +132,13 @@ final class WatchScheduleClient: NSObject, ScheduleTransport {
             forHTTPHeaderField: "Authorization"
         )
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        // Never let a proxy or a previous account's body answer this read.
-        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        // Revalidate every authenticated read and never store the response.
+        // A cached or partial list must not become an authoritative calendar.
+        request.setValue(
+            "no-cache, no-store",
+            forHTTPHeaderField: "Cache-Control"
+        )
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
 
         let data: Data
         let response: URLResponse
@@ -156,19 +158,27 @@ final class WatchScheduleClient: NSObject, ScheduleTransport {
         guard let http = response as? HTTPURLResponse else {
             throw ScheduleTransportError.invalidResponse
         }
-        // The redirect delegate refuses other origins; this also catches a
-        // cached or rewritten final URL before decoding.
-        guard let finalURL = http.url, RequestOrigin(finalURL) == origin else {
+        // Redirects are refused. A final URL that still differs from the
+        // canonical instance endpoint means a proxy or cache changed the
+        // request; its representation cannot be authoritative.
+        guard let finalURL = http.url,
+              finalURL.absoluteString == url.absoluteString
+        else {
             throw ScheduleTransportError.invalidResponse
         }
-
+        // 206 and a Content-Range marker both describe part of a resource,
+        // never the complete own calendar. Only a full 200 is accepted.
         switch http.statusCode {
-        case 200..<300:
-            break
+        case 200:
+            guard http.value(forHTTPHeaderField: "Content-Range") == nil else {
+                throw ScheduleTransportError.invalidResponse
+            }
         case 401:
             throw ScheduleTransportError.unauthorized
         case 403, 404:
             throw ScheduleTransportError.eventNotFound
+        case 200..<300:
+            throw ScheduleTransportError.invalidResponse
         default:
             throw ScheduleTransportError.transportFailure(
                 status: http.statusCode
@@ -234,6 +244,21 @@ final class WatchScheduleClient: NSObject, ScheduleTransport {
         else {
             throw ScheduleTransportError.invalidURL
         }
+        // The transport only accepts a canonical instance base: no userinfo,
+        // query, fragment or trailing slash, and a lowercase scheme/host.
+        // AccountScope already normalises these; this is the fail-closed check.
+        guard components.user == nil,
+              components.password == nil,
+              components.query == nil,
+              components.fragment == nil,
+              components.scheme == scheme,
+              components.host == components.host?.lowercased(),
+              components.path.isEmpty
+                || (components.path != "/"
+                    && !components.path.hasSuffix("/"))
+        else {
+            throw ScheduleTransportError.invalidURL
+        }
         guard scheme == "https"
             || (scheme == "http" && Self.isLoopback(components.host))
         else {
@@ -273,35 +298,11 @@ final class WatchScheduleClient: NSObject, ScheduleTransport {
 
 // MARK: - Redirects
 
-/// The scheme, host and explicit-or-default port of a URL.
-private struct RequestOrigin: Equatable {
-    let scheme: String
-    let host: String
-    let port: Int?
-
-    init?(_ url: URL) {
-        guard let scheme = url.scheme?.lowercased(),
-              let host = url.host?.lowercased()
-        else {
-            return nil
-        }
-        self.scheme = scheme
-        self.host = host
-        if let port = url.port {
-            self.port = port
-        } else if scheme == "https" {
-            self.port = 443
-        } else if scheme == "http" {
-            self.port = 80
-        } else {
-            self.port = nil
-        }
-    }
-}
-
-/// Refuses cross-origin redirects instead of letting URLSession follow them.
-/// The bearer token is re-attached only to a same-origin redirect, so a 30x to
-/// another host can neither receive the header nor be treated as a response.
+/// Authenticated native reads deny every redirect. Even a same-origin
+/// redirect can change the API base path, endpoint or query and carry the
+/// bearer token to a representation from another instance. Returning nil
+/// leaves the 30x response for the caller, which rejects the non-200 status;
+/// the Authorization header is never replayed.
 private final class WatchScheduleRedirectGuard: NSObject, URLSessionTaskDelegate {
     func urlSession(
         _ session: URLSession,
@@ -310,25 +311,6 @@ private final class WatchScheduleRedirectGuard: NSObject, URLSessionTaskDelegate
         newRequest request: URLRequest,
         completionHandler: @escaping (URLRequest?) -> Void
     ) {
-        guard let originalURL = task.originalRequest?.url,
-              let originalOrigin = RequestOrigin(originalURL),
-              let newURL = request.url,
-              RequestOrigin(newURL) == originalOrigin
-        else {
-            // A nil request returns the redirect response to the caller; it
-            // is never followed with the Authorization header.
-            completionHandler(nil)
-            return
-        }
-
-        var redirected = request
-        if let authorization = task.originalRequest?
-            .value(forHTTPHeaderField: "Authorization") {
-            redirected.setValue(
-                authorization,
-                forHTTPHeaderField: "Authorization"
-            )
-        }
-        completionHandler(redirected)
+        completionHandler(nil)
     }
 }
