@@ -569,18 +569,26 @@ public actor ScheduleReconciler {
         var failed: [Int] = []
 
         // Persist completion observed in the initial scheduler read before any
-        // native mutation. A later removal failure must not lose this history.
-        for receipt in receipts where actual.contains(where: {
-            $0.planID == receipt.planID && $0.isComplete
-        }) {
+        // reread or native mutation. A later removal failure, or a cleanup
+        // reread that loses Apple's completed history, must not lose this
+        // record. Another account is included only when its receipt already
+        // carries explicit cleanup authorization: observing a completion is
+        // never permission to remove anything.
+        for receipt in allReceipts where
+            (receipt.scope == scope || isAuthorizedCleanupRemoval(receipt))
+                && actual.contains(where: {
+                    $0.planID == receipt.planID && $0.isComplete
+                }) {
             try await recordCompletion(
-                scope: scope,
+                scope: receipt.scope,
                 eventID: receipt.eventID,
                 planID: receipt.planID,
                 at: snapshot.readAt,
                 generation: generation
             )
-            tombstonedEvents.insert(receipt.eventID)
+            if receipt.scope == scope {
+                tombstonedEvents.insert(receipt.eventID)
+            }
         }
 
         let unresolvedReceipts = allReceipts
@@ -1461,6 +1469,14 @@ public actor ScheduleReconciler {
     /// The identity of the entry a submission fence proved was attempted.
     private func confirmationDate(for receipt: ScheduleReceipt) -> Date {
         ScheduleDate.normalized(receipt.submittedDate ?? receipt.scheduledDate)
+    }
+
+    /// A receipt in another account may be persisted from an observed
+    /// completion only when logout cleanup already authorized its removal.
+    /// Observation never grants that authority.
+    private func isAuthorizedCleanupRemoval(_ receipt: ScheduleReceipt) -> Bool {
+        receipt.pendingOperation == .remove
+            && receipt.removalIntent == .cleanup
     }
 
     /// Confirmation matches plan UUID and date. A same-UUID entry at another

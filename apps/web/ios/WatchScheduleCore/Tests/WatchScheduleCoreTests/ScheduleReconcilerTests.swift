@@ -3007,6 +3007,92 @@ final class ScheduleReconcilerTests: XCTestCase {
         XCTAssertEqual(schedulesAfterRecurrence, schedulesAfterB)
     }
 
+    /// Apple can drop a completed entry between the reconcile read and the
+    /// cleanup read performed for another account's pending cleanup. The
+    /// completion seen by the first read must already be durable when the
+    /// removal deletes that other account's receipt.
+    func testCrossScopeCompletionObservedBeforeCleanupRereadPersistsTombstone() async throws {
+        let store = FakeStore()
+        let journal = FakeJournal()
+        let planID = UUID()
+        let aStart = try date("2026-06-02T09:00:00.000Z")
+        try await journal.save(
+            ScheduleReceipt(
+                scope: otherScope,
+                eventID: 1106,
+                planID: planID,
+                scheduledDate: aStart,
+                fingerprint: "a",
+                pendingOperation: .remove,
+                removalIntent: .cleanup
+            )
+        )
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: planID,
+                startDate: aStart,
+                isComplete: true
+            )
+        )
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: planID,
+                startDate: aStart,
+                isComplete: false
+            )
+        )
+        // The initial reconcile read still shows the completion; the cleanup
+        // reread sees only the upcoming copy, before any removal is attempted.
+        await store.loseCompletedHistoryAfterNextRead(planID: planID)
+        let reconciler = await makeReconciler(
+            store: store,
+            journal: journal,
+            generation: 2
+        )
+
+        _ = try await reconciler.reconcile(
+            try snapshot(
+                candidates: [
+                    try candidate(1107, start: "2026-06-03T12:00:00.000Z"),
+                ]
+            ),
+            scope: scope,
+            generation: 2
+        )
+
+        let tombstone = try await journal.completionTombstone(
+            scope: otherScope,
+            eventID: 1106
+        )
+        let aReceipt = try await journal.receipt(
+            scope: otherScope,
+            eventID: 1106
+        )
+        let schedulesAfterB = await store.scheduleRequests.count
+        let workoutsAfterB = await store.workouts
+        XCTAssertNotNil(tombstone)
+        XCTAssertNil(aReceipt)
+        XCTAssertEqual(schedulesAfterB, 1)
+        XCTAssertEqual(workoutsAfterB.count, 1)
+
+        await reconciler.activate(generation: 3, for: otherScope)
+        let recurring = try await reconciler.reconcile(
+            try snapshot(
+                candidates: [
+                    try candidate(1106, start: "2026-06-02T09:00:00.000Z"),
+                ],
+                readAt: "2026-06-01T14:00:00.000Z",
+                scope: otherScope
+            ),
+            scope: otherScope,
+            generation: 3
+        )
+
+        let schedulesAfterRecurrence = await store.scheduleRequests.count
+        XCTAssertEqual(recurring.completedEventIDs, [1106])
+        XCTAssertEqual(schedulesAfterRecurrence, schedulesAfterB)
+    }
+
     // MARK: - Durability
 
     func testFileJournalKeepsReceiptsAcrossReconcilerInstances() async throws {
@@ -3081,6 +3167,7 @@ private actor FakeStore: ScheduleWorkoutStore {
     private var shouldHideNextAcceptedWrite = false
     private var oldCompletionDateOnNextWrite: Date?
     private var shouldLoseCompletedHistoryOnNextRemove = false
+    private var loseCompletedHistoryAfterReadPlanID: UUID?
     private var hiddenWorkouts: [ScheduledWorkoutState] = []
     private var writeIsSuspended = false
     private var resumeWaiters: [CheckedContinuation<Void, Never>] = []
@@ -3118,7 +3205,12 @@ private actor FakeStore: ScheduleWorkoutStore {
             readFailures -= 1
             throw FakeStoreError.readFailed
         }
-        return workouts
+        let result = workouts
+        if let planID = loseCompletedHistoryAfterReadPlanID {
+            loseCompletedHistoryAfterReadPlanID = nil
+            workouts.removeAll { $0.planID == planID && $0.isComplete }
+        }
+        return result
     }
 
     func schedule(
@@ -3303,6 +3395,12 @@ private actor FakeStore: ScheduleWorkoutStore {
 
     func loseCompletedHistoryOnNextRemove() {
         shouldLoseCompletedHistoryOnNextRemove = true
+    }
+
+    /// Returns the current entries once, then drops the completed copy so the
+    /// next scheduler read resembles Apple losing that history.
+    func loseCompletedHistoryAfterNextRead(planID: UUID) {
+        loseCompletedHistoryAfterReadPlanID = planID
     }
 
     func revealHiddenWorkouts() {
