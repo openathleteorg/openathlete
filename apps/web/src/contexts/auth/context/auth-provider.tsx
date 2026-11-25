@@ -10,7 +10,7 @@ import {
 import { isNetworkError } from '@/utils/axios';
 import { signOutFirebase } from '@/utils/firebase-auth';
 import { saveLanguageChoice } from '@/utils/language-choice';
-import { clear } from '@/utils/local-storage';
+import { ACCESS_TOKEN, clear, getItem } from '@/utils/local-storage';
 import { initializePushNotifications } from '@/utils/push-notifications';
 import { queryClient } from '@/utils/query-client';
 import { saveTimeZone } from '@/utils/time-zone';
@@ -111,8 +111,11 @@ export function AuthProvider({ children }: Props) {
       let attempt = captureAuthAttempt();
       const signedOutOrOffline = (error: unknown) => {
         // A 401 for a bearer that is no longer installed must not clear the
-        // account that won the race.
-        if (!isAuthAttemptCurrent(attempt)) return;
+        // account that won the race. A cleared store means this attempt's own
+        // 401 already removed it, so signing out remains correct.
+        if (!isAuthAttemptCurrent(attempt) && getItem(ACCESS_TOKEN) !== null) {
+          return;
+        }
         if (bootstrapIsStale()) return;
         if (isWatchScheduleExitLatched()) return;
         dispatch(
