@@ -7,11 +7,15 @@ import { getDefaultApiBaseUrl } from '@/utils/capacitor';
 import { signOutFirebase } from '@/utils/firebase-auth';
 import {
   getSelectedServerUrl,
+  isServerChange,
   resolveServerUrl,
   saveSelectedServerUrl,
   serverUrlCandidates,
 } from '@/utils/mobile-server';
-import { disconnectWatchSchedule } from '@/utils/watch-schedule';
+import {
+  disconnectWatchSchedule,
+  fenceWatchScheduleOnExit,
+} from '@/utils/watch-schedule';
 import posthog from 'posthog-js';
 import { useState } from 'react';
 
@@ -49,9 +53,14 @@ export function ServerSelection({ onCancel }: Props) {
         );
         posthog.reset();
       }
-      // Another instance must never inherit this account's scheduled workouts
-      // or its stored access credential.
-      await disconnectWatchSchedule().catch(() => undefined);
+      // A no-op canonical save (same instance) must keep scheduling enabled.
+      if (isServerChange(url, defaultUrl)) {
+        // Another instance must never inherit this account's scheduled
+        // workouts or its stored access credential. Acknowledge the fence
+        // before storage is cleared; Apple cleanup can finish afterwards.
+        await fenceWatchScheduleOnExit();
+        void disconnectWatchSchedule().catch(() => undefined);
+      }
       if (saveSelectedServerUrl(url, defaultUrl)) {
         window.location.reload();
       } else {

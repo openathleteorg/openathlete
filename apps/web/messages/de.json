@@ -3232,5 +3232,6 @@
   "apple_watch_skip_target": "Diese Einheit nutzt ein Ziel, das Apples Workout-App nicht ausdrücken kann.",
   "apple_watch_skip_zone": "Für diese Einheit konnte keine Trainingszone aufgelöst werden.",
   "apple_watch_skip_structure": "Die Struktur dieser Einheit kann in Apples Workout-App nicht ausgedrückt werden.",
-  "apple_watch_skip_other": "Diese Einheit kann in Apples Workout-App nicht dargestellt werden."
+  "apple_watch_skip_other": "Diese Einheit kann in Apples Workout-App nicht dargestellt werden.",
+  "apple_watch_local_pending": "{count} Trainings warten auf einen neuen Versuch bei der nächsten Aktualisierung."
 }

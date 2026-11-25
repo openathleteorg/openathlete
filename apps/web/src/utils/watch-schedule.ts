@@ -61,9 +61,11 @@ export type WatchScheduleStatus = {
   counts: WatchScheduleCounts;
   skipped: WatchScheduleSkippedEvent[];
   pendingCleanupEventIDs: number[];
+  /** Submitted to Apple; presence is not confirmed. */
   unresolvedEventIDs: number[];
+  /** Local/planning stage or a safe-to-retry removal. */
+  localPendingEventIDs: number[];
   otherAccountPending: boolean;
-  credentialExpiresAt: string | null;
 };
 
 export type WatchScheduleResult = {
@@ -102,6 +104,7 @@ type WatchScheduleNativePlugin = {
   disconnect(options?: {
     scope?: WatchScheduleScope;
   }): Promise<WatchScheduleDisconnectReport | Record<string, never>>;
+  fence(): Promise<void>;
 };
 
 const nativePlugin = registerPlugin<WatchScheduleNativePlugin>('WatchSchedule');
@@ -185,14 +188,36 @@ export async function disconnectWatchSchedule(
   return report as WatchScheduleDisconnectReport;
 }
 
+const FENCE_ACK_TIMEOUT_MS = 1500;
+
 /**
- * Logout and instance switch only get a best-effort fire-and-forget call: the
- * native epoch and reconciler fence take effect as soon as the plugin method
- * starts, before the web storage is cleared or the page reloads.
+ * Waits for the native fence acknowledgement before the app clears auth state.
+ * The native epoch takes effect synchronously and this does not wait for Apple
+ * reads or removals; cleanup continues after the acknowledgement. A timeout
+ * prevents a stuck bridge from blocking sign-out.
+ */
+export async function fenceWatchScheduleOnExit(): Promise<void> {
+  if (!isAppleWatchScheduleAvailable()) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      nativePlugin.fence(),
+      new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, FENCE_ACK_TIMEOUT_MS);
+      }),
+    ]);
+  } catch {
+    // The next launch reports any cleanup Apple did not confirm.
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/**
+ * Best-effort cleanup after the fence acknowledgement: the next launch reports
+ * and retries any cleanup Apple did not confirm.
  */
 export function disconnectWatchScheduleOnExit(): void {
   if (!isAppleWatchScheduleAvailable()) return;
-  void disconnectWatchSchedule().catch(() => {
-    // The next launch reports any cleanup Apple did not confirm.
-  });
+  void disconnectWatchSchedule().catch(() => undefined);
 }

@@ -5,6 +5,7 @@ import { getApiBaseUrl, getDefaultApiBaseUrl } from './capacitor';
 import { clear } from './local-storage';
 import {
   getSelectedServerUrl,
+  isServerChange,
   resolveServerUrl,
   saveSelectedServerUrl,
   serverUrlCandidates,
@@ -94,6 +95,17 @@ describe('mobile server selection', () => {
     expect(localStorage.getItem('access_token')).toBeNull();
     expect(getSelectedServerUrl()).toBeNull();
     expect(getApiBaseUrl()).toBe(defaultUrl);
+  });
+
+  it('treats a canonical no-op as the same instance', () => {
+    const defaultUrl = getDefaultApiBaseUrl();
+    const customUrl = 'https://train.example.org/api';
+
+    expect(isServerChange(defaultUrl, defaultUrl)).toBe(false);
+    expect(isServerChange(customUrl, defaultUrl)).toBe(true);
+    saveSelectedServerUrl(customUrl, defaultUrl);
+    expect(isServerChange(customUrl, defaultUrl)).toBe(false);
+    expect(isServerChange(defaultUrl, defaultUrl)).toBe(true);
   });
 
   it('keeps a custom server choice on logout', () => {

@@ -356,6 +356,19 @@ function AppleWatchScheduleSectionIOS() {
           />
         )}
 
+        {status.localPendingEventIDs.length > 0 && (
+          <SettingsRow
+            stacked
+            description={m.apple_watch_local_pending({
+              count: status.localPendingEventIDs.length,
+            })}
+          />
+        )}
+
+        {status.lastErrorCode === 'journalUnavailable' && (
+          <SettingsRow stacked description={m.apple_watch_error_refresh()} />
+        )}
+
         {status.pendingCleanupEventIDs.length > 0 && (
           <SettingsRow
             stacked

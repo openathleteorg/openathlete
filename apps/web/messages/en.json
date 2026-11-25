@@ -3232,5 +3232,6 @@
   "apple_watch_skip_target": "This session uses a target Apple's Workout app cannot express.",
   "apple_watch_skip_zone": "A training zone could not be resolved for this session.",
   "apple_watch_skip_structure": "This session's structure cannot be expressed in Apple's Workout app.",
-  "apple_watch_skip_other": "This session cannot be represented in Apple's Workout app."
+  "apple_watch_skip_other": "This session cannot be represented in Apple's Workout app.",
+  "apple_watch_local_pending": "{count} workouts are safely waiting to be retried on the next refresh."
 }

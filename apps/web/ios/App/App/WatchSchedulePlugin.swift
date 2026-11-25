@@ -38,9 +38,32 @@ struct KeychainWatchScheduleVault: WatchScheduleCredentialVault {
         guard status == errSecSuccess, let data = item as? Data else {
             throw WatchScheduleVaultError.unreadable(status)
         }
-        let stored = try JSONDecoder().decode(Stored.self, from: data)
-        guard let instanceURL = URL(string: stored.instanceURL) else {
+        guard let credential = Self.decode(data) else {
             throw WatchScheduleVaultError.unreadable(errSecDecode)
+        }
+        return credential
+    }
+
+    /// The background task scheduler needs the expiry synchronously to decide
+    /// whether an opportunity can still use this token.
+    func loadSync() -> WatchScheduleCredential? {
+        var query = baseQuery
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data
+        else {
+            return nil
+        }
+        return Self.decode(data)
+    }
+
+    private static func decode(_ data: Data) -> WatchScheduleCredential? {
+        guard let stored = try? JSONDecoder().decode(Stored.self, from: data),
+              let instanceURL = URL(string: stored.instanceURL)
+        else {
+            return nil
         }
         return WatchScheduleCredential(
             scope: AccountScope(
@@ -189,17 +212,21 @@ struct WorkoutSchedulerAuthorization: WatchScheduleAuthorizing {
 /// work. The actors inside serialize passes and cleanup.
 @available(iOS 17.0, *)
 final class WatchScheduleRuntime {
-    static let shared = WatchScheduleRuntime()
+    static let shared: WatchScheduleRuntime? = try? WatchScheduleRuntime()
 
     let lifecycle: WatchScheduleLifecycle
 
-    private init() {
+    private init() throws {
         let vault = KeychainWatchScheduleVault()
         let credentials = WatchScheduleCredentialStore(vault: vault)
         let client = WatchScheduleClient(credentialProvider: credentials)
         let source = ScheduleSource(transport: client)
-        let journalURL = Self.journalURL()
+        let journalURL = try Self.journalURL()
         let journal = FileScheduleJournal(fileURL: journalURL)
+        let teardown = FileWatchScheduleTeardownStore(
+            fileURL: journalURL.deletingLastPathComponent()
+                .appendingPathComponent("teardown.json")
+        )
         let reconciler = ScheduleReconciler(
             store: AppleWorkoutStore(),
             journal: journal,
@@ -210,6 +237,7 @@ final class WatchScheduleRuntime {
             journal: journal,
             credentials: credentials,
             optIn: UserDefaultsWatchScheduleOptIn.shared,
+            teardown: teardown,
             authorization: WorkoutSchedulerAuthorization(),
             calendar: .current,
             loadSnapshot: { scope, now, calendar in
@@ -224,19 +252,22 @@ final class WatchScheduleRuntime {
 
     /// The journal holds event IDs and plan UUIDs, never credentials. Its
     /// directory is device protected, so a locked backup cannot read it.
-    private static func journalURL() -> URL {
+    private static func journalURL() throws -> URL {
         let fileManager = FileManager.default
-        let base = (try? fileManager.url(
+        // No temporary-directory fallback: if Application Support is
+        // unavailable, the runtime stays disabled rather than writing event
+        // data somewhere without the expected protection.
+        let base = try fileManager.url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,
             appropriateFor: nil,
             create: true
-        )) ?? fileManager.temporaryDirectory
+        )
         let directory = base.appendingPathComponent(
             "WatchSchedule",
             isDirectory: true
         )
-        try? fileManager.createDirectory(
+        try fileManager.createDirectory(
             at: directory,
             withIntermediateDirectories: true
         )
@@ -244,12 +275,7 @@ final class WatchScheduleRuntime {
             [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
             ofItemAtPath: directory.path
         )
-        let journal = directory.appendingPathComponent("schedule.json")
-        try? fileManager.setAttributes(
-            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
-            ofItemAtPath: journal.path
-        )
-        return journal
+        return directory.appendingPathComponent("schedule.json")
     }
 
     func handleBackgroundRefresh() async -> Bool {
@@ -295,9 +321,19 @@ enum WatchScheduleBackgroundRefresh {
         guard UserDefaultsWatchScheduleOptIn.shared.loadSync() != nil else {
             return
         }
+        // API access tokens are short lived. Do not submit a request the token
+        // cannot outlive; the next foreground pass re-arms it.
+        guard let credential = KeychainWatchScheduleVault().loadSync(),
+              let earliest = WatchScheduleBackgroundPolicy.earliestBeginDate(
+                credentialExpiresAt: credential.expiresAt,
+                now: Date()
+              )
+        else {
+            return
+        }
         let request = BGAppRefreshTaskRequest(identifier: identifier)
         // No deadline is promised to the athlete; this is an earliest date.
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 4 * 60 * 60)
+        request.earliestBeginDate = earliest
         do {
             try BGTaskScheduler.shared.submit(request)
         } catch {
@@ -318,8 +354,8 @@ enum WatchScheduleBackgroundRefresh {
         #if canImport(HealthKit) && canImport(WorkoutKit)
         if #available(iOS 17.0, *) {
             let work = Task {
-                let success = await WatchScheduleRuntime.shared
-                    .handleBackgroundRefresh()
+                let success = await WatchScheduleRuntime.shared?
+                    .handleBackgroundRefresh() ?? false
                 scheduleIfEnabled()
                 task.setTaskCompleted(success: success)
             }
@@ -355,6 +391,7 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "connect", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "refresh", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "disconnect", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "fence", returnType: CAPPluginReturnPromise),
     ]
 
     @objc func status(_ call: CAPPluginCall) {
@@ -364,9 +401,12 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
         }
         #if canImport(HealthKit) && canImport(WorkoutKit)
         if #available(iOS 17.0, *) {
+            guard let runtime = WatchScheduleRuntime.shared else {
+                call.resolve(Self.unavailableStatus("journalUnavailable"))
+                return
+            }
             Task {
-                let status = await WatchScheduleRuntime.shared.lifecycle
-                    .status(scope: scope)
+                let status = await runtime.lifecycle.status(scope: scope)
                 call.resolve(Self.statusDictionary(status))
             }
             return
@@ -385,8 +425,12 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
         let requestPermission = call.getBool("requestPermission") ?? true
         #if canImport(HealthKit) && canImport(WorkoutKit)
         if #available(iOS 17.0, *) {
+            guard let runtime = WatchScheduleRuntime.shared else {
+                call.resolve(Self.failedResult("journalUnavailable"))
+                return
+            }
             Task {
-                let report = await WatchScheduleRuntime.shared.lifecycle.connect(
+                let report = await runtime.lifecycle.connect(
                     scope: scope,
                     credential: credential,
                     requestPermission: requestPermission
@@ -413,8 +457,12 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
         let credential = Self.credential(from: call, scope: scope)
         #if canImport(HealthKit) && canImport(WorkoutKit)
         if #available(iOS 17.0, *) {
+            guard let runtime = WatchScheduleRuntime.shared else {
+                call.resolve(Self.failedResult("journalUnavailable"))
+                return
+            }
             Task {
-                let report = await WatchScheduleRuntime.shared.lifecycle.refresh(
+                let report = await runtime.lifecycle.refresh(
                     trigger: trigger,
                     scope: scope,
                     credential: credential
@@ -434,10 +482,10 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func disconnect(_ call: CAPPluginCall) {
         let requested = Self.scope(from: call)
         #if canImport(HealthKit) && canImport(WorkoutKit)
-        if #available(iOS 17.0, *) {
+        if #available(iOS 17.0, *),
+           let runtime = WatchScheduleRuntime.shared {
             Task {
-                let report = await WatchScheduleRuntime.shared.lifecycle
-                    .disconnect(scope: requested)
+                let report = await runtime.lifecycle.disconnect(scope: requested)
                 WatchScheduleBackgroundRefresh.cancel()
                 if let report {
                     call.resolve([
@@ -457,6 +505,20 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
         }
         #endif
         WatchScheduleBackgroundRefresh.cancel()
+        call.resolve()
+    }
+
+    @objc func fence(_ call: CAPPluginCall) {
+        #if canImport(HealthKit) && canImport(WorkoutKit)
+        if #available(iOS 17.0, *),
+           let runtime = WatchScheduleRuntime.shared {
+            Task {
+                await runtime.lifecycle.fence()
+                call.resolve()
+            }
+            return
+        }
+        #endif
         call.resolve()
     }
 
@@ -555,8 +617,8 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
             },
             "pendingCleanupEventIDs": status.pendingCleanupEventIDs,
             "unresolvedEventIDs": status.unresolvedEventIDs,
+            "localPendingEventIDs": status.localPendingEventIDs,
             "otherAccountPending": status.otherAccountPending,
-            "credentialExpiresAt": isoString(status.credentialExpiresAt),
         ]
     }
 
@@ -619,8 +681,8 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
             "skipped": [PluginCallResultData](),
             "pendingCleanupEventIDs": [Int](),
             "unresolvedEventIDs": [Int](),
+            "localPendingEventIDs": [Int](),
             "otherAccountPending": false,
-            "credentialExpiresAt": NSNull(),
         ]
     }
 
@@ -630,6 +692,24 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
             "deferral": "unsupportedDevice",
             "code": NSNull(),
             "status": unsupportedStatus(),
+        ]
+    }
+
+    private static func unavailableStatus(
+        _ code: String
+    ) -> PluginCallResultData {
+        var status = unsupportedStatus()
+        status["permission"] = WatchSchedulePermission.notDetermined.rawValue
+        status["lastErrorCode"] = code
+        return status
+    }
+
+    private static func failedResult(_ code: String) -> PluginCallResultData {
+        [
+            "outcome": "failed",
+            "deferral": NSNull(),
+            "code": code,
+            "status": unavailableStatus(code),
         ]
     }
 }

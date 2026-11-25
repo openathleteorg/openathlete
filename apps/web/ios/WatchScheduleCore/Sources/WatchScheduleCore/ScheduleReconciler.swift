@@ -506,6 +506,14 @@ public actor ScheduleReconciler {
         activeGeneration == generation && activeScope == scope
     }
 
+    /// Clears the write fence immediately, without waiting for an in-flight
+    /// pass. Logout must acknowledge promptly; the pass keeps draining and
+    /// cleanup runs separately under the exact scope.
+    public func fence() {
+        activeGeneration = nil
+        lastAppliedReadAt.removeAll()
+    }
+
     public func reconcile(
         _ snapshot: ScheduleSnapshot,
         scope: AccountScope,

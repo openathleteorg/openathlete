@@ -3232,5 +3232,6 @@
   "apple_watch_skip_target": "Deze sessie gebruikt een doel dat Apple's Workout-app niet kan uitdrukken.",
   "apple_watch_skip_zone": "Voor deze sessie kon geen trainingszone worden bepaald.",
   "apple_watch_skip_structure": "De structuur van deze sessie kan niet in Apple's Workout-app worden uitgedrukt.",
-  "apple_watch_skip_other": "Deze sessie kan niet in Apple's Workout-app worden weergegeven."
+  "apple_watch_skip_other": "Deze sessie kan niet in Apple's Workout-app worden weergegeven.",
+  "apple_watch_local_pending": "{count} trainingen wachten op een nieuwe poging bij de volgende vernieuwing."
 }

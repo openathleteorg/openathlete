@@ -96,8 +96,8 @@ function status(
     skipped: [],
     pendingCleanupEventIDs: [],
     unresolvedEventIDs: [],
+    localPendingEventIDs: [],
     otherAccountPending: false,
-    credentialExpiresAt: null,
     ...overrides,
   };
 }
@@ -289,6 +289,21 @@ describe('Apple Watch settings', () => {
     expect(text()).toContain('apple_watch_unresolved_write');
     expect(text()).toContain('apple_watch_pending_cleanup');
     expect(text()).toContain('apple_watch_other_account_pending');
+  });
+
+  it('separates safe-to-retry work from an Apple submitted write', async () => {
+    state.getStatus.mockResolvedValue(
+      status({
+        enabled: true,
+        localPendingEventIDs: [401],
+        unresolvedEventIDs: [402],
+      }),
+    );
+
+    await render();
+
+    expect(text()).toContain('apple_watch_local_pending');
+    expect(text()).toContain('apple_watch_unresolved_write');
   });
 
   it('asks for a fresh sign-in when the access token is gone', async () => {

@@ -46,6 +46,60 @@ public protocol WatchScheduleOptInStore: Sendable {
     func clear() async throws
 }
 
+/// Authorization to remove an account's upcoming entries even after its opt-in
+/// is gone. It is written **before** the opt-in is cleared, so a crash or a
+/// failed journal read can never orphan a previous account's workouts.
+public protocol WatchScheduleTeardownStore: Sendable {
+    func load() async throws -> [AccountScope]
+    func add(_ scope: AccountScope) async throws
+    func remove(_ scope: AccountScope) async throws
+}
+
+/// File-backed teardown authorization with the same protection requirements as
+/// the schedule journal: atomic writes and no credentials.
+public actor FileWatchScheduleTeardownStore: WatchScheduleTeardownStore {
+    private let fileURL: URL
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
+
+    public init(fileURL: URL) {
+        self.fileURL = fileURL
+    }
+
+    public func load() async throws -> [AccountScope] {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            return []
+        }
+        let data = try Data(contentsOf: fileURL)
+        guard !data.isEmpty else {
+            return []
+        }
+        return try decoder.decode([AccountScope].self, from: data)
+    }
+
+    public func add(_ scope: AccountScope) async throws {
+        var scopes = try await load()
+        if !scopes.contains(scope) {
+            scopes.append(scope)
+            try write(scopes)
+        }
+    }
+
+    public func remove(_ scope: AccountScope) async throws {
+        var scopes = try await load()
+        let before = scopes.count
+        scopes.removeAll { $0 == scope }
+        if scopes.count != before {
+            try write(scopes)
+        }
+    }
+
+    private func write(_ scopes: [AccountScope]) throws {
+        let data = try encoder.encode(scopes)
+        try data.write(to: fileURL, options: [.atomic])
+    }
+}
+
 /// Apple's scheduling permission, as WorkoutKit reports it. `.restricted` is
 /// folded into `.denied`: the user cannot grant it here.
 public enum WatchSchedulePermission: String, Equatable, Sendable {
@@ -59,6 +113,33 @@ public protocol WatchScheduleAuthorizing: Sendable {
     func permission() async -> WatchSchedulePermission
     /// WorkoutKit shows its own permission sheet; the result is authoritative.
     func requestPermission() async -> WatchSchedulePermission
+}
+
+// MARK: - Background refresh policy
+
+/// The access token is the only credential available to a background refresh,
+/// and API tokens are short lived. Schedule the next opportunity early enough
+/// to use it, and submit nothing when the current token cannot outlive the
+/// delay plus a margin. iOS still decides whether and when to run the task.
+public enum WatchScheduleBackgroundPolicy {
+    /// A short delay: background refresh is opportunistic, not a deadline.
+    public static let earliestDelay: TimeInterval = 5 * 60
+    /// The token must remain valid for this long after the earliest begin date.
+    public static let expiryMargin: TimeInterval = 10 * 60
+
+    public static func earliestBeginDate(
+        credentialExpiresAt: Date?,
+        now: Date
+    ) -> Date? {
+        guard let expiresAt = credentialExpiresAt,
+              expiresAt > now.addingTimeInterval(
+                earliestDelay + expiryMargin
+              )
+        else {
+            return nil
+        }
+        return now.addingTimeInterval(earliestDelay)
+    }
 }
 
 // MARK: - Requests and results
@@ -155,9 +236,13 @@ public struct WatchScheduleCounts: Equatable, Sendable {
 
 /// What the iPhone settings section renders. It never claims watch delivery:
 /// `counts.confirmed` is a phone-side read-back of Apple's schedule.
+///
+/// Identifiers are only for the requested scope. Another account contributes
+/// one global `otherAccountPending` flag; its IDs, dates and credential details
+/// are never exposed. Token expiry is intentionally absent.
 public struct WatchScheduleStatus: Equatable, Sendable {
     public let enabled: Bool
-    /// A previous account's opt-in is still stored and must be cleaned up.
+    /// A previous account's opt-in or teardown still needs work.
     public let hasOtherAccountOptIn: Bool
     public let permission: WatchSchedulePermission
     public let lastSuccessAt: Date?
@@ -168,11 +253,15 @@ public struct WatchScheduleStatus: Equatable, Sendable {
     public let skipped: [SkippedScheduleEvent]
     /// Cleanup intents that Apple has not confirmed removing yet.
     public let pendingCleanupEventIDs: [Int]
-    /// Submitted writes waiting for Apple's schedule to show them.
+    /// Submitted writes whose presence in Apple's schedule is not confirmed.
+    /// These may exist on Apple's side and are never retried blindly.
     public let unresolvedEventIDs: [Int]
-    /// A pending write or cleanup belongs to another account and blocks work.
+    /// Writes still at the local/planning stage, proven not submitted, or a
+    /// calendar removal Apple has not confirmed. They are safe to retry.
+    public let localPendingEventIDs: [Int]
+    /// A previous account's pending write or teardown blocks scheduling. Only
+    /// this boolean crosses the account boundary.
     public let otherAccountPending: Bool
-    public let credentialExpiresAt: Date?
 }
 
 public struct WatchScheduleRefreshReport: Equatable, Sendable {
@@ -197,12 +286,18 @@ public struct WatchScheduleDisconnectReport: Equatable, Sendable {
 // MARK: - Credential store
 
 /// In-memory foreground token plus the durable vault. The transport reads it
-/// through `WatchScheduleCredentialProviding`, so a foreground refresh and the
-/// request it starts always use the same exact-scope token.
+/// through `WatchScheduleCredentialProviding`, so a foreground or background
+/// pass always uses the exact credential chosen for that pass.
 public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
     private let vault: any WatchScheduleCredentialVault
     private let now: () -> Date
     private var foreground: WatchScheduleCredential?
+    /// Pins the credential a pass was validated with: a background pass must
+    /// never silently prefer a newer foreground token of the same scope.
+    private var pinned: WatchScheduleCredential?
+    /// Set when a purge failed or the fence retired the session. Stored
+    /// credentials are never reused until a new foreground token is adopted.
+    private var reuseBlocked = false
 
     public init(
         vault: any WatchScheduleCredentialVault,
@@ -216,19 +311,52 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
     /// background work must never use a credential whose lifetime is unknown.
     public func adopt(_ credential: WatchScheduleCredential) async {
         foreground = credential
+        reuseBlocked = false
         guard credential.expiresAt != nil else {
             return
         }
-        try? await vault.save(credential)
+        do {
+            try await vault.save(credential)
+        } catch {
+            // The foreground pass can still use the app session's token, but a
+            // stale stored token must not be reused later.
+            reuseBlocked = true
+        }
+    }
+
+    /// The pass uses this exact credential, even if another token arrives while
+    /// the pass is waiting on the network.
+    public func beginPass(_ credential: WatchScheduleCredential) {
+        pinned = credential
+    }
+
+    public func endPass() {
+        pinned = nil
+    }
+
+    /// Logout/disconnect stop background reuse immediately, before any Apple or
+    /// Keychain work finishes.
+    public func blockReuse() {
+        pinned = nil
+        foreground = nil
+        reuseBlocked = true
     }
 
     public func credential(
         for scope: AccountScope
     ) async throws -> WatchScheduleCredential? {
+        if let pinned,
+           pinned.scope == scope,
+           !isExpired(pinned) {
+            return pinned
+        }
         if let foreground,
            foreground.scope == scope,
            !isExpired(foreground) {
             return foreground
+        }
+        guard !reuseBlocked else {
+            return nil
         }
         guard let stored = try await vault.load(),
               stored.scope == scope,
@@ -240,18 +368,26 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
     }
 
     /// The background pass may only use a token that was persisted with an
-    /// expiry by a foreground pass.
+    /// expiry by a foreground pass and has not been retired by a failed purge.
     public func storedCredential() async throws -> WatchScheduleCredential? {
-        try await vault.load()
+        guard !reuseBlocked else {
+            return nil
+        }
+        return try await vault.load()
     }
 
-    public func storedExpiry() async -> Date? {
-        (try? await vault.load())?.expiresAt
-    }
-
-    public func purge() async {
+    /// Throws when the Keychain item could not be removed. The caller must not
+    /// report a successful logout or retry stored background work in that case.
+    public func purge() async throws {
+        pinned = nil
         foreground = nil
-        try? await vault.purge()
+        reuseBlocked = true
+        do {
+            try await vault.purge()
+            reuseBlocked = false
+        } catch {
+            throw error
+        }
     }
 
     private func isExpired(_ credential: WatchScheduleCredential) -> Bool {
@@ -273,6 +409,7 @@ public actor WatchScheduleLifecycle {
     private let journal: any ScheduleJournal
     private let credentials: WatchScheduleCredentialStore
     private let optIn: any WatchScheduleOptInStore
+    private let teardown: any WatchScheduleTeardownStore
     private let authorization: any WatchScheduleAuthorizing
     private let calendar: Calendar
     private let now: () -> Date
@@ -281,10 +418,13 @@ public actor WatchScheduleLifecycle {
 
     private var generation: UInt64 = 0
     private var activeScope: AccountScope?
-    /// Bumped on connect/disconnect before any await that can be raced by a
-    /// logout. A refresh that captured an older epoch must not write.
+    /// Bumped on fence/connect/disconnect before any await that can be raced by
+    /// a logout. A stale continuation must never save the opt-in or credential.
     private var epoch: UInt64 = 0
     private var permissionCache: WatchSchedulePermission = .notDetermined
+    /// The account the in-memory sync state belongs to. Another account's
+    /// status must not expose its last refresh, counts or skipped event IDs.
+    private var stateScope: AccountScope?
     private var lastSuccessAt: Date?
     private var lastAttemptAt: Date?
     private var lastErrorCode: String?
@@ -299,6 +439,7 @@ public actor WatchScheduleLifecycle {
         journal: any ScheduleJournal,
         credentials: WatchScheduleCredentialStore,
         optIn: any WatchScheduleOptInStore,
+        teardown: any WatchScheduleTeardownStore,
         authorization: any WatchScheduleAuthorizing,
         calendar: Calendar,
         now: @escaping () -> Date = Date.init,
@@ -312,6 +453,7 @@ public actor WatchScheduleLifecycle {
         self.journal = journal
         self.credentials = credentials
         self.optIn = optIn
+        self.teardown = teardown
         self.authorization = authorization
         self.calendar = calendar
         self.now = now
@@ -323,11 +465,35 @@ public actor WatchScheduleLifecycle {
     /// Reads the opt-in, the durable journal and Apple's permission. It never
     /// writes, fetches or mutates Apple's schedule.
     public func status(scope: AccountScope?) async -> WatchScheduleStatus {
-        await makeStatus(scope: scope, permission: authorization.permission())
+        let permission = await authorization.permission()
+        return await makeStatus(scope: scope, permission: permission)
     }
 
     public func isBackgroundRefreshEnabled() async -> Bool {
         (try? await optIn.load()) != nil
+    }
+
+    /// Fences everything immediately: no new writes, no stored credential
+    /// reuse, opt-in cleared only after its cleanup authorization is durable.
+    /// It deliberately does not read or wait for Apple; logout can acknowledge
+    /// this and let cleanup continue in the background.
+    public func fence() async {
+        epoch &+= 1
+        let target = (try? await optIn.load()) ?? activeScope
+        if let target {
+            do {
+                try await teardown.add(target)
+                try? await optIn.clear()
+            } catch {
+                // Fail closed: keep the opt-in as the only durable authorization
+                // we have. Writes are still fenced below.
+            }
+        } else {
+            try? await optIn.clear()
+        }
+        await reconciler.fence()
+        await credentials.blockReuse()
+        clearSyncState()
     }
 
     // MARK: Connect
@@ -341,12 +507,26 @@ public actor WatchScheduleLifecycle {
         defer { releaseGate() }
 
         epoch &+= 1
+        let entryEpoch = epoch
         let stored = try? await optIn.load()
         if let stored, stored != scope {
-            // A different account's entries are removed under its own exact
-            // scope before this one is allowed to schedule anything.
-            _ = await teardown(stored)
-            try? await optIn.clear()
+            // Persist explicit authorization before the old opt-in/scope can be
+            // lost, then recover it before this account may schedule.
+            do {
+                try await teardown.add(stored)
+                try? await optIn.clear()
+            } catch {
+                return await report(
+                    .failed("pendingCleanup"),
+                    scope: scope
+                )
+            }
+        }
+        guard await recoverPendingTeardown() else {
+            return await report(.failed("pendingCleanup"), scope: scope)
+        }
+        guard entryEpoch == epoch else {
+            return await report(.deferred(.inactive), scope: scope)
         }
 
         let current = await authorization.permission()
@@ -355,6 +535,12 @@ public actor WatchScheduleLifecycle {
             resolved = await authorization.requestPermission()
         } else {
             resolved = current
+        }
+        // The permission sheet can stay open indefinitely. A logout or account
+        // switch during it must win, and must not let this continuation enable
+        // a signed-out account.
+        guard entryEpoch == epoch else {
+            return await report(.deferred(.inactive), scope: scope)
         }
         permissionCache = resolved
 
@@ -365,8 +551,16 @@ public actor WatchScheduleLifecycle {
                 permission: resolved
             )
         }
-        try? await optIn.save(scope)
-
+        if resolved == .denied {
+            // The athlete asked to enable scheduling but iOS refused. Keep the
+            // opt-in so the settings screen can explain how to re-enable it;
+            // writes remain blocked by the store's authorization check.
+            try? await optIn.save(scope)
+            guard entryEpoch == epoch else {
+                try? await optIn.clear()
+                return await report(.deferred(.inactive), scope: scope)
+            }
+        }
         guard resolved == .authorized else {
             return await report(
                 resolved == .notDetermined
@@ -391,9 +585,27 @@ public actor WatchScheduleLifecycle {
             )
         }
 
+        try? await optIn.save(scope)
+        guard entryEpoch == epoch else {
+            // The save may have completed after a fence. Undo it so a stale
+            // continuation cannot opt a signed-out account in.
+            try? await optIn.clear()
+            return await report(.deferred(.inactive), scope: scope)
+        }
         await credentials.adopt(credential)
-        await activateIfNeeded(scope)
-        return await pass(trigger: .connect, scope: scope)
+        guard entryEpoch == epoch else {
+            try? await optIn.clear()
+            try? await credentials.purge()
+            return await report(.deferred(.inactive), scope: scope)
+        }
+        await credentials.beginPass(credential)
+        let result = await pass(
+            trigger: .connect,
+            scope: scope,
+            entryEpoch: entryEpoch
+        )
+        await credentials.endPass()
+        return result
     }
 
     // MARK: Refresh
@@ -415,6 +627,12 @@ public actor WatchScheduleLifecycle {
             return await report(.deferred(.inactive), scope: scope)
         }
         guard stored == scope else {
+            return await report(.deferred(.inactive), scope: scope)
+        }
+        guard await recoverPendingTeardown() else {
+            return await report(.failed("pendingCleanup"), scope: scope)
+        }
+        guard entryEpoch == epoch else {
             return await report(.deferred(.inactive), scope: scope)
         }
 
@@ -444,9 +662,10 @@ public actor WatchScheduleLifecycle {
             )
         }
 
+        let chosen: WatchScheduleCredential
         if trigger == .background {
             // Only a foreground pass may renew authentication. If the stored
-            // token is gone or expired, the OS wake-up ends here.
+            // token is gone, has no expiry or expired, the wake-up ends here.
             let storedCredential: WatchScheduleCredential?
             do {
                 storedCredential = try await credentials.storedCredential()
@@ -457,7 +676,19 @@ public actor WatchScheduleLifecycle {
                     permission: permission
                 )
             }
-            guard let storedCredential, storedCredential.scope == scope else {
+            guard let storedCredential,
+                  storedCredential.scope == scope
+            else {
+                return await report(
+                    .deferred(.credentialRequired),
+                    scope: scope,
+                    permission: permission
+                )
+            }
+            guard storedCredential.expiresAt != nil else {
+                // An unbounded token cannot be used by a background pass; it
+                // must not stay in the vault for another wake-up.
+                try? await credentials.purge()
                 return await report(
                     .deferred(.credentialRequired),
                     scope: scope,
@@ -465,13 +696,14 @@ public actor WatchScheduleLifecycle {
                 )
             }
             guard !isExpired(storedCredential) else {
-                await credentials.purge()
+                try? await credentials.purge()
                 return await report(
                     .deferred(.credentialExpired),
                     scope: scope,
                     permission: permission
                 )
             }
+            chosen = storedCredential
         } else {
             guard let credential,
                   !credential.accessToken
@@ -499,27 +731,36 @@ public actor WatchScheduleLifecycle {
                 )
             }
             await credentials.adopt(credential)
+            guard entryEpoch == epoch else {
+                return await report(.deferred(.inactive), scope: scope)
+            }
+            chosen = credential
         }
 
         guard entryEpoch == epoch else {
             return await report(.deferred(.inactive), scope: scope)
         }
-        await activateIfNeeded(scope)
-        return await pass(trigger: trigger, scope: scope)
+        await credentials.beginPass(chosen)
+        let result = await pass(
+            trigger: trigger,
+            scope: scope,
+            entryEpoch: entryEpoch
+        )
+        await credentials.endPass()
+        return result
     }
 
     // MARK: Disconnect
 
-    /// Disconnect, logout and instance switch. The epoch and the reconciler
-    /// fence are cleared before anything waits, so a pass that is still
-    /// fetching or writing cannot start another write. Cleanup then runs under
-    /// the exact stored scope and generation; the journal is never reset.
+    /// Disconnect, logout and instance switch. Cleanup authorization is made
+    /// durable before the opt-in is cleared, so it survives a crash, a journal
+    /// failure or a Keychain failure and blocks the next account until done.
     public func disconnect(
         scope requested: AccountScope?
     ) async -> WatchScheduleDisconnectReport? {
         let stored = try? await optIn.load()
-        let target = stored ?? activeScope
-        guard let target else {
+        guard let target = stored ?? activeScope else {
+            await fence()
             return nil
         }
         // Never clean a scope other than the authorized one.
@@ -528,13 +769,26 @@ public actor WatchScheduleLifecycle {
         }
 
         epoch &+= 1
+        do {
+            try await teardown.add(target)
+        } catch {
+            // No durable authorization: keep the opt-in and fence everything.
+            await reconciler.fence()
+            await credentials.blockReuse()
+            return nil
+        }
         try? await optIn.clear()
+        await reconciler.fence()
         await reconciler.invalidate()
 
         await acquireGate()
         defer { releaseGate() }
 
-        return await teardown(target)
+        let result = await teardownScope(target)
+        if result.retainedEventIDs.isEmpty && result.purgedCredential {
+            try? await teardown.remove(target)
+        }
+        return result
     }
 
     // MARK: Background entry point
@@ -544,6 +798,8 @@ public actor WatchScheduleLifecycle {
     /// token, no new opt-in.
     public func handleBackgroundRefresh() async -> WatchScheduleRefreshReport {
         guard let stored = try? await optIn.load() else {
+            // Never resurrect a torn-down session: if a teardown is pending,
+            // it still blocks and must be finished in the foreground.
             return await report(.deferred(.inactive), scope: nil)
         }
         return await refresh(
@@ -562,6 +818,11 @@ public actor WatchScheduleLifecycle {
         generation &+= 1
         await reconciler.activate(generation: generation, for: scope)
         activeScope = scope
+        stateScope = scope
+        clearSyncState()
+    }
+
+    private func clearSyncState() {
         lastSuccessAt = nil
         lastAttemptAt = nil
         lastErrorCode = nil
@@ -571,7 +832,8 @@ public actor WatchScheduleLifecycle {
 
     private func pass(
         trigger: WatchScheduleTrigger,
-        scope: AccountScope
+        scope: AccountScope,
+        entryEpoch: UInt64
     ) async -> WatchScheduleRefreshReport {
         lastAttemptAt = now()
         let snapshot: ScheduleSnapshot
@@ -583,6 +845,16 @@ public actor WatchScheduleLifecycle {
             return await sourceFailure(error, scope: scope)
         } catch {
             return await report(.failed("calendarUnavailable"), scope: scope)
+        }
+
+        // A fetch that started before a fence must not schedule anything, even
+        // if no reconciler pass was active when the fence arrived.
+        guard entryEpoch == epoch else {
+            return await report(.deferred(.inactive), scope: scope)
+        }
+        await activateIfNeeded(scope)
+        guard entryEpoch == epoch else {
+            return await report(.deferred(.inactive), scope: scope)
         }
 
         do {
@@ -670,10 +942,10 @@ public actor WatchScheduleLifecycle {
         )
     }
 
-    /// Clears every owned upcoming entry under the exact authorized scope.
-    /// Receipts Apple cannot confirm are retained in the journal for the next
-    /// account's reconciliation; nothing is reset or guessed.
-    private func teardown(
+    /// Removes every owned upcoming entry under the exact authorized scope and
+    /// retires the credential. Receipts Apple cannot confirm are retained for
+    /// the next attempt; nothing is reset or guessed.
+    private func teardownScope(
         _ target: AccountScope
     ) async -> WatchScheduleDisconnectReport {
         generation &+= 1
@@ -696,28 +968,62 @@ public actor WatchScheduleLifecycle {
         }
         await reconciler.invalidate()
         activeScope = nil
-        permissionCache = await authorization.permission()
+        stateScope = nil
+        let permission = await authorization.permission()
+        permissionCache = permission
 
         let receipts = (try? await journal.receipts(for: target)) ?? []
-        let unresolved = receipts.filter(isUnresolved).map(\.eventID)
+        let unresolved = receipts.filter(isSubmitted).map(\.eventID)
         let pendingCleanup = receipts.filter(isPendingCleanup).map(\.eventID)
         let retainedAll = Array(Set(retained + pendingCleanup)).sorted()
 
-        await credentials.purge()
-        lastSuccessAt = nil
-        lastAttemptAt = nil
-        lastErrorCode = nil
-        counts = .none
-        skipped = []
+        var purged = false
+        do {
+            try await credentials.purge()
+            purged = true
+        } catch {
+            // A token that could not be removed is never reported as purged,
+            // and its stored copy stays blocked from reuse.
+        }
+        clearSyncState()
 
         return WatchScheduleDisconnectReport(
             scope: target,
             removedEventIDs: removed.sorted(),
             retainedEventIDs: retainedAll,
             unresolvedEventIDs: unresolved,
-            purgedCredential: true,
-            permission: permissionCache
+            purgedCredential: purged,
+            permission: permission
         )
+    }
+
+    /// Runs every durable teardown in the order it was recorded. Returns false
+    /// when an account still has unconfirmed work or its credential could not be
+    /// retired; callers must then refuse to schedule for anyone else.
+    private func recoverPendingTeardown() async -> Bool {
+        let scopes = (try? await teardown.load()) ?? []
+        guard !scopes.isEmpty else {
+            return true
+        }
+        let ordered = scopes.sorted {
+            if $0.instanceURL != $1.instanceURL {
+                return $0.instanceURL.absoluteString
+                    < $1.instanceURL.absoluteString
+            }
+            return $0.athleteId < $1.athleteId
+        }
+        for scope in ordered {
+            let result = await teardownScope(scope)
+            guard result.retainedEventIDs.isEmpty, result.purgedCredential else {
+                return false
+            }
+            do {
+                try await teardown.remove(scope)
+            } catch {
+                return false
+            }
+        }
+        return true
     }
 
     // MARK: - Status snapshot
@@ -747,38 +1053,61 @@ public actor WatchScheduleLifecycle {
     ) async -> WatchScheduleStatus {
         let storedScope = try? await optIn.load()
         let receipts = (try? await journal.allReceipts()) ?? []
-        let unresolved = receipts.filter(isUnresolved).map(\.eventID)
-        let pendingCleanup = receipts.filter(isPendingCleanup).map(\.eventID)
-        let otherPending = receipts.contains { receipt in
-            guard let scope else {
-                return true
+        let teardownScopes = (try? await teardown.load()) ?? []
+        let scoped = scope.map { current in
+            receipts.filter { $0.scope == current }
+        } ?? []
+        let unresolved = scoped.filter(isSubmitted).map(\.eventID)
+        let localPending = scoped.filter(isLocalPending).map(\.eventID)
+        let pendingCleanup = scoped.filter(isPendingCleanup).map(\.eventID)
+        // Sync state belongs to one account only; another scope gets a blank
+        // state instead of this account's last refresh, counts or skipped IDs.
+        let ownsSyncState = scope != nil && stateScope == scope
+        let otherPending = !teardownScopes.isEmpty
+            || receipts.contains { receipt in
+                guard let scope else {
+                    return needsWork(receipt)
+                }
+                return receipt.scope != scope && needsWork(receipt)
             }
-            return receipt.scope != scope
-                && (isUnresolved(receipt) || isPendingCleanup(receipt))
-        }
-        let expiresAt = await credentials.storedExpiry()
         return WatchScheduleStatus(
             enabled: storedScope != nil && (scope == nil || storedScope == scope),
-            hasOtherAccountOptIn: storedScope != nil
+            hasOtherAccountOptIn: (storedScope != nil
                 && scope != nil
-                && storedScope != scope,
+                && storedScope != scope) || !teardownScopes.isEmpty,
             permission: permission,
-            lastSuccessAt: lastSuccessAt,
-            lastAttemptAt: lastAttemptAt,
-            lastErrorCode: lastErrorCode,
-            counts: counts,
-            skipped: skipped,
+            lastSuccessAt: ownsSyncState ? lastSuccessAt : nil,
+            lastAttemptAt: ownsSyncState ? lastAttemptAt : nil,
+            lastErrorCode: ownsSyncState ? lastErrorCode : nil,
+            counts: ownsSyncState ? counts : .none,
+            skipped: ownsSyncState ? skipped : [],
             pendingCleanupEventIDs: Array(Set(pendingCleanup)).sorted(),
             unresolvedEventIDs: Array(Set(unresolved)).sorted(),
-            otherAccountPending: otherPending,
-            credentialExpiresAt: expiresAt
+            localPendingEventIDs: Array(Set(localPending)).sorted(),
+            otherAccountPending: otherPending
         )
     }
 
-    private func isUnresolved(_ receipt: ScheduleReceipt) -> Bool {
+    private func needsWork(_ receipt: ScheduleReceipt) -> Bool {
+        isSubmitted(receipt) || isLocalPending(receipt) || isPendingCleanup(receipt)
+    }
+
+    /// A submission fence proved this write may exist on Apple's side.
+    private func isSubmitted(_ receipt: ScheduleReceipt) -> Bool {
+        guard receipt.pendingOperation == .schedule
+            || receipt.pendingOperation == .replace
+        else {
+            return false
+        }
+        return receipt.pendingPhase == .confirming
+    }
+
+    /// Not yet submitted, proven no-submit, or a calendar removal. These are
+    /// safe to retry and are not presented as an Apple-side unknown.
+    private func isLocalPending(_ receipt: ScheduleReceipt) -> Bool {
         switch receipt.pendingOperation {
         case .schedule, .replace:
-            return true
+            return receipt.pendingPhase != .confirming
         case .remove:
             return receipt.removalIntent != .cleanup
         case nil:
@@ -799,7 +1128,7 @@ public actor WatchScheduleLifecycle {
 
     // One lifecycle pass at a time. Actor reentrancy must not let two snapshot
     // reads allocate different generations, nor a disconnect interleave with a
-    // pass. Disconnect fences the reconciler before waiting for this gate.
+    // pass. Fence/disconnect fence the reconciler before waiting for this gate.
     private func acquireGate() async {
         if !gateIsHeld {
             gateIsHeld = true

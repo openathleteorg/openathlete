@@ -94,6 +94,7 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         vault: LifecycleFakeVault = LifecycleFakeVault(),
         optIn: LifecycleFakeOptIn = LifecycleFakeOptIn(),
         authorization: LifecycleFakeAuthorization = LifecycleFakeAuthorization(),
+        teardown: LifecycleFakeTeardown = LifecycleFakeTeardown(),
         loader: LifecycleSnapshotLoader,
         credentials: WatchScheduleCredentialStore? = nil
     ) -> (WatchScheduleLifecycle, WatchScheduleCredentialStore, LifecycleFakeVault) {
@@ -111,6 +112,7 @@ final class WatchScheduleLifecycleTests: XCTestCase {
             journal: journal,
             credentials: credentialStore,
             optIn: optIn,
+            teardown: teardown,
             authorization: authorization,
             calendar: calendar,
             now: { self.now },
@@ -377,8 +379,10 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         XCTAssertEqual(summary.unchangedEventIDs, [102])
         let watched18 = await loader.loadCount
         XCTAssertEqual(watched18, 2)
+        // The pass is pinned to the validated stored credential; it must not
+        // need a second vault read to prefer a foreground token.
         let watched19 = await vault.loadCount
-        XCTAssertGreaterThanOrEqual(watched19, 2)
+        XCTAssertGreaterThanOrEqual(watched19, 1)
     }
 
     func testBackgroundRefreshWithoutStoredCredentialDefersToForeground() async throws {
@@ -1033,7 +1037,542 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         let watched47 = await lifecycle.isBackgroundRefreshEnabled()
         XCTAssertFalse(watched47)
     }
+    // MARK: - Round 1: permission, opt-in and fence races
+
+    func testFenceDuringPermissionRequestCannotEnableASignedOutAccount() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let authorization = LifecycleFakeAuthorization(permission: .notDetermined)
+        await authorization.suspendNextRequest()
+        let optIn = LifecycleFakeOptIn()
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, vault) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            authorization: authorization,
+            loader: loader
+        )
+
+        let connect = Task {
+            await lifecycle.connect(
+                scope: self.scope,
+                credential: self.credential(),
+                requestPermission: true
+            )
+        }
+        await authorization.waitUntilRequestStarted()
+        await lifecycle.fence()
+        await authorization.resumeRequest(.authorized)
+        let report = await connect.value
+
+        XCTAssertEqual(report.outcome, .deferred(.inactive))
+        let storedCredential = try await vault.load()
+        XCTAssertNil(storedCredential)
+        let storedOptIn = try await optIn.load()
+        XCTAssertNil(storedOptIn)
+    }
+
+    func testFenceDuringOptInSaveClearsTheStaleWrite() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn()
+        await optIn.suspendNextSave()
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            loader: loader
+        )
+
+        let connect = Task {
+            await lifecycle.connect(
+                scope: self.scope,
+                credential: self.credential(),
+                requestPermission: false
+            )
+        }
+        await optIn.waitUntilSaveSuspended()
+        await lifecycle.fence()
+        await optIn.resumeSuspendedSave()
+        _ = await connect.value
+
+        let watched1 = try await optIn.load()
+        XCTAssertNil(watched1)
+        let status = await lifecycle.status(scope: scope)
+        XCTAssertFalse(status.enabled)
+        let watched2 = await store.scheduleCount
+        XCTAssertEqual(watched2, 0)
+    }
+
+    func testFenceDuringFetchStopsTheStalePassWithoutReadingAgain() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let loader = LifecycleSnapshotLoader { _ in
+            self.snapshot(candidates: [self.candidate(1101)])
+        }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            loader: loader
+        )
+        _ = await lifecycle.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: true
+        )
+        await loader.suspendNextLoad()
+        let refresh = Task {
+            await lifecycle.refresh(
+                trigger: .calendar,
+                scope: self.scope,
+                credential: self.credential()
+            )
+        }
+        await loader.waitUntilSuspended()
+        let readsBeforeFence = await store.readCount
+        await lifecycle.fence()
+        await loader.resumeSuspended()
+        let report = await refresh.value
+
+        XCTAssertEqual(report.outcome, .deferred(.inactive))
+        let watched3 = await store.scheduleCount
+        XCTAssertEqual(watched3, 1)
+        let watched4 = await store.readCount
+        XCTAssertEqual(watched4, readsBeforeFence)
+        let optIn = await lifecycle.status(scope: scope)
+        XCTAssertFalse(optIn.enabled)
+    }
+
+    func testFencePersistsTeardownAuthorizationBeforeClearingTheOptIn() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn(scope: scope)
+        let teardown = LifecycleFakeTeardown()
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            teardown: teardown,
+            loader: loader
+        )
+        let readsBeforeFence = await store.readCount
+
+        await lifecycle.fence()
+
+        let watched5 = try await teardown.load()
+        XCTAssertEqual(watched5, [scope])
+        let watched6 = try await optIn.load()
+        XCTAssertNil(watched6)
+        // The acknowledgement must not wait for Apple cleanup reads.
+        let watched7 = await store.readCount
+        XCTAssertEqual(watched7, readsBeforeFence)
+    }
+
+    func testDisconnectLeavesTheOptInWhenTeardownAuthorizationCannotBePersisted() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn(scope: scope)
+        let teardown = LifecycleFakeTeardown()
+        await teardown.failNextAdd()
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            teardown: teardown,
+            loader: loader
+        )
+
+        let report = await lifecycle.disconnect(scope: scope)
+
+        XCTAssertNil(report)
+        // Fail closed: keep the only durable authorization we have.
+        let watched8 = try await optIn.load()
+        XCTAssertEqual(watched8, scope)
+        let watched9 = await lifecycle.isBackgroundRefreshEnabled()
+        XCTAssertTrue(watched9)
+        // The scheduler is fenced and no upcoming entry is touched.
+        let watched10 = await store.removeCount
+        XCTAssertEqual(watched10, 0)
+    }
+
+    // MARK: - Round 1: durable teardown recovery
+
+    func testNewAccountWaitsForThePersistedTeardownOfThePreviousAccount() async throws {
+        let planA = UUID()
+        let store = LifecycleFakeStore(
+            workouts: [
+                ScheduledWorkoutState(
+                    planID: planA,
+                    startDate: readAt.addingTimeInterval(3_600),
+                    isComplete: false
+                ),
+            ]
+        )
+        let log = LifecycleOperationLog()
+        await store.use(log: log)
+        let (journal, _) = temporaryJournal()
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 501,
+                planID: planA,
+                scheduledDate: readAt.addingTimeInterval(3_600),
+                fingerprint: "a"
+            )
+        )
+        let teardown = LifecycleFakeTeardown(initial: [scope])
+        let loader = LifecycleSnapshotLoader { requested in
+            if requested == self.scope {
+                return self.snapshot()
+            }
+            return self.snapshot(
+                candidates: [self.candidate(1201)],
+                scope: self.otherScope
+            )
+        }
+        await loader.use(log: log)
+        let optIn = LifecycleFakeOptIn()
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            teardown: teardown,
+            loader: loader
+        )
+        await store.setReadFailure(LifecycleFakeStoreError.unavailable)
+
+        let blocked = await lifecycle.connect(
+            scope: otherScope,
+            credential: credential(scope: otherScope),
+            requestPermission: true
+        )
+
+        XCTAssertEqual(blocked.outcome, .failed("pendingCleanup"))
+        let watched11 = try await teardown.load()
+        XCTAssertEqual(watched11, [scope])
+        let watched12 = await store.scheduleCount
+        XCTAssertEqual(watched12, 0)
+        let storedOptIn = try await optIn.load()
+        XCTAssertNil(storedOptIn)
+
+        await store.setReadFailure(nil)
+        await log.reset()
+        let recovered = await lifecycle.connect(
+            scope: otherScope,
+            credential: credential(scope: otherScope),
+            requestPermission: true
+        )
+
+        guard case .synced(let summary) = recovered.outcome else {
+            return XCTFail("expected account B after recovery, got \(recovered.outcome)")
+        }
+        XCTAssertEqual(summary.scope, otherScope)
+        let entries = await log.entries
+        XCTAssertEqual(
+            entries,
+            [
+                "store.remove",
+                "load:https://other.example.org/api:11",
+                "store.schedule:1201",
+            ]
+        )
+        let watched13 = try await teardown.load()
+        XCTAssertEqual(watched13, [])
+    }
+
+    func testCrashAfterFenceIsRecoveredBeforeAnotherAccountSchedules() async throws {
+        let planA = UUID()
+        let store = LifecycleFakeStore(
+            workouts: [
+                ScheduledWorkoutState(
+                    planID: planA,
+                    startDate: readAt.addingTimeInterval(3_600),
+                    isComplete: false
+                ),
+            ]
+        )
+        let (journal, _) = temporaryJournal()
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 501,
+                planID: planA,
+                scheduledDate: readAt.addingTimeInterval(3_600),
+                fingerprint: "a"
+            )
+        )
+        let optIn = LifecycleFakeOptIn(scope: scope)
+        let teardown = LifecycleFakeTeardown()
+        let loader = LifecycleSnapshotLoader { requested in
+            requested == self.scope
+                ? self.snapshot()
+                : self.snapshot(
+                    candidates: [self.candidate(1301)],
+                    scope: self.otherScope
+                )
+        }
+        let (first, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            teardown: teardown,
+            loader: loader
+        )
+        await first.fence()
+        let watched14 = try await teardown.load()
+        XCTAssertEqual(watched14, [scope])
+        let watched15 = try await optIn.load()
+        XCTAssertNil(watched15)
+
+        // The process was killed before disconnect's cleanup could run.
+        let log = LifecycleOperationLog()
+        await store.use(log: log)
+        await loader.use(log: log)
+        let (second, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            teardown: teardown,
+            loader: loader
+        )
+        let report = await second.connect(
+            scope: otherScope,
+            credential: credential(scope: otherScope),
+            requestPermission: true
+        )
+
+        guard case .synced = report.outcome else {
+            return XCTFail("expected recovery then B, got \(report.outcome)")
+        }
+        let entries = await log.entries
+        XCTAssertEqual(
+            entries,
+            [
+                "store.remove",
+                "load:https://other.example.org/api:11",
+                "store.schedule:1301",
+            ]
+        )
+        let watched16 = try await teardown.load()
+        XCTAssertEqual(watched16, [])
+    }
+
+    // MARK: - Round 1: background credential rules
+
+    func testBackgroundRejectsACredentialWithoutExpiry() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let vault = LifecycleFakeVault(
+            credential: WatchScheduleCredential(
+                scope: scope,
+                accessToken: "unbounded",
+                expiresAt: nil
+            )
+        )
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            optIn: LifecycleFakeOptIn(scope: scope),
+            loader: loader
+        )
+
+        let report = await lifecycle.handleBackgroundRefresh()
+
+        XCTAssertEqual(report.outcome, .deferred(.credentialRequired))
+        let watched17 = await loader.loadCount
+        XCTAssertEqual(watched17, 0)
+        let watched18 = await store.scheduleCount
+        XCTAssertEqual(watched18, 0)
+    }
+
+    func testPurgeFailureBlocksCredentialReuseAndIsReported() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let vault = LifecycleFakeVault(credential: credential())
+        await vault.failNextPurge()
+        let teardown = LifecycleFakeTeardown()
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, credentialStore, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            optIn: LifecycleFakeOptIn(scope: scope),
+            teardown: teardown,
+            loader: loader
+        )
+
+        let disconnect = await lifecycle.disconnect(scope: scope)
+        let report = try XCTUnwrap(disconnect)
+
+        XCTAssertFalse(report.purgedCredential)
+        let watched19 = try await credentialStore.storedCredential()
+        XCTAssertNil(watched19)
+        // Cleanup and credential retirement are incomplete: the teardown must
+        // survive so the next account cannot schedule past it.
+        let pendingTeardown = try await teardown.load()
+        XCTAssertEqual(pendingTeardown, [scope])
+        let watched20 = try await credentialStore.credential(for: scope)
+        XCTAssertNil(watched20)
+        // The failed Keychain purge leaves the item in place; it must stay
+        // unreachable through the store, never treated as removed.
+        let remaining = try await vault.load()
+        XCTAssertNotNil(remaining)
+        // The teardown stays durable because credential retirement is not proven.
+        let background = await lifecycle.handleBackgroundRefresh()
+        XCTAssertEqual(background.outcome, .deferred(.inactive))
+    }
+
+    func testBackgroundPassUsesThePinnedStoredCredential() async throws {
+        let stored = WatchScheduleCredential(
+            scope: scope,
+            accessToken: "stored-background-token",
+            expiresAt: readAt.addingTimeInterval(3_600)
+        )
+        let vault = LifecycleFakeVault(credential: stored)
+        let credentials = WatchScheduleCredentialStore(
+            vault: vault,
+            now: { self.now }
+        )
+        await credentials.adopt(
+            WatchScheduleCredential(
+                scope: scope,
+                accessToken: "foreground-token",
+                expiresAt: readAt.addingTimeInterval(3_600)
+            )
+        )
+        await credentials.beginPass(stored)
+
+        let chosen = try await credentials.credential(for: scope)
+        XCTAssertEqual(chosen?.accessToken, stored.accessToken)
+
+        await credentials.endPass()
+    }
+
+    // MARK: - Round 1: status exposure
+
+    func testStatusHidesAnotherAccountsPendingIdentifiers() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 1401,
+                planID: UUID(),
+                scheduledDate: readAt,
+                fingerprint: "a",
+                pendingOperation: .schedule,
+                pendingPhase: .confirming,
+                submittedDate: readAt
+            )
+        )
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: LifecycleFakeOptIn(scope: otherScope),
+            loader: loader
+        )
+
+        let status = await lifecycle.status(scope: otherScope)
+
+        XCTAssertTrue(status.enabled)
+        XCTAssertTrue(status.otherAccountPending)
+        XCTAssertEqual(status.unresolvedEventIDs, [])
+        XCTAssertEqual(status.localPendingEventIDs, [])
+        XCTAssertEqual(status.pendingCleanupEventIDs, [])
+    }
+
+    func testStatusSeparatesSubmittedWritesFromLocalPending() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 1501,
+                planID: UUID(),
+                scheduledDate: readAt,
+                fingerprint: "a",
+                pendingOperation: .schedule,
+                pendingPhase: .confirming,
+                submittedDate: readAt
+            )
+        )
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 1502,
+                planID: UUID(),
+                scheduledDate: readAt,
+                fingerprint: "b",
+                pendingOperation: .schedule,
+                pendingPhase: .writing
+            )
+        )
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 1503,
+                planID: UUID(),
+                scheduledDate: readAt,
+                fingerprint: "c",
+                pendingOperation: .remove,
+                removalIntent: .cleanup
+            )
+        )
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: LifecycleFakeOptIn(scope: scope),
+            loader: loader
+        )
+
+        let status = await lifecycle.status(scope: scope)
+
+        XCTAssertEqual(status.unresolvedEventIDs, [1501])
+        XCTAssertEqual(status.localPendingEventIDs, [1502])
+        XCTAssertEqual(status.pendingCleanupEventIDs, [1503])
+    }
+    func testStatusForAnotherAccountHidesTheSyncStateOfThePreviousOne() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let skipped = [
+            SkippedScheduleEvent(
+                eventId: 1601,
+                startDate: readAt,
+                reason: .unsupported(.poolSwimmingUnverified)
+            ),
+        ]
+        let loader = LifecycleSnapshotLoader { _ in
+            self.snapshot(candidates: [self.candidate(1602)], skipped: skipped)
+        }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            loader: loader
+        )
+        _ = await lifecycle.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: true
+        )
+
+        let other = await lifecycle.status(scope: otherScope)
+
+        XCTAssertNil(other.lastSuccessAt)
+        XCTAssertNil(other.lastAttemptAt)
+        XCTAssertNil(other.lastErrorCode)
+        XCTAssertEqual(other.counts, .none)
+        XCTAssertEqual(other.skipped, [])
+    }
 }
+
 
 // MARK: - Fakes
 
@@ -1060,6 +1599,7 @@ private actor LifecycleFakeStore: ScheduleWorkoutStore {
     private(set) var removeCount = 0
     private(set) var scheduleRequests: [ScheduleWorkoutRequest] = []
     private var readFailure: Error?
+    private(set) var readCount = 0
     private var hideNext = false
     private var hidden: [ScheduledWorkoutState] = []
     private var log: LifecycleOperationLog?
@@ -1097,6 +1637,7 @@ private actor LifecycleFakeStore: ScheduleWorkoutStore {
     }
 
     func scheduledWorkouts(calendar: Calendar) async throws -> [ScheduledWorkoutState] {
+        readCount += 1
         if let error = readFailure {
             throw error
         }
@@ -1145,6 +1686,7 @@ private actor LifecycleFakeVault: WatchScheduleCredentialVault {
     private(set) var saveCount = 0
     private(set) var loadCount = 0
     private(set) var purgeCount = 0
+    private var purgeFailures = 0
 
     init(credential: WatchScheduleCredential? = nil) {
         stored = credential
@@ -1160,14 +1702,24 @@ private actor LifecycleFakeVault: WatchScheduleCredentialVault {
         stored = credential
     }
 
+    func failNextPurge() {
+        purgeFailures += 1
+    }
+
     func purge() async throws {
         purgeCount += 1
+        if purgeFailures > 0 {
+            purgeFailures -= 1
+            throw LifecycleFakeStoreError.unavailable
+        }
         stored = nil
     }
 }
 
 private actor LifecycleFakeOptIn: WatchScheduleOptInStore {
     private var scope: AccountScope?
+    private var suspendSave = false
+    private var saveWaiter: CheckedContinuation<Void, Never>?
 
     init(scope: AccountScope? = nil) {
         self.scope = scope
@@ -1178,11 +1730,63 @@ private actor LifecycleFakeOptIn: WatchScheduleOptInStore {
     }
 
     func save(_ scope: AccountScope) async throws {
+        if suspendSave {
+            suspendSave = false
+            await withCheckedContinuation { continuation in
+                saveWaiter = continuation
+            }
+        }
         self.scope = scope
     }
 
     func clear() async throws {
         scope = nil
+    }
+
+    func suspendNextSave() {
+        suspendSave = true
+    }
+
+    func waitUntilSaveSuspended() async {
+        while saveWaiter == nil {
+            await Task.yield()
+        }
+    }
+
+    func resumeSuspendedSave() {
+        saveWaiter?.resume()
+        saveWaiter = nil
+    }
+}
+
+private actor LifecycleFakeTeardown: WatchScheduleTeardownStore {
+    private var scopes: [AccountScope]
+    private var addFailures = 0
+
+    init(initial: [AccountScope] = []) {
+        scopes = initial
+    }
+
+    func load() async throws -> [AccountScope] {
+        scopes
+    }
+
+    func add(_ scope: AccountScope) async throws {
+        if addFailures > 0 {
+            addFailures -= 1
+            throw LifecycleFakeStoreError.unavailable
+        }
+        if !scopes.contains(scope) {
+            scopes.append(scope)
+        }
+    }
+
+    func remove(_ scope: AccountScope) async throws {
+        scopes.removeAll { $0 == scope }
+    }
+
+    func failNextAdd() {
+        addFailures += 1
     }
 }
 
@@ -1190,6 +1794,8 @@ private actor LifecycleFakeAuthorization: WatchScheduleAuthorizing {
     private var permissionValue: WatchSchedulePermission
     private let requested: WatchSchedulePermission
     private(set) var requestCount = 0
+    private var suspendRequest = false
+    private var requestWaiter: CheckedContinuation<WatchSchedulePermission, Never>?
 
     init(
         permission: WatchSchedulePermission = .authorized,
@@ -1209,8 +1815,31 @@ private actor LifecycleFakeAuthorization: WatchScheduleAuthorizing {
 
     func requestPermission() async -> WatchSchedulePermission {
         requestCount += 1
+        if suspendRequest {
+            suspendRequest = false
+            let result = await withCheckedContinuation { continuation in
+                requestWaiter = continuation
+            }
+            permissionValue = result
+            return result
+        }
         permissionValue = requested
         return requested
+    }
+
+    func suspendNextRequest() {
+        suspendRequest = true
+    }
+
+    func waitUntilRequestStarted() async {
+        while requestWaiter == nil {
+            await Task.yield()
+        }
+    }
+
+    func resumeRequest(_ permission: WatchSchedulePermission) {
+        requestWaiter?.resume(returning: permission)
+        requestWaiter = nil
     }
 }
 
@@ -1275,5 +1904,65 @@ private actor LifecycleSnapshotLoader {
 
     func failNextLoad(_ error: Error) {
         failure = error
+    }
+}
+
+final class WatchScheduleBackgroundPolicyTests: XCTestCase {
+    private let now = Date(timeIntervalSince1970: 1_800_000_000)
+
+    func testSchedulesSoonWhenTheTokenOutlivesTheMargin() {
+        let earliest = WatchScheduleBackgroundPolicy.earliestBeginDate(
+            credentialExpiresAt: now.addingTimeInterval(60 * 60),
+            now: now
+        )
+
+        XCTAssertEqual(earliest, now.addingTimeInterval(5 * 60))
+    }
+
+    func testDoesNotSubmitWhenTheTokenExpiresBeforeUse() {
+        XCTAssertNil(
+            WatchScheduleBackgroundPolicy.earliestBeginDate(
+                credentialExpiresAt: now.addingTimeInterval(12 * 60),
+                now: now
+            )
+        )
+        XCTAssertNotNil(
+            WatchScheduleBackgroundPolicy.earliestBeginDate(
+                credentialExpiresAt: now.addingTimeInterval(20 * 60),
+                now: now
+            )
+        )
+    }
+
+    func testDoesNotSubmitWithoutAnExpiry() {
+        XCTAssertNil(
+            WatchScheduleBackgroundPolicy.earliestBeginDate(
+                credentialExpiresAt: nil,
+                now: now
+            )
+        )
+    }
+}
+
+final class FileWatchScheduleTeardownStoreTests: XCTestCase {
+    func testPersistsAuthorizationAcrossInstances() async throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("watch-teardown-\(UUID().uuidString).json")
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        let scope = AccountScope(
+            instanceURL: URL(string: "https://train.example.org/api")!,
+            athleteId: 7
+        )
+
+        let first = FileWatchScheduleTeardownStore(fileURL: url)
+        try await first.add(scope)
+        let second = FileWatchScheduleTeardownStore(fileURL: url)
+        let watched901 = try await second.load()
+        XCTAssertEqual(watched901, [scope])
+
+        try await second.remove(scope)
+        let third = FileWatchScheduleTeardownStore(fileURL: url)
+        let watched902 = try await third.load()
+        XCTAssertEqual(watched902, [])
     }
 }

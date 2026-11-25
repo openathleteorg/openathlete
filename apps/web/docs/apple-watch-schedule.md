@@ -57,10 +57,18 @@ matching entry.
   next foreground sign-in.
 - Opt-in is stored per account (`UserDefaults`, not a credential). It only lets
   a background wake-up know that this account asked for scheduling.
-- Connect/refresh/disconnect are serialized by the lifecycle actor. Logout,
-  disconnect and instance switch bump an epoch and call
-  `ScheduleReconciler.invalidate()` immediately, so an in-flight fetch cannot
-  schedule anything; the call then waits for the pass to drain.
+- Connect/refresh/disconnect are serialized by the lifecycle actor. Logout
+  bumps an epoch and fences the reconciler immediately, even when no opt-in
+  exists yet: a permission sheet or opt-in save that resolves later can never
+  enable a signed-out account. A fence acknowledgement (`fence`) does not wait
+  for Apple; the web clears auth state after that acknowledgement (bounded by a
+  short timeout), then cleanup continues.
+- Cleanup authorization is written to a separate device-protected teardown file
+  **before** the opt-in is cleared. If the app crashes, the journal is
+  unreadable or a Keychain purge fails, the teardown survives and the next
+  account must finish it before scheduling. If Application Support itself is
+  unavailable, the runtime stays disabled: there is no temporary-directory
+  fallback.
 - Cleanup runs under the **exact stored scope and generation**: the reconciler
   is re-activated for that scope only after the pass drained, cleanup removes
   only journal-owned, non-completed entries, then the fence and credential are
@@ -77,9 +85,20 @@ matching entry.
   - `otherAccountPending`: the same, for a previous account. It blocks
     scheduling for the current one until resolved.
 - Background refresh uses `BGAppRefreshTask`. It is opportunistic: the OS
-  decides whether and when it runs; there is no promised delivery time. On task
-  expiry the pass is cancelled and the next request is resubmitted while the
-  account remains opted in.
+  decides whether and when it runs; there is no promised delivery time. The
+  request's earliest date is a short delay (5 minutes) and is submitted only if
+  the stored token remains valid for another margin (10 minutes). With a
+  one-hour token that works; a token that cannot outlive the window submits
+  nothing and waits for the next foreground refresh. On task expiry the pass is
+  cancelled and the next request is resubmitted while the account remains
+  opted in.
+- Native Capacitor bridge logging is off in every build mode
+  (`ios.loggingBehavior: 'none'`) because bridge calls carry access tokens.
+  The JS bridge never persists credentials and logs none.
+- Status exposes only the current account's event IDs. Another account's
+  pending work is a single `otherAccountPending` flag; token expiry is not
+  exposed. Submitted writes (Apple may have them) are separated from local or
+  planning-stage work that is safe to retry.
 
 ## Device acceptance — required before release
 
@@ -145,8 +164,8 @@ length to match the prescription exactly. Until then, keep
 
 | Check | Result |
 | --- | --- |
-| Portable core tests (Linux Swift 6.1.2) | 174 passed, debug and release |
-| Web unit tests (`pnpm web test`) | passed, including the settings section and lifecycle hook |
+| Portable core tests (Linux Swift 6.1.2) | 191 passed, debug and release |
+| Web unit tests (`pnpm web test`) | passed, including settings, lifecycle hook, bridge logging/storage audit and server no-op |
 | `scripts/verify.sh` | see the task report; lint/types/translations/unit run |
 | `scripts/verify.sh --e2e` | blocked on this host: Docker is unavailable, no stack was started |
 | `fastlane ios check` (real Xcode build) | **not run**, this host is Linux (no Xcode/xcodebuild) |

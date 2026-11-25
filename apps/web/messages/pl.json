@@ -3232,5 +3232,6 @@
   "apple_watch_skip_target": "Ta sesja używa celu, którego aplikacja Workout firmy Apple nie może wyrazić.",
   "apple_watch_skip_zone": "Nie udało się rozwiązać strefy treningowej dla tej sesji.",
   "apple_watch_skip_structure": "Struktury tej sesji nie można wyrazić w aplikacji Workout firmy Apple.",
-  "apple_watch_skip_other": "Tej sesji nie można przedstawić w aplikacji Workout firmy Apple."
+  "apple_watch_skip_other": "Tej sesji nie można przedstawić w aplikacji Workout firmy Apple.",
+  "apple_watch_local_pending": "{count} treningów czeka na ponowną próbę przy następnym odświeżeniu."
 }

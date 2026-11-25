@@ -3232,5 +3232,6 @@
   "apple_watch_skip_target": "Esta sesión usa un objetivo que la app Workout de Apple no puede expresar.",
   "apple_watch_skip_zone": "No se pudo resolver una zona de entrenamiento para esta sesión.",
   "apple_watch_skip_structure": "La estructura de esta sesión no se puede expresar en la app Workout de Apple.",
-  "apple_watch_skip_other": "Esta sesión no se puede representar en la app Workout de Apple."
+  "apple_watch_skip_other": "Esta sesión no se puede representar en la app Workout de Apple.",
+  "apple_watch_local_pending": "{count} entrenamientos esperan para reintentarse en la próxima actualización."
 }

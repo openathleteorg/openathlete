@@ -3232,5 +3232,6 @@
   "apple_watch_skip_target": "Esta sessão usa uma meta que o app Workout da Apple não consegue expressar.",
   "apple_watch_skip_zone": "Não foi possível resolver uma zona de treino para esta sessão.",
   "apple_watch_skip_structure": "A estrutura desta sessão não pode ser expressa no app Workout da Apple.",
-  "apple_watch_skip_other": "Esta sessão não pode ser representada no app Workout da Apple."
+  "apple_watch_skip_other": "Esta sessão não pode ser representada no app Workout da Apple.",
+  "apple_watch_local_pending": "{count} treinos aguardam nova tentativa na próxima atualização."
 }

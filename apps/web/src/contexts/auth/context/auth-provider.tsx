@@ -8,7 +8,10 @@ import { ACCESS_TOKEN, clear, getItem, setItem } from '@/utils/local-storage';
 import { initializePushNotifications } from '@/utils/push-notifications';
 import { queryClient } from '@/utils/query-client';
 import { saveTimeZone } from '@/utils/time-zone';
-import { disconnectWatchScheduleOnExit } from '@/utils/watch-schedule';
+import {
+  disconnectWatchScheduleOnExit,
+  fenceWatchScheduleOnExit,
+} from '@/utils/watch-schedule';
 import posthog from 'posthog-js';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 
@@ -152,29 +155,33 @@ export function AuthProvider({ children }: Props) {
   }, []);
 
   const logout = useCallback((navigate?: (path: string) => void) => {
-    // Fence Apple scheduling before the tokens disappear. The native epoch and
-    // reconciler stop further writes immediately; a pending cleanup receipt
-    // survives even if the page reloads under the call.
-    disconnectWatchScheduleOnExit();
-    posthog.capture('user_logged_out');
-    posthog.reset();
-    clear();
-    // The cache outlives an in-app logout. The next account to sign in on
-    // this tab would get this one's data, including the profile that tells
-    // the guard whether to send a new account to the onboarding.
-    queryClient.clear();
-    signOutFirebase().catch((error) => {
-      console.error('Failed to sign out Firebase:', error);
-    });
-    dispatch({
-      type: Types.LOGOUT,
-    });
-    const loginPath = getPath(['auth', 'login']);
-    if (navigate) {
-      navigate(loginPath);
-    } else {
-      window.location.href = loginPath;
-    }
+    const finish = () => {
+      // Cleanup can finish later on the phone; it never holds up navigation.
+      disconnectWatchScheduleOnExit();
+      posthog.capture('user_logged_out');
+      posthog.reset();
+      clear();
+      // The cache outlives an in-app logout. The next account to sign in on
+      // this tab would get this one's data, including the profile that tells
+      // the guard whether to send a new account to the onboarding.
+      queryClient.clear();
+      signOutFirebase().catch((error) => {
+        console.error('Failed to sign out Firebase:', error);
+      });
+      dispatch({
+        type: Types.LOGOUT,
+      });
+      const loginPath = getPath(['auth', 'login']);
+      if (navigate) {
+        navigate(loginPath);
+      } else {
+        window.location.href = loginPath;
+      }
+    };
+    // Fence Apple scheduling before the tokens disappear, and wait for that
+    // acknowledgement (bounded) so a stale permission/fetch continuation cannot
+    // opt the signed-out account in after storage was cleared.
+    void fenceWatchScheduleOnExit().then(finish, finish);
   }, []);
 
   useEffect(() => {
