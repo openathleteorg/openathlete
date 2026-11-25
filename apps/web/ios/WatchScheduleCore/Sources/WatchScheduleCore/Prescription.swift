@@ -397,6 +397,13 @@ public enum UnsupportedReason: String, Codable, Equatable, Sendable {
     case missingZoneBounds
     case invalidZoneBounds
     case poolSwimmingUnverified
+    /// Pool workouts are mapped but the installed iOS cannot take them.
+    case poolSwimmingRequiresIOS18
+    /// WorkoutKit itself rejects this activity/goal/alert combination on the
+    /// installed OS. The mapper supports the shape; the device does not.
+    case nativeActivityUnsupported
+    case nativeGoalUnsupported
+    case nativeAlertUnsupported
     case noExecutableSteps
 }
 

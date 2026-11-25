@@ -48,8 +48,19 @@ public enum ScheduleStoreError: Error, Equatable, Sendable {
     /// The plan could not be built, so no native submission happened. This is
     /// safe to retry after the prescription/device changes.
     case planNotSubmitted
+    /// The requested instant has no single local representation (a DST gap or
+    /// repeated hour). Nothing was submitted; the event is skipped explicitly.
+    case ambiguousScheduledDate
     /// Scheduling permission is not granted. Nothing may be read or written.
     case unauthorized
+}
+
+/// Result of the store's side-effect-free capability check. It runs before the
+/// reconciler chooses capacity or replaces an entry, so one unsupported
+/// prescription cannot abort the run and ride sessions after it.
+public enum SchedulePreflight: Equatable, Sendable {
+    case supported
+    case unsupported(UnsupportedReason)
 }
 
 /// Fence checked by the native store after its last preflight await and
@@ -59,13 +70,16 @@ public enum ScheduleStoreError: Error, Equatable, Sendable {
 public struct ScheduleSubmissionFence: Sendable {
     private let checkClosure: @Sendable () async throws -> Void
     private let prepareClosure: @Sendable () async throws -> Void
+    private let abortClosure: @Sendable () async -> Void
 
     public init(
         check: @escaping @Sendable () async throws -> Void,
-        prepareSubmission: @escaping @Sendable () async throws -> Void
+        prepareSubmission: @escaping @Sendable () async throws -> Void,
+        abortPreparedSubmission: @escaping @Sendable () async -> Void = {}
     ) {
         self.checkClosure = check
         self.prepareClosure = prepareSubmission
+        self.abortClosure = abortPreparedSubmission
     }
 
     public func check() async throws {
@@ -75,6 +89,13 @@ public struct ScheduleSubmissionFence: Sendable {
     public func prepareSubmission() async throws {
         try await prepareClosure()
     }
+
+    /// Cancellation was observed after the durable submit marker was written
+    /// but before the native call. The store must call this so the receipt
+    /// returns to a proven-no-submit, retryable state.
+    public func abortPreparedSubmission() async {
+        await abortClosure()
+    }
 }
 
 /// The narrow WorkoutKit surface. `remove(planID:)` must never remove a
@@ -82,6 +103,9 @@ public struct ScheduleSubmissionFence: Sendable {
 /// delete.
 public protocol ScheduleWorkoutStore: Sendable {
     func maximumScheduledWorkoutCount() async -> Int
+    /// Side-effect-free capability and pool-gate check for one mapped plan.
+    /// Called before capacity and replacement decisions.
+    func preflight(_ plan: PlanInput) async -> SchedulePreflight
     func scheduledWorkouts(calendar: Calendar) async throws -> [ScheduledWorkoutState]
     func schedule(
         _ request: ScheduleWorkoutRequest,
@@ -93,6 +117,14 @@ public protocol ScheduleWorkoutStore: Sendable {
         calendar: Calendar,
         fence: ScheduleSubmissionFence
     ) async throws
+}
+
+public extension ScheduleWorkoutStore {
+    /// Portable/test stores that do not model Apple capabilities accept every
+    /// plan. The iOS adapter overrides this with real WorkoutKit checks.
+    func preflight(_ plan: PlanInput) async -> SchedulePreflight {
+        .supported
+    }
 }
 
 // MARK: - Durable journal
@@ -164,6 +196,78 @@ public enum ScheduleDate {
     public static func areEqual(_ first: Date, _ second: Date) -> Bool {
         normalized(first) == normalized(second)
     }
+
+    public enum LocalTimeError: Error, Equatable, Sendable {
+        /// The instant has no local representation (a DST gap).
+        case nonexistent
+        /// Two instants share the same local components (a repeated hour).
+        case ambiguous
+    }
+
+    /// Whole-second local components with an explicit time zone. The caller
+    /// must reject `nonexistent`/`ambiguous`: WorkoutKit's `DateComponents`
+    /// cannot carry which side of a repeated hour is meant, so guessing would
+    /// schedule the wrong instant.
+    public static func components(
+        for date: Date,
+        calendar: Calendar
+    ) throws -> DateComponents {
+        let instant = normalized(date)
+        var components = calendar.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second, .timeZone],
+            from: instant
+        )
+        components.timeZone = calendar.timeZone
+        guard let rebuilt = calendar.date(from: components),
+              areEqual(rebuilt, instant)
+        else {
+            throw LocalTimeError.nonexistent
+        }
+
+        // A repeated hour has two instants with identical local components.
+        // Scan the offsets real time zones use across a transition (whole
+        // hours plus the 30/45-minute historical zones); a match means the
+        // components alone cannot identify the requested instant.
+        let probes: [TimeInterval] = [
+            -10_800, -7_200, -5_400, -3_600, -2_700, -1_800, -900,
+            900, 1_800, 2_700, 3_600, 5_400, 7_200, 10_800,
+        ]
+        let desired = [
+            components.year,
+            components.month,
+            components.day,
+            components.hour,
+            components.minute,
+            components.second,
+        ]
+        for offset in probes {
+            let other = instant.addingTimeInterval(offset)
+            let otherComponents = calendar.dateComponents(
+                [.year, .month, .day, .hour, .minute, .second],
+                from: other
+            )
+            let candidate = [
+                otherComponents.year,
+                otherComponents.month,
+                otherComponents.day,
+                otherComponents.hour,
+                otherComponents.minute,
+                otherComponents.second,
+            ]
+            if candidate == desired {
+                throw LocalTimeError.ambiguous
+            }
+        }
+        return components
+    }
+
+    /// True only when the instant has exactly one local representation.
+    public static func isUnambiguous(
+        _ date: Date,
+        calendar: Calendar
+    ) -> Bool {
+        (try? components(for: date, calendar: calendar)) != nil
+    }
 }
 
 /// The durable association between one event and its Apple plan.
@@ -231,6 +335,12 @@ public protocol ScheduleJournal: Sendable {
     func saveCompletionTombstone(
         _ tombstone: ScheduleCompletionTombstone
     ) async throws
+}
+
+public enum ScheduleJournalError: Error, Equatable, Sendable {
+    /// A present document that is empty, truncated or not decodable. It is
+    /// never equivalent to a missing journal.
+    case corrupt
 }
 
 /// Foundation-only journal for the app. Writes are atomic, so a crash leaves
@@ -344,14 +454,21 @@ public actor FileScheduleJournal: ScheduleJournal {
     }
 
     private func load() throws -> Document {
+        // Only an absent file is an empty journal. A zero-byte or unreadable
+        // document is corrupt: treating it as empty would drop receipts,
+        // cleanup ownership and completion tombstones.
         guard FileManager.default.fileExists(atPath: fileURL.path) else {
             return Document()
         }
         let data = try Data(contentsOf: fileURL)
         guard !data.isEmpty else {
-            return Document()
+            throw ScheduleJournalError.corrupt
         }
-        return try decoder.decode(Document.self, from: data)
+        do {
+            return try decoder.decode(Document.self, from: data)
+        } catch {
+            throw ScheduleJournalError.corrupt
+        }
     }
 
     private func write(_ document: Document) throws {
@@ -464,7 +581,9 @@ public actor ScheduleReconciler {
 
     private let store: any ScheduleWorkoutStore
     private let journal: any ScheduleJournal
-    private let calendar: Calendar
+    /// Re-read for every pass so an iPhone time-zone change (travel or a DST
+    /// setting) is reflected without recreating the runtime.
+    private let calendarProvider: @Sendable () -> Calendar
     private var activeGeneration: UInt64?
     private var activeScope: AccountScope?
     private var lastAppliedReadAt: [PassKey: Date] = [:]
@@ -478,7 +597,22 @@ public actor ScheduleReconciler {
     ) {
         self.store = store
         self.journal = journal
-        self.calendar = calendar
+        self.calendarProvider = { calendar }
+    }
+
+    public init(
+        store: any ScheduleWorkoutStore,
+        journal: any ScheduleJournal,
+        calendarProvider: @escaping @Sendable () -> Calendar
+    ) {
+        self.store = store
+        self.journal = journal
+        self.calendarProvider = calendarProvider
+    }
+
+    /// Read-only binding check. A retired scope must not remain active.
+    public func isActive(for scope: AccountScope) -> Bool {
+        activeScope == scope
     }
 
     /// Called on connect and after every successful account/instance switch.
@@ -517,7 +651,8 @@ public actor ScheduleReconciler {
     public func reconcile(
         _ snapshot: ScheduleSnapshot,
         scope: AccountScope,
-        generation: UInt64
+        generation: UInt64,
+        calendar: Calendar? = nil
     ) async throws -> SyncSummary {
         // One pass at a time, including cleanup. Actor reentrancy must never let
         // two passes allocate different UUIDs for the same event or let a late
@@ -525,6 +660,7 @@ public actor ScheduleReconciler {
         await acquirePass()
         defer { releasePass() }
 
+        let calendar = calendar ?? calendarProvider()
         guard snapshot.scope == scope else {
             throw ScheduleReconcileError.scopeMismatch
         }
@@ -535,7 +671,50 @@ public actor ScheduleReconciler {
         // before pending cleanup or any Apple mutation.
         try validateFreshness(snapshot, scope: scope, generation: generation)
 
-        var actual = try await readActual()
+        // Classify every mapped plan before capacity, replacement or removal
+        // decisions. The pool gate and WorkoutKit's own goal/alert capability
+        // checks are per event: one unsupported swim or prescription must not
+        // abort the valid run and ride sessions that follow it.
+        let orderedCandidates = snapshot.candidates.sorted {
+            if $0.startDate != $1.startDate {
+                return $0.startDate < $1.startDate
+            }
+            return $0.eventId < $1.eventId
+        }
+        var preflightSkipped: [SkippedScheduleEvent] = []
+        var schedulableCandidates: [ScheduleCandidate] = []
+        for candidate in orderedCandidates {
+            guard ScheduleDate.isUnambiguous(
+                candidate.startDate,
+                calendar: calendar
+            ) else {
+                preflightSkipped.append(
+                    SkippedScheduleEvent(
+                        eventId: candidate.eventId,
+                        startDate: candidate.startDate,
+                        reason: .ambiguousLocalTime
+                    )
+                )
+                continue
+            }
+            switch await store.preflight(candidate.plan) {
+            case .supported:
+                schedulableCandidates.append(candidate)
+            case .unsupported(let reason):
+                preflightSkipped.append(
+                    SkippedScheduleEvent(
+                        eventId: candidate.eventId,
+                        startDate: candidate.startDate,
+                        reason: .unsupported(reason)
+                    )
+                )
+            }
+        }
+        let schedulableEventIDs = Set(schedulableCandidates.map(\.eventId))
+        try Task.checkCancellation()
+
+        var actual = try await readActual(calendar: calendar)
+        try Task.checkCancellation()
         let allReceipts = try await readAllReceipts()
         let receipts = allReceipts.filter { $0.scope == scope }
         var receiptsByEvent = Dictionary(
@@ -633,7 +812,7 @@ public actor ScheduleReconciler {
             )
             let isCurrent = receipt.scope == scope
             let isCandidate = isCurrent
-                && candidateByEvent[receipt.eventID] != nil
+                && schedulableEventIDs.contains(receipt.eventID)
             let isRetryable = isCurrent
                 && retryable.contains(receipt.eventID)
 
@@ -711,7 +890,7 @@ public actor ScheduleReconciler {
                 date: submittedDate,
                 isComplete: true
             )
-            let isCandidate = candidateByEvent[eventID] != nil
+            let isCandidate = schedulableEventIDs.contains(eventID)
             let isRetryable = retryable.contains(eventID)
             let wantsRemoval = receipt.removalIntent == .cleanup
                 || (!isRetryable
@@ -792,8 +971,12 @@ public actor ScheduleReconciler {
 
         // Unresolved submitted writes have now been reconciled (or the pass
         // already failed). Only now may another account's durable cleanup run.
-        try await finishPendingCleanup(except: scope, generation: generation)
-        actual = try await readActual()
+        try await finishPendingCleanup(
+            except: scope,
+            generation: generation,
+            calendar: calendar
+        )
+        actual = try await readActual(calendar: calendar)
 
         // Removals first: they free capacity and clean cancelled, completed or
         // newly unsupported sessions. A retryable read failure is not one of
@@ -802,6 +985,8 @@ public actor ScheduleReconciler {
         for receipt in receiptsByEvent.values.sorted(by: {
             $0.eventID < $1.eventID
         }) {
+            try requireActive(generation, scope: scope)
+            try Task.checkCancellation()
             let eventID = receipt.eventID
             let isCandidate = candidateByEvent[eventID] != nil
 
@@ -910,12 +1095,7 @@ public actor ScheduleReconciler {
         }
 
         let capacity = await store.maximumScheduledWorkoutCount()
-        let ordered = snapshot.candidates.sorted {
-            if $0.startDate != $1.startDate {
-                return $0.startDate < $1.startDate
-            }
-            return $0.eventId < $1.eventId
-        }
+        let ordered = schedulableCandidates
 
         for candidate in ordered {
             try requireActive(generation, scope: scope)
@@ -956,10 +1136,18 @@ public actor ScheduleReconciler {
                     at: snapshot.readAt,
                     generation: generation
                 )
-                if entries.contains(where: { !$0.isComplete }),
-                   let receipt = existingReceipt {
-                    // An incomplete copy shares a completed UUID. Remove it
-                    // and retain the receipt until every copy is gone.
+                if entries.contains(where: { !$0.isComplete }) {
+                    // A completed copy shares a UUID with an incomplete copy.
+                    // Keep (or create) a durable receipt so cleanup ownership
+                    // survives until Apple confirms the incomplete copy is
+                    // gone; a tombstone alone cannot remove it.
+                    let receipt = existingReceipt ?? ScheduleReceipt(
+                        scope: scope,
+                        eventID: eventID,
+                        planID: planID,
+                        scheduledDate: normalizedStart,
+                        fingerprint: fingerprint
+                    )
                     let outcome = try await removeOwnedEntry(
                         receipt,
                         intent: .calendar,
@@ -1095,17 +1283,29 @@ public actor ScheduleReconciler {
             }
 
             let hadUsableEntry = entries.contains { !$0.isComplete }
-            if phase == .writing
-                && !hadUsableEntry
-                && actual.count >= capacity {
-                overflow.append(eventID)
-                continue
-            }
-            if phase == .removing
-                && !hadUsableEntry
-                && actual.count >= capacity {
-                overflow.append(eventID)
-                continue
+            if !hadUsableEntry, actual.count >= capacity {
+                // A nearer eligible session outranks a farther confirmed,
+                // owned, incomplete one. Only that exact kind may be
+                // displaced; unresolved, transient, foreign and completed
+                // entries stay protected.
+                let madeRoom = try await makeRoomForNearest(
+                    candidate,
+                    scope: scope,
+                    capacity: capacity,
+                    actual: &actual,
+                    receiptsByEvent: &receiptsByEvent,
+                    candidateByEvent: candidateByEvent,
+                    retryable: retryable,
+                    completed: completed,
+                    tombstoned: tombstonedEvents,
+                    generation: generation,
+                    calendar: calendar,
+                    removed: &removed
+                )
+                if !madeRoom {
+                    overflow.append(eventID)
+                    continue
+                }
             }
 
             var receipt = existingReceipt ?? ScheduleReceipt(
@@ -1148,7 +1348,7 @@ public actor ScheduleReconciler {
                     throw ScheduleReconcileError.storeUnavailable
                 }
                 do {
-                    actual = try await readActual()
+                    actual = try await readActual(calendar: calendar)
                 } catch {
                     try rethrowFatal(error)
                     try rethrowCancellation(error)
@@ -1242,7 +1442,7 @@ public actor ScheduleReconciler {
             receiptsByEvent[eventID] = confirmingReceipt
 
             do {
-                actual = try await readActual()
+                actual = try await readActual(calendar: calendar)
             } catch {
                 try rethrowFatal(error)
                 try rethrowCancellation(error)
@@ -1333,8 +1533,94 @@ public actor ScheduleReconciler {
             retainedEventIDs: sortedUnique(retained),
             overflowEventIDs: sortedUnique(overflow),
             failedEventIDs: sortedUnique(failed),
-            skipped: snapshot.skipped
+            skipped: (snapshot.skipped + preflightSkipped).sorted {
+                if $0.startDate != $1.startDate {
+                    return $0.startDate < $1.startDate
+                }
+                return $0.eventId < $1.eventId
+            }
         )
+    }
+
+    /// At Apple's capacity, remove the farthest *confirmed, owned, incomplete*
+    /// entry for another eligible session that sorts after `candidate`. The
+    /// victim's own receipt is deleted; its later turn in the same pass either
+    /// fits or is reported as overflow, so a nearer session is never starved by
+    /// a farther one. Apple's order is the only interaction here: foreign,
+    /// completed, transiently-skipped and unresolved entries have no eligible
+    /// victim receipt and are never touched.
+    private func makeRoomForNearest(
+        _ candidate: ScheduleCandidate,
+        scope: AccountScope,
+        capacity: Int,
+        actual: inout [ScheduledWorkoutState],
+        receiptsByEvent: inout [Int: ScheduleReceipt],
+        candidateByEvent: [Int: ScheduleCandidate],
+        retryable: Set<Int>,
+        completed: Set<Int>,
+        tombstoned: Set<Int>,
+        generation: UInt64,
+        calendar: Calendar,
+        removed: inout [Int]
+    ) async throws -> Bool {
+        while actual.count >= capacity {
+            let victims = receiptsByEvent.values.compactMap { receipt
+                -> (ScheduleReceipt, ScheduleCandidate)? in
+                guard receipt.eventID != candidate.eventId,
+                      receipt.pendingOperation == nil,
+                      !retryable.contains(receipt.eventID),
+                      !completed.contains(receipt.eventID),
+                      !tombstoned.contains(receipt.eventID),
+                      let victim = candidateByEvent[receipt.eventID]
+                else {
+                    return nil
+                }
+                let isLater = victim.startDate > candidate.startDate
+                    || (victim.startDate == candidate.startDate
+                        && victim.eventId > candidate.eventId)
+                guard isLater,
+                      receipt.fingerprint == PrescriptionFingerprint.make(victim.plan),
+                      ScheduleDate.areEqual(
+                        receipt.scheduledDate,
+                        victim.startDate
+                      ),
+                      actual.contains(where: {
+                        $0.planID == receipt.planID && !$0.isComplete
+                      }),
+                      !actual.contains(where: {
+                        $0.planID == receipt.planID && $0.isComplete
+                      })
+                else {
+                    return nil
+                }
+                return (receipt, victim)
+            }.sorted {
+                if $0.1.startDate != $1.1.startDate {
+                    return $0.1.startDate > $1.1.startDate
+                }
+                return $0.0.eventID > $1.0.eventID
+            }
+
+            guard let (victimReceipt, _) = victims.first else {
+                return false
+            }
+            try requireActive(generation, scope: scope)
+            try Task.checkCancellation()
+            let outcome = try await removeOwnedEntry(
+                victimReceipt,
+                intent: .calendar,
+                completedAt: Date(),
+                actual: &actual,
+                generation: generation,
+                calendar: calendar
+            )
+            guard outcome.confirmed, outcome.removed else {
+                return false
+            }
+            receiptsByEvent[victimReceipt.eventID] = nil
+            removed.append(victimReceipt.eventID)
+        }
+        return true
     }
 
     /// Disconnect, logout and instance switch use this. Only receipts in the
@@ -1343,11 +1629,13 @@ public actor ScheduleReconciler {
     /// and rejects a generation/scope other than the active one.
     public func cleanup(
         scope: AccountScope,
-        generation: UInt64
+        generation: UInt64,
+        calendar: Calendar? = nil
     ) async throws -> CleanupSummary {
         await acquirePass()
         defer { releasePass() }
 
+        let calendar = calendar ?? calendarProvider()
         guard activeScope == scope else {
             throw ScheduleReconcileError.scopeMismatch
         }
@@ -1388,7 +1676,7 @@ public actor ScheduleReconciler {
             }
         }
 
-        var actual = try await readActual()
+        var actual = try await readActual(calendar: calendar)
         var removed: [Int] = []
         var retained: [Int] = []
 
@@ -1516,11 +1804,18 @@ public actor ScheduleReconciler {
         ScheduleSubmissionFence(
             check: { [self] in
                 try await requireActive(generation, scope: scope)
+                try await Task.checkCancellation()
             },
             prepareSubmission: { [self] in
                 try await prepareSubmission(
                     scope: scope,
                     generation: generation,
+                    eventID: eventID
+                )
+            },
+            abortPreparedSubmission: { [self] in
+                await abortPreparedSubmission(
+                    scope: scope,
                     eventID: eventID
                 )
             }
@@ -1533,9 +1828,11 @@ public actor ScheduleReconciler {
         ScheduleSubmissionFence(
             check: { [self] in
                 try await requireCurrentGeneration(generation)
+                try await Task.checkCancellation()
             },
             prepareSubmission: { [self] in
                 try await requireCurrentGeneration(generation)
+                try await Task.checkCancellation()
             }
         )
     }
@@ -1546,6 +1843,7 @@ public actor ScheduleReconciler {
         eventID: Int
     ) async throws {
         try requireActive(generation, scope: scope)
+        try Task.checkCancellation()
         guard var receipt = try await readReceipt(
             scope: scope,
             eventID: eventID
@@ -1553,24 +1851,51 @@ public actor ScheduleReconciler {
             throw ScheduleReconcileError.journalUnavailable
         }
         try requireActive(generation, scope: scope)
+        try Task.checkCancellation()
         receipt.submittedDate = ScheduleDate.normalized(receipt.scheduledDate)
         receipt.pendingPhase = .confirming
-        try await saveReceipt(receipt, generation: generation)
 
-        // Invalidation can happen while `journal.save` is awaiting. Recheck
-        // after it returns and immediately before the caller is allowed to
-        // submit natively. In a live process this proves no submission; a crash
-        // between the save and this check remains ambiguous and stays blocked.
+        // Invalidation or task cancellation can happen while `journal.save` is
+        // awaiting. Both mean no native submission happened in this process;
+        // reset the durable marker so the receipt stays retryable. A crash
+        // between the save and this reset remains ambiguous and stays blocked.
         do {
+            try await saveReceipt(receipt, generation: generation)
             try requireActive(generation, scope: scope)
+            try Task.checkCancellation()
         } catch {
-            receipt.pendingPhase = .writing
-            receipt.submittedDate = nil
-            // Journal durability is not a native submission; record the proven
-            // no-submit state even though the account generation is fenced.
-            try? await journal.save(receipt)
+            await Self.markNotSubmitted(receipt, journal: journal)
             throw error
         }
+    }
+
+    private func abortPreparedSubmission(
+        scope: AccountScope,
+        eventID: Int
+    ) async {
+        guard let receipt = try? await readReceipt(
+            scope: scope,
+            eventID: eventID
+        ) else {
+            return
+        }
+        await Self.markNotSubmitted(receipt, journal: journal)
+    }
+
+    /// Best effort, and deliberately independent of the account generation:
+    /// the caller observed cancellation after its own durable marker but
+    /// before the native call, which is exactly the proven-no-submit state.
+    private static func markNotSubmitted(
+        _ receipt: ScheduleReceipt,
+        journal: any ScheduleJournal
+    ) async {
+        guard receipt.pendingPhase == .confirming else {
+            return
+        }
+        var reset = receipt
+        reset.pendingPhase = .writing
+        reset.submittedDate = nil
+        try? await journal.save(reset)
     }
 
     private func acquirePass() async {
@@ -1609,7 +1934,8 @@ public actor ScheduleReconciler {
 
     private func finishPendingCleanup(
         except scope: AccountScope,
-        generation: UInt64
+        generation: UInt64,
+        calendar: Calendar
     ) async throws {
         let all = try await readAllReceipts()
         let pending = all.filter {
@@ -1620,7 +1946,7 @@ public actor ScheduleReconciler {
         guard !pending.isEmpty else {
             return
         }
-        var actual = try await readActual()
+        var actual = try await readActual(calendar: calendar)
         for receipt in pending.sorted(by: {
             if $0.scope != $1.scope {
                 return $0.scope.athleteId < $1.scope.athleteId
@@ -1652,8 +1978,12 @@ public actor ScheduleReconciler {
         completedAt: Date,
         actual: inout [ScheduledWorkoutState],
         generation: UInt64,
+        calendar: Calendar? = nil,
         fence: ScheduleSubmissionFence? = nil
     ) async throws -> RemovalOutcome {
+        let calendar = calendar ?? calendarProvider()
+        try requireCurrentGeneration(generation)
+        try Task.checkCancellation()
         let submissionFence = fence ?? makeFence(
             scope: original.scope,
             generation: generation,
@@ -1731,7 +2061,7 @@ public actor ScheduleReconciler {
         }
 
         do {
-            actual = try await readActual()
+            actual = try await readActual(calendar: calendar)
         } catch {
             try rethrowFatal(error)
             try rethrowCancellation(error)
@@ -1798,7 +2128,9 @@ public actor ScheduleReconciler {
         )
     }
 
-    private func readActual() async throws -> [ScheduledWorkoutState] {
+    private func readActual(
+        calendar: Calendar
+    ) async throws -> [ScheduledWorkoutState] {
         do {
             return try await store.scheduledWorkouts(calendar: calendar)
         } catch is CancellationError {
@@ -1809,7 +2141,8 @@ public actor ScheduleReconciler {
                 throw ScheduleReconcileError.schedulingDenied
             case .unsupportedDevice:
                 throw ScheduleReconcileError.schedulingUnsupported
-            case .unreadableScheduledWorkout, .planNotSubmitted:
+            case .unreadableScheduledWorkout, .planNotSubmitted,
+                 .ambiguousScheduledDate:
                 throw ScheduleReconcileError.storeUnavailable
             }
         } catch {
@@ -1893,6 +2226,9 @@ public actor ScheduleReconciler {
         try requireCurrentGeneration(generation)
         do {
             try await journal.save(receipt)
+            // A cancellation during the journal await must prevent the native
+            // call that follows; the durable marker is reset by the caller.
+            try Task.checkCancellation()
         } catch is CancellationError {
             throw CancellationError()
         } catch {
@@ -1908,6 +2244,7 @@ public actor ScheduleReconciler {
         try requireCurrentGeneration(generation)
         do {
             try await journal.delete(scope: scope, eventID: eventID)
+            try Task.checkCancellation()
         } catch is CancellationError {
             throw CancellationError()
         } catch {
@@ -1928,7 +2265,8 @@ public actor ScheduleReconciler {
                 throw ScheduleReconcileError.schedulingDenied
             case .unsupportedDevice:
                 throw ScheduleReconcileError.schedulingUnsupported
-            case .unreadableScheduledWorkout, .planNotSubmitted:
+            case .unreadableScheduledWorkout, .planNotSubmitted,
+                 .ambiguousScheduledDate:
                 return
             }
         }

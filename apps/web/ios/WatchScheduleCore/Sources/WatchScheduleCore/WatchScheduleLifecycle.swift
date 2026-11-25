@@ -490,9 +490,13 @@ public actor WatchScheduleLifecycle {
     private let teardown: any WatchScheduleTeardownStore
     private let authorization: any WatchScheduleAuthorizing
     private let calendar: Calendar
+    private let calendarProvider: @Sendable () -> Calendar
     private let now: () -> Date
     private let loadSnapshot:
         @Sendable (AccountScope, Date, Calendar) async throws -> ScheduleSnapshot
+    /// Proves the pinned bearer belongs to this exact athlete before the
+    /// opt-in becomes durable. The iOS runtime uses `GET /athlete/me`.
+    private let verifyAccount: @Sendable (AccountScope) async throws -> Int
 
     private var generation: UInt64 = 0
     private var activeScope: AccountScope?
@@ -538,7 +542,9 @@ public actor WatchScheduleLifecycle {
             AccountScope,
             Date,
             Calendar
-        ) async throws -> ScheduleSnapshot
+        ) async throws -> ScheduleSnapshot,
+        calendarProvider: (@Sendable () -> Calendar)? = nil,
+        verifyAccount: (@Sendable (AccountScope) async throws -> Int)? = nil
     ) {
         self.reconciler = reconciler
         self.journal = journal
@@ -547,8 +553,14 @@ public actor WatchScheduleLifecycle {
         self.teardown = teardown
         self.authorization = authorization
         self.calendar = calendar
+        self.calendarProvider = calendarProvider ?? { calendar }
         self.now = now
         self.loadSnapshot = loadSnapshot
+        self.verifyAccount = verifyAccount ?? { scope in
+            // Portable tests and non-iOS targets do not model the own-athlete
+            // call; the iOS runtime always supplies the real transport.
+            scope.athleteId
+        }
     }
 
     // MARK: Status
@@ -742,28 +754,55 @@ public actor WatchScheduleLifecycle {
             )
         }
 
-        switch await saveOptInIfCurrent(scope, epoch: entryEpoch) {
-        case .applied:
-            break
-        case .stale:
-            return await report(.deferred(.inactive), scope: scope)
-        case .failed:
-            return await report(.failed("pendingCleanup"), scope: scope)
-        }
-        guard entryEpoch == epoch else {
-            return await report(.deferred(.inactive), scope: scope)
-        }
+        // Install and pin the credential before the opt-in is durable. The
+        // verified own-athlete identity, not just a stored scope, must match.
         await credentials.adopt(credential)
         guard entryEpoch == epoch else {
-            // The fence already retired the opt-in; only undo our own save if
-            // the session is still the one that started this connect.
-            _ = await clearOptInIfCurrent(scope, epoch: entryEpoch)
             try? await credentials.purge()
             return await report(.deferred(.inactive), scope: scope)
         }
         await credentials.beginPass(credential)
         guard entryEpoch == epoch else {
             await credentials.endPass()
+            try? await credentials.purge()
+            return await report(.deferred(.inactive), scope: scope)
+        }
+        do {
+            let verifiedAthleteId = try await verifyAccount(scope)
+            guard verifiedAthleteId == scope.athleteId else {
+                throw ScheduleSourceError.scopeMismatch
+            }
+        } catch {
+            await credentials.endPass()
+            try? await credentials.purge()
+            guard entryEpoch == epoch else {
+                return await report(.deferred(.inactive), scope: scope)
+            }
+            return await verificationFailure(error, scope: scope)
+        }
+        guard entryEpoch == epoch else {
+            await credentials.endPass()
+            try? await credentials.purge()
+            return await report(.deferred(.inactive), scope: scope)
+        }
+
+        switch await saveOptInIfCurrent(scope, epoch: entryEpoch) {
+        case .applied:
+            break
+        case .stale:
+            await credentials.endPass()
+            try? await credentials.purge()
+            return await report(.deferred(.inactive), scope: scope)
+        case .failed:
+            await credentials.endPass()
+            try? await credentials.purge()
+            return await report(.failed("pendingCleanup"), scope: scope)
+        }
+        guard entryEpoch == epoch else {
+            // The fence already retired the opt-in; only undo our own save if
+            // the session is still the one that started this connect.
+            await credentials.endPass()
+            _ = await clearOptInIfCurrent(scope, epoch: entryEpoch)
             try? await credentials.purge()
             return await report(.deferred(.inactive), scope: scope)
         }
@@ -1160,9 +1199,12 @@ public actor WatchScheduleLifecycle {
         scope: AccountScope,
         entryEpoch: UInt64
     ) async -> WatchScheduleRefreshReport {
+        // Read the device calendar once per pass. A time-zone change must not
+        // keep the snapshot and native date components on different calendars.
+        let passCalendar = calendarProvider()
         let snapshot: ScheduleSnapshot
         do {
-            snapshot = try await loadSnapshot(scope, now(), calendar)
+            snapshot = try await loadSnapshot(scope, now(), passCalendar)
         } catch is CancellationError {
             return await report(.deferred(.inactive), scope: scope)
         } catch let error as ScheduleSourceError {
@@ -1188,7 +1230,8 @@ public actor WatchScheduleLifecycle {
             let summary = try await reconciler.reconcile(
                 snapshot,
                 scope: scope,
-                generation: generation
+                generation: generation,
+                calendar: passCalendar
             )
             state.lastSuccessAt = now()
             state.lastErrorCode = nil
@@ -1205,11 +1248,35 @@ public actor WatchScheduleLifecycle {
         }
     }
 
+    /// A failure before the opt-in never becomes an enabled session. It maps
+    /// to the same stable outcomes as a snapshot read.
+    private func verificationFailure(
+        _ error: Error,
+        scope: AccountScope
+    ) async -> WatchScheduleRefreshReport {
+        if let source = error as? ScheduleSourceError {
+            return await sourceFailure(source, scope: scope)
+        }
+        if let transport = error as? ScheduleTransportError {
+            switch transport {
+            case .unauthorized, .credentialExpired:
+                return await report(.deferred(.credentialRequired), scope: scope)
+            case .scopeMismatch:
+                return await report(.deferred(.scopeMismatch), scope: scope)
+            default:
+                return await report(.failed("calendarUnavailable"), scope: scope)
+            }
+        }
+        if error is CancellationError {
+            return await report(.deferred(.inactive), scope: scope)
+        }
+        return await report(.failed("calendarUnavailable"), scope: scope)
+    }
+
     private func sourceFailure(
         _ error: ScheduleSourceError,
         scope: AccountScope
-    ) async -> WatchScheduleRefreshReport {
-        switch error {
+    ) async -> WatchScheduleRefreshReport {        switch error {
         case .credentialExpired, .unauthorized:
             // The app session must sign in again in the foreground.
             return await report(.deferred(.credentialRequired), scope: scope)
@@ -1264,44 +1331,85 @@ public actor WatchScheduleLifecycle {
     /// Removes every owned upcoming entry under the exact authorized scope and
     /// retires the credential. Receipts Apple cannot confirm are retained for
     /// the next attempt; nothing is reset or guessed.
-    private func teardownScope(
-        _ target: AccountScope,
-        preserving active: AccountScope? = nil
-    ) async -> TeardownOutcome {
-        generation &+= 1
-        await reconciler.activate(generation: generation, for: target)
+    ///
+    /// A readable, empty journal is already a complete teardown: there is
+    /// nothing to read from Apple and no permission is needed, but the stored
+    /// credential is still purged. This is what lets a denied iPhone finish an
+    /// authorized cleanup without touching WorkoutKit.
+    private func teardownScope(_ target: AccountScope) async -> TeardownOutcome {
+        let receiptsBefore: [ScheduleReceipt]
+        let journalKnown: Bool
+        do {
+            receiptsBefore = try await journal.receipts(for: target)
+            journalKnown = true
+        } catch {
+            receiptsBefore = []
+            journalKnown = false
+        }
 
         var removed: [Int] = []
         var retained: [Int] = []
-        var cleanupProven = false
-        do {
-            let summary = try await reconciler.cleanup(
-                scope: target,
-                generation: generation
-            )
-            removed = summary.removedEventIDs
-            retained = summary.retainedEventIDs
-            cleanupProven = true
-        } catch {
-            // Cleanup persisted its intents before the fallible scheduler
-            // read. Every receipt that still needs work stays. A failed or
-            // unreadable cleanup is uncertain, never an empty success.
-            let receipts = (try? await journal.receipts(for: target)) ?? []
-            retained = receipts.map(\.eventID)
-        }
-        await reconciler.invalidate()
-        // Recovering another scope must not clear the account that is signed in
-        // and still usable. Only the cleaned scope loses its active binding.
-        if let active, active != target {
-            await reconciler.activate(generation: generation, for: active)
-            activeScope = active
-        } else {
+        var cleanupProven = journalKnown && receiptsBefore.isEmpty
+
+        if cleanupProven {
+            // No Apple scheduler, permission or read is involved. Drop only
+            // this scope's active binding; a different signed-in account stays
+            // untouched.
+            guard activeScope == target else {
+                syncStates[target] = nil
+                return await finishTeardownReport(
+                    target,
+                    removed: removed,
+                    retained: retained,
+                    cleanupProven: true
+                )
+            }
+            generation &+= 1
+            await reconciler.invalidate()
             activeScope = nil
+        } else {
+            generation &+= 1
+            await reconciler.activate(generation: generation, for: target)
+            do {
+                let summary = try await reconciler.cleanup(
+                    scope: target,
+                    generation: generation,
+                    calendar: calendarProvider()
+                )
+                removed = summary.removedEventIDs
+                retained = summary.retainedEventIDs
+                cleanupProven = true
+            } catch {
+                // Cleanup persisted its intents before the fallible scheduler
+                // read. Every receipt that still needs work stays. A failed or
+                // unreadable cleanup is uncertain, never an empty success.
+                let receipts = (try? await journal.receipts(for: target)) ?? []
+                retained = receipts.map(\.eventID)
+                cleanupProven = false
+            }
+            await reconciler.invalidate()
+            if activeScope == target {
+                activeScope = nil
+            }
         }
         syncStates[target] = nil
-        let permission = await authorization.permission()
-        permissionCache = permission
+        return await finishTeardownReport(
+            target,
+            removed: removed,
+            retained: retained,
+            cleanupProven: cleanupProven
+        )
+    }
 
+    private func finishTeardownReport(
+        _ target: AccountScope,
+        removed: [Int],
+        retained: [Int],
+        cleanupProven: Bool
+    ) async -> TeardownOutcome {
+        // No permission query here: an empty scope must tear down even when
+        // WorkoutKit reports denied. The last known permission is reported.
+        let permission = permissionCache
         let receipts = (try? await journal.receipts(for: target)) ?? []
         let unresolved = receipts.filter(isSubmitted).map(\.eventID)
         let pendingCleanup = receipts.filter(isPendingCleanup).map(\.eventID)
@@ -1353,9 +1461,10 @@ public actor WatchScheduleLifecycle {
             }
             return $0.athleteId < $1.athleteId
         }
-        let active = activeScope
+        let entryEpoch = epoch
+        let originalActive = activeScope
         for scope in ordered {
-            let result = await teardownScope(scope, preserving: active)
+            let result = await teardownScope(scope)
             guard result.fullyRetired else {
                 return false
             }
@@ -1363,6 +1472,27 @@ public actor WatchScheduleLifecycle {
                 try await teardown.remove(scope)
             } catch {
                 return false
+            }
+
+            // Recompute after every step: the surviving account must be the
+            // one that was active before recovery, must not itself be in the
+            // teardown list, must still hold the durable opt-in, and no fence
+            // may have superseded this recovery. A scope that was drained is
+            // never restored just because it was active at entry.
+            if let originalActive,
+               originalActive != scope,
+               !ordered.contains(originalActive),
+               epoch == entryEpoch,
+               (try? await optIn.load()) == originalActive {
+                // teardownScope invalidates the reconciler even when it
+                // cleaned another scope; re-establish the surviving binding
+                // after every step.
+                generation &+= 1
+                await reconciler.activate(
+                    generation: generation,
+                    for: originalActive
+                )
+                activeScope = originalActive
             }
         }
         return true

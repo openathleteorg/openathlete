@@ -55,6 +55,12 @@ matching entry.
   current access token; a background pass may only use the stored token until
   it expires. On expiry the credential is purged and the pass defers to the
   next foreground sign-in.
+- The native transport proves the pinned bearer's identity with
+  `GET /athlete/me` before the opt-in is saved and before any calendar list is
+  treated as authoritative, including an empty one. The fixture in
+  `ScheduleSourceTests.testOwnAthleteFixtureUsesTheActualAPIWireShape` pins the
+  response shape; a mismatched `athleteId` is a `scopeMismatch`, never an empty
+  calendar.
 - Opt-in is stored per account (`UserDefaults`, not a credential). It only lets
   a background wake-up know that this account asked for scheduling.
 - Connect/refresh/disconnect are serialized by the lifecycle actor. Logout

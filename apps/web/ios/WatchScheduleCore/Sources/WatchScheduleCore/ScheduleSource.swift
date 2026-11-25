@@ -184,7 +184,23 @@ public enum ScheduleWireCoding {
 /// The narrow network surface the snapshot needs. It is intentionally not a
 /// general API client: the iOS transport owns credentials, redirects and
 /// instance scoping.
+/// The own-athlete response of `GET /athlete/me` (see
+/// `apps/web/src/api/athlete/athlete.api.ts`). Only the identity the API
+/// proves for the pinned bearer matters here; the rest of the profile is
+/// deliberately ignored.
+public struct OwnAthleteInput: Codable, Equatable, Sendable {
+    public let athleteId: Int
+
+    public init(athleteId: Int) {
+        self.athleteId = athleteId
+    }
+}
+
 public protocol ScheduleTransport {
+    /// `GET /athlete/me` with the same pinned bearer as the calendar reads.
+    /// A token for another athlete is a mismatch, never an empty calendar.
+    func ownAthleteId(scope: AccountScope) async throws -> Int
+
     /// `GET /event` for the authenticated athlete's own calendar. `to` is
     /// exclusive; the response must be complete for the range.
     func listEvents(
@@ -193,7 +209,7 @@ public protocol ScheduleTransport {
         to: Date
     ) async throws -> [CalendarEventInput]
 
-    /// `GET /event/:eventId`, used only when the calendar row has no workout.
+    /// `GET /event/:eventId`, only when the calendar row has no workout.
     func eventDetail(
         scope: AccountScope,
         eventId: Int
@@ -202,6 +218,14 @@ public protocol ScheduleTransport {
     /// `GET /training-zone/athlete/:athleteId` for the same signed-in
     /// athlete. Zones belong to the workout owner, never the coach view.
     func trainingZones(scope: AccountScope) async throws -> [ZoneInput]
+}
+
+public extension ScheduleTransport {
+    /// Test transports that do not model identity default to the requested
+    /// scope. The iOS transport overrides this with the real API call.
+    func ownAthleteId(scope: AccountScope) async throws -> Int {
+        scope.athleteId
+    }
 }
 
 // MARK: - Snapshot
@@ -223,6 +247,9 @@ public struct ScheduleCandidate: Equatable, Sendable {
 public enum ScheduleSkipReason: Equatable, Sendable {
     case detailUnavailable
     case zonesUnavailable
+    /// The instant has no unambiguous local representation (DST gap or
+    /// repeated hour), so native date components would be wrong.
+    case ambiguousLocalTime
     /// The detail response belonged to another athlete; never map or schedule
     /// it for this account.
     case foreignEvent
@@ -232,7 +259,7 @@ public enum ScheduleSkipReason: Equatable, Sendable {
         switch self {
         case .detailUnavailable, .zonesUnavailable:
             return true
-        case .foreignEvent, .unsupported:
+        case .ambiguousLocalTime, .foreignEvent, .unsupported:
             return false
         }
     }
@@ -244,6 +271,8 @@ public enum ScheduleSkipReason: Equatable, Sendable {
             return "detailUnavailable"
         case .zonesUnavailable:
             return "zonesUnavailable"
+        case .ambiguousLocalTime:
+            return "ambiguousLocalTime"
         case .foreignEvent:
             return "foreignEvent"
         case .unsupported(let reason):
@@ -327,6 +356,23 @@ public struct ScheduleSource: Sendable {
         calendar: Calendar
     ) async throws -> ScheduleSnapshot {
         let window = try Self.window(now: now, calendar: calendar)
+
+        // The bearer is pinned by the credential provider. Before any list can
+        // be authoritative (especially an empty one), prove that it belongs to
+        // the athlete this scope names. A token for another account must never
+        // produce a removable/keep set for this one.
+        let ownAthleteId: Int
+        do {
+            ownAthleteId = try await transport.ownAthleteId(scope: scope)
+        } catch let error as ScheduleTransportError {
+            throw Self.fatalError(for: error, listFailed: true)
+                ?? .calendarUnavailable
+        } catch {
+            throw error
+        }
+        guard ownAthleteId == scope.athleteId else {
+            throw ScheduleSourceError.scopeMismatch
+        }
 
         let rows: [CalendarEventInput]
         do {

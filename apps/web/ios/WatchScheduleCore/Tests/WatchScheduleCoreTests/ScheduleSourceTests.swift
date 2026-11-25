@@ -307,6 +307,48 @@ final class ScheduleSourceTests: XCTestCase {
         XCTAssertEqual(snapshot.completedEventIds, [])
         XCTAssertEqual(snapshot.skipped, [])
         XCTAssertEqual(transport.listRequests.count, 1)
+        XCTAssertEqual(transport.ownAthleteRequests, [scope])
+    }
+
+    func testOwnAthleteFixtureUsesTheActualAPIWireShape() throws {
+        // Shape of GET /athlete/me (`Athlete` plus training zones). The
+        // fixture proves the identity field the transport relies on.
+        let json = """
+        {
+          "athleteId": 7,
+          "userId": 12,
+          "trainingZones": [],
+          "createdAt": "2026-01-01T00:00:00.000Z",
+          "updatedAt": "2026-01-01T00:00:00.000Z"
+        }
+        """
+        let decoded = try ScheduleWireCoding.decoder().decode(
+            OwnAthleteInput.self,
+            from: Data(json.utf8)
+        )
+        XCTAssertEqual(decoded.athleteId, 7)
+    }
+
+    func testPinnedBearerForAnotherAthleteIsRejectedBeforeAnEmptyCalendar()
+        async throws
+    {
+        let transport = FixtureTransport(events: [])
+        transport.ownAthleteIdValue = 99
+
+        do {
+            _ = try await ScheduleSource(transport: transport).loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T17:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+            XCTFail("A foreign bearer must not produce an authoritative calendar")
+        } catch let error as ScheduleSourceError {
+            XCTAssertEqual(error, .scopeMismatch)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+        XCTAssertEqual(transport.ownAthleteRequests, [scope])
+        XCTAssertTrue(transport.listRequests.isEmpty)
     }
 
     func testMissingOwnerTrainingRowMakesTheCalendarInvalid() async throws {
@@ -921,12 +963,14 @@ private struct ListRequest {
 
 private final class FixtureTransport: ScheduleTransport {
     var events: [CalendarEventInput]
+    var ownAthleteIdValue: Int?
     var listError: Error?
     var details: [Int: CalendarEventInput] = [:]
     var detailErrors: [Int: Error] = [:]
     var zones: [ZoneInput]
     var zonesError: Error?
 
+    private(set) var ownAthleteRequests: [AccountScope] = []
     private(set) var listRequests: [ListRequest] = []
     private(set) var detailRequests: [Int] = []
     private(set) var zoneRequests: [AccountScope] = []
@@ -934,6 +978,11 @@ private final class FixtureTransport: ScheduleTransport {
     init(events: [CalendarEventInput], zones: [ZoneInput] = []) {
         self.events = events
         self.zones = zones
+    }
+
+    func ownAthleteId(scope: AccountScope) async throws -> Int {
+        ownAthleteRequests.append(scope)
+        return ownAthleteIdValue ?? scope.athleteId
     }
 
     func listEvents(

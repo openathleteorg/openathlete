@@ -96,7 +96,9 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         authorization: LifecycleFakeAuthorization = LifecycleFakeAuthorization(),
         teardown: LifecycleFakeTeardown = LifecycleFakeTeardown(),
         loader: LifecycleSnapshotLoader,
-        credentials: WatchScheduleCredentialStore? = nil
+        credentials: WatchScheduleCredentialStore? = nil,
+        calendarProvider: (@Sendable () -> Calendar)? = nil,
+        verifyAccount: (@Sendable (AccountScope) async throws -> Int)? = nil
     ) -> (WatchScheduleLifecycle, WatchScheduleCredentialStore, LifecycleFakeVault) {
         let credentialStore = credentials ?? WatchScheduleCredentialStore(
             vault: vault,
@@ -118,7 +120,9 @@ final class WatchScheduleLifecycleTests: XCTestCase {
             now: { self.now },
             loadSnapshot: { scope, _, _ in
                 try await loader.load(scope)
-            }
+            },
+            calendarProvider: calendarProvider,
+            verifyAccount: verifyAccount
         )
         return (lifecycle, credentialStore, vault)
     }
@@ -1718,7 +1722,16 @@ final class WatchScheduleLifecycleTests: XCTestCase {
 
     func testUncertainCleanupKeepsTheTeardownAuthorization() async throws {
         let store = LifecycleFakeStore()
-        let (journal, _) = temporaryJournal()
+        // A directory where the journal file is expected makes every journal
+        // read fail: cleanup state is unknown, never an empty journal.
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("watch-journal-dir-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(
+            at: directory,
+            withIntermediateDirectories: true
+        )
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+        let journal = FileScheduleJournal(fileURL: directory)
         let teardown = LifecycleFakeTeardown()
         let optIn = LifecycleFakeOptIn(scope: scope)
         let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
@@ -1729,8 +1742,6 @@ final class WatchScheduleLifecycleTests: XCTestCase {
             teardown: teardown,
             loader: loader
         )
-        // No receipts, and Apple's schedule cannot be read: cleanup is
-        // uncertain, not empty.
         await store.setReadFailure(LifecycleFakeStoreError.unavailable)
 
         let disconnect = await lifecycle.disconnect(scope: scope)
@@ -1739,6 +1750,41 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         XCTAssertEqual(report.retainedEventIDs, [])
         let pending = try await teardown.load()
         XCTAssertEqual(pending, [scope])
+    }
+
+    func testEmptyJournalTearsDownWithoutApplePermissionOrRead() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let teardown = LifecycleFakeTeardown()
+        let optIn = LifecycleFakeOptIn(scope: otherScope)
+        let authorization = LifecycleFakeAuthorization(permission: .denied)
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let credential = self.credential(scope: scope)
+        let vault = LifecycleFakeVault(credential: credential)
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            optIn: optIn,
+            authorization: authorization,
+            teardown: teardown,
+            loader: loader
+        )
+        try await teardown.add(scope)
+
+        let recovered = await lifecycle.recoverCleanup()
+
+        XCTAssertTrue(recovered)
+        let pending = try await teardown.load()
+        XCTAssertEqual(pending, [])
+        let reads = await store.readCount
+        XCTAssertEqual(reads, 0)
+        let permissions = await authorization.permissionCount
+        XCTAssertEqual(permissions, 0)
+        let kept = try await vault.load()
+        XCTAssertNil(kept, "the torn-down scope's credential is still purged")
+        let current = try await optIn.load()
+        XCTAssertEqual(current, otherScope)
     }
 
     func testColdDisconnectRecoversAPersistedTeardownWithoutOptIn() async throws {
@@ -2939,6 +2985,174 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         XCTAssertEqual(kept?.scope, scope)
     }
 
+    func testCancelledBackgroundPreflightSubmitsAndRemovesNothing()
+        async throws
+    {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn()
+        let vault = LifecycleFakeVault()
+        let loader = LifecycleSnapshotLoader { _ in
+            self.snapshot(candidates: [self.candidate(3301)])
+        }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            optIn: optIn,
+            loader: loader
+        )
+        _ = await lifecycle.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: true
+        )
+        let scheduledBefore = await store.scheduleCount
+
+        await loader.suspendNextLoad()
+        let background = Task { await lifecycle.handleBackgroundRefresh() }
+        await loader.waitUntilSuspended()
+        background.cancel()
+        await loader.resumeSuspended()
+        let report = await background.value
+
+        XCTAssertEqual(report.outcome, .deferred(.inactive))
+        let scheduledAfter = await store.scheduleCount
+        let removedAfter = await store.removeCount
+        XCTAssertEqual(scheduledAfter, scheduledBefore)
+        XCTAssertEqual(removedAfter, 0)
+    }
+
+    /// A real B+ C teardown must not resurrect B just because B was active when
+    /// recovery started. Every step recalculates the surviving binding.
+    func testDrainingAnActiveScopeAndAnotherDoesNotRestoreTheDrainedAccount()
+        async throws
+    {
+        let planB = UUID()
+        let planC = UUID()
+        let store = LifecycleFakeStore(
+            workouts: [
+                ScheduledWorkoutState(
+                    planID: planB,
+                    startDate: readAt.addingTimeInterval(3_600),
+                    isComplete: false
+                ),
+                ScheduledWorkoutState(
+                    planID: planC,
+                    startDate: readAt.addingTimeInterval(7_200),
+                    isComplete: false
+                ),
+            ]
+        )
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn(scope: otherScope)
+        let teardown = LifecycleFakeTeardown()
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let authorization = LifecycleFakeAuthorization(permission: .authorized)
+        let credentialB = credential(scope: otherScope)
+        let vault = LifecycleFakeVault(credential: credentialB)
+        let credentials = WatchScheduleCredentialStore(
+            vault: vault,
+            now: { self.now }
+        )
+        let reconciler = ScheduleReconciler(
+            store: store,
+            journal: journal,
+            calendar: calendar
+        )
+        let lifecycle = WatchScheduleLifecycle(
+            reconciler: reconciler,
+            journal: journal,
+            credentials: credentials,
+            optIn: optIn,
+            teardown: teardown,
+            authorization: authorization,
+            calendar: calendar,
+            now: { self.now },
+            loadSnapshot: { requested, _, _ in
+                self.snapshot(scope: requested)
+            }
+        )
+        _ = await lifecycle.connect(
+            scope: otherScope,
+            credential: credentialB,
+            requestPermission: true
+        )
+        let initialBinding = await reconciler.isActive(for: otherScope)
+        XCTAssertTrue(initialBinding)
+        try await journal.save(
+            ScheduleReceipt(
+                scope: otherScope,
+                eventID: 3201,
+                planID: planB,
+                scheduledDate: readAt.addingTimeInterval(3_600),
+                fingerprint: "b"
+            )
+        )
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 3202,
+                planID: planC,
+                scheduledDate: readAt.addingTimeInterval(7_200),
+                fingerprint: "c"
+            )
+        )
+        try await teardown.add(scope)
+        try await teardown.add(otherScope)
+
+        let recovered = await lifecycle.recoverCleanup()
+
+        XCTAssertTrue(recovered)
+        let pending = try await teardown.load()
+        XCTAssertEqual(pending, [])
+        let storedOptIn = try await optIn.load()
+        XCTAssertNil(storedOptIn)
+        let kept = try await vault.load()
+        XCTAssertNil(kept)
+        let bBinding = await reconciler.isActive(for: otherScope)
+        XCTAssertFalse(
+            bBinding,
+            "a drained account must not be restored as the active scheduler"
+        )
+        let workouts = await store.workouts
+        XCTAssertTrue(workouts.isEmpty)
+    }
+
+    /// A credential whose own-athlete identity does not match the requested
+    /// scope never becomes an opt-in, even if its JWT claims the right expiry.
+    func testConnectRejectsABearerThatBelongsToAnotherAthleteBeforeOptIn()
+        async throws
+    {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn()
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, vault) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            loader: loader,
+            verifyAccount: { _ in 999 }
+        )
+
+        let report = await lifecycle.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: true
+        )
+
+        XCTAssertEqual(report.outcome, .deferred(.scopeMismatch))
+        let stored = try await optIn.load()
+        XCTAssertNil(stored)
+        let kept = try await vault.load()
+        XCTAssertNil(kept)
+        let requests = await store.scheduleCount
+        XCTAssertEqual(requests, 0)
+        let reads = await loader.loadCount
+        XCTAssertEqual(reads, 0)
+    }
+
     /// Recovering another scope's durable teardown waits for the current
     /// account's pass and leaves its opt-in/credential intact.
     func testRecoveryOfAnotherScopesTeardownKeepsTheActivePass() async throws {
@@ -3408,6 +3622,7 @@ private actor LifecycleFakeAuthorization: WatchScheduleAuthorizing {
     private var permissionValue: WatchSchedulePermission
     private let requested: WatchSchedulePermission
     private(set) var requestCount = 0
+    private(set) var permissionCount = 0
     private var suspendRequest = false
     private var requestWaiter: CheckedContinuation<WatchSchedulePermission, Never>?
 
@@ -3424,7 +3639,8 @@ private actor LifecycleFakeAuthorization: WatchScheduleAuthorizing {
     }
 
     func permission() async -> WatchSchedulePermission {
-        permissionValue
+        permissionCount += 1
+        return permissionValue
     }
 
     func requestPermission() async -> WatchSchedulePermission {

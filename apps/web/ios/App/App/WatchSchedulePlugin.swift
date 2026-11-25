@@ -252,6 +252,12 @@ final class WatchScheduleRuntime {
                     now: now,
                     calendar: calendar
                 )
+            },
+            calendarProvider: { Calendar.autoupdatingCurrent },
+            verifyAccount: { scope in
+                // Native defense: the opt-in and every authoritative list are
+                // tied to GET /athlete/me for the pinned bearer.
+                try await client.ownAthleteId(scope: scope)
             }
         )
     }

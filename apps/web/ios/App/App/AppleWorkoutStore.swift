@@ -34,12 +34,20 @@ enum WorkoutPlanBuildError: Error, LocalizedError, Equatable {
     }
 
     /// Stable code for the settings UI, shared with the core mapper.
-    var unsupportedReason: UnsupportedReason? {
+    var unsupportedReason: UnsupportedReason {
         switch self {
         case .poolSwimmingUnverified:
-            return PoolSwimNativeScheduling.unverifiedReason
-        default:
-            return nil
+            return .poolSwimmingUnverified
+        case .poolSwimmingRequiresIOS18:
+            return .poolSwimmingRequiresIOS18
+        case .unsupportedActivity:
+            return .nativeActivityUnsupported
+        case .unsupportedGoal:
+            return .nativeGoalUnsupported
+        case .unsupportedAlert:
+            return .nativeAlertUnsupported
+        case .emptyBlocks:
+            return .noExecutableSteps
         }
     }
 }
@@ -61,6 +69,27 @@ final class AppleWorkoutStore: ScheduleWorkoutStore {
             return 0
         }
         return WorkoutScheduler.maxAllowedScheduledWorkoutCount
+    }
+
+    /// Sorts out the pool gate and any goal/alert this OS build cannot take
+    /// before the reconciler spends capacity or replaces a prior entry.
+    func preflight(_ plan: PlanInput) async -> SchedulePreflight {
+        if plan.sport == .swimming {
+            guard PoolSwimNativeScheduling.isEnabled else {
+                return .unsupported(PoolSwimNativeScheduling.unverifiedReason)
+            }
+            guard #available(iOS 18.0, *) else {
+                return .unsupported(.poolSwimmingRequiresIOS18)
+            }
+        }
+        do {
+            _ = try makeWorkoutPlan(plan, id: UUID())
+            return .supported
+        } catch let error as WorkoutPlanBuildError {
+            return .unsupported(error.unsupportedReason)
+        } catch {
+            return .unsupported(.noExecutableSteps)
+        }
     }
 
     func scheduledWorkouts(
@@ -86,6 +115,7 @@ final class AppleWorkoutStore: ScheduleWorkoutStore {
         fence: ScheduleSubmissionFence
     ) async throws {
         try await requireSchedulingAccess()
+        try await fence.check()
         let plan: WorkoutPlan
         do {
             plan = try makeWorkoutPlan(request.plan, id: request.planID)
@@ -95,14 +125,28 @@ final class AppleWorkoutStore: ScheduleWorkoutStore {
             throw ScheduleStoreError.planNotSubmitted
         }
         let start = ScheduleDate.normalized(request.startDate)
-        let components = calendar.dateComponents(
-            [.year, .month, .day, .hour, .minute, .second],
-            from: start
-        )
+        let components: DateComponents
+        do {
+            // Local whole-second components with an explicit time zone, and
+            // only when the instant is unambiguous. WorkoutKit cannot say
+            // which side of a repeated DST hour is meant.
+            components = try ScheduleDate.components(
+                for: start,
+                calendar: calendar
+            )
+        } catch {
+            throw ScheduleStoreError.ambiguousScheduledDate
+        }
         // Last await on the preflight path is authorization above. The fence
         // both rechecks the account generation and durably marks the write as
         // submitted before the native call.
         try await fence.prepareSubmission()
+        // Cancellation can arrive during the journal await. Prove no native
+        // call happened and return the receipt to its retryable state.
+        if Task.isCancelled {
+            await fence.abortPreparedSubmission()
+            throw CancellationError()
+        }
         await WorkoutScheduler.shared.schedule(plan, at: components)
     }
 
@@ -116,7 +160,10 @@ final class AppleWorkoutStore: ScheduleWorkoutStore {
         for item in scheduled
             where item.plan.id == planID && !item.complete {
             // Recheck after every preflight/list await and each iteration.
+            // The fence includes task cancellation, so a background expiry
+            // cannot still remove an entry after the scheduler was fenced.
             try await fence.check()
+            try Task.checkCancellation()
             await WorkoutScheduler.shared.remove(item.plan, at: item.date)
         }
     }

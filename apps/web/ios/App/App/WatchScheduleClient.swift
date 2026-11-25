@@ -3,7 +3,11 @@ import WatchScheduleCore
 
 /// URLSession transport for the own-calendar snapshot.
 ///
-/// Wire contract, from `apps/web/src/api/event/event.api.ts`:
+/// Wire contract, from `apps/web/src/api/event/event.api.ts` and
+/// `apps/web/src/api/athlete/athlete.api.ts`:
+/// - `GET /athlete/me` with the pinned bearer before any calendar list. Its
+///   `athleteId` must equal the requested scope: a token for another athlete
+///   can otherwise return that athlete's calendar, or an empty one;
 /// - `GET /event?startDate=…&endDate=…`, without `coach` or `athleteId`: the
 ///   bearer token already scopes it to the signed-in athlete's own calendar,
 ///   including sessions a coach planned for them;
@@ -56,6 +60,18 @@ final class WatchScheduleClient: NSObject, ScheduleTransport, @unchecked Sendabl
     }
 
     // MARK: - ScheduleTransport
+
+    /// Proves which athlete the pinned bearer belongs to. This is the native
+    /// defense against a credential installed for another account: the
+    /// lifecycle calls it before opting in, and `ScheduleSource` calls it
+    /// before any authoritative (including empty) calendar list.
+    func ownAthleteId(scope: AccountScope) async throws -> Int {
+        let athlete: OwnAthleteInput = try await get(
+            scope: scope,
+            path: "/athlete/me"
+        )
+        return athlete.athleteId
+    }
 
     func listEvents(
         scope: AccountScope,
