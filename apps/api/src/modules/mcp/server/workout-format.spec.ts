@@ -13,12 +13,14 @@ import {
 
 import {
   Workout,
+  exerciseRefsOf,
   fromStoredWorkout,
   paceToSpeed,
   persisted,
   speedToPace,
   summarizeWorkout,
   toStoredWorkout,
+  withExerciseNames,
   workoutOutputSchema,
   workoutProblems,
   workoutSchema,
@@ -1028,16 +1030,122 @@ describe('strength sessions', () => {
     ];
 
     expect(workoutSchema.safeParse(item({})).success).toBe(true);
+    // The ref's format is checkExercises' to report, with the way to a valid one
     expect(
       workoutSchema.safeParse(item({ exerciseRef: 'squat' })).success,
+    ).toBe(true);
+    expect(
+      workoutSchema.safeParse(item({ exerciseRef: 'c:' + 'x'.repeat(90) }))
+        .success,
+    ).toBe(false);
+    // An empty ref would skip every check: it is not a ref
+    expect(workoutSchema.safeParse(item({ exerciseRef: '' })).success).toBe(
+      false,
+    );
+    expect(
+      workoutSchema.safeParse([{ kind: 'work', reps: 5, exerciseRef: '' }])
+        .success,
     ).toBe(false);
     expect(workoutSchema.safeParse(item({ tempo: '3-1' })).success).toBe(false);
     expect(workoutSchema.safeParse(item({ sets: [] })).success).toBe(false);
-    expect(
-      workoutSchema.safeParse([
-        { kind: 'work', reps: 5, exerciseRef: 'c:Squat' },
-      ]).success,
-    ).toBe(false);
+  });
+
+  it('fills the name of exercises that have none and keeps a given one', () => {
+    const exercise = (exerciseRef: string, name?: string) => ({
+      exerciseRef,
+      ...(name && { name }),
+      sets: [{ work: { type: 'REPS' as const, value: 5 } }],
+    });
+    const workout = workoutSchema.parse([
+      { kind: 'exercise', exercise: exercise('c:a') },
+      { kind: 'exercise', exercise: exercise('c:b', 'My name') },
+      {
+        kind: 'group',
+        group: 'SUPERSET',
+        rounds: 3,
+        exercises: [exercise('c:a'), exercise('u:7')],
+      },
+    ]);
+    const named = withExerciseNames(
+      workout,
+      new Map([
+        ['c:a', 'Alpha'],
+        ['c:b', 'Beta'],
+        ['u:7', 'Mine'],
+      ]),
+    );
+    expect(summarizeWorkout(named)).toBe(
+      '5 Alpha · 5 My name · superset 3×(5 Alpha, 5 Mine)',
+    );
+  });
+
+  it('names flat steps and repeat children too, except those to keep unnamed', () => {
+    const workout = workoutSchema.parse([
+      { kind: 'work', reps: 5, exerciseRef: 'c:a' },
+      { kind: 'work', reps: 5, exerciseRef: 'c:k' },
+      {
+        kind: 'repeat',
+        times: 2,
+        steps: [
+          { kind: 'work', reps: 5, exerciseRef: 'c:a' },
+          { kind: 'work', reps: 5, exerciseRef: 'c:a', name: 'Given' },
+          { kind: 'recovery', durationSeconds: 30 },
+        ],
+      },
+    ]);
+    const named = withExerciseNames(
+      workout,
+      new Map([
+        ['c:a', 'Alpha'],
+        ['c:k', 'Kept'],
+      ]),
+      new Set(['c:k']),
+    );
+    expect(named).toMatchObject([
+      { name: 'Alpha' },
+      { exerciseRef: 'c:k' },
+      { steps: [{ name: 'Alpha' }, { name: 'Given' }, { kind: 'recovery' }] },
+    ]);
+    expect((named[1] as { name?: string }).name).toBeUndefined();
+  });
+
+  it('collects an empty ref, so that it can be reported', () => {
+    const workout = [
+      { kind: 'work', reps: 5, exerciseRef: '' },
+    ] as unknown as Workout;
+    expect(exerciseRefsOf(workout)).toEqual(['']);
+  });
+
+  it('collects the exercise refs of items, groups, flat steps and repeats', () => {
+    const sets = [{ work: { type: 'REPS' as const, value: 5 } }];
+    const workout = workoutSchema.parse([
+      { kind: 'exercise', exercise: { exerciseRef: 'c:a', sets } },
+      {
+        kind: 'group',
+        group: 'CIRCUIT',
+        rounds: 2,
+        exercises: [
+          { exerciseRef: 'c:b', sets },
+          { exerciseRef: 'u:3', sets },
+        ],
+      },
+      { kind: 'work', reps: 5, exerciseRef: 'c:c' },
+      {
+        kind: 'repeat',
+        times: 3,
+        steps: [{ kind: 'work', exerciseRef: 'c:d' }],
+      },
+      { kind: 'exercise', exercise: { exerciseRef: 'c:a', sets } },
+      { kind: 'steady', durationSeconds: 60 },
+    ]);
+    expect(exerciseRefsOf(workout)).toEqual([
+      'c:a',
+      'c:b',
+      'u:3',
+      'c:c',
+      'c:d',
+    ]);
+    expect(exerciseRefsOf(intervals)).toEqual([]);
   });
 
   it('reads sessions longer than the input limits', () => {

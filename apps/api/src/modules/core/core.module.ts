@@ -205,6 +205,7 @@ import { YearReviewService } from './services/year-review.service';
     MetricService,
     RecordService,
     TrainingZoneService,
+    CustomExerciseService,
   ],
 })
 export class CoreModule {}

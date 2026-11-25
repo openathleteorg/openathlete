@@ -3,6 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Injectable } from '@nestjs/common';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
+import { CustomExerciseService } from 'src/modules/core/services/custom-exercise.service';
 import { CycleService } from 'src/modules/core/services/cycle.service';
 import { EventBatchService } from 'src/modules/core/services/event-batch.service';
 import { EventBulkService } from 'src/modules/core/services/event-bulk.service';
@@ -23,6 +24,7 @@ import { registerAthleteTools } from './tools/athlete.tools';
 import { registerCalendarReadTools } from './tools/calendar-read.tools';
 import { registerCalendarWriteTools } from './tools/calendar-write.tools';
 import { ToolDeps } from './tools/deps';
+import { registerExerciseTools } from './tools/exercise.tools';
 import { registerLoadTools } from './tools/load.tools';
 import { registerQuestionnaireTools } from './tools/questionnaire.tools';
 
@@ -48,6 +50,7 @@ export class McpServerFactory {
     zones: TrainingZoneService,
     records: RecordService,
     statistics: StatisticsService,
+    customExercises: CustomExerciseService,
   ) {
     this.deps = {
       prisma,
@@ -62,6 +65,7 @@ export class McpServerFactory {
       zones,
       records,
       statistics,
+      customExercises,
     };
   }
 
@@ -84,6 +88,7 @@ export class McpServerFactory {
       registerCalendarReadTools(server, ctx, this.deps);
       registerLoadTools(server, ctx, this.deps);
       registerQuestionnaireTools(server, ctx, this.deps);
+      registerExerciseTools(server, ctx, this.deps);
     }
     if (ctx.can('write')) {
       registerCalendarWriteTools(server, ctx, this.deps);

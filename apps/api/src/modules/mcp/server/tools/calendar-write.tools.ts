@@ -39,6 +39,7 @@ import {
   zoneIdsOf,
 } from '../workout-format';
 import { ToolDeps, ToolRegistrar, registerTool, zoneNamesOf } from './deps';
+import { checkExercises, customExercisesOnce } from './exercise.tools';
 
 /** Planned sessions without a time sit at midday: no time zone moves them a day */
 const DEFAULT_TIME = '12:00';
@@ -82,7 +83,7 @@ const sessionFields = {
   workoutSteps: workoutSchema
     .optional()
     .describe(
-      'Trainings only: the structured workout, sent to watches. Strength sessions read from get_session come as exercise and group items: send them back as read. A new exercise goes in a step with a name and reps',
+      'Trainings only: the structured workout, sent to watches. Strength sessions read from get_session come as exercise and group items: send them back as read. New ones: exercise items with exerciseRef from list_exercises and sets of reps or seconds, loads in kg, rests in seconds',
     ),
 };
 
@@ -111,21 +112,21 @@ const deletedOutput = z.object({
 const at = (index: number, message: string) =>
   new ToolError(`sessions[${index}]: ${message}`);
 
-async function checkZones(
+/** The problem with the zones a workout uses, if any */
+async function zoneProblems(
   deps: ToolDeps,
   athleteId: number,
   workout: Workout | undefined,
-  where: (message: string) => ToolError,
-) {
+): Promise<string[]> {
   const used = workout ? zoneIdsOf(workout) : [];
-  if (!used.length) return;
+  if (!used.length) return [];
   const zones = await zoneNamesOf(deps, athleteId);
   const unknown = used.filter((id) => !zones.has(id));
-  if (unknown.length) {
-    throw where(
-      `zone ${unknown.join(', ')} is not one of the athlete's zones (see get_athlete_context)`,
-    );
-  }
+  return unknown.length
+    ? [
+        `zone ${unknown.join(', ')} is not one of the athlete's zones (see get_athlete_context)`,
+      ]
+    : [];
 }
 
 /** Reports what the stored model would drop, rather than dropping it */
@@ -287,17 +288,8 @@ export const registerCalendarWriteTools: ToolRegistrar = (
     };
   };
 
-  /**
-   * The planned duration a session takes with a new workout: its total,
-   * unless the stored duration was set apart from the old workout's, by a
-   * coach in the app or by an agent; that one stays (undefined: unchanged)
-   */
-  const durationOfNewWorkout = async (
-    eventId: number,
-    workout: Workout,
-    sport: SPORT_TYPE | undefined,
-  ): Promise<number | undefined> => {
-    const training = await prisma.eventTraining.findUnique({
+  const trainingOf = (eventId: number) =>
+    prisma.eventTraining.findUnique({
       where: { eventId },
       select: {
         sport: true,
@@ -305,6 +297,18 @@ export const registerCalendarWriteTools: ToolRegistrar = (
         workout: { include: WORKOUT_STEPS_INCLUDE },
       },
     });
+  type StoredTraining = Awaited<ReturnType<typeof trainingOf>>;
+
+  /**
+   * The planned duration a session takes with a new workout: its total,
+   * unless the stored duration was set apart from the old workout's, by a
+   * coach in the app or by an agent; that one stays (undefined: unchanged)
+   */
+  const durationOfNewWorkout = (
+    training: StoredTraining,
+    workout: Workout,
+    sport: SPORT_TYPE | undefined,
+  ): number | undefined => {
     if (training) {
       const before = training.workout
         ? calculateWorkoutDuration(
@@ -321,6 +325,23 @@ export const registerCalendarWriteTools: ToolRegistrar = (
         sport ?? (training?.sport as SPORT_TYPE | undefined),
       ) || undefined
     );
+  };
+
+  /** Exercise refs the session already stores, with the name stored for each */
+  const storedExercises = (
+    training: StoredTraining,
+  ): Map<string, string | null> => {
+    const steps = training?.workout?.steps ?? [];
+    const stored = new Map<string, string | null>();
+    for (const step of [
+      ...steps,
+      ...steps.flatMap((step) => step.repeatBlock?.childSteps ?? []),
+    ]) {
+      if (step.exerciseRef && !stored.has(step.exerciseRef)) {
+        stored.set(step.exerciseRef, step.name || null);
+      }
+    }
+    return stored;
   };
 
   registerTool(
@@ -348,18 +369,32 @@ export const registerCalendarWriteTools: ToolRegistrar = (
         // Check them all before saving any, and report every problem at once
         const problems: string[] = [];
         const dtos: CreateEventDto[] = [];
+        // One load of the custom exercises for all sessions
+        const custom = customExercisesOnce(deps, ctx);
         for (const [index, session] of sessions.entries()) {
           try {
-            dtos.push(toCreateDto(session, scope, index));
-            // Collected, not thrown: the zones are checked in the same pass
-            for (const message of workoutProblems(session.workoutSteps ?? [])) {
+            // Collected, not thrown: every problem of every session at once
+            const exercises = await checkExercises(
+              custom,
+              session.workoutSteps,
+            );
+            for (const message of [
+              ...workoutProblems(session.workoutSteps ?? []),
+              ...(await zoneProblems(
+                deps,
+                scope.athleteId,
+                session.workoutSteps,
+              )),
+              ...exercises.problems,
+            ]) {
               problems.push(at(index, message).message);
             }
-            await checkZones(
-              deps,
-              scope.athleteId,
-              session.workoutSteps,
-              (message) => at(index, message),
+            dtos.push(
+              toCreateDto(
+                { ...session, workoutSteps: exercises.workout },
+                scope,
+                index,
+              ),
             );
           } catch (error) {
             if (!(error instanceof ToolError)) throw error;
@@ -424,12 +459,24 @@ export const registerCalendarWriteTools: ToolRegistrar = (
           scope,
         } = await editable([eventId], 'update');
         checkWorkout(fields.workoutSteps, (message) => new ToolError(message));
-        await checkZones(
+        const [zoneProblem] = await zoneProblems(
           deps,
           scope.athleteId,
           fields.workoutSteps,
-          (message) => new ToolError(message),
         );
+        if (zoneProblem) throw new ToolError(zoneProblem);
+        // The stored training is read once, for the exercises and the duration
+        const training = fields.workoutSteps ? await trainingOf(eventId) : null;
+        // A session may keep an exercise since deleted, or a coach's own
+        const exercises = await checkExercises(
+          customExercisesOnce(deps, ctx),
+          fields.workoutSteps,
+          storedExercises(training),
+        );
+        if (exercises.problems.length) {
+          throw new ToolError(exercises.problems.join('; '));
+        }
+        const workoutSteps = exercises.workout;
 
         const local = formatZoned(event.startDate, scope.timeZone);
         const startDate =
@@ -442,12 +489,8 @@ export const registerCalendarWriteTools: ToolRegistrar = (
             : event.startDate;
         const seconds = fields.durationMinutes
           ? Math.round(fields.durationMinutes * 60)
-          : event.type === 'TRAINING' && fields.workoutSteps
-            ? await durationOfNewWorkout(
-                eventId,
-                fields.workoutSteps,
-                fields.sport,
-              )
+          : event.type === 'TRAINING' && workoutSteps
+            ? durationOfNewWorkout(training, workoutSteps, fields.sport)
             : undefined;
         const lengthMs = seconds
           ? seconds * 1000
@@ -502,8 +545,8 @@ export const registerCalendarWriteTools: ToolRegistrar = (
             ...(fields.name && { name: fields.name }),
             ...(fields.sport && { sport: fields.sport }),
             ...plannedFields(fields, seconds),
-            ...(fields.workoutSteps && {
-              workout: { steps: toStoredWorkout(fields.workoutSteps) },
+            ...(workoutSteps && {
+              workout: { steps: toStoredWorkout(workoutSteps) },
             }),
             ...dates,
           };

@@ -14,7 +14,6 @@ import {
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
   calculateWorkoutDuration,
-  exerciseRefSchema,
   isExerciseStep,
   mapWorkoutDtoToPrisma,
   normalizeWorkoutForCreate,
@@ -104,9 +103,6 @@ const lenient = <T extends z.ZodTypeAny>(
   loose: z.ZodTypeAny,
 ): T => (mode === 'input' ? strict : (loose as T));
 
-const EXERCISE_REF_HELP =
-  'As read from get_session or a template; never invent one';
-
 const makeTargetSchema = (mode: Mode) =>
   z.discriminatedUnion('type', [
     z.object({
@@ -169,6 +165,16 @@ const GROUP_KINDS = REPEAT_KINDS.filter(
   (kind) => kind !== WORKOUT_REPEAT_KIND.REPEAT,
 ) as [StrengthGroupKind, ...StrengthGroupKind[]];
 
+/**
+ * "c:<id>" or "u:<id>" from list_exercises. Its format is not checked here:
+ * checkExercises answers a wrong ref with the way to find a valid one. Only
+ * an empty one is refused, as a step without a ref would be.
+ */
+const exerciseRef = (mode: Mode) =>
+  capped(mode, mode === 'input' ? z.string().min(1) : z.string(), 90).describe(
+    'From list_exercises, e.g. "c:barbell-full-squat"',
+  );
+
 const stepFields = (mode: Mode) => ({
   // 120 like an exercise name: a custom exercise read flat must write back
   name: capped(mode, z.string(), 120).optional(),
@@ -185,9 +191,7 @@ const stepFields = (mode: Mode) => ({
   reps: lenient(mode, z.number().int().min(1).max(100_000), z.number())
     .optional()
     .describe('Number of reps, instead of a duration or distance'),
-  exerciseRef: lenient(mode, exerciseRefSchema, z.string())
-    .describe(EXERCISE_REF_HELP)
-    .optional(),
+  exerciseRef: exerciseRef(mode).optional(),
   tempo: lenient(mode, tempoSchema, z.string())
     .describe('Seconds, X explosive: "3-1-X-0"')
     .optional(),
@@ -211,7 +215,7 @@ const makeStepSchema = (mode: Mode) =>
       ...stepFields(mode),
     })
     .describe(
-      'A step. Give durationSeconds, distanceMeters or reps, or none for a step ended with the lap button. An exercise without an exerciseRef to read: name and reps',
+      'A step. Give durationSeconds, distanceMeters or reps, or none for a step ended with the lap button',
     );
 export const stepSchema = makeStepSchema('input');
 export type WorkoutStep = z.infer<typeof stepSchema>;
@@ -271,10 +275,15 @@ const makeSetSchema = (mode: Mode) =>
 
 const makeExerciseSchema = (mode: Mode) =>
   z.object({
-    exerciseRef: lenient(mode, exerciseRefSchema, z.string()).describe(
-      EXERCISE_REF_HELP,
-    ),
-    name: lenient(mode, z.string().max(120), z.string()),
+    exerciseRef: exerciseRef(mode),
+    name:
+      mode === 'input'
+        ? z
+            .string()
+            .max(120)
+            .optional()
+            .describe('Default: the exercise name from list_exercises')
+        : z.string(),
     sets: capped(mode, z.array(makeSetSchema(mode)).min(1), 99).describe(
       'One entry per set; in a group exactly one, done each round',
     ),
@@ -504,7 +513,8 @@ function toStrengthExercise(
 ): StrengthExercise {
   return {
     exerciseRef: exercise.exerciseRef,
-    name: exercise.name,
+    // withExerciseNames fills it; the ref is the last resort
+    name: exercise.name ?? exercise.exerciseRef,
     sets: exercise.sets.map((set): StrengthSet => ({
       work: { type: set.work.type, value: set.work.value },
       load: set.load ?? null,
@@ -542,6 +552,60 @@ function toBlock(item: Workout[number]): StrengthBlock {
 
 export function toStoredWorkout(workout: Workout): CreateWorkoutStepDto[] {
   return strengthSteps(workout.map(toBlock));
+}
+
+type ExerciseSlot = { exerciseRef?: string };
+
+/** Every exercise of a workout: items, group members, flat steps, repeat children */
+function* exercisesOf(workout: Workout): Generator<ExerciseSlot> {
+  for (const item of workout) {
+    if (item.kind === 'exercise') yield item.exercise;
+    else if (item.kind === 'group') yield* item.exercises;
+    else if (item.kind === 'repeat') yield* item.steps;
+    else yield item;
+  }
+}
+
+/** Exercise refs a workout uses, each once, in order */
+export function exerciseRefsOf(workout: Workout): string[] {
+  const refs = new Set<string>();
+  for (const { exerciseRef } of exercisesOf(workout)) {
+    // '' counts: it must be reported, not skipped
+    if (exerciseRef !== undefined) refs.add(exerciseRef);
+  }
+  return [...refs];
+}
+
+/**
+ * The workout with the name of each exercise that has none; a given name is
+ * kept. Flat steps and repeat children get one too, except those whose ref is
+ * in `keepUnnamed`: a session stores them without a name, and must read back
+ * the same.
+ */
+export function withExerciseNames(
+  workout: Workout,
+  names: ReadonlyMap<string, string>,
+  keepUnnamed: ReadonlySet<string> = new Set(),
+): Workout {
+  const named = (exercise: WorkoutExercise['exercise']) => ({
+    ...exercise,
+    name: exercise.name ?? names.get(exercise.exerciseRef),
+  });
+  const namedStep = (step: WorkoutStep): WorkoutStep =>
+    step.exerciseRef === undefined ||
+    step.name !== undefined ||
+    keepUnnamed.has(step.exerciseRef)
+      ? step
+      : { ...step, name: names.get(step.exerciseRef) };
+  return workout.map((item) =>
+    item.kind === 'exercise'
+      ? { ...item, exercise: named(item.exercise) }
+      : item.kind === 'group'
+        ? { ...item, exercises: item.exercises.map(named) }
+        : item.kind === 'repeat'
+          ? { ...item, steps: item.steps.map(namedStep) }
+          : namedStep(item),
+  );
 }
 
 /** Zone ids a workout uses, to check they belong to the athlete */
@@ -938,7 +1002,7 @@ function formatExercise(
     withRest && same((set) => set.rest ?? null) && isSet(sets[0].rest)
       ? `, rest ${formatSeconds(sets[0].rest)}`
       : '';
-  return `${work} ${exercise.name}${loads}${rest}`;
+  return `${work} ${exercise.name ?? exercise.exerciseRef}${loads}${rest}`;
 }
 
 /** "superset 4×(8 Pull-up, 15 Push-up)" */

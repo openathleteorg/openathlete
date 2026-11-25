@@ -8,6 +8,7 @@ import { registerAthleteTools } from './tools/athlete.tools';
 import { registerCalendarReadTools } from './tools/calendar-read.tools';
 import { registerCalendarWriteTools } from './tools/calendar-write.tools';
 import type { ToolDeps } from './tools/deps';
+import { registerExerciseTools } from './tools/exercise.tools';
 import { registerLoadTools } from './tools/load.tools';
 import { registerQuestionnaireTools } from './tools/questionnaire.tools';
 
@@ -20,6 +21,7 @@ async function listTools() {
     registerAthleteWriteTools,
     registerCalendarReadTools,
     registerCalendarWriteTools,
+    registerExerciseTools,
     registerLoadTools,
     registerQuestionnaireTools,
   ]) {
@@ -63,5 +65,20 @@ describe('MCP tool definitions', () => {
         schema: expect.stringContaining('exercise and group items'),
       });
     }
+  });
+
+  it("point plan_sessions' workoutSteps at list_exercises", async () => {
+    const tools = await listTools();
+    const plan = tools.find((tool) => tool.name === 'plan_sessions');
+    const sessions = (
+      plan?.inputSchema.properties as {
+        sessions: {
+          items: { properties: { workoutSteps: { description?: string } } };
+        };
+      }
+    ).sessions;
+    expect(sessions.items.properties.workoutSteps.description).toContain(
+      'list_exercises',
+    );
   });
 });
