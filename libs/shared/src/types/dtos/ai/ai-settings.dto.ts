@@ -37,6 +37,8 @@ export enum AiErrorCode {
   HOSTED_QUOTA_EXCEEDED = 'AI_HOSTED_QUOTA_EXCEEDED',
   /** Any other provider failure */
   PROVIDER_ERROR = 'AI_PROVIDER_ERROR',
+  /** The model answered, but not with the structure the feature needs */
+  INVALID_OUTPUT = 'AI_INVALID_OUTPUT',
   /** The user has not allowed their data to be sent to AI providers */
   CONSENT_REQUIRED = 'AI_CONSENT_REQUIRED',
 }

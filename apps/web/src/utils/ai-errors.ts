@@ -30,6 +30,8 @@ export function aiErrorMessage(errorOrCode: unknown): string | null {
       return m.ai_error_hosted_quota_exceeded();
     case AiErrorCode.PROVIDER_ERROR:
       return m.ai_error_provider();
+    case AiErrorCode.INVALID_OUTPUT:
+      return m.ai_error_invalid_output();
     case AiErrorCode.CONSENT_REQUIRED:
       return m.ai_error_consent_required();
     default:

@@ -134,6 +134,7 @@ export function toAiProviderException(error: unknown): AiProviderException {
 export function isRetryableAiError(error: unknown): boolean {
   return (
     !(error instanceof AiProviderException) ||
+    error.code === AiErrorCode.INVALID_OUTPUT ||
     (error.code === AiErrorCode.PROVIDER_ERROR &&
       error.providerStatus === undefined)
   );

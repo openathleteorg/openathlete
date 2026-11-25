@@ -141,7 +141,7 @@ describe('AiService', () => {
 
     await expect(
       service.generateObject(agent, ownKeyModel, 'x', z.object({})),
-    ).rejects.toMatchObject({ code: AiErrorCode.PROVIDER_ERROR });
+    ).rejects.toMatchObject({ code: AiErrorCode.INVALID_OUTPUT });
   });
 
   it('keeps an answer that only runs over the lengths, cut to fit', async () => {
@@ -186,7 +186,7 @@ describe('AiService', () => {
         'x',
         z.object({ headline: z.string() }),
       ),
-    ).rejects.toMatchObject({ code: AiErrorCode.PROVIDER_ERROR });
+    ).rejects.toMatchObject({ code: AiErrorCode.INVALID_OUTPUT });
   });
 
   it('records a successful use of the key', async () => {

@@ -119,8 +119,8 @@ export class AiService {
 
   /**
    * Second chance for an answer Mastra refused: read its JSON ourselves and
-   * cut what exceeds the schema's lengths. Still invalid, it fails like a
-   * provider error, which callers may retry.
+   * cut what exceeds the schema's lengths. Still invalid, it fails with
+   * INVALID_OUTPUT, which callers may retry.
    */
   private repairObject<S extends z.ZodTypeAny>(
     model: ResolvedAiModel,
@@ -149,7 +149,7 @@ export class AiService {
       `${model.task} failed on ${model.provider}/${model.modelId} (${model.source}): invalid structured output: ${reason}`,
     );
     throw new AiProviderException(
-      AiErrorCode.PROVIDER_ERROR,
+      AiErrorCode.INVALID_OUTPUT,
       'The AI model did not return a valid result',
     );
   }

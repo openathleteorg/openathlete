@@ -1785,6 +1785,8 @@
   "ai_error_quota_exceeded": "La cuota de tu proveedor de IA se ha agotado o está limitada. Inténtalo más tarde o revisa tu cuenta en el proveedor.",
   "ai_error_hosted_quota_exceeded": "Has usado la IA incluida de esta semana. Se recarga el lunes; añade tu propia clave en Ajustes > IA para seguir ahora.",
   "ai_error_provider": "El proveedor de IA no ha podido completar la solicitud. Inténtalo de nuevo o elige otro modelo.",
+  "ai_error_invalid_output": "El modelo de IA no ha respondido en el formato esperado. Inténtalo de nuevo o elige un modelo más capaz en Ajustes > IA.",
+  "ai_models_no_structured_output": "Este modelo no sabe devolver respuestas estructuradas: con él fallarán la mayoría de las funciones de IA. Elige un modelo más capaz.",
   "pwa_install": "Instalar app",
   "pwa_install_title": "Instalar OpenAthlete",
   "pwa_install_ios_steps": "Pulsa el botón Compartir del navegador y elige «Añadir a pantalla de inicio». Después OpenAthlete se abrirá a pantalla completa desde su icono, como una app.",

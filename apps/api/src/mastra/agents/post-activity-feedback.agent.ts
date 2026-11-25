@@ -56,13 +56,18 @@ OUTPUT FORMAT (JSON ONLY, no markdown, no explanations):
       "text": "<question text, 1 sentence maximum, in target language>",
       "qcmOptions": [
         { "label": "<option label in target language>" }
-      ] // or null when free-form answers fit better
+      ]
+    },
+    {
+      "text": "<an open question, in target language>",
+      "qcmOptions": null
     }
   ]
 }
 
 CRITICAL:
 - Return ONLY valid JSON.
+- Every question is an object with both keys: "text" (never left out, never renamed) and "qcmOptions" (an array, or null when free-form answers fit better).
 - MAX 4 questions.
 - Tailor each question to the provided context; do NOT ask generic questions.
 - Respect the language requirement specified in the context.`,

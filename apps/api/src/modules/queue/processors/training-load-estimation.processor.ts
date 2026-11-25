@@ -327,15 +327,18 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
       );
       return result.trimp;
     } catch (error) {
-      // The athlete's own key is out of credit or revoked: the session gets
-      // the duration and RPE estimate, and Settings > AI shows the key's error.
+      // The athlete's own key is out of credit or revoked, or the model they
+      // picked cannot answer in the expected structure (small models like
+      // groq/allam-2-7b): the session gets the duration and RPE estimate.
+      // Settings > AI shows the key's error or warns about the model.
       // Reporting it would only repeat, on every session saved, what they
-      // must fix with their provider
+      // must fix in their settings, and retrying would spend their credit
       if (
         model.source === 'own_key' &&
         error instanceof AiProviderException &&
         (error.code === AiErrorCode.QUOTA_EXCEEDED ||
-          error.code === AiErrorCode.CREDENTIAL_REJECTED)
+          error.code === AiErrorCode.CREDENTIAL_REJECTED ||
+          error.code === AiErrorCode.INVALID_OUTPUT)
       ) {
         this.logger.warn(
           `Training load of a session of athlete ${athleteId} estimated without AI: ${error.message}`,

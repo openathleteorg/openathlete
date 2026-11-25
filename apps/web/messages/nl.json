@@ -1785,6 +1785,8 @@
   "ai_error_quota_exceeded": "Het quotum van je AI-aanbieder is op of het aantal verzoeken is beperkt. Probeer het later opnieuw of controleer je account bij de aanbieder.",
   "ai_error_hosted_quota_exceeded": "Je hebt de inbegrepen AI van deze week opgebruikt. Die wordt maandag aangevuld; voeg je eigen sleutel toe in Instellingen > AI om nu door te gaan.",
   "ai_error_provider": "De AI-aanbieder kon het verzoek niet afronden. Probeer het opnieuw of kies een ander model.",
+  "ai_error_invalid_output": "Het AI-model antwoordde niet in het verwachte formaat. Probeer het opnieuw of kies een capabeler model in Instellingen > AI.",
+  "ai_models_no_structured_output": "Dit model kan geen gestructureerde antwoorden geven: de meeste AI-functies zullen ermee mislukken. Kies een capabeler model.",
   "pwa_install": "App installeren",
   "pwa_install_title": "OpenAthlete installeren",
   "pwa_install_ios_steps": "Tik op de deelknop van de browser en kies “Zet op beginscherm”. OpenAthlete opent dan via het icoon op volledig scherm, net als een app.",

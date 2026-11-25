@@ -71,6 +71,11 @@ export function AiModelsSection() {
     return providers.find((item) => item.id === providerId);
   };
 
+  /** The registry knows the model cannot return JSON (small models) */
+  const lacksStructuredOutput = (credential: string, modelId: string) =>
+    providerOf(credential)?.models.find((model) => model.id === modelId.trim())
+      ?.structuredOutput === false;
+
   const update = (task: AiTask, change: Partial<Draft[AiTask]>) =>
     setDraft((current) => ({
       ...current,
@@ -170,6 +175,12 @@ export function AiModelsSection() {
         ) : (
           <span className="hidden sm:block" />
         )}
+        {value.credential !== NONE &&
+          lacksStructuredOutput(value.credential, value.modelId) && (
+            <p role="status" className="text-xs text-destructive sm:col-span-3">
+              {m.ai_models_no_structured_output()}
+            </p>
+          )}
       </div>
     );
   };

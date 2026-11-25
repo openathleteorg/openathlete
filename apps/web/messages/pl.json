@@ -1785,6 +1785,8 @@
   "ai_error_quota_exceeded": "Limit u Twojego dostawcy AI został wyczerpany lub ograniczony. Spróbuj później lub sprawdź swoje konto u dostawcy.",
   "ai_error_hosted_quota_exceeded": "Wykorzystałeś AI w cenie na ten tydzień. Odnowi się w poniedziałek; dodaj własny klucz w Ustawienia > AI, aby kontynuować już teraz.",
   "ai_error_provider": "Dostawca AI nie mógł zrealizować żądania. Spróbuj ponownie lub wybierz inny model.",
+  "ai_error_invalid_output": "Model AI nie odpowiedział w oczekiwanym formacie. Spróbuj ponownie lub wybierz mocniejszy model w Ustawienia > AI.",
+  "ai_models_no_structured_output": "Ten model nie potrafi zwracać ustrukturyzowanych odpowiedzi: większość funkcji AI z nim nie zadziała. Wybierz mocniejszy model.",
   "pwa_install": "Zainstaluj aplikację",
   "pwa_install_title": "Zainstaluj OpenAthlete",
   "pwa_install_ios_steps": "Dotknij przycisku Udostępnij w przeglądarce i wybierz „Do ekranu początkowego”. OpenAthlete otworzy się wtedy na pełnym ekranie ze swojej ikony, jak aplikacja.",

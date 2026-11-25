@@ -1785,6 +1785,8 @@
   "ai_error_quota_exceeded": "Das Kontingent deines KI-Anbieters ist aufgebraucht oder begrenzt. Versuch es später erneut oder prüfe dein Anbieterkonto.",
   "ai_error_hosted_quota_exceeded": "Du hast die inklusive KI dieser Woche aufgebraucht. Sie wird am Montag wieder aufgefüllt; füge unter Einstellungen > KI deinen eigenen Schlüssel hinzu, um sofort weiterzumachen.",
   "ai_error_provider": "Der KI-Anbieter konnte die Anfrage nicht ausführen. Versuch es erneut oder wähle ein anderes Modell.",
+  "ai_error_invalid_output": "Das KI-Modell hat nicht im erwarteten Format geantwortet. Versuch es erneut oder wähle in Einstellungen > KI ein leistungsfähigeres Modell.",
+  "ai_models_no_structured_output": "Dieses Modell kann keine strukturierten Antworten liefern: Die meisten KI-Funktionen werden damit fehlschlagen. Wähle ein leistungsfähigeres Modell.",
   "pwa_install": "App installieren",
   "pwa_install_title": "OpenAthlete installieren",
   "pwa_install_ios_steps": "Tippe auf die Teilen-Schaltfläche des Browsers und wähle „Zum Home-Bildschirm“. OpenAthlete öffnet sich dann über sein Symbol im Vollbild, wie eine App.",

@@ -1785,6 +1785,8 @@
   "ai_error_quota_exceeded": "Your AI provider's quota is exhausted or rate limited. Try again later or check your provider account.",
   "ai_error_hosted_quota_exceeded": "You have used this week's included AI. It refills on Monday; add your own key in Settings > AI to keep going now.",
   "ai_error_provider": "The AI provider could not complete the request. Try again or choose another model.",
+  "ai_error_invalid_output": "The AI model did not answer in the expected format. Try again, or choose a more capable model in Settings > AI.",
+  "ai_models_no_structured_output": "This model cannot return structured answers: most AI features will fail with it. Choose a more capable model.",
   "pwa_install": "Install app",
   "pwa_install_title": "Install OpenAthlete",
   "pwa_install_ios_steps": "Tap the browser's Share button and choose “Add to Home Screen”. OpenAthlete then opens full screen from its icon, like an app.",

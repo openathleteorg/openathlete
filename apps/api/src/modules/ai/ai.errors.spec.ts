@@ -82,6 +82,11 @@ describe('isRetryableAiError', () => {
         new AiProviderException(AiErrorCode.PROVIDER_ERROR, 'no valid result'),
       ),
     ).toBe(true);
+    expect(
+      isRetryableAiError(
+        new AiProviderException(AiErrorCode.INVALID_OUTPUT, 'no valid result'),
+      ),
+    ).toBe(true);
   });
 
   it('does not retry provider failures the SDK already retried', () => {

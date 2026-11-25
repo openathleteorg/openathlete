@@ -1,4 +1,4 @@
-import { Job } from 'bullmq';
+import { Job, UnrecoverableError } from 'bullmq';
 
 import { MetricType } from '@openathlete/database';
 import { AiErrorCode } from '@openathlete/shared';
@@ -214,7 +214,11 @@ describe('TrainingLoadEstimationProcessor', () => {
       goalRpe: 0.6,
     });
 
-  it.each([AiErrorCode.QUOTA_EXCEEDED, AiErrorCode.CREDENTIAL_REJECTED])(
+  it.each([
+    AiErrorCode.QUOTA_EXCEEDED,
+    AiErrorCode.CREDENTIAL_REJECTED,
+    AiErrorCode.INVALID_OUTPUT,
+  ])(
     "estimates from duration and RPE when the athlete's own key fails with %s",
     async (code) => {
       const { processor, resolver, ai, calendar } = setup(plannedRun());
@@ -240,5 +244,17 @@ describe('TrainingLoadEstimationProcessor', () => {
     );
 
     await expect(processor.process(job())).rejects.toThrow('refused');
+  });
+
+  it('retries an invalid answer from the instance model', async () => {
+    const { processor, resolver, ai } = setup(plannedRun());
+    resolver.tryResolveForAthlete.mockResolvedValue({ source: 'hosted' });
+    ai.generateObject.mockRejectedValue(
+      new AiProviderException(AiErrorCode.INVALID_OUTPUT, 'no valid result'),
+    );
+
+    const error = await processor.process(job()).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(AiProviderException);
+    expect(error).not.toBeInstanceOf(UnrecoverableError);
   });
 });

@@ -21,6 +21,7 @@ import {
   getLatestMetrics,
 } from 'src/modules/agent/services/event-ai-helpers';
 import { AiModelResolverService, AiService } from 'src/modules/ai';
+import { isRetryableAiError } from 'src/modules/ai/ai.errors';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 const rpeOrNa = (rpe: number | null | undefined) =>
@@ -222,12 +223,7 @@ export class ActivityFeedbackListener {
         `Use ${({ French: 'tu', Italian: 'tu', Spanish: 'tú', English: 'you', 'Portuguese (Brazil)': 'você', German: 'du', Polish: 'ty', Dutch: 'je' } as Record<string, string>)[targetLanguage]} form, direct and friendly coaching style.`,
       ].join('\n');
 
-      const { questions } = await this.aiService.generateObject(
-        postActivityFeedbackAgent,
-        model,
-        context,
-        feedbackQuestionsOutputSchema,
-      );
+      const { questions } = await this.generateQuestions(context, model);
 
       if (questions.length === 0) {
         this.logger.warn(
@@ -260,6 +256,29 @@ export class ActivityFeedbackListener {
       this.logger.error(
         `Error generating post-activity feedback questions for activity ${eventActivityId}:`,
         error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  /** One retry for an answer that didn't fit the schema or a busy provider */
+  private async generateQuestions(
+    context: string,
+    model: Parameters<AiService['generateObject']>[1],
+  ) {
+    try {
+      return await this.aiService.generateObject(
+        postActivityFeedbackAgent,
+        model,
+        context,
+        feedbackQuestionsOutputSchema,
+      );
+    } catch (error) {
+      if (!isRetryableAiError(error)) throw error;
+      return this.aiService.generateObject(
+        postActivityFeedbackAgent,
+        model,
+        context,
+        feedbackQuestionsOutputSchema,
       );
     }
   }

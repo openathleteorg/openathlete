@@ -230,7 +230,7 @@ export class AIFeaturesController {
   @ApiResponse({
     status: 422,
     description:
-      'The AI provider failed: AI_CREDENTIAL_REJECTED, AI_QUOTA_EXCEEDED or AI_PROVIDER_ERROR',
+      'The AI provider failed: AI_CREDENTIAL_REJECTED, AI_QUOTA_EXCEEDED, AI_PROVIDER_ERROR or AI_INVALID_OUTPUT',
   })
   @ApiResponse({
     status: 500,
@@ -571,7 +571,7 @@ export class AIFeaturesController {
   @ApiResponse({
     status: 422,
     description:
-      'The AI provider failed: AI_CREDENTIAL_REJECTED, AI_QUOTA_EXCEEDED or AI_PROVIDER_ERROR',
+      'The AI provider failed: AI_CREDENTIAL_REJECTED, AI_QUOTA_EXCEEDED, AI_PROVIDER_ERROR or AI_INVALID_OUTPUT',
   })
   @ApiResponse({
     status: 500,

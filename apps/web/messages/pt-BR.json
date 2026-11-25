@@ -1785,6 +1785,8 @@
   "ai_error_quota_exceeded": "A cota do seu provedor de IA está esgotada ou há limite de requisições. Tente novamente mais tarde ou verifique sua conta no provedor.",
   "ai_error_hosted_quota_exceeded": "Você usou a IA incluída desta semana. Ela recarrega na segunda-feira; adicione sua própria chave em Configurações > IA para continuar agora.",
   "ai_error_provider": "O provedor de IA não conseguiu concluir a solicitação. Tente novamente ou escolha outro modelo.",
+  "ai_error_invalid_output": "O modelo de IA não respondeu no formato esperado. Tente novamente ou escolha um modelo mais capaz em Configurações > IA.",
+  "ai_models_no_structured_output": "Este modelo não consegue retornar respostas estruturadas: a maioria dos recursos de IA vai falhar com ele. Escolha um modelo mais capaz.",
   "pwa_install": "Instalar app",
   "pwa_install_title": "Instalar o OpenAthlete",
   "pwa_install_ios_steps": "Toque no botão Compartilhar do navegador e escolha “Adicionar à tela de início”. Depois, o OpenAthlete abre em tela cheia a partir do ícone, como um app.",
