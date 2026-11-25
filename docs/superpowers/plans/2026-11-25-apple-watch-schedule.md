@@ -25,7 +25,7 @@
 - A crash halfway through a move or a repeat refresh must not duplicate a workout (task 4).
 - A late background response after logout must not write to the next account’s watch schedule (tasks 4–5).
 
-### 1. Pool distance entry
+### Task 1: Pool distance entry
 
 Files: `apps/web/src/components/session-builder/{step-panel.tsx,swim-distance.ts,swim-distance.test.ts}`, `apps/web/src/components/workout/step-form.tsx`, `apps/web/messages/*.json`.
 
@@ -33,7 +33,7 @@ Files: `apps/web/src/components/session-builder/{step-panel.tsx,swim-distance.ts
 - [ ] Run `pnpm web test swim-distance` and observe the missing conversion. Implement the converters and unit control in swim distance editors, bypass whole-metre rounding for pool distances, preserve metres for old sessions. Leave rest in seconds.
 - [ ] Repeat the test, check locale parity, and commit `feat(web): support yard distances in pool workouts`.
 
-### 2. Native prescription mapper
+### Task 2: Native prescription mapper
 
 Create Swift package `apps/web/ios/WatchScheduleCore` with `Sources/WatchScheduleCore/{Prescription.swift,WorkoutMapper.swift}` and matching `Tests/WatchScheduleCoreTests/WorkoutMapperTests.swift`. Put the Apple-framework adapter in `apps/web/ios/App/App/AppleWorkoutStore.swift`.
 
@@ -41,7 +41,7 @@ Create Swift package `apps/web/ios/WatchScheduleCore` with `Sources/WatchSchedul
 - [ ] Run `swift test --package-path apps/web/ios/WatchScheduleCore`, expect missing mapper. Implement warmup, work, rest, cooldown, fixed repeats and open/time/distance goals; reject unsupported structures, targets and multiple alerts explicitly. Test four repeats of 91.44 m with 20 s rests, unchanged 100 m repeats, zone edits and missing bounds.
 - [ ] Implement `makeWorkoutPlan(_ input: PlanInput, id: UUID) throws -> WorkoutPlan` using native sport, goal and alert capability checks. Verify meter and yard fixtures on the Apple SDK before accepting pool mapping. Run package tests plus an iOS build and commit `feat(ios): map planned sessions and athlete zones to WorkoutKit`.
 
-### 3. Own-calendar snapshot
+### Task 3: Own-calendar snapshot
 
 Create `ScheduleSource.swift` and `ScheduleSourceTests.swift` in the Swift package. Implement the transport in `apps/web/ios/App/App/WatchScheduleClient.swift`. Use `apps/web/src/api/event/event.api.ts` as the existing wire contract.
 
@@ -49,7 +49,7 @@ Create `ScheduleSource.swift` and `ScheduleSourceTests.swift` in the Swift packa
 - [ ] Run package tests red, then implement date arithmetic with `Calendar`, own-athlete range query, event details as needed, zone lookup and instance-scoped authentication. A list failure throws; a failed detail/zone read is retryable, not a cancellation. Snapshot contains all owned in-window IDs before filtering, mapped candidates, completed IDs and per-event reasons.
 - [ ] Repeat tests green and commit `feat(ios): read an account-scoped watch schedule snapshot`.
 
-### 4. Reconcile with Apple's schedule
+### Task 4: Reconcile with Apple's schedule
 
 Create `ScheduleReconciler.swift` and `ScheduleReconcilerTests.swift` in the package; extend `AppleWorkoutStore.swift` to implement the store protocol.
 
@@ -57,7 +57,7 @@ Create `ScheduleReconciler.swift` and `ScheduleReconcilerTests.swift` in the pac
 - [ ] Run tests red. Persist stable plan UUID, scope, scheduled date, prescription fingerprint and pending operation before writing. Serialize work; recheck the active generation before writes. Compare with actual Apple state; separate confirmed unsupported changes from transient read failures. Sort by day, time, event ID and respect Apple's runtime capacity. Test overflow becoming schedulable on a later pass.
 - [ ] Run tests green; commit `feat(ios): reconcile owned Apple Watch workouts safely`.
 
-### 5. Opt-in, lifecycle and acceptance
+### Task 5: Opt-in, lifecycle and acceptance
 
 Create `apps/web/ios/App/App/WatchSchedulePlugin.swift`, `apps/web/src/views/dashboard/settings-view/apple-watch-schedule.tsx` and adjacent UI tests. Wire through native app lifecycle, Xcode target, signing entitlements, Info.plist, settings view and locale catalogs. Record device checks in `apps/web/docs/apple-watch-schedule.md`.
 
