@@ -3,7 +3,7 @@ import Foundation
 /// The instance and athlete a schedule belongs to. The instance is part of the
 /// identity so two self-hosted instances, or an instance and the hosted one,
 /// can never share scheduled entries or credentials.
-public struct AccountScope: Hashable, Sendable {
+public struct AccountScope: Hashable, Codable, Sendable {
     public let instanceURL: URL
     public let athleteId: Int
 

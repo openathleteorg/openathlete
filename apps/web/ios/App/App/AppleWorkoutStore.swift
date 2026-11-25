@@ -44,6 +44,78 @@ enum WorkoutPlanBuildError: Error, LocalizedError, Equatable {
     }
 }
 
+/// WorkoutKit implementation of the core store contract.
+///
+/// Apple's scheduler is the authority: the reconciler reads
+/// `scheduledWorkouts` before and after every write. `schedule` and `remove`
+/// are `async` but not throwing (see `WorkoutScheduler.schedule(_:at:)` and
+/// `remove(_:at:)`), so a completed phone call is never presented as watch
+/// delivery. A missing entry after the call stays pending in the journal.
+///
+/// A completed workout is Apple history: `remove(planID:)` skips it even when
+/// the journal asks for cleanup.
+@available(iOS 17.0, *)
+final class AppleWorkoutStore: ScheduleWorkoutStore {
+    func maximumScheduledWorkoutCount() async -> Int {
+        guard WorkoutScheduler.isSupported else {
+            return 0
+        }
+        return WorkoutScheduler.maxAllowedScheduledWorkoutCount
+    }
+
+    func scheduledWorkouts(
+        calendar: Calendar
+    ) async throws -> [ScheduledWorkoutState] {
+        try await requireSchedulingAccess()
+        let scheduled = await WorkoutScheduler.shared.scheduledWorkouts
+        return try scheduled.map { item in
+            guard let start = calendar.date(from: item.date) else {
+                throw ScheduleStoreError.unreadableScheduledWorkout
+            }
+            return ScheduledWorkoutState(
+                planID: item.plan.id,
+                startDate: start,
+                isComplete: item.complete
+            )
+        }
+    }
+
+    func schedule(
+        _ request: ScheduleWorkoutRequest,
+        calendar: Calendar
+    ) async throws {
+        try await requireSchedulingAccess()
+        let plan = try makeWorkoutPlan(request.plan, id: request.planID)
+        let components = calendar.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second],
+            from: request.startDate
+        )
+        await WorkoutScheduler.shared.schedule(plan, at: components)
+    }
+
+    func remove(planID: UUID, calendar: Calendar) async throws {
+        try await requireSchedulingAccess()
+        let scheduled = await WorkoutScheduler.shared.scheduledWorkouts
+        for item in scheduled
+            where item.plan.id == planID && !item.complete {
+            await WorkoutScheduler.shared.remove(item.plan, at: item.date)
+        }
+    }
+
+    /// Permission can be revoked while the app is backgrounded. Check it before
+    /// every store operation; a denied state is a read failure for the
+    /// reconciler, never an empty Apple schedule.
+    private func requireSchedulingAccess() async throws {
+        guard WorkoutScheduler.isSupported else {
+            throw ScheduleStoreError.unsupportedDevice
+        }
+        guard await WorkoutScheduler.shared.authorizationState == .authorized
+        else {
+            throw ScheduleStoreError.unauthorized
+        }
+    }
+}
+
 /// Builds the WorkoutKit plan for one mapped session. A stable `id` lets the
 /// reconciler replace a changed session instead of scheduling a second one.
 ///
