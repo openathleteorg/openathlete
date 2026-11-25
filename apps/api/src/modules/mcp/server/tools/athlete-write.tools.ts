@@ -167,8 +167,8 @@ export const registerAthleteWriteTools: ToolRegistrar = (server, ctx, deps) => {
       inputSchema: {
         athleteId: athleteIdInput,
         kind: z.enum(KINDS),
-        startDate: localDate,
-        endDate: localDate.describe(
+        startDate: localDate(),
+        endDate: localDate().describe(
           'Last day, included; a guess is fine, it can be changed',
         ),
         name: z
@@ -211,8 +211,8 @@ export const registerAthleteWriteTools: ToolRegistrar = (server, ctx, deps) => {
         'Changes the dates, name, kind, description or colour of a period, e.g. to end an illness earlier or later than first thought.',
       inputSchema: {
         periodId: z.number().int(),
-        startDate: localDate.optional(),
-        endDate: localDate.optional(),
+        startDate: localDate().optional(),
+        endDate: localDate().optional(),
         kind: z.enum(KINDS).optional(),
         name: z.string().min(1).max(100).optional(),
         description: z.string().max(2000).optional(),
@@ -286,7 +286,7 @@ export const registerAthleteWriteTools: ToolRegistrar = (server, ctx, deps) => {
             z.object({
               type: z.nativeEnum(MetricType),
               value: z.number().finite(),
-              date: localDate.optional().describe('Default: today'),
+              date: localDate().optional().describe('Default: today'),
               notes: z.string().max(500).optional(),
             }),
           )

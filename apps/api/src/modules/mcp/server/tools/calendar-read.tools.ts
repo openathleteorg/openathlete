@@ -38,20 +38,20 @@ const calendarOutput = z.object({
   today: z.string(),
   from: z.string(),
   to: z.string(),
-  items: z.array(calendarItemSchema),
+  items: z.array(calendarItemSchema()),
   periods: z.array(periodSchema),
 });
 
 const sessionOutput = z.object({
-  session: calendarItemSchema,
+  session: calendarItemSchema(),
   workoutSteps: workoutSchema
     .optional()
     .describe('The structured workout, in the format update_session takes'),
-  doneActivity: calendarItemSchema.optional(),
+  doneActivity: calendarItemSchema().optional(),
 });
 
 const activityOutput = z.object({
-  activity: calendarItemSchema,
+  activity: calendarItemSchema(),
   laps: z
     .array(
       z.object({
@@ -69,7 +69,7 @@ const activityOutput = z.object({
   feedback: z
     .array(z.object({ question: z.string(), answer: z.string() }))
     .describe("The athlete's answers after the activity"),
-  plannedSession: calendarItemSchema.optional(),
+  plannedSession: calendarItemSchema().optional(),
 });
 
 const activitiesOutput = z.object({
@@ -80,10 +80,10 @@ const activitiesOutput = z.object({
   truncated: z
     .boolean()
     .describe('More activities than the limit: narrow the range'),
-  activities: z.array(calendarItemSchema),
+  activities: z.array(calendarItemSchema()),
 });
 
-const templateSchema = calendarItemSchema
+const templateSchema = calendarItemSchema()
   .omit({
     eventId: true,
     date: true,
@@ -117,8 +117,8 @@ export const registerCalendarReadTools: ToolRegistrar = (server, ctx, deps) => {
         'Planned sessions, races, notes and done activities between two dates (at most 92 days), with the periods overlapping them. Planned sessions show their workout in one line and whether they were done or missed; activities show their metrics and load.',
       inputSchema: {
         athleteId: athleteIdInput,
-        from: localDate.describe('First day, YYYY-MM-DD'),
-        to: localDate.describe('Last day, included, YYYY-MM-DD'),
+        from: localDate().describe('First day, YYYY-MM-DD'),
+        to: localDate().describe('Last day, included, YYYY-MM-DD'),
         types: kindsInput,
       },
       outputSchema: calendarOutput,
@@ -347,8 +347,8 @@ export const registerCalendarReadTools: ToolRegistrar = (server, ctx, deps) => {
         'Done activities between two dates (at most a year), newest first, with their metrics and load: use it to judge training history and trends over months.',
       inputSchema: {
         athleteId: athleteIdInput,
-        from: localDate,
-        to: localDate,
+        from: localDate(),
+        to: localDate(),
         sport: z.nativeEnum(SportType).optional().describe('Only this sport'),
         limit: z.number().int().min(1).max(300).default(150),
       },

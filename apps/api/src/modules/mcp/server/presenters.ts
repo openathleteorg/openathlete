@@ -97,62 +97,71 @@ export type CalendarEvent = Prisma.EventGetPayload<{
   include: typeof CALENDAR_INCLUDE;
 }>;
 
-const optionalNumber = z.number().optional();
+// A fresh schema per field: a shared instance becomes a relative $ref in the
+// JSON schema, which some MCP clients do not resolve
+const optionalNumber = () => z.number().optional();
 
-export const calendarItemSchema = z.object({
-  eventId: z.number(),
-  type: z.enum(['training', 'race', 'note', 'activity', 'questionnaire']),
-  name: z.string(),
-  date: z.string().describe('Local date'),
-  start: z.string().describe('Local start time with UTC offset'),
-  sport: z.string().optional(),
-  description: z.string().optional(),
-  plannedMinutes: optionalNumber,
-  plannedKm: optionalNumber,
-  plannedElevationM: optionalNumber,
-  plannedRpe: optionalNumber.describe('Intended effort, 1-10'),
-  estimatedLoad: optionalNumber.describe('Planned load (TRIMP)'),
-  workout: z.string().optional().describe('Structured workout, in one line'),
-  priority: z.enum(['A', 'B', 'C']).optional(),
-  repeats: z
-    .boolean()
-    .optional()
-    .describe('One occurrence of a repeated session (see scope on updates)'),
-  status: z
-    .enum(['done', 'missed', 'planned'])
-    .optional()
-    .describe(
-      'Planned sessions: done (an activity is linked), missed or planned. Questionnaires: done once the athlete answered',
+export const calendarItemSchema = () =>
+  z.object({
+    eventId: z.number(),
+    type: z.enum(['training', 'race', 'note', 'activity', 'questionnaire']),
+    name: z.string(),
+    date: z.string().describe('Local date'),
+    start: z.string().describe('Local start time with UTC offset'),
+    sport: z.string().optional(),
+    description: z.string().optional(),
+    plannedMinutes: optionalNumber(),
+    plannedKm: optionalNumber(),
+    plannedElevationM: optionalNumber(),
+    plannedRpe: optionalNumber().describe('Intended effort, 1-10'),
+    estimatedLoad: optionalNumber().describe('Planned load (TRIMP)'),
+    workout: z.string().optional().describe('Structured workout, in one line'),
+    priority: z.enum(['A', 'B', 'C']).optional(),
+    repeats: z
+      .boolean()
+      .optional()
+      .describe('One occurrence of a repeated session (see scope on updates)'),
+    status: z
+      .enum(['done', 'missed', 'planned'])
+      .optional()
+      .describe(
+        'Planned sessions: done (an activity is linked), missed or planned. Questionnaires: done once the athlete answered',
+      ),
+    doneActivityId: optionalNumber().describe('eventId of the activity done'),
+    completion: optionalNumber().describe('Done moving time / planned time, %'),
+    movingMinutes: optionalNumber(),
+    distanceKm: optionalNumber(),
+    elevationGainM: optionalNumber(),
+    avgHeartRate: optionalNumber(),
+    maxHeartRate: optionalNumber(),
+    avgPower: optionalNumber(),
+    normalizedPower: optionalNumber(),
+    avgCadence: optionalNumber(),
+    avgPace: z
+      .string()
+      .optional()
+      .describe('e.g. 4:35/km, or 1:52/100m swimming'),
+    avgSpeedKmh: optionalNumber(),
+    rpe: optionalNumber().describe('Perceived effort, 1-10'),
+    load: optionalNumber().describe('Training load of the activity (TRIMP)'),
+    isRace: z.boolean().optional(),
+    source: z
+      .string()
+      .optional()
+      .describe(
+        'Where the activity was recorded, e.g. "Garmin Forerunner 965"',
+      ),
+    attribution: z
+      .string()
+      .optional()
+      .describe(
+        "The source's attribution notice, present on Garmin-sourced activities",
+      ),
+    plannedSessionId: optionalNumber().describe(
+      'eventId of the planned session it fulfils',
     ),
-  doneActivityId: optionalNumber.describe('eventId of the activity done'),
-  completion: optionalNumber.describe('Done moving time / planned time, %'),
-  movingMinutes: optionalNumber,
-  distanceKm: optionalNumber,
-  elevationGainM: optionalNumber,
-  avgHeartRate: optionalNumber,
-  maxHeartRate: optionalNumber,
-  avgPower: optionalNumber,
-  normalizedPower: optionalNumber,
-  avgCadence: optionalNumber,
-  avgPace: z
-    .string()
-    .optional()
-    .describe('e.g. 4:35/km, or 1:52/100m swimming'),
-  avgSpeedKmh: optionalNumber,
-  rpe: optionalNumber.describe('Perceived effort, 1-10'),
-  load: optionalNumber.describe('Training load of the activity (TRIMP)'),
-  isRace: z.boolean().optional(),
-  source: z
-    .string()
-    .optional()
-    .describe(
-      'Where the activity was recorded, e.g. "Garmin Forerunner 965": cite it whenever showing the activity or what you derive from it',
-    ),
-  plannedSessionId: optionalNumber.describe(
-    'eventId of the planned session it fulfils',
-  ),
-});
-export type CalendarItem = z.infer<typeof calendarItemSchema>;
+  });
+export type CalendarItem = z.infer<ReturnType<typeof calendarItemSchema>>;
 
 const round = (value: number, digits = 0) =>
   Math.round(value * 10 ** digits) / 10 ** digits;
@@ -171,6 +180,9 @@ export function speedFields(sport: string, metersPerSecond: number) {
   }
   return { avgSpeedKmh: round(metersPerSecond * 3.6, 1) };
 }
+
+export const GARMIN_ATTRIBUTION =
+  'Insights derived in part from Garmin device-sourced data';
 
 /**
  * Garmin's attribution, which its data keeps when shared through an API:
@@ -307,6 +319,8 @@ export function toCalendarItem(
         load: activity.trainingLoadEntries.length ? round(load) : undefined,
         isRace: activity.isRace || undefined,
         source: activitySource(activity.provider, activity.deviceName),
+        attribution:
+          activity.provider === 'GARMIN' ? GARMIN_ATTRIBUTION : undefined,
         plannedSessionId:
           activity.relatedTraining?.eventId ??
           activity.relatedCompetition?.eventId,

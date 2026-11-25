@@ -11,6 +11,7 @@ import { addDaysToDateKey, zonedClock } from 'src/common/utils/time-zone';
 
 import { ToolError, athleteIdInput, run } from '../context';
 import { daysBetween, localDate, localRange } from '../dates';
+import { GARMIN_ATTRIBUTION } from '../presenters';
 import { READ_ONLY, ToolRegistrar, registerTool } from './deps';
 
 const round = (value: number, digits = 0) =>
@@ -90,8 +91,12 @@ const metricsOutput = z.object({
           source: z
             .string()
             .optional()
+            .describe('Device brand the value comes from, e.g. "Garmin"'),
+          attribution: z
+            .string()
+            .optional()
             .describe(
-              'Device brand the value comes from, e.g. "Garmin": cite it whenever showing the value or what you derive from it',
+              "The source's attribution notice, present on Garmin-sourced values",
             ),
         }),
       ),
@@ -163,8 +168,10 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
         'Weekly training load (TRIMP), done and planned, with fitness (CTL), fatigue (ATL) and form (TSB) at the end of each week, projected forward over the planned sessions, and the recommended weekly load. Optionally day by day. Use it to set progressive weekly loads and to check the form on race day.',
       inputSchema: {
         athleteId: athleteIdInput,
-        from: localDate.optional().describe('First day; default 12 weeks ago'),
-        to: localDate.optional().describe('Last day; default 4 weeks ahead'),
+        from: localDate()
+          .optional()
+          .describe('First day; default 12 weeks ago'),
+        to: localDate().optional().describe('Last day; default 4 weeks ahead'),
         daily: z
           .boolean()
           .default(false)
@@ -247,8 +254,8 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
         'Hours, distance, elevation and number of activities per week and sport between two dates (at most a year). Use it to see how much the athlete really trains before planning more.',
       inputSchema: {
         athleteId: athleteIdInput,
-        from: localDate,
-        to: localDate,
+        from: localDate(),
+        to: localDate(),
       },
       outputSchema: volumeOutput,
       annotations: READ_ONLY,
@@ -352,8 +359,8 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
           .describe(
             'Metrics to read; get_athlete_context lists those recorded',
           ),
-        from: localDate.optional().describe('Default: 90 days ago'),
-        to: localDate.optional().describe('Default: today'),
+        from: localDate().optional().describe('Default: 90 days ago'),
+        to: localDate().optional().describe('Default: today'),
       },
       outputSchema: metricsOutput,
       annotations: READ_ONLY,
@@ -389,7 +396,10 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
                 value: value.value,
                 ...(value.notes && { notes: value.notes }),
                 // Garmin's attribution, which its data keeps through an API
-                ...(value.source === 'GARMIN' && { source: 'Garmin' }),
+                ...(value.source === 'GARMIN' && {
+                  source: 'Garmin',
+                  attribution: GARMIN_ATTRIBUTION,
+                }),
               })),
           })),
         };
@@ -406,8 +416,8 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
       inputSchema: {
         athleteId: athleteIdInput,
         sport: z.nativeEnum(SportType),
-        from: localDate.optional().describe('First day; default a year ago'),
-        to: localDate.optional().describe('Last day; default today'),
+        from: localDate().optional().describe('First day; default a year ago'),
+        to: localDate().optional().describe('Last day; default today'),
       },
       outputSchema: capacitiesOutput,
       annotations: READ_ONLY,
@@ -464,7 +474,7 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
           .nativeEnum(SportType)
           .optional()
           .describe('Default: the sport with the most records'),
-        since: localDate
+        since: localDate()
           .optional()
           .describe('Only records set since this date'),
       },

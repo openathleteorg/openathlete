@@ -1,6 +1,12 @@
 import { SPORT_TYPE } from '@openathlete/shared';
 
-import { activitySource, speedFields } from './presenters';
+import {
+  CalendarEvent,
+  GARMIN_ATTRIBUTION,
+  activitySource,
+  speedFields,
+  toCalendarItem,
+} from './presenters';
 
 describe('speedFields', () => {
   it('gives runners a pace per km', () => {
@@ -35,5 +41,47 @@ describe('activitySource', () => {
   it('leaves other sources unlabelled', () => {
     expect(activitySource('STRAVA', 'Forerunner 965')).toBeUndefined();
     expect(activitySource(null, null)).toBeUndefined();
+  });
+});
+
+describe('toCalendarItem attribution', () => {
+  const activityEvent = (provider: string | null, deviceName: string | null) =>
+    ({
+      eventId: 1,
+      type: 'ACTIVITY',
+      name: 'Morning run',
+      startDate: new Date('2026-01-01T08:00:00Z'),
+      seriesId: null,
+      activity: {
+        sport: SPORT_TYPE.RUNNING,
+        description: null,
+        movingTime: 3600,
+        distance: 10000,
+        averageSpeed: 2.8,
+        provider,
+        deviceName,
+        trainingLoadEntries: [],
+      },
+    }) as unknown as CalendarEvent;
+
+  const item = (event: CalendarEvent) =>
+    toCalendarItem(event, 'UTC', '2026-01-02', new Map());
+
+  it('gives a Garmin activity its source and the attribution notice', () => {
+    expect(item(activityEvent('GARMIN', 'Forerunner 965'))).toMatchObject({
+      source: 'Garmin Forerunner 965',
+      attribution: GARMIN_ATTRIBUTION,
+    });
+  });
+
+  it('gives other activities neither', () => {
+    for (const event of [
+      activityEvent('STRAVA', 'Forerunner 965'),
+      activityEvent(null, null),
+    ]) {
+      const result = item(event);
+      expect(result).not.toHaveProperty('source');
+      expect(result).not.toHaveProperty('attribution');
+    }
   });
 });

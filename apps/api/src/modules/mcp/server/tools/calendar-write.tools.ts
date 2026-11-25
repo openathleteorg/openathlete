@@ -85,8 +85,8 @@ const sessionFields = {
 
 const sessionInput = z.object({
   type: z.enum(['training', 'race', 'note']).default('training'),
-  date: localDate,
-  time: localTime
+  date: localDate(),
+  time: localTime()
     .optional()
     .describe(
       'Start time shown in the calendar and editable by the athlete; omitted, the session starts at 12:00',
@@ -97,7 +97,7 @@ type SessionInput = z.infer<typeof sessionInput>;
 
 const itemsOutput = z.object({
   count: z.number(),
-  items: z.array(calendarItemSchema),
+  items: z.array(calendarItemSchema()),
 });
 
 const deletedOutput = z.object({
@@ -388,8 +388,8 @@ export const registerCalendarWriteTools: ToolRegistrar = (
           .describe(
             'Repeated sessions: this one only, or this one and the following',
           ),
-        date: localDate.optional().describe('New date'),
-        time: localTime.optional().describe('New start time'),
+        date: localDate().optional().describe('New date'),
+        time: localTime().optional().describe('New start time'),
         ...sessionFields,
         name: sessionFields.name.optional(),
       },
@@ -597,8 +597,8 @@ export const registerCalendarWriteTools: ToolRegistrar = (
           .min(1)
           .max(PLAN_FOR_ATHLETES_MAX_ATHLETES)
           .describe('Athletes to copy to'),
-        date: localDate.describe('Day the first session lands on'),
-        time: localTime
+        date: localDate().describe('Day the first session lands on'),
+        time: localTime()
           .optional()
           .describe('Start time for every session; absent, each keeps its own'),
       },
@@ -668,7 +668,7 @@ export const registerCalendarWriteTools: ToolRegistrar = (
       inputSchema: {
         eventId: z.number().int(),
         everyWeeks: z.number().int().min(1).max(4).default(1),
-        until: localDate.describe('Last day an occurrence may fall on'),
+        until: localDate().describe('Last day an occurrence may fall on'),
       },
       outputSchema: itemsOutput,
       annotations: {

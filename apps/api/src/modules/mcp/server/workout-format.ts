@@ -47,61 +47,68 @@ const PERCENT_METRIC_NAMES = Object.keys(PERCENT_METRICS) as [
 
 const PACE_PATTERN = /^(\d{1,2}):([0-5]\d)$/;
 
-const pace = z
-  .string()
-  .regex(PACE_PATTERN, 'Pace as m:ss per km, e.g. 4:35')
-  .describe('Pace per kilometer as m:ss, e.g. "4:35"');
+const pace = () =>
+  z
+    .string()
+    .regex(PACE_PATTERN, 'Pace as m:ss per km, e.g. 4:35')
+    .describe('Pace per kilometer as m:ss, e.g. "4:35"');
 
-const range = (unit: string, schema: z.ZodNumber) => ({
-  min: schema.describe(`Lower bound, or the single value (${unit})`),
-  max: schema.optional().describe(`Upper bound (${unit}); omit for one value`),
+const range = (unit: string, schema: () => z.ZodNumber) => ({
+  min: schema().describe(`Lower bound, or the single value (${unit})`),
+  max: schema()
+    .optional()
+    .describe(`Upper bound (${unit}); omit for one value`),
 });
 
-export const targetSchema = z.discriminatedUnion('type', [
-  z.object({
-    type: z.literal('zone'),
-    zoneId: z
-      .number()
-      .int()
-      .describe(
-        'trainingZoneId of one of the athlete zones (get_athlete_context)',
-      ),
-    zoneName: z.string().optional().describe('Ignored on input'),
-  }),
-  z.object({
-    type: z.literal('pace'),
-    min: pace.describe('Pace per km as m:ss; the two bounds in any order'),
-    max: pace.optional().describe('Other bound of a pace range, m:ss per km'),
-  }),
-  z.object({
-    type: z.literal('heart_rate'),
-    ...range('bpm', z.number().min(30).max(250)),
-  }),
-  z.object({
-    type: z.literal('power'),
-    ...range('W', z.number().min(1).max(3000)),
-  }),
-  z.object({
-    type: z.literal('cadence'),
-    ...range('rpm or steps/min', z.number().min(1).max(300)),
-  }),
-  z.object({
-    type: z.literal('rpe'),
-    value: z.number().min(1).max(10).describe('Perceived effort, 1-10'),
-  }),
-  z.object({
-    type: z.literal('percent_of'),
-    metric: z
-      .enum(PERCENT_METRIC_NAMES)
-      .describe(
-        'VMA and CRITICAL_POWER_RUNNING give a pace, HR_MAX and HR_RESERVE a heart rate, FTP_* and CRITICAL_POWER_CYCLING a power',
-      ),
-    ...range('% of the metric, e.g. 85', z.number().min(1).max(200)),
-  }),
-]);
+const makeTargetSchema = () =>
+  z.discriminatedUnion('type', [
+    z.object({
+      type: z.literal('zone'),
+      zoneId: z
+        .number()
+        .int()
+        .describe(
+          'trainingZoneId of one of the athlete zones (get_athlete_context)',
+        ),
+      zoneName: z.string().optional().describe('Ignored on input'),
+    }),
+    z.object({
+      type: z.literal('pace'),
+      min: pace().describe('Pace per km as m:ss; the two bounds in any order'),
+      max: pace()
+        .optional()
+        .describe('Other bound of a pace range, m:ss per km'),
+    }),
+    z.object({
+      type: z.literal('heart_rate'),
+      ...range('bpm', () => z.number().min(30).max(250)),
+    }),
+    z.object({
+      type: z.literal('power'),
+      ...range('W', () => z.number().min(1).max(3000)),
+    }),
+    z.object({
+      type: z.literal('cadence'),
+      ...range('rpm or steps/min', () => z.number().min(1).max(300)),
+    }),
+    z.object({
+      type: z.literal('rpe'),
+      value: z.number().min(1).max(10).describe('Perceived effort, 1-10'),
+    }),
+    z.object({
+      type: z.literal('percent_of'),
+      metric: z
+        .enum(PERCENT_METRIC_NAMES)
+        .describe(
+          'VMA and CRITICAL_POWER_RUNNING give a pace, HR_MAX and HR_RESERVE a heart rate, FTP_* and CRITICAL_POWER_CYCLING a power',
+        ),
+      ...range('% of the metric, e.g. 85', () => z.number().min(1).max(200)),
+    }),
+  ]);
+export const targetSchema = makeTargetSchema();
 export type WorkoutTarget = z.infer<typeof targetSchema>;
 
-const stepFields = {
+const stepFields = () => ({
   name: z.string().max(100).optional(),
   notes: z.string().max(500).optional().describe('Cue shown to the athlete'),
   durationSeconds: z
@@ -118,22 +125,29 @@ const stepFields = {
     .optional()
     .describe('Step length in meters, instead of a duration'),
   targets: z
-    .array(targetSchema)
+    .array(makeTargetSchema())
     .max(3)
     .optional()
     .describe('Intensity: usually one target, e.g. a zone or a pace range'),
-};
+});
 
-export const stepSchema = z
-  .object({
-    kind: z
-      .enum(Object.keys(STEP_KINDS) as [StepKind, ...StepKind[]])
-      .describe('warmup, steady, work (interval), recovery, cooldown or free'),
-    ...stepFields,
-  })
-  .describe(
-    'A step. Give durationSeconds or distanceMeters, or neither for a step ended with the lap button',
-  );
+// Built per use: a schema instance shared between the workout and its repeat
+// blocks becomes a relative $ref in the JSON schema, which some MCP clients
+// do not resolve (they see an empty union)
+const makeStepSchema = () =>
+  z
+    .object({
+      kind: z
+        .enum(Object.keys(STEP_KINDS) as [StepKind, ...StepKind[]])
+        .describe(
+          'warmup, steady, work (interval), recovery, cooldown or free',
+        ),
+      ...stepFields(),
+    })
+    .describe(
+      'A step. Give durationSeconds or distanceMeters, or neither for a step ended with the lap button',
+    );
+export const stepSchema = makeStepSchema();
 export type WorkoutStep = z.infer<typeof stepSchema>;
 
 export const repeatSchema = z
@@ -142,7 +156,7 @@ export const repeatSchema = z
     name: z.string().max(100).optional(),
     times: z.number().int().min(1).max(99),
     steps: z
-      .array(stepSchema)
+      .array(makeStepSchema())
       .min(1)
       .max(20)
       .describe('Steps done each time; a repeat cannot contain a repeat'),

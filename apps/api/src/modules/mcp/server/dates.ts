@@ -6,19 +6,23 @@ import { ToolError } from './context';
 
 const DAY_MS = 24 * 3600 * 1000;
 
-export const localDate = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'A date as YYYY-MM-DD')
-  .refine(
-    (value) => new Date(`${value}T00:00:00Z`).toISOString().startsWith(value),
-    'Not a calendar date',
-  )
-  .describe("Date as YYYY-MM-DD, in the athlete's time zone");
+// Factories, not shared instances: a schema reused within one tool becomes a
+// relative $ref in its JSON schema, which some MCP clients do not resolve
+export const localDate = () =>
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'A date as YYYY-MM-DD')
+    .refine(
+      (value) => new Date(`${value}T00:00:00Z`).toISOString().startsWith(value),
+      'Not a calendar date',
+    )
+    .describe("Date as YYYY-MM-DD, in the athlete's time zone");
 
-export const localTime = z
-  .string()
-  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'A time as HH:mm')
-  .describe("Time as HH:mm (24 h), in the athlete's time zone");
+export const localTime = () =>
+  z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'A time as HH:mm')
+    .describe("Time as HH:mm (24 h), in the athlete's time zone");
 
 /** Calendar days from `from` to `to`, both YYYY-MM-DD */
 export function daysBetween(from: string, to: string): number {

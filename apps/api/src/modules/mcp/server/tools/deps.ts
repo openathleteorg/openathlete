@@ -59,10 +59,15 @@ export function registerTool<Shape extends z.ZodRawShape>(
   },
   handler: (args: z.output<z.ZodObject<Shape>>) => Promise<CallToolResult>,
 ) {
+  // Clients read the display name from annotations.title, the spec's older
+  // spot, as well as from the top-level title
   (server.registerTool as (...args: unknown[]) => unknown).call(
     server,
     name,
-    config,
+    {
+      ...config,
+      annotations: { title: config.title, ...config.annotations },
+    },
     handler,
   );
 }
