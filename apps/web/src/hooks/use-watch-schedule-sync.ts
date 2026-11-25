@@ -7,11 +7,11 @@ import {
   type WatchScheduleScope,
   type WatchScheduleTrigger,
   clearFenceUnconfirmed,
-  disconnectWatchSchedule,
   fenceWatchScheduleOnExit,
   getWatchScheduleStatus,
   hasFenceUnconfirmed,
   isAppleWatchScheduleAvailable,
+  isWatchScheduleExitLatched,
   isWatchScheduleSessionCurrent,
   recoverWatchScheduleCleanup,
   refreshWatchSchedule,
@@ -46,6 +46,7 @@ async function runPass(
   trigger: WatchScheduleTrigger,
 ) {
   const session = watchScheduleSessionEpoch();
+  if (!isWatchScheduleSessionCurrent(session)) return;
   const credential = await watchScheduleCredential();
   // A logout while the token was being read must not call the bridge against
   // the new native epoch.
@@ -79,33 +80,38 @@ export function useWatchScheduleSync() {
 
     const launch = async () => {
       let session = watchScheduleSessionEpoch();
+      if (!isWatchScheduleSessionCurrent(session)) return;
       if (hasFenceUnconfirmed()) {
+        const beforeFence = session;
         const acknowledged = await fenceWatchScheduleOnExit();
-        if (cancelled) return;
-        if (acknowledged) clearFenceUnconfirmed();
-        // The fence is a session boundary; continue under the new epoch.
-        session = watchScheduleSessionEpoch();
+        if (cancelled || isWatchScheduleExitLatched()) return;
+        // The fence is a session boundary inside this authenticated session.
+        // Accept only the boundary this call created; never adopt an arbitrary
+        // newer epoch if a logout or another fence happened meanwhile.
+        const afterFence = watchScheduleSessionEpoch();
+        if (afterFence !== beforeFence + 1) return;
+        if (!acknowledged) return;
+        clearFenceUnconfirmed();
+        session = afterFence;
       }
       const status = await getWatchScheduleStatus(scope);
       if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
-      if (status.hasOtherAccountOptIn) {
-        // A foreign opt-in still authorizes that account's cleanup.
-        await disconnectWatchSchedule();
-      } else if (status.cleanupPending) {
-        // Existing durable teardown only; never inferred from unknown state.
-        await recoverWatchScheduleCleanup();
-      } else if (status.cleanupUnknown) {
-        // Pause. Knowing cleanup is unknown is not authorization to act.
-        return;
-      } else {
-        if (!status.enabled) return;
+      // Unknown state dominates: it is not authorization to disconnect or
+      // recover anything. The settings screen offers the dedicated retry.
+      if (status.cleanupUnknown) return;
+      if (status.hasOtherAccountOptIn || status.cleanupPending) {
+        // Only existing durable authorization, plus a genuinely foreign
+        // opt-in, is recovered. Never an unscoped disconnect of this account.
+        const recovered = await recoverWatchScheduleCleanup(scope);
+        if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
+        if (!recovered) return;
+        const current = await getWatchScheduleStatus(scope);
+        if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
+        if (!current.enabled) return;
         await runPass(scope, 'launch');
         return;
       }
-      if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
-      const current = await getWatchScheduleStatus(scope);
-      if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
-      if (!current.enabled) return;
+      if (!status.enabled) return;
       await runPass(scope, 'launch');
     };
 

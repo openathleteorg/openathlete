@@ -10,8 +10,11 @@ import { queryClient } from '@/utils/query-client';
 import { saveTimeZone } from '@/utils/time-zone';
 import {
   disconnectWatchScheduleOnExit,
+  establishWatchScheduleSession,
   fenceWatchScheduleOnExit,
+  latchWatchScheduleExit,
   markFenceUnconfirmed,
+  watchScheduleExitBoundary,
 } from '@/utils/watch-schedule';
 import posthog from 'posthog-js';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
@@ -77,6 +80,10 @@ export function AuthProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const initialize = useCallback(async () => {
+    // Capture the exit latch before the first await. An initialization that
+    // started before a logout must not release that newer exit when its old
+    // token happens to resolve successfully later.
+    const watchExitBoundary = watchScheduleExitBoundary();
     // Without an answer from the API the session is unknown, not signed out:
     // treating it as signed out would send the user to the login page
     const signedOutOrOffline = (error: unknown) =>
@@ -97,6 +104,10 @@ export function AuthProvider({ children }: Props) {
         await saveLanguageChoice(user.language);
         // Not awaited: reminders can wait, the app should not
         void saveTimeZone(user.timeZone);
+
+        // An authenticated successor exists: release the exit latch only now,
+        // so no new watch work can start against the previous token.
+        establishWatchScheduleSession(watchExitBoundary);
 
         dispatch({
           type: Types.INITIAL,
@@ -125,6 +136,8 @@ export function AuthProvider({ children }: Props) {
           await saveLanguageChoice(user.language);
           // Not awaited: reminders can wait, the app should not
           void saveTimeZone(user.timeZone);
+
+          establishWatchScheduleSession(watchExitBoundary);
 
           dispatch({
             type: Types.INITIAL,
@@ -181,9 +194,12 @@ export function AuthProvider({ children }: Props) {
     };
     // Fence Apple scheduling before the tokens disappear, and wait for that
     // acknowledgement (bounded) so a stale permission/fetch continuation cannot
-    // opt the signed-out account in after storage was cleared. If native does
-    // not acknowledge, sign-out still escapes and the unconfirmed state is
-    // surfaced in settings instead of being reported as a successful fence.
+    // opt the signed-out account in after storage was cleared. The synchronous
+    // latch comes first: while the fence waits, even newly started work must be
+    // refused because the old token is still in storage. If native does not
+    // acknowledge, sign-out still escapes and the unconfirmed state is surfaced
+    // in settings instead of being reported as a successful fence.
+    latchWatchScheduleExit();
     void fenceWatchScheduleOnExit().then((acknowledged) => {
       if (!acknowledged) markFenceUnconfirmed();
       finish();

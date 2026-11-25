@@ -74,26 +74,43 @@ matching entry.
   If Application Support itself is unavailable, the runtime stays disabled:
   there is no temporary-directory fallback.
 - The native fence acknowledges only when the opt-in was actually retired
-  (read/clear errors are not ignored). A timeout, bridge rejection or incomplete
-  fence is not treated as success: sign-out still escapes, but the app keeps an
-  unconfirmed marker, the settings screen surfaces it, and a server switch is
-  refused until acknowledged. A native fence guard is set before the first
-  await and blocks connect, foreground and background passes while teardown
-  authorization is pending, including on a cold runtime.
-- The web keeps a synchronous session/exit epoch. Logout and instance switches
-  bump it before their first await; settings actions and automatic launch/refresh
-  paths discard a credential or result that resolves under a newer epoch instead
-  of calling the bridge or writing state.
+  (read/clear errors are not ignored) and its absence was read back, including
+  when there was no target opt-in. A malformed stored opt-in is unknown, not
+  absent. A timeout, bridge rejection or incomplete fence is not treated as
+  success: sign-out still escapes, but the app keeps an unconfirmed marker, the
+  settings screen surfaces it, and a server switch is refused until
+  acknowledged. A native fence guard is set before the first await and blocks
+  connect, foreground and background passes while teardown authorization is
+  pending, including on a cold runtime.
+- Each fence-persisting, recovery and drain operation owns its own guard token;
+  releasing one operation can never clear another's. Fence, disconnect, recovery,
+  opt-in save and cleanup drain all pass through the same lifecycle gate, so a
+  recovery cannot interleave with a suspended teardown write. A cold wrong-scope
+  disconnect is read-only: it does not touch the epoch, guard, opt-in,
+  credential, reconciler generation or the background refresh request.
+- The web keeps a synchronous session/exit latch as well as an epoch. Logout and
+  instance switches set the latch before their first await; while it is set,
+  even work started at the newest epoch is refused because the previous access
+  token is still in storage. Only an authenticated successor (a completed
+  `getMe` after sign-in) clears it. A launch that retries a fence accepts only
+  the exact epoch boundary it created, never an arbitrary newer epoch. Every
+  second status read is rechecked against the session after it resolves.
 - A persisted zero-byte teardown document is corrupt/unknown, never an empty
   allow-list. Recovery proves the old opt-in read and clear (including a
-  read-back) before deleting teardown authorization. `cleanupUnknown` pauses
-  only: launch and settings do not issue an unscoped disconnect; a dedicated
-  retry acts solely on existing authorized teardown.
+  read-back) before deleting teardown authorization. `cleanupUnknown` dominates
+  the other flags and pauses: launch and settings do not issue an unscoped
+  disconnect; the settings screen and launch path use the dedicated recovery,
+  and the screen offers a safe retry that only acts on authorized teardown.
+- `hasOtherAccountOptIn` means exactly a readable opt-in for another account. A
+  teardown for A with an opt-in for B is cleanup for A and never authorizes
+  disconnecting B. Recovery with the current scope may retire an actually
+  foreign stored opt-in, but never the caller's own; an unreadable or malformed
+  opt-in fails closed.
 - Cold disconnect and background recovery share the lifecycle gate. Credential
   retirement is scope-aware, so recovering an old account never purges the
   account currently signed in. A scoped disconnect for the wrong account is
   rejected before touching the epoch, credential, opt-in or reconciler
-  generation.
+  generation, and it does not cancel the background refresh chain.
 - Cleanup runs under the **exact stored scope and generation**: the reconciler
   is re-activated for that scope only after the pass drained, cleanup removes
   only journal-owned, non-completed entries, then the fence and credential are
@@ -193,7 +210,7 @@ length to match the prescription exactly. Until then, keep
 
 | Check | Result |
 | --- | --- |
-| Portable core tests (Linux Swift 6.1.2) | 214 passed, debug and release |
+| Portable core tests (Linux Swift 6.1.2) | 220 passed, debug and release |
 | Web unit tests (`pnpm web test`) | passed, including settings, lifecycle hook, bridge logging/storage audit and server no-op |
 | `scripts/verify.sh` | see the task report; lint/types/translations/unit run |
 | `scripts/verify.sh --e2e` | blocked on this host: Docker is unavailable, no stack was started |

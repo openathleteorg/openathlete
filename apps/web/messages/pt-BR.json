@@ -3235,6 +3235,7 @@
   "apple_watch_skip_other": "Esta sessão não pode ser representada no app Workout da Apple.",
   "apple_watch_local_pending": "{count} treinos aguardam nova tentativa na próxima atualização.",
   "apple_watch_cleanup_incomplete": "A limpeza do Apple Watch não terminou. O agendamento continua pausado; atualize para tentar novamente.",
+  "apple_watch_cleanup_retry": "Tentar limpeza novamente",
   "apple_watch_cleanup_unknown": "O OpenAthlete não conseguiu ler a limpeza pendente do Apple Watch. O agendamento continua pausado até conseguir.",
   "apple_watch_server_switch_blocked": "Não foi possível parar o agendamento do Apple Watch neste iPhone. Ele bloqueia a troca de servidor até ser confirmado.",
   "apple_watch_fence_unconfirmed": "Não foi possível parar o agendamento do Apple Watch neste iPhone. Entre novamente para concluir a limpeza."

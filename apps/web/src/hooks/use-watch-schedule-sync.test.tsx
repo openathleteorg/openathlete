@@ -10,7 +10,9 @@ const state = vi.hoisted(() => ({
   available: true,
   authenticated: true,
   sessionEpoch: 0,
+  exitLatched: false,
   resolveCredential: null as ((value: unknown) => void) | null,
+  resolveSecondStatus: null as ((value: unknown) => void) | null,
   status: {
     enabled: true,
     hasOtherAccountOptIn: false,
@@ -66,8 +68,9 @@ vi.mock('@/utils/watch-schedule', () => ({
   clearFenceUnconfirmed: vi.fn(),
   fenceWatchScheduleOnExit: vi.fn().mockResolvedValue(true),
   watchScheduleSessionEpoch: () => state.sessionEpoch,
+  isWatchScheduleExitLatched: () => state.exitLatched,
   isWatchScheduleSessionCurrent: (epoch: number) =>
-    epoch === state.sessionEpoch,
+    !state.exitLatched && epoch === state.sessionEpoch,
   recoverWatchScheduleCleanup: state.recover,
   getWatchScheduleStatus: state.getStatus,
   refreshWatchSchedule: state.refresh,
@@ -131,7 +134,9 @@ describe('Apple Watch sync lifecycle', () => {
     state.recover.mockReset();
     state.recover.mockResolvedValue(true);
     state.sessionEpoch = 0;
+    state.exitLatched = false;
     state.resolveCredential = null;
+    state.resolveSecondStatus = null;
     state.credential.mockReset();
     state.scope.mockReset();
     state.getStatus.mockResolvedValue(state.status);
@@ -171,15 +176,77 @@ describe('Apple Watch sync lifecycle', () => {
     expect(state.refresh).not.toHaveBeenCalled();
   });
 
-  it('cleans a previous account opt-in before refreshing this one', async () => {
+  it('recovers a previous account opt-in without disconnecting this one', async () => {
     state.getStatus
       .mockResolvedValueOnce({ ...state.status, hasOtherAccountOptIn: true })
       .mockResolvedValue({ ...state.status });
 
     await render();
 
-    expect(state.disconnect).toHaveBeenCalledWith();
+    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.disconnect).not.toHaveBeenCalled();
     expect(state.refresh).toHaveBeenCalledWith(scope, credential, 'launch');
+  });
+
+  it('recovers authorized teardown while keeping the current opt-in', async () => {
+    state.getStatus
+      .mockResolvedValueOnce({
+        ...state.status,
+        cleanupPending: true,
+        otherAccountPending: true,
+      })
+      .mockResolvedValue({ ...state.status });
+
+    await render();
+
+    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.refresh).toHaveBeenCalledWith(scope, credential, 'launch');
+  });
+
+  it('lets unknown cleanup dominate other pending flags', async () => {
+    state.getStatus.mockResolvedValue({
+      ...state.status,
+      cleanupUnknown: true,
+      cleanupPending: true,
+      hasOtherAccountOptIn: true,
+      otherAccountPending: true,
+    });
+
+    await render();
+
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.recover).not.toHaveBeenCalled();
+    expect(state.refresh).not.toHaveBeenCalled();
+  });
+
+  it('drops a second status read that resolves after logout', async () => {
+    state.getStatus
+      .mockResolvedValueOnce({ ...state.status, hasOtherAccountOptIn: true })
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            state.resolveSecondStatus = resolve;
+          }),
+      );
+
+    await render();
+    state.sessionEpoch += 1;
+    state.exitLatched = true;
+    state.resolveSecondStatus?.(state.status);
+    await flush();
+
+    expect(state.refresh).not.toHaveBeenCalled();
+  });
+
+  it('starts nothing while a logout is latched', async () => {
+    state.exitLatched = true;
+    state.sessionEpoch = 1;
+
+    await render();
+
+    expect(state.getStatus).not.toHaveBeenCalled();
+    expect(state.refresh).not.toHaveBeenCalled();
   });
 
   it('retries a durable cleanup without an unscoped disconnect', async () => {

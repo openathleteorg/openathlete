@@ -15,6 +15,8 @@ import {
 import {
   disconnectWatchSchedule,
   fenceWatchScheduleOnExit,
+  latchWatchScheduleExit,
+  releaseWatchScheduleExit,
 } from '@/utils/watch-schedule';
 import posthog from 'posthog-js';
 import { useState } from 'react';
@@ -54,12 +56,18 @@ export function ServerSelection({ onCancel }: Props) {
         posthog.reset();
       }
       // A no-op canonical save (same instance) must keep scheduling enabled.
-      if (isServerChange(url, defaultUrl)) {
+      const changing = isServerChange(url, defaultUrl);
+      // Latch before the first await of a real switch: the old token is still
+      // in storage while the native fence runs, so an epoch bump alone would
+      // let newly started scheduling pass.
+      const boundary = changing ? latchWatchScheduleExit() : null;
+      if (changing) {
         // Another instance must never inherit this account's scheduled
         // workouts or its stored access credential. Do not switch without an
         // acknowledged fence; Apple cleanup can finish afterwards.
         const acknowledged = await fenceWatchScheduleOnExit();
         if (!acknowledged) {
+          if (boundary !== null) releaseWatchScheduleExit(boundary);
           setError(m.apple_watch_server_switch_blocked());
           return;
         }
@@ -68,6 +76,7 @@ export function ServerSelection({ onCancel }: Props) {
       if (saveSelectedServerUrl(url, defaultUrl)) {
         window.location.reload();
       } else {
+        if (boundary !== null) releaseWatchScheduleExit(boundary);
         onCancel?.();
       }
     } catch {

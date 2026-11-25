@@ -8,6 +8,8 @@ import { ServerSelection } from './server-selection';
 const state = vi.hoisted(() => ({
   fence: vi.fn(),
   disconnect: vi.fn(),
+  latch: vi.fn(),
+  release: vi.fn(),
   save: vi.fn(),
   resolve: vi.fn(),
   current: 'https://old.example.org/api',
@@ -26,6 +28,8 @@ vi.mock('@/utils/mobile-server', () => ({
 vi.mock('@/utils/watch-schedule', () => ({
   fenceWatchScheduleOnExit: state.fence,
   disconnectWatchSchedule: state.disconnect,
+  latchWatchScheduleExit: state.latch,
+  releaseWatchScheduleExit: state.release,
 }));
 vi.mock('@/utils/firebase-auth', () => ({
   signOutFirebase: () => Promise.resolve(),
@@ -54,6 +58,9 @@ describe('server selection and Apple Watch scheduling', () => {
   beforeEach(() => {
     state.fence.mockReset();
     state.disconnect.mockReset();
+    state.latch.mockReset();
+    state.release.mockReset();
+    state.latch.mockReturnValue(7);
     state.save.mockReset();
     state.resolve.mockReset();
     state.current = 'https://old.example.org/api';
@@ -85,6 +92,8 @@ describe('server selection and Apple Watch scheduling', () => {
     expect(state.fence).toHaveBeenCalledTimes(1);
     expect(state.disconnect).not.toHaveBeenCalled();
     expect(state.save).not.toHaveBeenCalled();
+    expect(state.latch).toHaveBeenCalledTimes(1);
+    expect(state.release).toHaveBeenCalledWith(7);
     expect(element.querySelector('[role="alert"]')?.textContent).toContain(
       'apple_watch_server_switch_blocked',
     );
@@ -109,5 +118,7 @@ describe('server selection and Apple Watch scheduling', () => {
     expect(state.fence).toHaveBeenCalledTimes(1);
     expect(state.disconnect).toHaveBeenCalledTimes(1);
     expect(state.save).toHaveBeenCalledTimes(1);
+    expect(state.latch).toHaveBeenCalledTimes(1);
+    expect(state.release).toHaveBeenCalledWith(7);
   });
 });

@@ -14,7 +14,9 @@ const state = vi.hoisted(() => ({
   available: true,
   status: null as unknown,
   sessionEpoch: 0,
+  exitLatched: false,
   resolveCredential: null as ((value: unknown) => void) | null,
+  resolveSecondStatus: null as ((value: unknown) => void) | null,
   getStatus: vi.fn(),
   connect: vi.fn(),
   refresh: vi.fn(),
@@ -30,8 +32,9 @@ vi.mock('@/utils/watch-schedule', () => ({
   clearFenceUnconfirmed: vi.fn(),
   fenceWatchScheduleOnExit: vi.fn().mockResolvedValue(true),
   watchScheduleSessionEpoch: () => state.sessionEpoch,
+  isWatchScheduleExitLatched: () => state.exitLatched,
   isWatchScheduleSessionCurrent: (epoch: number) =>
-    epoch === state.sessionEpoch,
+    !state.exitLatched && epoch === state.sessionEpoch,
   recoverWatchScheduleCleanup: state.recover,
   getWatchScheduleStatus: state.getStatus,
   connectWatchSchedule: state.connect,
@@ -160,7 +163,9 @@ describe('Apple Watch settings', () => {
     state.recover.mockReset();
     state.recover.mockResolvedValue(true);
     state.sessionEpoch = 0;
+    state.exitLatched = false;
     state.resolveCredential = null;
+    state.resolveSecondStatus = null;
     state.scope.mockReset();
     state.scope.mockReturnValue(scope);
     state.credential.mockResolvedValue(credential);
@@ -369,25 +374,102 @@ describe('Apple Watch settings', () => {
     expect(text()).toContain('apple_watch_sign_in_again');
   });
 
-  it('cleans a previous account opt-in before showing this account', async () => {
+  it('recovers a previous account opt-in without disconnecting this account', async () => {
     state.getStatus
       .mockResolvedValueOnce(status({ hasOtherAccountOptIn: true }))
       .mockResolvedValueOnce(status());
-    state.disconnect.mockResolvedValue({
-      athleteId: 9,
-      instanceURL: 'https://train.example.org/api',
-      removedEventIDs: [],
-      retainedEventIDs: [],
-      unresolvedEventIDs: [],
-      purgedCredential: true,
-      permission: 'authorized',
-    });
+    state.recover.mockResolvedValue(true);
 
     await render();
 
-    expect(state.disconnect).toHaveBeenCalledWith();
+    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.disconnect).not.toHaveBeenCalled();
     expect(state.getStatus).toHaveBeenCalledTimes(2);
     expect(text()).toContain('apple_watch_enable');
+  });
+
+  it('recovers teardown for another account without disconnecting this one', async () => {
+    state.getStatus
+      .mockResolvedValueOnce(
+        status({
+          enabled: true,
+          cleanupPending: true,
+          otherAccountPending: true,
+        }),
+      )
+      .mockResolvedValueOnce(status({ enabled: true }));
+    state.recover.mockResolvedValue(true);
+
+    await render();
+
+    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(text()).toContain('apple_watch_connected');
+  });
+
+  it('offers a dedicated retry for unknown cleanup and never disconnects', async () => {
+    state.getStatus.mockResolvedValue(
+      status({
+        enabled: true,
+        cleanupUnknown: true,
+        otherAccountPending: true,
+      }),
+    );
+
+    await render();
+    expect(state.recover).not.toHaveBeenCalled();
+    expect(state.disconnect).not.toHaveBeenCalled();
+
+    await act(async () => button('apple_watch_cleanup_retry')!.click());
+    await flush();
+
+    expect(state.recover).toHaveBeenCalledWith(scope);
+    expect(state.disconnect).not.toHaveBeenCalled();
+  });
+
+  it('keeps a safe retry when foreign opt-in recovery fails', async () => {
+    state.getStatus.mockResolvedValue(status({ hasOtherAccountOptIn: true }));
+    state.recover.mockResolvedValue(false);
+
+    await render();
+
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(button('apple_watch_cleanup_retry')).toBeDefined();
+    expect(text()).toContain('apple_watch_cleanup_incomplete');
+  });
+
+  it('ignores a second status result that resolves after logout', async () => {
+    state.getStatus
+      .mockResolvedValueOnce(status({ hasOtherAccountOptIn: true }))
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            state.resolveSecondStatus = resolve;
+          }),
+      );
+    state.recover.mockResolvedValue(true);
+
+    await render();
+    state.sessionEpoch += 1;
+    state.exitLatched = true;
+    state.resolveSecondStatus?.(
+      status({ enabled: true, unresolvedEventIDs: [999] }),
+    );
+    await flush();
+
+    expect(text()).not.toContain('apple_watch_unresolved_write');
+  });
+
+  it('drops a new manual refresh while a logout is latched', async () => {
+    state.getStatus.mockResolvedValue(status({ enabled: true }));
+    await render();
+    state.exitLatched = true;
+    state.sessionEpoch += 1;
+
+    await act(async () => button('apple_watch_refresh')!.click());
+    await flush();
+
+    expect(state.refresh).not.toHaveBeenCalled();
   });
 
   it('disconnects only this account after confirmation', async () => {

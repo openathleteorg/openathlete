@@ -107,7 +107,9 @@ type WatchScheduleNativePlugin = {
     scope?: WatchScheduleScope;
   }): Promise<WatchScheduleDisconnectReport | Record<string, never>>;
   fence(): Promise<void>;
-  recover(): Promise<{ recovered: boolean }>;
+  recover(options?: {
+    scope?: WatchScheduleScope;
+  }): Promise<{ recovered: boolean }>;
 };
 
 const nativePlugin = registerPlugin<WatchScheduleNativePlugin>('WatchSchedule');
@@ -200,13 +202,65 @@ const FENCE_UNCONFIRMED_KEY = 'watch_schedule_fence_unconfirmed';
  * that resolves later cannot call the bridge against a newer native epoch.
  */
 let sessionEpoch = 0;
+/**
+ * Set before a logout or switch waits for the native fence. While it is set,
+ * both old and new continuations are refused: an old access token is still in
+ * storage during that wait, so bumping the epoch alone would let newly started
+ * work pass. It is cleared only when an authenticated successor is established
+ * (or a failed switch safely resumes the same session).
+ */
+let exitLatchedAt: number | null = null;
 
 export function watchScheduleSessionEpoch(): number {
   return sessionEpoch;
 }
 
 export function isWatchScheduleSessionCurrent(epoch: number): boolean {
-  return epoch === sessionEpoch;
+  return exitLatchedAt === null && epoch === sessionEpoch;
+}
+
+export function isWatchScheduleExitLatched(): boolean {
+  return exitLatchedAt !== null;
+}
+
+/** The latch a caller observed when it started; `null` means none. */
+export function watchScheduleExitBoundary(): number | null {
+  return exitLatchedAt;
+}
+
+/**
+ * Start a logout or instance switch. Call synchronously, before any await.
+ * Returns a boundary token for `releaseWatchScheduleExit` when the attempt is
+ * cancelled without clearing storage.
+ */
+export function latchWatchScheduleExit(): number {
+  sessionEpoch += 1;
+  exitLatchedAt = sessionEpoch;
+  return sessionEpoch;
+}
+
+/**
+ * A switch was refused and the same session continues. Any work started during
+ * the attempt is dropped by the epoch bump.
+ */
+export function releaseWatchScheduleExit(boundary: number): void {
+  if (exitLatchedAt !== boundary) return;
+  exitLatchedAt = null;
+  sessionEpoch += 1;
+}
+
+/**
+ * A newly authenticated session exists. The caller passes the exit boundary it
+ * observed when it started authenticating: if a newer logout/switch latched in
+ * the meantime, this result is stale and must not release that newer exit.
+ */
+export function establishWatchScheduleSession(
+  observedExitBoundary: number | null = exitLatchedAt,
+): boolean {
+  if (observedExitBoundary !== exitLatchedAt) return false;
+  sessionEpoch += 1;
+  exitLatchedAt = null;
+  return true;
 }
 
 export function invalidateWatchScheduleSession(): void {
@@ -279,11 +333,15 @@ export function disconnectWatchScheduleOnExit(): void {
 /**
  * Retries an existing durable teardown only. Unlike `disconnect`, it never uses
  * the current opt-in as cleanup authorization and never clears the session.
+ * Passing the current scope lets native retire a *foreign* stored opt-in
+ * safely; the current account's own opt-in is never touched.
  */
-export async function recoverWatchScheduleCleanup(): Promise<boolean> {
+export async function recoverWatchScheduleCleanup(
+  scope?: WatchScheduleScope,
+): Promise<boolean> {
   if (!isAppleWatchScheduleAvailable()) return true;
   try {
-    const result = await nativePlugin.recover();
+    const result = await nativePlugin.recover(scope ? { scope } : undefined);
     return result.recovered === true;
   } catch {
     return false;

@@ -3235,6 +3235,7 @@
   "apple_watch_skip_other": "Deze sessie kan niet in Apple's Workout-app worden weergegeven.",
   "apple_watch_local_pending": "{count} trainingen wachten op een nieuwe poging bij de volgende vernieuwing.",
   "apple_watch_cleanup_incomplete": "Het opruimen van Apple Watch is niet voltooid. De planning blijft gepauzeerd; vernieuw om het opnieuw te proberen.",
+  "apple_watch_cleanup_retry": "Opruimen opnieuw proberen",
   "apple_watch_cleanup_unknown": "OpenAthlete kon de wachtende Apple Watch-opruiming niet lezen. De planning blijft gepauzeerd tot dat kan.",
   "apple_watch_server_switch_blocked": "Apple Watch-planning kon niet worden gestopt op deze iPhone. Het blokkeert de serverwissel totdat dit is bevestigd.",
   "apple_watch_fence_unconfirmed": "Apple Watch-planning kon niet worden gestopt op deze iPhone. Log opnieuw in om het opruimen af te ronden."

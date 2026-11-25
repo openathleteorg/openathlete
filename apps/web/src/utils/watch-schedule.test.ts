@@ -30,11 +30,18 @@ vi.mock('@capacitor/core', () => ({
 const {
   clearFenceUnconfirmed,
   disconnectWatchSchedule,
+  establishWatchScheduleSession,
   fenceWatchScheduleOnExit,
   hasFenceUnconfirmed,
+  isWatchScheduleExitLatched,
+  isWatchScheduleSessionCurrent,
+  latchWatchScheduleExit,
   markFenceUnconfirmed,
   recoverWatchScheduleCleanup,
+  releaseWatchScheduleExit,
   watchScheduleCredential,
+  watchScheduleExitBoundary,
+  watchScheduleSessionEpoch,
 } = await import('./watch-schedule');
 
 function jwt(expSeconds: number): string {
@@ -55,6 +62,7 @@ describe('watch schedule bridge', () => {
     state.disconnect.mockReset();
     state.recover.mockReset();
     state.getAccessToken.mockReset();
+    establishWatchScheduleSession();
   });
 
   afterEach(() => {
@@ -136,5 +144,63 @@ describe('watch schedule bridge', () => {
     await expect(recoverWatchScheduleCleanup()).resolves.toBe(false);
     state.recover.mockRejectedValueOnce(new Error('unavailable'));
     await expect(recoverWatchScheduleCleanup()).resolves.toBe(false);
+  });
+
+  it('blocks new work at the new epoch while an exit is latched', () => {
+    const before = watchScheduleSessionEpoch();
+    const boundary = latchWatchScheduleExit();
+    const after = watchScheduleSessionEpoch();
+
+    expect(after).toBe(before + 1);
+    expect(isWatchScheduleExitLatched()).toBe(true);
+    // Work that starts during the logout wait must not be considered current,
+    // even though it captured the newest epoch.
+    expect(isWatchScheduleSessionCurrent(after)).toBe(false);
+    expect(isWatchScheduleSessionCurrent(boundary)).toBe(false);
+    expect(isWatchScheduleSessionCurrent(before)).toBe(false);
+  });
+
+  it('releases the latch only for the matching cancelled switch', () => {
+    const boundary = latchWatchScheduleExit();
+    const newer = latchWatchScheduleExit();
+    const beforeRelease = watchScheduleSessionEpoch();
+
+    releaseWatchScheduleExit(boundary);
+
+    expect(isWatchScheduleExitLatched()).toBe(true);
+    releaseWatchScheduleExit(newer);
+    expect(isWatchScheduleExitLatched()).toBe(false);
+    expect(isWatchScheduleSessionCurrent(newer)).toBe(false);
+    expect(watchScheduleSessionEpoch()).toBe(beforeRelease + 1);
+  });
+
+  it('establishes only the authenticated successor and keeps old work stale', () => {
+    const stale = watchScheduleSessionEpoch();
+    latchWatchScheduleExit();
+    establishWatchScheduleSession();
+    const successor = watchScheduleSessionEpoch();
+
+    expect(isWatchScheduleExitLatched()).toBe(false);
+    expect(isWatchScheduleSessionCurrent(successor)).toBe(true);
+    expect(isWatchScheduleSessionCurrent(stale)).toBe(false);
+  });
+
+  it('does not let a stale initialization release a newer exit latch', () => {
+    const observed = watchScheduleExitBoundary();
+    latchWatchScheduleExit();
+
+    expect(establishWatchScheduleSession(observed)).toBe(false);
+    expect(isWatchScheduleExitLatched()).toBe(true);
+  });
+
+  it('passes the current scope to the dedicated recovery', async () => {
+    state.recover.mockResolvedValue({ recovered: true });
+    const scope = {
+      instanceURL: 'https://train.example.org/api',
+      athleteId: 7,
+    };
+
+    await expect(recoverWatchScheduleCleanup(scope)).resolves.toBe(true);
+    expect(state.recover).toHaveBeenCalledWith({ scope });
   });
 });

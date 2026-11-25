@@ -13,6 +13,7 @@ import {
   getWatchScheduleStatus,
   hasFenceUnconfirmed,
   isAppleWatchScheduleAvailable,
+  isWatchScheduleExitLatched,
   isWatchScheduleSessionCurrent,
   recoverWatchScheduleCleanup,
   refreshWatchSchedule,
@@ -124,9 +125,9 @@ function AppleWatchScheduleSectionIOS() {
 
   const [status, setStatus] = useState<WatchScheduleStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState<'connect' | 'refresh' | 'disconnect' | null>(
-    null,
-  );
+  const [busy, setBusy] = useState<
+    'connect' | 'refresh' | 'disconnect' | 'recover' | null
+  >(null);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const [failure, setFailure] = useState<
     'unavailable' | 'expired' | 'cleanup' | null
@@ -150,6 +151,7 @@ function AppleWatchScheduleSectionIOS() {
   const loadStatus = useCallback(async () => {
     if (!athleteId || !instanceURL) return;
     const session = watchScheduleSessionEpoch();
+    if (isWatchScheduleExitLatched()) return;
     try {
       const next = await getWatchScheduleStatus({
         instanceURL,
@@ -173,26 +175,53 @@ function AppleWatchScheduleSectionIOS() {
     setLoading(true);
     const load = async () => {
       try {
+        if (isWatchScheduleExitLatched()) {
+          if (!cancelled) setLoading(false);
+          return;
+        }
         const next = await getWatchScheduleStatus(currentScope);
         if (
           cancelled ||
           !mounted.current ||
+          isWatchScheduleExitLatched() ||
           !isWatchScheduleSessionCurrent(session)
         ) {
           return;
         }
-        if (next.hasOtherAccountOptIn) {
-          // A different account's opt-in still authorizes its cleanup.
-          await disconnectWatchSchedule();
-          if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
-          setStatus(await getWatchScheduleStatus(currentScope));
-        } else if (next.cleanupPending) {
-          // A durable teardown is retried only through the dedicated path.
-          await recoverWatchScheduleCleanup();
-          if (cancelled || !isWatchScheduleSessionCurrent(session)) return;
-          setStatus(await getWatchScheduleStatus(currentScope));
+        // Unknown state dominates: knowing cleanup is unknown is not
+        // authorization to disconnect or recover. The row below offers the
+        // dedicated retry.
+        if (next.cleanupUnknown) {
+          setStatus(next);
+        } else if (next.hasOtherAccountOptIn || next.cleanupPending) {
+          // A foreign opt-in and existing durable teardown are both recovered
+          // through the dedicated path, never by disconnecting this account.
+          setStatus(next);
+          const recovered = await recoverWatchScheduleCleanup(currentScope);
+          if (
+            cancelled ||
+            !mounted.current ||
+            isWatchScheduleExitLatched() ||
+            !isWatchScheduleSessionCurrent(session)
+          ) {
+            return;
+          }
+          if (!recovered) {
+            // Keep the readable status and the retry row; do not infer success.
+            setFailure('cleanup');
+            return;
+          }
+          const current = await getWatchScheduleStatus(currentScope);
+          if (
+            cancelled ||
+            !mounted.current ||
+            isWatchScheduleExitLatched() ||
+            !isWatchScheduleSessionCurrent(session)
+          ) {
+            return;
+          }
+          setStatus(current);
         } else {
-          // cleanupUnknown pauses only: no unscoped disconnect is inferred.
           setStatus(next);
         }
       } catch {
@@ -263,10 +292,16 @@ function AppleWatchScheduleSectionIOS() {
         toast.success(m.apple_watch_refreshed());
       }
     } catch {
-      if (mounted.current) setFailure('unavailable');
-      toast.error(m.apple_watch_refresh_failed());
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setFailure('unavailable');
+      }
+      if (isWatchScheduleSessionCurrent(session)) {
+        toast.error(m.apple_watch_refresh_failed());
+      }
     } finally {
-      if (mounted.current) setBusy(null);
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setBusy(null);
+      }
     }
   };
 
@@ -289,10 +324,16 @@ function AppleWatchScheduleSectionIOS() {
         toast.success(m.apple_watch_refreshed());
       }
     } catch {
-      if (mounted.current) setFailure('unavailable');
-      toast.error(m.apple_watch_refresh_failed());
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setFailure('unavailable');
+      }
+      if (isWatchScheduleSessionCurrent(session)) {
+        toast.error(m.apple_watch_refresh_failed());
+      }
     } finally {
-      if (mounted.current) setBusy(null);
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setBusy(null);
+      }
     }
   };
 
@@ -314,10 +355,40 @@ function AppleWatchScheduleSectionIOS() {
       }
       await loadStatus();
     } catch {
-      if (mounted.current) setFailure('unavailable');
-      toast.error(m.apple_watch_refresh_failed());
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setFailure('unavailable');
+      }
+      if (isWatchScheduleSessionCurrent(session)) {
+        toast.error(m.apple_watch_refresh_failed());
+      }
     } finally {
-      if (mounted.current) setBusy(null);
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setBusy(null);
+      }
+    }
+  };
+
+  const retryCleanup = async () => {
+    if (!scope || busy) return;
+    const session = watchScheduleSessionEpoch();
+    setBusy('recover');
+    setFailure(null);
+    try {
+      const recovered = await recoverWatchScheduleCleanup(scope);
+      if (!isWatchScheduleSessionCurrent(session)) return;
+      if (!recovered) {
+        setFailure('cleanup');
+        return;
+      }
+      await loadStatus();
+    } catch {
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setFailure('unavailable');
+      }
+    } finally {
+      if (mounted.current && isWatchScheduleSessionCurrent(session)) {
+        setBusy(null);
+      }
     }
   };
 
@@ -405,8 +476,33 @@ function AppleWatchScheduleSectionIOS() {
           />
         )}
 
-        {status.cleanupUnknown && (
-          <SettingsRow stacked description={m.apple_watch_cleanup_unknown()} />
+        {(status.cleanupUnknown ||
+          status.cleanupPending ||
+          status.hasOtherAccountOptIn) && (
+          <SettingsRow
+            stacked
+            description={
+              status.cleanupUnknown
+                ? m.apple_watch_cleanup_unknown()
+                : m.apple_watch_cleanup_incomplete()
+            }
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void retryCleanup()}
+              disabled={busy !== null}
+            >
+              <RotateCcw
+                className={
+                  busy === 'recover' ? 'size-4 animate-spin' : 'size-4'
+                }
+              />
+              {busy === 'recover'
+                ? m.apple_watch_refreshing()
+                : m.apple_watch_cleanup_retry()}
+            </Button>
+          </SettingsRow>
         )}
 
         {fenceUnconfirmed && (
@@ -426,15 +522,6 @@ function AppleWatchScheduleSectionIOS() {
             </Button>
           </SettingsRow>
         )}
-
-        {status.cleanupPending &&
-          !status.cleanupUnknown &&
-          status.pendingCleanupEventIDs.length === 0 && (
-            <SettingsRow
-              stacked
-              description={m.apple_watch_cleanup_incomplete()}
-            />
-          )}
 
         {failure === 'unavailable' && status.lastErrorCode && (
           <SettingsRow stacked description={m.apple_watch_error_refresh()} />

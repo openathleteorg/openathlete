@@ -124,6 +124,12 @@ enum WatchScheduleVaultError: Error {
     case unwritable(OSStatus)
 }
 
+enum WatchScheduleOptInError: Error {
+    /// A value exists but cannot be trusted. Treating it as absent would let a
+    /// malformed opt-in look like "no account", which is not the same state.
+    case corrupt
+}
+
 /// The opt-in is not a credential: it only lets a background wake-up know that
 /// this account asked for scheduling.
 final class UserDefaultsWatchScheduleOptIn: WatchScheduleOptInStore {
@@ -142,7 +148,16 @@ final class UserDefaultsWatchScheduleOptIn: WatchScheduleOptInStore {
     }
 
     func load() async throws -> AccountScope? {
-        loadSync()
+        guard let data = defaults.data(forKey: key) else {
+            return nil
+        }
+        guard let stored = try? JSONDecoder().decode(Stored.self, from: data),
+              stored.athleteId > 0,
+              let url = URL(string: stored.instanceURL)
+        else {
+            throw WatchScheduleOptInError.corrupt
+        }
+        return AccountScope(instanceURL: url, athleteId: stored.athleteId)
     }
 
     func save(_ scope: AccountScope) async throws {
@@ -161,6 +176,7 @@ final class UserDefaultsWatchScheduleOptIn: WatchScheduleOptInStore {
     func loadSync() -> AccountScope? {
         guard let data = defaults.data(forKey: key),
               let stored = try? JSONDecoder().decode(Stored.self, from: data),
+              stored.athleteId > 0,
               let url = URL(string: stored.instanceURL)
         else {
             return nil
@@ -487,7 +503,11 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
            let runtime = WatchScheduleRuntime.shared {
             Task {
                 let report = await runtime.lifecycle.disconnect(scope: requested)
-                WatchScheduleBackgroundRefresh.cancel()
+                // Only a real teardown may cancel the background chain. A
+                // read-only wrong-scope rejection must leave it alone.
+                if requested == nil || report != nil {
+                    WatchScheduleBackgroundRefresh.cancel()
+                }
                 if let report {
                     call.resolve([
                         "athleteId": report.scope.athleteId,
@@ -521,10 +541,14 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
                 )
                 return
             }
+            // Stop the opportunistic chain synchronously; the lifecycle then
+            // proves the opt-in retirement before acknowledging.
+            WatchScheduleBackgroundRefresh.cancel()
             Task {
                 // The lifecycle returns the explicit acknowledgement; do not
                 // infer it from a second, later read.
-                if await runtime.lifecycle.fence() {
+                let acknowledged = await runtime.lifecycle.fence()
+                if acknowledged {
                     call.resolve()
                 } else {
                     call.reject(
@@ -540,6 +564,7 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func recover(_ call: CAPPluginCall) {
+        let currentScope = Self.scope(from: call)
         #if canImport(HealthKit) && canImport(WorkoutKit)
         if #available(iOS 17.0, *) {
             guard let runtime = WatchScheduleRuntime.shared else {
@@ -547,9 +572,13 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
                 return
             }
             Task {
-                call.resolve([
-                    "recovered": await runtime.lifecycle.recoverCleanup(),
-                ])
+                let recovered = await runtime.lifecycle.recoverCleanup(
+                    currentScope: currentScope
+                )
+                if recovered {
+                    WatchScheduleBackgroundRefresh.cancel()
+                }
+                call.resolve(["recovered": recovered])
             }
             return
         }
