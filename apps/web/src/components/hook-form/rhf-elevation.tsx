@@ -33,36 +33,40 @@ function ElevationFieldAdapter({
   const units = useUnits();
   const factor = units.unitSystem === 'IMPERIAL' ? M_TO_FT : 1;
   const [elevationInput, setElevationInput] = useState<string>('');
-  const [lastSyncedValue, setLastSyncedValue] = useState<
-    number | null | undefined
+  const [lastSynced, setLastSynced] = useState<
+    { value: number | null | undefined; factor: number } | undefined
   >(undefined);
 
   // Set initial value from field (stored in meters)
   useEffect(() => {
-    if (field.value === lastSyncedValue && lastSyncedValue !== undefined) {
+    if (
+      lastSynced !== undefined &&
+      field.value === lastSynced.value &&
+      factor === lastSynced.factor
+    ) {
       return;
     }
 
     if (field.value === undefined || field.value === null) {
       setElevationInput('');
-      setLastSyncedValue(field.value);
+      setLastSynced({ value: field.value, factor });
     } else {
       const displayValue = Math.round((field.value as number) * factor);
       setElevationInput(displayValue.toString());
-      setLastSyncedValue(field.value as number);
+      setLastSynced({ value: field.value as number, factor });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [field.value, factor]);
 
   const updateFormValue = (elevation: string) => {
     if (elevation === '') {
-      setLastSyncedValue(undefined);
+      setLastSynced({ value: undefined, factor });
       field.onChange(undefined);
     } else {
       const elevationNum = parseFloat(elevation);
       if (!Number.isNaN(elevationNum)) {
         const meters = elevationNum / factor;
-        setLastSyncedValue(meters);
+        setLastSynced({ value: meters, factor });
         field.onChange(meters);
       }
     }

@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { cn } from '@/utils/shadcn';
@@ -281,6 +282,7 @@ function SessionCounts({
  * spreads into a row in wider places (week view).
  */
 export function CalendarWeekSummary({ events, week, withActions }: P) {
+  const units = useUnits();
   const {
     weeklyLoadSummary,
     weeklyLoadSummaryLoading,
@@ -354,8 +356,10 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
               label={m.distance()}
               icon={Route}
               values={totals.distance}
-              format={(meters) => formatCompactKilometers(meters, locale)}
-              unit="km"
+              format={(meters) =>
+                formatCompactKilometers(meters, locale, units.unitSystem)
+              }
+              unit={units.distanceUnit}
             />
           )}
           {shown.elevation && hasElevation && (
@@ -363,8 +367,8 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
               label={m.elevation_gain()}
               icon={Mountain}
               values={totals.elevation}
-              format={(meters) => String(Math.round(meters))}
-              unit="m"
+              format={(meters) => String(units.elevation(meters))}
+              unit={units.elevationLabel}
             />
           )}
           {shown.load &&

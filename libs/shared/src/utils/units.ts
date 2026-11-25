@@ -62,6 +62,7 @@ const IMPERIAL_METRIC_UNITS: Record<string, { unit: string; factor: number }> =
     cm: { unit: 'in', factor: CM_TO_IN },
     km: { unit: 'mi', factor: KM_TO_MI },
     'km/h': { unit: 'mph', factor: KM_TO_MI },
+    'm/h': { unit: 'ft/h', factor: M_TO_FT },
     // Only a deviation is stored in °C here: no offset, unlike a temperature
     '°C': { unit: '°F', factor: 1.8 },
   };

@@ -63,7 +63,7 @@ function LongRuns({
                 </span>
                 <span className="text-muted-foreground tabular-nums">
                   {m.statistics_long_run_before({
-                    distance: units.formatDist(run.longest),
+                    distance: `${units.formatDist(run.longest)} ${units.distanceLabel}`,
                   })}
                 </span>
               </Link>

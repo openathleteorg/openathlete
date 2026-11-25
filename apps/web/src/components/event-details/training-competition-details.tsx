@@ -72,7 +72,7 @@ export function TrainingCompetitionDetails({ event }: P) {
         });
     const distance =
       activity.type === EVENT_TYPE.ACTIVITY && activity.distance > 0
-        ? ` · ${units.formatDist(activity.distance)} ${units.distanceLabel}`
+        ? ` · ${units.formatDist(activity.distance)} ${units.distanceUnit}`
         : '';
     return `${activity.name} · ${when}${distance}`;
   };

@@ -140,7 +140,7 @@ function Review({
         <p className="text-sm text-muted-foreground">
           {m.statistics_review_main_sport({
             sport: sportTypeLabelMap[mainSport.sport],
-            distance: units.formatDist(mainSport.distance),
+            distance: `${units.formatDist(mainSport.distance)} ${units.distanceLabel}`,
             count: records?.length ?? 0,
           })}
         </p>

@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
@@ -24,6 +25,7 @@ interface P {
 
 /** A line per week with its totals; the full summary opens from it. */
 export function CalendarMobileWeekHeader({ week, events }: P) {
+  const units = useUnits();
   const { allowCreate } = useCalendarContext();
   const [open, setOpen] = useState(false);
   const weekStart = week[0];
@@ -39,7 +41,8 @@ export function CalendarMobileWeekHeader({ week, events }: P) {
   const distance = summary.distance.done || summary.distance.planned;
   const totals = [
     !!duration && formatCompactDuration(duration),
-    !!distance && `${formatCompactKilometers(distance, getLocale())} km`,
+    !!distance &&
+      `${formatCompactKilometers(distance, getLocale(), units.unitSystem)} ${units.distanceUnit}`,
   ].filter(Boolean);
 
   return (

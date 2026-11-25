@@ -59,7 +59,8 @@ const CURVES = [RECORD_TYPE.SPEED, RECORD_TYPE.POWER];
 const RUNNING_FOR_COHERENCE = new Set([SPORT_TYPE.RUNNING]);
 
 function CriticalCard({ fit, sport }: { fit: CriticalFit; sport: SPORT_TYPE }) {
-  const unit = SPORT_CONFIG[sport].speedUnit;
+  const units = useUnits();
+  const unit = units.speedUnit(SPORT_CONFIG[sport].speedUnit);
   const isSpeed = fit.kind === 'speed';
   const value = isSpeed
     ? `${formatSpeed(fit.critical, unit)} ${formatSpeedUnit(unit)}`
@@ -400,7 +401,7 @@ function Performance({
             <CardTitle className="text-sm font-medium">
               {metric.title(sport)}{' '}
               <span className="font-normal text-muted-foreground">
-                ({metric.unit(sport)})
+                ({metric.unit(sport, units.unitSystem)})
               </span>
             </CardTitle>
           </CardHeader>

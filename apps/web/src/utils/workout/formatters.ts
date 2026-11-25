@@ -1,6 +1,8 @@
 import { m } from '@/paraglide/messages';
 
 import {
+  M_TO_YD,
+  UnitSystem,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
@@ -10,11 +12,13 @@ import {
  * Format duration value based on duration type
  * @param durationType - Type of duration (TIME, DISTANCE, REPS, etc.)
  * @param durationValue - Numeric value to format
+ * @param unitSystem - User display unit system (defaults to metric)
  * @returns Human-readable formatted duration
  */
 export function formatDuration(
   durationType: WORKOUT_DURATION_TYPE,
   durationValue?: number | null,
+  unitSystem: UnitSystem = 'METRIC',
 ): string {
   if (!durationValue) {
     if (durationType === WORKOUT_DURATION_TYPE.OPEN)
@@ -47,6 +51,14 @@ export function formatDuration(
     }
 
     case 'DISTANCE': {
+      if (unitSystem === 'IMPERIAL') {
+        const miles = durationValue / 1609.34;
+        if (miles >= 0.5) {
+          const rounded = Number(miles.toFixed(1));
+          return `${rounded} mi`;
+        }
+        return `${Math.round(durationValue * M_TO_YD)} yd`;
+      }
       if (durationValue >= 1000) {
         const km = durationValue / 1000;
         return km % 1 === 0 ? `${km} km` : `${km.toFixed(1)} km`;

@@ -7,6 +7,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { cn } from '@/utils/shadcn';
@@ -35,6 +36,7 @@ export function TargetBadge({
   showAbsoluteValues = false,
   athleteId,
 }: TargetBadgeProps) {
+  const units = useUnits();
   const workoutAthleteId = useWorkoutAthleteId();
   const ownerId = athleteId === undefined ? workoutAthleteId : athleteId;
   const { data: me } = useGetMyAthleteQuery();
@@ -69,8 +71,9 @@ export function TargetBadge({
         trainingZones ?? [],
         // Until the zones load, no verdict on the zone
         trainingZones ? m.workout_target_unknown_zone() : '…',
+        units.unitSystem,
       ),
-    [target, metricsForFormat, showAbsoluteValues, trainingZones],
+    [target, metricsForFormat, showAbsoluteValues, trainingZones, units.unitSystem],
   );
 
   const label = getTargetTypeLabel(target.targetType);

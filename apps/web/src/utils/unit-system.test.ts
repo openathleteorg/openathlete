@@ -1,16 +1,22 @@
 import { formatAxisValue } from '@/components/activity-analysis/format';
+import { formatDayTotal } from '@/components/calendar/utils/day-total';
+import { formatCompactKilometers } from '@/components/calendar/utils/week-summary';
 import { formatMeters } from '@/components/coach-dashboard/coach-dashboard-format';
 import { formatRecordDistance } from '@/components/records/record-metrics';
 import { formatSportSpeed } from '@/components/session-builder/step-format';
 import { chartTotals } from '@/components/statistics/volume-data';
+import { formatDuration as formatWorkoutDuration } from '@/utils/workout/formatters';
 import { describe, expect, it } from 'vitest';
 
 import {
   METRIC_TYPE,
   SPORT_TYPE,
+  WORKOUT_DURATION_TYPE,
+  WORKOUT_TARGET_TYPE,
   formatDistance,
   formatSpeed,
   formatSpeedUnit,
+  formatTarget,
   getDefaultUnitSystem,
   getSpeedUnitForSport,
   localSpeedUnit,
@@ -160,6 +166,41 @@ describe('existing formatters', () => {
     const imperial = unitsFor('IMPERIAL');
     expect(formatAxisValue(1609.34, 'distance', imperial)).toBe('1.00 mi');
     expect(formatMeters(1609.34, imperial)).toBe('1 mi');
+    expect(formatCompactKilometers(1609.34, 'en-US', 'IMPERIAL')).toBe('1');
+    expect(
+      formatDayTotal(
+        {
+          duration: { planned: 0, done: 0 },
+          distance: { planned: 0, done: 1609.34 },
+          elevation: { planned: 0, done: 0 },
+          sessions: { done: 0, missed: 0, pending: 0 },
+        },
+        'en-US',
+        'IMPERIAL',
+      ),
+    ).toBe('1 mi');
+    expect(
+      formatWorkoutDuration(WORKOUT_DURATION_TYPE.DISTANCE, 1609.34, 'IMPERIAL'),
+    ).toBe('1 mi');
+    expect(
+      formatWorkoutDuration(WORKOUT_DURATION_TYPE.DISTANCE, 400, 'IMPERIAL'),
+    ).toBe('437 yd');
+    expect(
+      formatTarget(
+        {
+          targetType: WORKOUT_TARGET_TYPE.WEIGHT,
+          targetValue: 100,
+        } as Parameters<typeof formatTarget>[0],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'IMPERIAL',
+      ),
+    ).toBe('220.5 lb');
+    expect(metricDisplayUnit(METRIC_TYPE.VERTICAL_SPEED_AVG, 'IMPERIAL')).toBe(
+      'ft/h',
+    );
     expect(formatRecordDistance(1609.34, 'IMPERIAL')).toBe('1 mi');
     expect(formatRecordDistance(400, 'IMPERIAL')).toBe('437 yd');
     expect(formatSportSpeed(10, SPORT_TYPE.CYCLING, 'IMPERIAL')).toBe(

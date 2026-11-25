@@ -6,6 +6,7 @@ import {
 } from '@/api/event';
 import { useCreateEventTemplateMutation } from '@/api/event-template';
 import { useIsEventValidated } from '@/hooks/use-event-validation';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { AnalyticsEvent } from '@/utils/analytics-events';
@@ -106,6 +107,7 @@ function EventMetrics({
   event: Event;
   fields: CalendarDisplay['card'];
 }) {
+  const units = useUnits();
   let duration: number | null | undefined;
   let distance: number | null | undefined;
   let elevation: number | null | undefined;
@@ -127,8 +129,10 @@ function EventMetrics({
     fields.duration && !!duration && formatCompactDuration(duration),
     fields.distance &&
       !!distance &&
-      `${formatCompactKilometers(distance, getLocale())} km`,
-    fields.elevation && !!elevation && `${Math.round(elevation)} m D+`,
+      `${formatCompactKilometers(distance, getLocale(), units.unitSystem)} ${units.distanceUnit}`,
+    fields.elevation &&
+      !!elevation &&
+      `${units.elevation(elevation)} ${units.unitSystem === 'IMPERIAL' ? units.elevationLabel : 'm D+'}`,
     fields.load && !!load && m.calendar_card_load({ load: Math.round(load) }),
   ].filter((part): part is string => !!part);
   if (!parts.length) return null;
