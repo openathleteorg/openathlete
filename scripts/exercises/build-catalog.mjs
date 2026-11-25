@@ -21,6 +21,8 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { checkIds } from './index-guard.mjs';
+
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..', '..');
 const out = join(root, 'apps/web/public/exercises');
@@ -130,19 +132,20 @@ function cleanSvg(source) {
     .trim();
 }
 
-rmSync(join(out, 'media'), { recursive: true, force: true });
-mkdirSync(join(out, 'media'), { recursive: true });
-
 const ekByHy = new Map();
 for (const [ekId, hyId] of Object.entries(ekMap)) if (hyId) ekByHy.set(hyId, ekId);
 const ekById = new Map(ek.map((entry) => [entry.id, entry]));
 
+// Written after the id check: a failed build changes nothing
+const mediaJobs = [];
 function writeMedia(id, ekId) {
   const entry = ekById.get(ekId);
   if (!entry || entry.svg.length !== 2) return 0;
   entry.svg.forEach((file, frame) => {
-    const svg = cleanSvg(readFileSync(join(ekDir, 'dist', file), 'utf8'));
-    writeFileSync(join(out, 'media', `${id}-${frame}.svg`), svg);
+    mediaJobs.push(() => {
+      const svg = cleanSvg(readFileSync(join(ekDir, 'dist', file), 'utf8'));
+      writeFileSync(join(out, 'media', `${id}-${frame}.svg`), svg);
+    });
   });
   return 2;
 }
@@ -193,6 +196,13 @@ for (const [ekId, i18n] of Object.entries(ekOnly)) {
     steps: i18n.steps,
   });
 }
+
+// Ids are stored in workout steps and come from the English names: stop
+// before anything is written if the build would drop one
+checkIds(records.map((record) => [record.id, record.name.en]));
+rmSync(join(out, 'media'), { recursive: true, force: true });
+mkdirSync(join(out, 'media'), { recursive: true });
+for (const job of mediaJobs) job();
 
 const attribution = {
   data: 'Exercise data: hasaneyldrm/exercises-dataset (MIT), translations by OpenAthlete',
@@ -269,6 +279,11 @@ writeFileSync(
 execFileSync('pnpm', ['exec', 'prettier', '--write', garminModule], {
   cwd: join(root, 'apps/api'),
   stdio: 'ignore',
+});
+
+// The slim index of the shared library, from the catalog just written
+execFileSync(process.execPath, [join(here, 'build-index.mjs')], {
+  stdio: 'inherit',
 });
 
 const illustrated = records.filter((record) => record.media).length;
