@@ -344,12 +344,11 @@ public struct ScheduleSource {
         }
 
         // GET /event always excludes events without an athlete (`athleteId:
-        // { not: null }`). A training row without an owner therefore means a
-        // truncated or rewritten response, not a calendar row to ignore; it
-        // must never become the authoritative keep/remove set.
-        guard !rows.contains(where: {
-            $0.type == "TRAINING" && $0.athleteId == nil
-        }) else {
+        // { not: null }`), for every event type. A row without an owner
+        // therefore means a truncated or rewritten response, not a calendar
+        // row to ignore; it must never become the authoritative keep/remove
+        // set.
+        guard !rows.contains(where: { $0.athleteId == nil }) else {
             throw ScheduleSourceError.invalidCalendarResponse
         }
 

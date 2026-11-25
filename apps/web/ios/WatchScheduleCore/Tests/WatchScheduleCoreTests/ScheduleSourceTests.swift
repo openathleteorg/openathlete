@@ -337,6 +337,49 @@ final class ScheduleSourceTests: XCTestCase {
         }
     }
 
+    func testMissingOwnerNoteMakesTheNextCalendarInvalidAfterAValidSync() async throws {
+        // EventService filters `athleteId: { not: null }` for every event
+        // type, not only TRAINING. A sole NOTE without an owner is therefore
+        // a truncated or rewritten list, not an authoritative empty calendar.
+        let transport = FixtureTransport(
+            events: [
+                try row(eventId: 403, start: "2026-03-04T12:00:00.000Z"),
+            ]
+        )
+        let source = ScheduleSource(transport: transport)
+
+        let first = try await source.loadSnapshot(
+            scope: scope,
+            now: try date("2026-03-04T17:00:00.000Z"),
+            calendar: newYorkCalendar()
+        )
+        XCTAssertEqual(first.candidates.map(\.eventId), [403])
+
+        transport.events = [
+            try row(
+                eventId: 404,
+                athleteId: nil,
+                type: "NOTE",
+                sport: nil,
+                start: "2026-03-04T14:00:00.000Z",
+                hasWorkout: false
+            ),
+        ]
+
+        do {
+            _ = try await source.loadSnapshot(
+                scope: scope,
+                now: try date("2026-03-04T18:00:00.000Z"),
+                calendar: newYorkCalendar()
+            )
+            XCTFail("A missing-owner note must invalidate the calendar")
+        } catch let error as ScheduleSourceError {
+            XCTAssertEqual(error, .invalidCalendarResponse)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
     func testInvalidListResponseIsNotAnAuthoritativeCalendar() async throws {
         let transport = FixtureTransport(events: [])
         transport.listError = ScheduleTransportError.invalidResponse
