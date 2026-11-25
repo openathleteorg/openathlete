@@ -1,29 +1,6 @@
 import Foundation
 import WatchScheduleCore
 
-/// The token and the account/instance it was minted for. Keeping the scope on
-/// the credential means a token can never be replayed against another
-/// instance, even if a provider keeps one around after a switch.
-struct WatchScheduleCredential: Equatable, Sendable {
-    let scope: AccountScope
-    let accessToken: String
-    let expiresAt: Date?
-
-    init(scope: AccountScope, accessToken: String, expiresAt: Date?) {
-        self.scope = scope
-        self.accessToken = accessToken
-        self.expiresAt = expiresAt
-    }
-}
-
-protocol WatchScheduleCredentialProviding {
-    /// Returns a fresh token for this exact scope, or nil when the session is
-    /// no longer authenticated. Never reuse an old account's token.
-    func credential(
-        for scope: AccountScope
-    ) async throws -> WatchScheduleCredential?
-}
-
 /// URLSession transport for the own-calendar snapshot.
 ///
 /// Wire contract, from `apps/web/src/api/event/event.api.ts`:
@@ -42,7 +19,7 @@ protocol WatchScheduleCredentialProviding {
 ///   read the previous account's response;
 /// - cleartext HTTP is only accepted on loopback, where the iOS simulator
 ///   reaches a local API.
-final class WatchScheduleClient: NSObject, ScheduleTransport {
+final class WatchScheduleClient: NSObject, ScheduleTransport, @unchecked Sendable {
     private let credentialProvider: any WatchScheduleCredentialProviding
     private let now: () -> Date
     private let session: URLSession

@@ -11,6 +11,7 @@ import {
   saveSelectedServerUrl,
   serverUrlCandidates,
 } from '@/utils/mobile-server';
+import { disconnectWatchSchedule } from '@/utils/watch-schedule';
 import posthog from 'posthog-js';
 import { useState } from 'react';
 
@@ -48,6 +49,9 @@ export function ServerSelection({ onCancel }: Props) {
         );
         posthog.reset();
       }
+      // Another instance must never inherit this account's scheduled workouts
+      // or its stored access credential.
+      await disconnectWatchSchedule().catch(() => undefined);
       if (saveSelectedServerUrl(url, defaultUrl)) {
         window.location.reload();
       } else {

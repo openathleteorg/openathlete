@@ -311,7 +311,7 @@ public struct ScheduleSnapshot: Equatable, Sendable {
 
 // MARK: - Loading
 
-public struct ScheduleSource {
+public struct ScheduleSource: Sendable {
     private let transport: any ScheduleTransport
 
     public init(transport: any ScheduleTransport) {

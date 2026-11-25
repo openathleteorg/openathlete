@@ -45,6 +45,7 @@ import {
   isFullImportInProgress,
 } from '@openathlete/shared';
 
+import { AppleWatchScheduleSection } from './apple-watch-schedule';
 import { CalendarFeedSection } from './calendar-feed-section';
 import { DuplicateActivitiesSection } from './duplicate-activities-section';
 import { GarminPersonalSection } from './garmin-personal-section';
@@ -482,6 +483,9 @@ export function ConnectorsTab() {
       {roles?.includes('ATHLETE') && <DuplicateActivitiesSection />}
 
       {roles?.includes('ATHLETE') && <CalendarFeedSection />}
+
+      {/* iPhone only; the section hides itself on the web and Android */}
+      {roles?.includes('ATHLETE') && <AppleWatchScheduleSection />}
 
       <CorosRegionDialog
         open={corosRegionOpen}

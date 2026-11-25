@@ -8,6 +8,7 @@ import { ACCESS_TOKEN, clear, getItem, setItem } from '@/utils/local-storage';
 import { initializePushNotifications } from '@/utils/push-notifications';
 import { queryClient } from '@/utils/query-client';
 import { saveTimeZone } from '@/utils/time-zone';
+import { disconnectWatchScheduleOnExit } from '@/utils/watch-schedule';
 import posthog from 'posthog-js';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 
@@ -151,6 +152,10 @@ export function AuthProvider({ children }: Props) {
   }, []);
 
   const logout = useCallback((navigate?: (path: string) => void) => {
+    // Fence Apple scheduling before the tokens disappear. The native epoch and
+    // reconciler stop further writes immediately; a pending cleanup receipt
+    // survives even if the page reloads under the call.
+    disconnectWatchScheduleOnExit();
     posthog.capture('user_logged_out');
     posthog.reset();
     clear();

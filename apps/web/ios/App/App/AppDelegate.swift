@@ -14,6 +14,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     FirebaseApp.configure()
+    // Background task registration must happen before launch completes. The
+    // handler only performs an authenticated calendar read; WorkoutKit itself
+    // stays in the foreground-created runtime.
+    WatchScheduleBackgroundRefresh.register()
     UNUserNotificationCenter.current().delegate = self
     Messaging.messaging().delegate = self
 
