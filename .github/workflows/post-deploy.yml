@@ -29,7 +29,10 @@ jobs:
         github.event_name != 'deployment_status' || (
           github.event.deployment_status.state == 'success' &&
           github.event.deployment.environment == 'Production – openathlete-web'))
-    runs-on: [self-hosted, coolify]
+    # GitHub-hosted: Vercel's Security Checkpoint challenges the Contabo
+    # datacenter IP whatever the firewall rules. CI_SELF_HOSTED=true sends the
+    # job back to the Coolify runner.
+    runs-on: ${{ vars.CI_SELF_HOSTED == 'true' && fromJSON('["self-hosted", "coolify"]') || 'ubuntu-latest' }}
     timeout-minutes: 15
     # Per target, and on the job: the skipped runs of preview deployments must
     # not cancel a pending production check
