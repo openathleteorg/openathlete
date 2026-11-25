@@ -16,8 +16,10 @@ concurrency:
 jobs:
   lint:
     name: Lint
-    # The private mirror has no GitHub minutes left: it runs on the Coolify runner.
-    runs-on: ${{ github.repository == 'openathleteorg/openathlete' && 'ubuntu-latest' || fromJSON('["self-hosted", "coolify"]') }}
+    # GitHub-hosted: the shared Coolify runner queues for minutes. Set the
+    # repository variable CI_SELF_HOSTED=true to fall back to it when the
+    # organization runs out of Actions minutes.
+    runs-on: ${{ vars.CI_SELF_HOSTED == 'true' && fromJSON('["self-hosted", "coolify"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
@@ -25,8 +27,10 @@ jobs:
 
   type-check:
     name: Type check
-    # The private mirror has no GitHub minutes left: it runs on the Coolify runner.
-    runs-on: ${{ github.repository == 'openathleteorg/openathlete' && 'ubuntu-latest' || fromJSON('["self-hosted", "coolify"]') }}
+    # GitHub-hosted: the shared Coolify runner queues for minutes. Set the
+    # repository variable CI_SELF_HOSTED=true to fall back to it when the
+    # organization runs out of Actions minutes.
+    runs-on: ${{ vars.CI_SELF_HOSTED == 'true' && fromJSON('["self-hosted", "coolify"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
@@ -34,8 +38,10 @@ jobs:
 
   test:
     name: Test (TZ=${{ matrix.tz }})
-    # The private mirror has no GitHub minutes left: it runs on the Coolify runner.
-    runs-on: ${{ github.repository == 'openathleteorg/openathlete' && 'ubuntu-latest' || fromJSON('["self-hosted", "coolify"]') }}
+    # GitHub-hosted: the shared Coolify runner queues for minutes. Set the
+    # repository variable CI_SELF_HOSTED=true to fall back to it when the
+    # organization runs out of Actions minutes.
+    runs-on: ${{ vars.CI_SELF_HOSTED == 'true' && fromJSON('["self-hosted", "coolify"]') || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:

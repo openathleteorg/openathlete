@@ -20,8 +20,12 @@ test('the API health route answers ok', async ({ request }) => {
 });
 
 test('the app shell loads', async ({ browser, baseURL }) => {
-  // Signed out: the login page, rendered by the app itself
-  const context = await browser.newContext({ baseURL });
+  // Signed out: the login page, rendered by the app itself. The project's
+  // storageState would sign this context in, so it starts empty.
+  const context = await browser.newContext({
+    baseURL,
+    storageState: { cookies: [], origins: [] },
+  });
   const page = await context.newPage();
   const problems = trackLiveProblems(page);
 
