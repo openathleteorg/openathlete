@@ -1,6 +1,5 @@
-import { expect, test as setup } from '@playwright/test';
-
 import { AUTH_FILE } from './playwright.config';
+import { expect, test as setup } from './test';
 
 // The dedicated smoke account signs in through the real form, once per run;
 // the other checks reuse its session.

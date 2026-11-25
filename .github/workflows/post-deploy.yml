@@ -82,6 +82,7 @@ jobs:
           SMOKE_BASE_URL: https://app.openathlete.org
           SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
           SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: pnpm test:smoke
 
       # Only when the suite ran: a runner that failed to set up is not a

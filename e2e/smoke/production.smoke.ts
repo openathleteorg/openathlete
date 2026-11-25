@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
-
+import { bypassVercelChallenge } from './bypass';
 import { ERROR_BOUNDARY_TEXT, trackLiveProblems } from './health';
+import { expect, test } from './test';
 
 const LANDING_URL = process.env.SMOKE_LANDING_URL ?? 'https://openathlete.org';
 const API_URL = process.env.SMOKE_API_URL ?? 'https://api.openathlete.org';
@@ -26,6 +26,7 @@ test('the app shell loads', async ({ browser, baseURL }) => {
     baseURL,
     storageState: { cookies: [], origins: [] },
   });
+  await bypassVercelChallenge(context);
   const page = await context.newPage();
   const problems = trackLiveProblems(page);
 
