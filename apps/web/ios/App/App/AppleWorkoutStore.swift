@@ -82,26 +82,41 @@ final class AppleWorkoutStore: ScheduleWorkoutStore {
 
     func schedule(
         _ request: ScheduleWorkoutRequest,
-        calendar: Calendar
+        calendar: Calendar,
+        fence: ScheduleSubmissionFence
     ) async throws {
         try await requireSchedulingAccess()
-        let plan = try makeWorkoutPlan(request.plan, id: request.planID)
-        let start = ScheduleDate.normalized(
-            request.startDate,
-            calendar: calendar
-        )
+        let plan: WorkoutPlan
+        do {
+            plan = try makeWorkoutPlan(request.plan, id: request.planID)
+        } catch {
+            // The plan was rejected before any native call. The reconciler may
+            // retry this receipt without treating it as an unresolved write.
+            throw ScheduleStoreError.planNotSubmitted
+        }
+        let start = ScheduleDate.normalized(request.startDate)
         let components = calendar.dateComponents(
             [.year, .month, .day, .hour, .minute, .second],
             from: start
         )
+        // Last await on the preflight path is authorization above. The fence
+        // both rechecks the account generation and durably marks the write as
+        // submitted before the native call.
+        try await fence.prepareSubmission()
         await WorkoutScheduler.shared.schedule(plan, at: components)
     }
 
-    func remove(planID: UUID, calendar: Calendar) async throws {
+    func remove(
+        planID: UUID,
+        calendar: Calendar,
+        fence: ScheduleSubmissionFence
+    ) async throws {
         try await requireSchedulingAccess()
         let scheduled = await WorkoutScheduler.shared.scheduledWorkouts
         for item in scheduled
             where item.plan.id == planID && !item.complete {
+            // Recheck after every preflight/list await and each iteration.
+            try await fence.check()
             await WorkoutScheduler.shared.remove(item.plan, at: item.date)
         }
     }
