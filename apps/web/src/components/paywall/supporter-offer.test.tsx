@@ -137,17 +137,21 @@ describe('SupporterOffer on the web (Stripe)', () => {
       ),
     ].find((item) => item.textContent?.includes(name)) as HTMLButtonElement;
 
-  it('shows the three yearly tiers, the suggested one picked, and the free-plan limit', () => {
+  it('shows the three yearly tiers, the lowest picked, the suggested one marked, and the free-plan limit', () => {
     for (const price of ['€50/year', '€80/year', '€120/year']) {
       expect(container.textContent).toContain(price);
     }
-    const picked = radio('Your contribution', '€80/year');
-    expect(picked.getAttribute('aria-checked')).toBe('true');
-    expect(picked.textContent).toContain('Suggested');
+    const lowest = radio('Your contribution', '€50/year');
+    expect(lowest.getAttribute('aria-checked')).toBe('true');
+    expect(lowest.textContent).not.toContain('Suggested');
+    const suggested = radio('Your contribution', '€80/year');
+    expect(suggested.getAttribute('aria-checked')).toBe('false');
+    expect(suggested.textContent).toContain('Suggested');
     expect(container.textContent).toContain('Unlimited athletes (free: 5)');
   });
 
   it('keeps the tier when switching to monthly billing', () => {
+    act(() => radio('Your contribution', '€80/year').click());
     act(() => button('Monthly').click());
 
     for (const price of ['€5/month', '€8/month', '€12/month']) {
@@ -176,7 +180,7 @@ describe('SupporterOffer on the web (Stripe)', () => {
     expect(mocks.checkout).toHaveBeenCalledWith(
       expect.objectContaining({
         interval: 'year',
-        amountCents: 8000,
+        amountCents: 5000,
         acceptTerms: true,
       }),
     );
@@ -184,12 +188,12 @@ describe('SupporterOffer on the web (Stripe)', () => {
 
   it('checks out the interval and tier the user picks', async () => {
     act(() => button('Monthly').click());
-    act(() => radio('Your contribution', '€5/month').click());
+    act(() => radio('Your contribution', '€12/month').click());
     acceptTerms();
     await act(async () => button('Become a Supporter').click());
 
     expect(mocks.checkout).toHaveBeenCalledWith(
-      expect.objectContaining({ interval: 'month', amountCents: 500 }),
+      expect.objectContaining({ interval: 'month', amountCents: 1200 }),
     );
   });
 });
@@ -216,7 +220,7 @@ describe('SupporterOffer in the iOS app (App Store)', () => {
     for (const price of ['49,99 €', '79,99 €', '119,99 €']) {
       expect(container.textContent).toContain(price);
     }
-    expect(container.textContent).toContain('79,99 €/year');
+    expect(container.textContent).toContain('49,99 €/year');
     expect(container.textContent).toContain('Renews automatically');
     expect(
       container.querySelector('a[href*="apple.com/legal"]')?.textContent,
@@ -310,7 +314,7 @@ describe('SupporterOffer when the App Store returns no products', () => {
     await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
 
     expect(mocks.prices).toHaveBeenCalledTimes(2);
-    expect(container.textContent).toContain('79,99 €/year');
+    expect(container.textContent).toContain('49,99 €/year');
     expect(container.textContent).not.toContain('No prices');
   });
 });

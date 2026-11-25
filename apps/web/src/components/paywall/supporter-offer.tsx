@@ -14,7 +14,7 @@ import { privacyPolicyUrl } from '@/utils/consent';
 import { cn } from '@/utils/shadcn';
 import {
   FEATURED_SUPPORTER_TIER,
-  featuredSupporterTier,
+  defaultSupporterTier,
   sameTierIn,
   supporterPriceLabel,
   supporterTiers,
@@ -118,8 +118,8 @@ function IntervalPicker({
 }
 
 /**
- * The tier: a bigger contribution for the same perks. The suggested one is
- * preselected, and the lowest stays in sight.
+ * The tier: a bigger contribution for the same perks. The lowest is
+ * preselected, and the suggested one carries a badge.
  */
 export function TierPicker({
   tiers,
@@ -199,7 +199,7 @@ function StripeSupporterOffer({
   const createCheckout = useCreateCheckout();
   const [interval, setInterval] = useState(BillingInterval.YEAR);
   const [amountCents, setAmountCents] = useState(() =>
-    featuredSupporterTier(BillingInterval.YEAR),
+    defaultSupporterTier(BillingInterval.YEAR),
   );
   const [acceptTerms, setAcceptTerms] = useState(false);
   const changeInterval = (next: BillingInterval) => {
@@ -309,7 +309,7 @@ function AppStoreSupporterOffer({
   const restore = useRestoreAppStorePurchases();
   const [interval, setInterval] = useState(BillingInterval.YEAR);
   const [chosen, setAmountCents] = useState(() =>
-    featuredSupporterTier(BillingInterval.YEAR),
+    defaultSupporterTier(BillingInterval.YEAR),
   );
   const prices = useQuery({
     queryKey: ['app-store', 'supporter-prices'],
@@ -328,11 +328,7 @@ function AppStoreSupporterOffer({
       appleProductFor(interval, tier) !== null &&
       (!prices.isSuccess || storePrice(interval, tier) !== undefined),
   );
-  const amountCents = tiers.includes(chosen)
-    ? chosen
-    : tiers.includes(featuredSupporterTier(interval))
-      ? featuredSupporterTier(interval)
-      : (tiers[0] ?? chosen);
+  const amountCents = tiers.includes(chosen) ? chosen : (tiers[0] ?? chosen);
   const productId = appleProductFor(interval, amountCents)?.productId;
 
   const changeInterval = (next: BillingInterval) => {

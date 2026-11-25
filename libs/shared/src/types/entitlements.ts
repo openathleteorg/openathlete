@@ -27,7 +27,7 @@ export interface OfferEntitlements {
    * same content: a higher one is a bigger contribution. Null when free.
    */
   prices: Record<BillingInterval, readonly number[]> | null;
-  /** Index of the tier shown first and preselected */
+  /** Index of the suggested tier, shown with a badge */
   featuredTier: number;
   /** Athletes coached outside any club; null: unlimited */
   maxCoachedAthletes: number | null;
@@ -189,7 +189,7 @@ export function tierPrices(
   return OFFERS[offer].prices?.[interval] ?? [];
 }
 
-/** The preselected tier price of an offer for an interval. */
+/** The suggested tier price of an offer for an interval. */
 export function featuredPrice(
   offer: Offer,
   interval: BillingInterval,

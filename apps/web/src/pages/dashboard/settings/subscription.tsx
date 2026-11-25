@@ -21,7 +21,7 @@ import { AnalyticsEvent } from '@/utils/analytics-events';
 import { manageAppStoreSubscription } from '@/utils/app-store';
 import { purchaseChannel } from '@/utils/capacitor';
 import {
-  featuredSupporterTier,
+  defaultSupporterTier,
   sameTierIn,
   supporterPriceLabel,
   supporterTiers,
@@ -393,7 +393,7 @@ function ChangeContribution({
   const [nextAmount, setNextAmount] = useState(() =>
     amountCents !== null && supporterTiers(interval).includes(amountCents)
       ? amountCents
-      : featuredSupporterTier(interval),
+      : defaultSupporterTier(interval),
   );
   const unchanged = nextInterval === interval && nextAmount === amountCents;
 

@@ -65,7 +65,7 @@ export function PricingPlans({
   const intl = DATE_LOCALES[locale];
   const [period, setPeriod] = useState<Period>('yearly');
   // Tiers have the same content: the one picked only sets the amount shown
-  const [tier, setTier] = useState(SUPPORTER_FEATURED_TIER);
+  const [tier, setTier] = useState(0);
 
   const choose = (next: Period) => {
     setPeriod(next);

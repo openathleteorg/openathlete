@@ -36,7 +36,7 @@ export const SUPPORTER_MONTHLY_TIERS_EUR = euros(
 export const SUPPORTER_YEARLY_TIERS_EUR = euros(
   tierPrices(Offer.SUPPORTER, BillingInterval.YEAR),
 );
-/** The tier shown first and preselected. */
+/** The tier with the Suggested badge; the lowest one is preselected. */
 export const SUPPORTER_FEATURED_TIER = OFFERS[Offer.SUPPORTER].featuredTier;
 
 /**

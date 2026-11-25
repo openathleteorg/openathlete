@@ -8,7 +8,6 @@ import {
   Offer,
   SubscriptionPlan,
   SubscriptionStatus,
-  featuredPrice,
   tierPrices,
 } from '@openathlete/shared';
 
@@ -17,12 +16,15 @@ export function supporterTiers(interval: BillingInterval): readonly number[] {
   return tierPrices(Offer.SUPPORTER, interval);
 }
 
-/** The preselected Supporter tier of an interval, in cents. */
-export function featuredSupporterTier(interval: BillingInterval): number {
-  return featuredPrice(Offer.SUPPORTER, interval)!;
+/**
+ * The preselected Supporter tier of an interval, in cents: the lowest, so
+ * the suggested one is a choice the user makes rather than a default.
+ */
+export function defaultSupporterTier(interval: BillingInterval): number {
+  return supporterTiers(interval)[0]!;
 }
 
-/** Index of the preselected tier, the same for both intervals. */
+/** Index of the suggested tier, with its badge, the same for both intervals. */
 export const FEATURED_SUPPORTER_TIER = OFFERS[Offer.SUPPORTER].featuredTier;
 
 /** The same tier position in the other interval (8 €/month ↔ 80 €/year) */
@@ -32,7 +34,7 @@ export function sameTierIn(
   to: BillingInterval,
 ): number {
   const index = supporterTiers(from).indexOf(amountCents);
-  return supporterTiers(to)[index] ?? featuredSupporterTier(to);
+  return supporterTiers(to)[index] ?? defaultSupporterTier(to);
 }
 
 /** Euros from cents, without decimals when there are none: 8, 7.99 */
