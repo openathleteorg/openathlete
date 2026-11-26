@@ -1,5 +1,6 @@
 import { UserAPI } from '@/api/user/user.api';
 import { getLocale, isLocale } from '@/paraglide/runtime';
+import type { AuthSessionSnapshot } from '@/utils/auth-attempt';
 import type { SupportedLocale } from '@/utils/locales';
 
 import type { EmailLanguage } from '@openathlete/shared';
@@ -57,6 +58,7 @@ function takePendingChoice() {
 export async function saveLanguageChoice(
   saved: EmailLanguage,
   search = window.location.search,
+  session?: AuthSessionSnapshot,
 ) {
   const pending = takePendingChoice();
   const choice = [new URLSearchParams(search).get('lang'), pending].find(
@@ -67,7 +69,13 @@ export async function saveLanguageChoice(
   const language = toEmailLanguage(choice as SupportedLocale);
   if (language === saved) return;
   try {
-    await UserAPI.updateLanguage(language);
+    // The profile owner captured before the auth flow started, so a successor
+    // login cannot receive this write.
+    if (session) {
+      await UserAPI.updateLanguage(language, session);
+    } else {
+      await UserAPI.updateLanguage(language);
+    }
   } catch (error) {
     console.error('Failed to update language:', error);
   }

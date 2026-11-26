@@ -62,6 +62,11 @@ export async function resolveServerUrl(input: string): Promise<string> {
   throw new Error('server_unreachable');
 }
 
+/** Whether saving this canonical URL actually switches instance. */
+export function isServerChange(url: string, defaultUrl: string): boolean {
+  return (getSelectedServerUrl() ?? defaultUrl) !== url;
+}
+
 /** A server switch must never send the old server's token to the new one. */
 export function saveSelectedServerUrl(
   url: string,

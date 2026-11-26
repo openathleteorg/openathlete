@@ -29,9 +29,10 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import * as m from '@/paraglide/messages';
+import { cn } from '@/utils/shadcn';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -42,6 +43,11 @@ import {
 } from '@openathlete/shared';
 import type { WorkoutStepDto, WorkoutStepTargetDto } from '@openathlete/shared';
 
+import {
+  type SwimDistanceUnit,
+  displayDistance,
+  toMetres,
+} from '../session-builder/swim-distance';
 import { TargetBadge } from './target-badge';
 import { TargetForm } from './target-form';
 import { TypeIcon } from './type-icon';
@@ -90,6 +96,96 @@ interface StepFormProps {
   sport?: keyof typeof SPORT_TYPE;
 }
 
+/**
+ * A pool length in metres or yards. The form keeps metres, so switching the
+ * display unit alone saves the distance that was there.
+ */
+function SwimDistanceInput({
+  value,
+  onChange,
+  invalid,
+  onInvalidChange,
+}: {
+  value: number | null | undefined;
+  onChange: (value: number | undefined) => void;
+  invalid: boolean;
+  onInvalidChange: (invalid: boolean) => void;
+}) {
+  const [unit, setUnit] = useState<SwimDistanceUnit>('m');
+  const [text, setText] = useState(
+    value === null || value === undefined
+      ? ''
+      : String(displayDistance(value, unit)),
+  );
+
+  useEffect(() => {
+    const parsed = text.trim() === '' ? null : Number(text.replace(',', '.'));
+    const shown =
+      value === null || value === undefined
+        ? null
+        : displayDistance(value, unit);
+    if (parsed !== shown)
+      setText(value === null || value === undefined ? '' : String(shown));
+    // The text follows the value only when they disagree
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  const switchUnit = (next: SwimDistanceUnit) => {
+    if (next === unit) return;
+    setUnit(next);
+    onInvalidChange(false);
+    setText(
+      value === null || value === undefined
+        ? ''
+        : String(displayDistance(value, next)),
+    );
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        type="text"
+        inputMode="decimal"
+        aria-label={m.step_form_duration_value()}
+        aria-invalid={invalid}
+        value={text}
+        onChange={(event) => {
+          const next = event.target.value;
+          setText(next);
+          if (next.trim() === '') {
+            onInvalidChange(false);
+            return onChange(undefined);
+          }
+          const parsed = Number(next.replace(',', '.'));
+          const valid = Number.isFinite(parsed) && parsed >= 0;
+          onInvalidChange(!valid);
+          if (valid) onChange(toMetres(parsed, unit));
+        }}
+        onFocus={(event) => event.target.select()}
+        className="h-10 flex-1"
+        data-pool-distance
+      />
+      <div className="inline-flex rounded-lg bg-muted p-0.5">
+        {(['m', 'yd'] as const).map((next) => (
+          <button
+            key={next}
+            type="button"
+            aria-pressed={unit === next}
+            onClick={() => switchUnit(next)}
+            className={cn(
+              'h-9 rounded-md px-3 text-sm font-medium text-muted-foreground',
+              unit === next && 'bg-background text-foreground shadow-sm',
+            )}
+            data-pool-unit={next}
+          >
+            {next === 'm' ? m.meters() : m.yards()}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function StepForm({
   initialValues,
   onSubmit,
@@ -110,6 +206,7 @@ export function StepForm({
   );
   const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
   const [editingTargetId, setEditingTargetId] = useState<string | null>(null);
+  const [invalidSwimDistance, setInvalidSwimDistance] = useState(false);
 
   const form = useForm<StepFormValues>({
     resolver: zodResolver(stepFormSchema),
@@ -123,6 +220,13 @@ export function StepForm({
   });
 
   const selectedDurationType = form.watch('durationType');
+  const isSwimming = sport === 'SWIMMING';
+
+  useEffect(() => {
+    // Leaving the pool field drops the validation of a draft left in it
+    if (!isSwimming || selectedDurationType !== 'DISTANCE')
+      setInvalidSwimDistance(false);
+  }, [isSwimming, selectedDurationType]);
 
   const handleAddTarget = (
     targetValues: Partial<Omit<TargetWithId, 'id'>> & {
@@ -185,7 +289,12 @@ export function StepForm({
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          form.handleSubmit(handleSubmit)(e);
+          form.handleSubmit((values) => {
+            // The input kept its invalid text, so the form's last value would
+            // silently replace it
+            if (invalidSwimDistance) return;
+            handleSubmit(values);
+          })(e);
         }}
         className="space-y-3 md:space-y-4"
       >
@@ -277,10 +386,38 @@ export function StepForm({
                 showSeconds={true}
               />
             ) : selectedDurationType === 'DISTANCE' ? (
-              <RHFDistance
-                name="durationValue"
-                label={m.step_form_duration_value()}
-              />
+              isSwimming ? (
+                <FormField
+                  control={form.control}
+                  name="durationValue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{m.step_form_duration_value()}</FormLabel>
+                      <SwimDistanceInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        invalid={invalidSwimDistance}
+                        onInvalidChange={setInvalidSwimDistance}
+                      />
+                      {invalidSwimDistance && (
+                        <p
+                          role="alert"
+                          className="text-sm font-medium text-destructive"
+                          data-pool-distance-error
+                        >
+                          {m.metrics_value_positive()}
+                        </p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <RHFDistance
+                  name="durationValue"
+                  label={m.step_form_duration_value()}
+                />
+              )
             ) : selectedDurationType === 'REPS' ? (
               <>
                 <RHFNumberWithUnit

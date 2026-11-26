@@ -31,6 +31,7 @@ type PendingSignIn = {
   state: string;
   nonce: string;
   verifier: string;
+  attempt?: string;
   invitationToken?: string;
   coachInvitationToken?: string;
   clubJoinToken?: string;
@@ -41,7 +42,8 @@ type PendingSignIn = {
 export type OidcStart = Omit<PendingSignIn, 'state' | 'nonce' | 'verifier'>;
 
 /** How a sign-in ends: back to the web app with a one-time code or an error */
-export type OidcResult = { code: string } | { error: OidcError };
+export type OidcResult =
+  { code: string; attempt?: string } | { error: OidcError };
 
 // openid-client is ESM only: loaded when first needed, which also keeps it
 // out of instances that don't use OpenID Connect
@@ -215,7 +217,9 @@ export class OidcService {
         { userId: user.userId },
         TokenType.OIDC_LOGIN,
       );
-      return { code: token };
+      return pending.attempt
+        ? { code: token, attempt: pending.attempt }
+        : { code: token };
     } catch (error) {
       if (error instanceof ForbiddenException) {
         const reason = String(

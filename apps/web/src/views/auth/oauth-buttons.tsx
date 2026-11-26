@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
+import { beginAuthLogin, isAuthLoginCurrent } from '@/utils/auth-attempt';
 import { isCapacitor, isIOS } from '@/utils/capacitor';
 import { readPendingClubJoinToken } from '@/utils/club-join';
 import {
@@ -14,6 +15,7 @@ import {
   isFirebaseWebConfigured,
 } from '@/utils/firebase-auth';
 import { currentLanguage } from '@/utils/language-choice';
+import { rememberOidcLoginAttempt } from '@/utils/oidc-login-attempt';
 import { takeReturnTo } from '@/utils/return-to';
 import { cn } from '@/utils/shadcn';
 import { signupRefusal } from '@/utils/signup';
@@ -50,11 +52,12 @@ export function OAuthButtons({
   const lastProvider = useRef<OAuthProviderId>('google');
 
   const loginWithFirebaseMutation = useLoginWithFirebaseMutation({
-    onSuccess: async (_, variables) => {
+    onSuccess: async (_, variables, isCurrent) => {
       posthog?.capture(`user_logged_in_with_${lastProvider.current}`, {
         has_invitation: !!variables.invitationToken,
       });
-      await initialize();
+      await initialize({ authenticated: true });
+      if (!isCurrent()) return;
       nav(takeReturnTo(redirectTo || getPath(['dashboard'])));
     },
     onError: (error) => {
@@ -67,23 +70,38 @@ export function OAuthButtons({
   });
 
   const handleProvider = async (providerId: OAuthProviderId) => {
+    const starting = beginAuthLogin();
     try {
       setPendingProvider(providerId);
       lastProvider.current = providerId;
-      const idToken = await getFirebaseIdTokenForProvider(providerId);
-      loginWithFirebaseMutation.mutate({
-        idToken,
-        invitationToken: invitationToken || undefined,
-        coachInvitationToken: coachInvitationToken || undefined,
-        clubJoinToken,
-        // Saved only if this sign-in creates the account
-        language: currentLanguage(),
-        unitSystem: getDefaultUnitSystem(navigator.language),
-      });
+      // Firebase may need to open a popup in the original click gesture.
+      const [attempt, idToken] = await Promise.all([
+        starting,
+        getFirebaseIdTokenForProvider(providerId),
+      ]);
+      if (!isAuthLoginCurrent(attempt)) {
+        setPendingProvider(null);
+        return;
+      }
+      loginWithFirebaseMutation.mutate(
+        {
+          idToken,
+          invitationToken: invitationToken || undefined,
+          coachInvitationToken: coachInvitationToken || undefined,
+          clubJoinToken,
+          // Saved only if this sign-in creates the account
+          language: currentLanguage(),
+          unitSystem: getDefaultUnitSystem(navigator.language),
+        },
+        attempt,
+      );
     } catch (error) {
-      console.error('OAuth sign-in failed:', error);
-      toast.error(m.oauth_login_failed());
       setPendingProvider(null);
+      const attempt = await starting.catch(() => null);
+      if (!attempt || isAuthLoginCurrent(attempt)) {
+        console.error('OAuth sign-in failed:', error);
+        toast.error(m.oauth_login_failed());
+      }
     }
   };
 
@@ -100,18 +118,33 @@ export function OAuthButtons({
   const oidc = isCapacitor() ? null : (instance?.oidc ?? null);
   if (!firebase && !oidc) return null;
 
-  const handleOidc = () => {
+  const handleOidc = async () => {
     setLeavingForSso(true);
-    // The remembered return path survives the trip: sessionStorage
-    window.location.assign(
-      AuthAPI.oidcSignInUrl({
-        invitation: invitationToken || undefined,
-        coachInvitation: coachInvitationToken || undefined,
-        clubJoin: clubJoinToken,
-        language: currentLanguage(),
-        unitSystem: getDefaultUnitSystem(navigator.language),
-      }),
-    );
+    try {
+      const attempt = await beginAuthLogin();
+      if (!isAuthLoginCurrent(attempt)) {
+        setLeavingForSso(false);
+        return;
+      }
+      if (!rememberOidcLoginAttempt(attempt)) {
+        setLeavingForSso(false);
+        toast.error(m.sso_failed());
+        return;
+      }
+      window.location.assign(
+        AuthAPI.oidcSignInUrl({
+          attempt: attempt.ticket,
+          invitation: invitationToken || undefined,
+          coachInvitation: coachInvitationToken || undefined,
+          clubJoin: clubJoinToken,
+          language: currentLanguage(),
+          unitSystem: getDefaultUnitSystem(navigator.language),
+        }),
+      );
+    } catch {
+      setLeavingForSso(false);
+      toast.error(m.sso_failed());
+    }
   };
 
   return (

@@ -55,7 +55,7 @@ export const useGetMeQuery = (
 ) =>
   useQuery({
     ...opt,
-    queryFn: UserAPI.getMe,
+    queryFn: () => UserAPI.getMe(),
     queryKey: [userKeys.getMe],
   });
 

@@ -9,9 +9,15 @@ import {
   analyticsErrorCodeFromUnknown,
   consumeOauthConnectSource,
 } from '@/utils/analytics-events';
+import { captureAuthSession, isAuthSessionCurrent } from '@/utils/auth-attempt';
 import { isCapacitor } from '@/utils/capacitor';
-import { nativeReturnUrl } from '@/utils/native-oauth';
+import { nativeReturnUrl, providerOAuthNonce } from '@/utils/native-oauth';
 import { ENABLE_DESCRIPTION_AFTER_OAUTH_KEY } from '@/utils/oauth';
+import {
+  retireLegacyProviderOAuth,
+  takeProviderOAuth,
+  usesProviderPkce,
+} from '@/utils/provider-oauth-storage';
 import { useQueryClient } from '@tanstack/react-query';
 import posthog from 'posthog-js';
 import { useEffect, useRef } from 'react';
@@ -93,11 +99,18 @@ function OAuthCallback({
 }) {
   const nav = useNavigate();
   const hasInitialized = useRef(false);
+  const pendingSource = useRef<OauthConnectSource | null>(null);
   const queryClient = useQueryClient();
+  const finalProvider = (provider || '').toUpperCase();
+  const pkceProvider = usesProviderPkce(finalProvider) ? finalProvider : null;
+  const connectionSource = () =>
+    pkceProvider
+      ? (pendingSource.current ?? 'settings')
+      : consumeOauthConnectSource();
   const setOAuthTokenMutation = useSetOAuthTokenMutation({
-    onSuccess: async (_, { provider: connected, scope }) => {
-      const source = consumeOauthConnectSource();
-      const finalProvider = (provider || '').toUpperCase();
+    onSuccess: async (_, { provider: connected, scope, authSession }) => {
+      if (authSession && !isAuthSessionCurrent(authSession)) return;
+      const source = connectionSource();
       posthog.capture(AnalyticsEvent.provider_connect_completed, {
         provider: finalProvider,
         source,
@@ -109,10 +122,10 @@ function OAuthCallback({
       }
       nav(pathAfterConnect(source));
     },
-    onError: (error) => {
-      takeDescriptionIntent();
-      const source = consumeOauthConnectSource();
-      const finalProvider = (provider || '').toUpperCase();
+    onError: (error, { authSession }) => {
+      if (authSession && !isAuthSessionCurrent(authSession)) return;
+      if (!pkceProvider) takeDescriptionIntent();
+      const source = connectionSource();
       posthog.capture(AnalyticsEvent.provider_connect_failed, {
         provider: finalProvider,
         source,
@@ -129,13 +142,22 @@ function OAuthCallback({
     hasInitialized.current = true;
 
     const code = searchParams.get('code');
-    const finalProvider = (provider || '').toUpperCase();
     const validProviders = ['STRAVA', 'GARMIN', 'SUUNTO', 'COROS', 'POLAR'];
+    const authSession = pkceProvider ? captureAuthSession() : undefined;
+    const nonce = pkceProvider
+      ? providerOAuthNonce(searchParams.get('state'), isCapacitor())
+      : null;
+    const pending =
+      pkceProvider && authSession?.accessToken && nonce
+        ? takeProviderOAuth(authSession, pkceProvider, nonce)
+        : null;
+    if (pkceProvider) retireLegacyProviderOAuth();
+    if (pending) pendingSource.current = pending.source;
 
     const failInvalid = () => {
       // Cancelled on the provider's page: a later connection starts afresh
-      takeDescriptionIntent();
-      const source = consumeOauthConnectSource();
+      if (!pkceProvider) takeDescriptionIntent();
+      const source = connectionSource();
       posthog.capture(AnalyticsEvent.provider_connect_failed, {
         provider: finalProvider || 'unknown',
         source,
@@ -151,34 +173,24 @@ function OAuthCallback({
       return;
     }
 
-    // For Garmin (PKCE), retrieve codeVerifier from localStorage
-    // Using localStorage instead of sessionStorage to persist across OAuth redirects
-    const storageKey = `oauth_code_verifier_${finalProvider}`;
-    const codeVerifier = localStorage.getItem(storageKey);
-
-    // Garmin requires codeVerifier for PKCE flow
-    if (finalProvider === 'GARMIN' && !codeVerifier) {
-      console.error('Garmin OAuth: codeVerifier not found in localStorage');
-      const source = consumeOauthConnectSource();
-      posthog.capture(AnalyticsEvent.provider_connect_failed, {
-        provider: finalProvider,
-        source,
-        error_code: 'missing_code_verifier',
-      });
-      toast.error(m.oauth_garmin_code_verifier_missing());
+    if (
+      pkceProvider &&
+      (!pending || !authSession || !isAuthSessionCurrent(authSession))
+    ) {
+      const source = failInvalid();
+      toast.error(
+        pkceProvider === 'GARMIN'
+          ? m.oauth_garmin_code_verifier_missing()
+          : m.invalid_provider(),
+      );
       nav(pathAfterConnect(source));
       return;
-    }
-
-    // Clean up localStorage after retrieving
-    if (codeVerifier) {
-      localStorage.removeItem(storageKey);
     }
 
     setOAuthTokenMutation.mutate({
       provider: finalProvider as ConnectorProvider,
       code,
-      ...(codeVerifier && { codeVerifier }),
+      ...(pending && { codeVerifier: pending.codeVerifier, authSession }),
       // Strava lists the scopes the user accepted on the redirect only
       ...(searchParams.get('scope') && {
         scope: searchParams.get('scope') ?? undefined,

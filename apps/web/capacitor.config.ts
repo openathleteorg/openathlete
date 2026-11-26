@@ -13,6 +13,12 @@ const config: CapacitorConfig = {
     // cleartext: true,
     // End of local development configuration
   },
+  ios: {
+    // The native bridge logs every plugin call and a prefix of every result
+    // when logging is enabled. Scheduling calls carry access tokens in their
+    // arguments, so keep bridge logging off in debug, production and release.
+    loggingBehavior: 'none',
+  },
   plugins: {
     SafeArea: {
       statusBarStyle: undefined,
