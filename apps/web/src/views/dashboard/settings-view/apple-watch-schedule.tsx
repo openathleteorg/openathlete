@@ -6,7 +6,6 @@ import {
   type WatchScheduleResult,
   type WatchScheduleSkippedEvent,
   type WatchScheduleStatus,
-  clearFenceUnconfirmed,
   connectWatchSchedule,
   disconnectWatchSchedule,
   getWatchScheduleStatus,
@@ -14,9 +13,9 @@ import {
   isAppleWatchScheduleAvailable,
   isWatchScheduleExitLatched,
   isWatchScheduleSessionCurrent,
-  readFenceUnconfirmed,
   recoverWatchScheduleCleanup,
   refreshWatchSchedule,
+  retryWatchScheduleUnconfirmedExit,
   watchScheduleCredential,
   watchScheduleScope,
   watchScheduleSessionEpoch,
@@ -399,14 +398,14 @@ function AppleWatchScheduleSectionIOS() {
 
   /**
    * A missed exit acknowledgement is retried against the account and operation
-   * it was recorded for. It never sends an unscoped fence/disconnect: if the
-   * marker belongs to A and B is now signed in, only A's exact durable cleanup
-   * or scoped retirement may run.
+   * it was recorded for. The shared retry never sends an unscoped
+   * fence/disconnect: if the marker belongs to A and B is now signed in, only
+   * A's exact durable cleanup or scoped retirement may run. B's status is not
+   * replaced by the recovered account's state.
    */
   const retryUnconfirmedExit = async () => {
     if (busy || isWatchScheduleExitLatched()) return;
-    const marker = readFenceUnconfirmed();
-    if (!marker) {
+    if (!hasFenceUnconfirmed()) {
       setFenceUnconfirmed(false);
       return;
     }
@@ -414,34 +413,13 @@ function AppleWatchScheduleSectionIOS() {
     setBusy('recover');
     setFailure(null);
     try {
-      if (marker.scope) {
-        await disconnectWatchSchedule(marker.scope);
-        if (!isWatchScheduleSessionCurrent(session)) return;
-      }
-      const recovered = await recoverWatchScheduleCleanup();
+      const resolved = await retryWatchScheduleUnconfirmedExit();
       if (!isWatchScheduleSessionCurrent(session)) return;
-      if (!marker.scope) {
-        if (!recovered) {
-          setFailure('cleanup');
-          return;
-        }
-      } else {
-        // Positive proof for the original scope only: it is neither enabled
-        // nor retaining cleanup. The signed-in account's status is untouched.
-        const markerStatus = await getWatchScheduleStatus(marker.scope);
-        if (!isWatchScheduleSessionCurrent(session)) return;
-        if (
-          markerStatus.enabled ||
-          markerStatus.cleanupPending ||
-          markerStatus.cleanupUnknown
-        ) {
-          setFailure('cleanup');
-          return;
-        }
+      if (!resolved) {
+        setFailure('cleanup');
+        return;
       }
-      if (clearFenceUnconfirmed(marker)) {
-        setFenceUnconfirmed(false);
-      }
+      setFenceUnconfirmed(hasFenceUnconfirmed());
     } catch {
       if (mounted.current && isWatchScheduleSessionCurrent(session)) {
         setFailure('unavailable');

@@ -43,6 +43,9 @@ const state = vi.hoisted(() => ({
   refresh: vi.fn(),
   disconnect: vi.fn(),
   recover: vi.fn(),
+  retryUnconfirmed: vi.fn(),
+  hasUnconfirmed: false,
+  fence: vi.fn(),
   credential: vi.fn(),
   scope: vi.fn(),
   appStateHandler: null as ((state: { isActive: boolean }) => void) | null,
@@ -64,9 +67,9 @@ vi.mock('@/utils/query-client', () => ({
 }));
 vi.mock('@/utils/watch-schedule', () => ({
   isAppleWatchScheduleAvailable: () => state.available,
-  hasFenceUnconfirmed: () => false,
-  clearFenceUnconfirmed: vi.fn(),
-  fenceWatchScheduleOnExit: vi.fn().mockResolvedValue(true),
+  hasFenceUnconfirmed: () => state.hasUnconfirmed,
+  fenceWatchScheduleOnExit: state.fence,
+  retryWatchScheduleUnconfirmedExit: state.retryUnconfirmed,
   watchScheduleSessionEpoch: () => state.sessionEpoch,
   isWatchScheduleExitLatched: () => state.exitLatched,
   isWatchScheduleSessionCurrent: (epoch: number) =>
@@ -133,6 +136,10 @@ describe('Apple Watch sync lifecycle', () => {
     state.disconnect.mockReset();
     state.recover.mockReset();
     state.recover.mockResolvedValue(true);
+    state.retryUnconfirmed.mockReset();
+    state.retryUnconfirmed.mockResolvedValue(true);
+    state.hasUnconfirmed = false;
+    state.fence.mockReset();
     state.sessionEpoch = 0;
     state.exitLatched = false;
     state.resolveCredential = null;
@@ -260,6 +267,29 @@ describe('Apple Watch sync lifecycle', () => {
 
     expect(state.recover).toHaveBeenCalledTimes(1);
     expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.refresh).not.toHaveBeenCalled();
+  });
+
+  it('retries a previous account marker without fencing the current account', async () => {
+    state.hasUnconfirmed = true;
+
+    await render();
+
+    expect(state.retryUnconfirmed).toHaveBeenCalledTimes(1);
+    expect(state.fence).not.toHaveBeenCalled();
+    expect(state.getStatus).toHaveBeenCalledWith(scope);
+    expect(state.refresh).toHaveBeenCalledWith(scope, credential, 'launch');
+  });
+
+  it('starts nothing when a previous exit is still unconfirmed', async () => {
+    state.hasUnconfirmed = true;
+    state.retryUnconfirmed.mockResolvedValue(false);
+
+    await render();
+
+    expect(state.retryUnconfirmed).toHaveBeenCalledTimes(1);
+    expect(state.fence).not.toHaveBeenCalled();
+    expect(state.getStatus).not.toHaveBeenCalled();
     expect(state.refresh).not.toHaveBeenCalled();
   });
 

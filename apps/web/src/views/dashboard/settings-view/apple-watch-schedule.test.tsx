@@ -22,21 +22,19 @@ const state = vi.hoisted(() => ({
   refresh: vi.fn(),
   disconnect: vi.fn(),
   recover: vi.fn(),
+  retryUnconfirmed: vi.fn(),
   credential: vi.fn(),
   scope: vi.fn(),
   unconfirmed: null as {
     scope: { instanceURL: string; athleteId: number } | null;
     operation: 'fence' | 'disconnect';
   } | null,
-  clearUnconfirmed: vi.fn(),
 }));
 
 vi.mock('@/utils/watch-schedule', () => ({
   isAppleWatchScheduleAvailable: () => state.available,
   hasFenceUnconfirmed: () => state.unconfirmed !== null,
-  readFenceUnconfirmed: () => state.unconfirmed,
-  clearFenceUnconfirmed: state.clearUnconfirmed,
-  fenceWatchScheduleOnExit: vi.fn().mockResolvedValue(true),
+  retryWatchScheduleUnconfirmedExit: state.retryUnconfirmed,
   watchScheduleSessionEpoch: () => state.sessionEpoch,
   isWatchScheduleExitLatched: () => state.exitLatched,
   isWatchScheduleSessionCurrent: (epoch: number) =>
@@ -168,13 +166,13 @@ describe('Apple Watch settings', () => {
     state.credential.mockReset();
     state.recover.mockReset();
     state.recover.mockResolvedValue(true);
+    state.retryUnconfirmed.mockReset();
+    state.retryUnconfirmed.mockResolvedValue(true);
     state.sessionEpoch = 0;
     state.exitLatched = false;
     state.resolveCredential = null;
     state.resolveSecondStatus = null;
     state.unconfirmed = null;
-    state.clearUnconfirmed.mockReset();
-    state.clearUnconfirmed.mockReturnValue(true);
     state.scope.mockReset();
     state.scope.mockReturnValue(scope);
     state.credential.mockResolvedValue(credential);
@@ -396,22 +394,13 @@ describe('Apple Watch settings', () => {
     expect(button('apple_watch_enable')).toBeDefined();
   });
 
-  it('retries a missed exit only for its original scope', async () => {
+  it('retries a missed exit through the shared scoped retry', async () => {
     const previous = {
       instanceURL: 'https://train.example.org/api',
       athleteId: 9,
     };
     state.unconfirmed = { scope: previous, operation: 'fence' };
     state.getStatus.mockResolvedValue(status({ enabled: false }));
-    state.disconnect.mockResolvedValue({
-      athleteId: 9,
-      instanceURL: previous.instanceURL,
-      removedEventIDs: [],
-      retainedEventIDs: [],
-      unresolvedEventIDs: [],
-      purgedCredential: true,
-      permission: 'authorized',
-    });
 
     await render();
     const retry = button('apple_watch_refresh');
@@ -420,10 +409,33 @@ describe('Apple Watch settings', () => {
     await act(async () => retry!.click());
     await flush();
 
-    expect(state.disconnect).toHaveBeenCalledWith(previous);
-    expect(state.disconnect).not.toHaveBeenCalledWith(scope);
-    expect(state.getStatus).toHaveBeenCalledWith(previous);
-    expect(state.clearUnconfirmed).toHaveBeenCalledWith(state.unconfirmed);
+    expect(state.retryUnconfirmed).toHaveBeenCalledTimes(1);
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.recover).not.toHaveBeenCalled();
+  });
+
+  it('keeps the current account status when a previous exit is unresolved', async () => {
+    const previous = {
+      instanceURL: 'https://train.example.org/api',
+      athleteId: 9,
+    };
+    state.unconfirmed = { scope: previous, operation: 'disconnect' };
+    state.getStatus.mockResolvedValue(status({ enabled: true }));
+    state.retryUnconfirmed.mockResolvedValue(false);
+
+    await render();
+    // The enabled account also offers a refresh button; the marker retry is the
+    // last one carrying that translated label.
+    const retries = [
+      ...element.querySelectorAll<HTMLButtonElement>('button'),
+    ].filter((item) => item.textContent?.includes('apple_watch_refresh'));
+    await act(async () => retries[retries.length - 1]!.click());
+    await flush();
+
+    expect(state.retryUnconfirmed).toHaveBeenCalledTimes(1);
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(text()).toContain('apple_watch_connected');
+    expect(text()).toContain('apple_watch_cleanup_incomplete');
   });
 
   it('recovers teardown for another account without disconnecting this one', async () => {

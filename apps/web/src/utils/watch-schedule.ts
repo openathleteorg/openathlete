@@ -423,3 +423,36 @@ export async function recoverWatchScheduleCleanup(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Retries a delayed exit against the exact account and operation saved in its
+ * marker, never against whichever account is displayed now. A known account is
+ * retired only by its own scoped disconnect; an unknown one may only recover
+ * teardown that was already authorized. Neither path may become a global fence
+ * that would retire the currently signed-in account. The marker survives every
+ * unacknowledged or superseded outcome.
+ */
+export async function retryWatchScheduleUnconfirmedExit(): Promise<boolean> {
+  const marker = readFenceUnconfirmed();
+  if (!marker) return true;
+  if (!isAppleWatchScheduleAvailable()) return false;
+  try {
+    if (marker.scope) {
+      // Scoped only. A nil report means this account is not the current
+      // opt-in; that is not permission to touch the account that is.
+      await disconnectWatchSchedule(marker.scope);
+    }
+    if (!(await recoverWatchScheduleCleanup())) return false;
+    if (marker.scope) {
+      // Positive proof for the saved scope only. The current account's status
+      // is neither read nor replaced by this retry.
+      const proof = await getWatchScheduleStatus(marker.scope);
+      if (proof.enabled || proof.cleanupPending || proof.cleanupUnknown) {
+        return false;
+      }
+    }
+    return clearFenceUnconfirmed(marker);
+  } catch {
+    return false;
+  }
+}

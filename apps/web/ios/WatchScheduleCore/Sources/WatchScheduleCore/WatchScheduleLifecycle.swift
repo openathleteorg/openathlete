@@ -350,6 +350,14 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
         pinned = credential
     }
 
+    /// Pins one newly presented credential for an identity check after a fence
+    /// blocked stored reuse. It neither persists the token nor unblocks
+    /// background work; `endPass` removes it. A connect still has to adopt the
+    /// credential and prove its athlete before any opt-in becomes durable.
+    public func beginVerification(_ credential: WatchScheduleCredential) {
+        pinned = credential
+    }
+
     public func endPass() {
         pinned = nil
     }
@@ -664,6 +672,39 @@ public actor WatchScheduleLifecycle {
 
         epoch &+= 1
         let entryEpoch = epoch
+
+        // Reject a credential that cannot belong to this scope before it can
+        // cause any durable change. Only this exact bearer may prove identity.
+        guard credential.scope == scope else {
+            return await report(.deferred(.scopeMismatch), scope: scope)
+        }
+        guard !isExpired(credential) else {
+            return await report(.deferred(.credentialExpired), scope: scope)
+        }
+
+        // Prove the pinned bearer's athlete before a permission-driven opt-in
+        // save or any teardown/opt-in mutation. Pin only: the token is not
+        // persisted for background work until the identity matches. A previous
+        // fence has blocked stored reuse, so this explicit verification pin is
+        // what lets the newly signed-in account prove itself.
+        await credentials.beginVerification(credential)
+        do {
+            let verifiedAthleteId = try await verifyAccount(scope)
+            guard verifiedAthleteId == scope.athleteId else {
+                throw ScheduleSourceError.scopeMismatch
+            }
+        } catch {
+            await credentials.endPass()
+            guard entryEpoch == epoch else {
+                return await report(.deferred(.inactive), scope: scope)
+            }
+            return await verificationFailure(error, scope: scope)
+        }
+        await credentials.endPass()
+        guard entryEpoch == epoch else {
+            return await report(.deferred(.inactive), scope: scope)
+        }
+
         let stored: AccountScope?
         do {
             stored = try await optIn.load()
@@ -718,9 +759,9 @@ public actor WatchScheduleLifecycle {
             )
         }
         if resolved == .denied {
-            // The athlete asked to enable scheduling but iOS refused. Keep the
-            // opt-in so the settings screen can explain how to re-enable it;
-            // writes remain blocked by the store's authorization check.
+            // The athlete asked to enable scheduling but iOS refused. The
+            // identity above is proven, so this opt-in is safe to keep for the
+            // settings explanation. Writes remain blocked by the store.
             switch await saveOptInIfCurrent(scope, epoch: entryEpoch) {
             case .applied:
                 break
@@ -729,19 +770,17 @@ public actor WatchScheduleLifecycle {
             case .failed:
                 return await report(.failed("pendingCleanup"), scope: scope)
             }
+            return await report(
+                .deferred(.permissionDenied),
+                scope: scope,
+                permission: resolved
+            )
         }
         guard resolved == .authorized else {
             return await report(
                 resolved == .notDetermined
                     ? .deferred(.permissionNotDetermined)
                     : .deferred(.permissionDenied),
-                scope: scope,
-                permission: resolved
-            )
-        }
-        guard credential.scope == scope else {
-            return await report(
-                .deferred(.scopeMismatch),
                 scope: scope,
                 permission: resolved
             )
@@ -754,32 +793,14 @@ public actor WatchScheduleLifecycle {
             )
         }
 
-        // Install and pin the credential before the opt-in is durable. The
-        // verified own-athlete identity, not just a stored scope, must match.
+        // Identity and permission are proven: now persist the scoped access
+        // credential, pin it for the pass and make the opt-in durable.
         await credentials.adopt(credential)
         guard entryEpoch == epoch else {
             try? await credentials.purge()
             return await report(.deferred(.inactive), scope: scope)
         }
         await credentials.beginPass(credential)
-        guard entryEpoch == epoch else {
-            await credentials.endPass()
-            try? await credentials.purge()
-            return await report(.deferred(.inactive), scope: scope)
-        }
-        do {
-            let verifiedAthleteId = try await verifyAccount(scope)
-            guard verifiedAthleteId == scope.athleteId else {
-                throw ScheduleSourceError.scopeMismatch
-            }
-        } catch {
-            await credentials.endPass()
-            try? await credentials.purge()
-            guard entryEpoch == epoch else {
-                return await report(.deferred(.inactive), scope: scope)
-            }
-            return await verificationFailure(error, scope: scope)
-        }
         guard entryEpoch == epoch else {
             await credentials.endPass()
             try? await credentials.purge()
@@ -1481,18 +1502,23 @@ public actor WatchScheduleLifecycle {
             // never restored just because it was active at entry.
             if let originalActive,
                originalActive != scope,
-               !ordered.contains(originalActive),
-               epoch == entryEpoch,
-               (try? await optIn.load()) == originalActive {
-                // teardownScope invalidates the reconciler even when it
-                // cleaned another scope; re-establish the surviving binding
-                // after every step.
-                generation &+= 1
-                await reconciler.activate(
-                    generation: generation,
-                    for: originalActive
-                )
-                activeScope = originalActive
+               !ordered.contains(originalActive) {
+                let stillOptedIn =
+                    (try? await optIn.load()) == originalActive
+                // Recheck after the awaited read, immediately before the
+                // restore. A fence or newer session that landed while the read
+                // was pending owns the binding now: never restore across it.
+                if stillOptedIn, epoch == entryEpoch {
+                    // teardownScope invalidates the reconciler even when it
+                    // cleaned another scope; re-establish the surviving
+                    // binding after every step.
+                    generation &+= 1
+                    await reconciler.activate(
+                        generation: generation,
+                        for: originalActive
+                    )
+                    activeScope = originalActive
+                }
             }
         }
         return true

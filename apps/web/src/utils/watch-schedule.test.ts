@@ -7,6 +7,7 @@ const state = vi.hoisted(() => ({
   fence: vi.fn(),
   disconnect: vi.fn(),
   recover: vi.fn(),
+  status: vi.fn(),
 }));
 
 vi.mock('@/utils/capacitor', () => ({
@@ -21,7 +22,7 @@ vi.mock('@capacitor/core', () => ({
     fence: state.fence,
     disconnect: state.disconnect,
     recover: state.recover,
-    status: vi.fn(),
+    status: state.status,
     connect: vi.fn(),
     refresh: vi.fn(),
   }),
@@ -42,6 +43,7 @@ const {
   readFenceUnconfirmed,
   recoverWatchScheduleCleanup,
   releaseWatchScheduleExit,
+  retryWatchScheduleUnconfirmedExit,
   watchScheduleCredential,
   watchScheduleExitBoundary,
   watchScheduleSessionEpoch,
@@ -56,6 +58,36 @@ function jwt(expSeconds: number): string {
   return `${encode({ alg: 'none' })}.${encode({ exp: expSeconds })}.signature`;
 }
 
+function status(overrides: Record<string, unknown> = {}) {
+  return {
+    enabled: false,
+    hasOtherAccountOptIn: false,
+    permission: 'authorized',
+    lastSuccessAt: null,
+    lastAttemptAt: null,
+    lastErrorCode: null,
+    counts: {
+      scheduled: 0,
+      confirmed: 0,
+      unchanged: 0,
+      replaced: 0,
+      removed: 0,
+      completed: 0,
+      retained: 0,
+      overflow: 0,
+      failed: 0,
+    },
+    skipped: [],
+    pendingCleanupEventIDs: [],
+    unresolvedEventIDs: [],
+    localPendingEventIDs: [],
+    otherAccountPending: false,
+    cleanupPending: false,
+    cleanupUnknown: false,
+    ...overrides,
+  };
+}
+
 describe('watch schedule bridge', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -64,6 +96,7 @@ describe('watch schedule bridge', () => {
     state.fence.mockReset();
     state.disconnect.mockReset();
     state.recover.mockReset();
+    state.status.mockReset();
     state.getAccessToken.mockReset();
     forgetWatchScheduleScope();
     establishWatchScheduleSession();
@@ -231,5 +264,108 @@ describe('watch schedule bridge', () => {
 
     await expect(recoverWatchScheduleCleanup()).resolves.toBe(true);
     expect(state.recover).toHaveBeenCalledWith();
+  });
+
+  describe('retrying a missed exit', () => {
+    const previous = {
+      instanceURL: 'https://train.example.org/api',
+      athleteId: 9,
+    };
+
+    it('recovers durable teardown only for an unknown scope', async () => {
+      markFenceUnconfirmed(null, 'fence');
+      state.recover.mockResolvedValue({ recovered: true });
+
+      await expect(retryWatchScheduleUnconfirmedExit()).resolves.toBe(true);
+
+      expect(state.recover).toHaveBeenCalledWith();
+      expect(state.fence).not.toHaveBeenCalled();
+      expect(state.disconnect).not.toHaveBeenCalled();
+      expect(state.status).not.toHaveBeenCalled();
+      expect(hasFenceUnconfirmed()).toBe(false);
+    });
+
+    it('preserves an unknown-scope marker when recovery is not acknowledged', async () => {
+      markFenceUnconfirmed(null, 'fence');
+      state.recover.mockResolvedValue({ recovered: false });
+
+      await expect(retryWatchScheduleUnconfirmedExit()).resolves.toBe(false);
+
+      expect(state.fence).not.toHaveBeenCalled();
+      expect(state.disconnect).not.toHaveBeenCalled();
+      expect(hasFenceUnconfirmed()).toBe(true);
+    });
+
+    it('retires only the saved scope, never the currently signed-in account', async () => {
+      markFenceUnconfirmed(previous, 'fence');
+      state.disconnect.mockResolvedValue({
+        athleteId: previous.athleteId,
+        instanceURL: previous.instanceURL,
+        removedEventIDs: [],
+        retainedEventIDs: [],
+        unresolvedEventIDs: [],
+        purgedCredential: true,
+        permission: 'authorized',
+      });
+      state.recover.mockResolvedValue({ recovered: true });
+      state.status.mockResolvedValue(status());
+
+      await expect(retryWatchScheduleUnconfirmedExit()).resolves.toBe(true);
+
+      expect(state.disconnect).toHaveBeenCalledWith({ scope: previous });
+      expect(state.disconnect).not.toHaveBeenCalledWith();
+      expect(state.fence).not.toHaveBeenCalled();
+      expect(state.status).toHaveBeenCalledWith({ scope: previous });
+      expect(hasFenceUnconfirmed()).toBe(false);
+    });
+
+    it('keeps the marker when the saved scope still has cleanup work', async () => {
+      markFenceUnconfirmed(previous, 'disconnect');
+      state.disconnect.mockResolvedValue(null);
+      state.recover.mockResolvedValue({ recovered: true });
+      state.status.mockResolvedValue(status({ cleanupPending: true }));
+
+      await expect(retryWatchScheduleUnconfirmedExit()).resolves.toBe(false);
+
+      expect(state.status).toHaveBeenCalledWith({ scope: previous });
+      expect(hasFenceUnconfirmed()).toBe(true);
+    });
+
+    it('keeps the marker when the status of the saved scope is unknown', async () => {
+      markFenceUnconfirmed(previous, 'disconnect');
+      state.disconnect.mockResolvedValue(null);
+      state.recover.mockResolvedValue({ recovered: true });
+      state.status.mockResolvedValue(status({ cleanupUnknown: true }));
+
+      await expect(retryWatchScheduleUnconfirmedExit()).resolves.toBe(false);
+
+      expect(hasFenceUnconfirmed()).toBe(true);
+    });
+
+    it('does not clear a marker that another operation replaced meanwhile', async () => {
+      markFenceUnconfirmed(previous, 'fence');
+      state.disconnect.mockResolvedValue(null);
+      state.recover.mockResolvedValue({ recovered: true });
+      state.status.mockImplementation(async () => {
+        markFenceUnconfirmed(previous, 'disconnect');
+        return status();
+      });
+
+      await expect(retryWatchScheduleUnconfirmedExit()).resolves.toBe(false);
+
+      expect(readFenceUnconfirmed()).toEqual({
+        scope: previous,
+        operation: 'disconnect',
+      });
+    });
+
+    it('preserves the marker when the bridge cannot be reached', async () => {
+      markFenceUnconfirmed(null, 'fence');
+      state.recover.mockRejectedValue(new Error('unavailable'));
+
+      await expect(retryWatchScheduleUnconfirmedExit()).resolves.toBe(false);
+
+      expect(hasFenceUnconfirmed()).toBe(true);
+    });
   });
 });

@@ -6,8 +6,6 @@ import { queryClient } from '@/utils/query-client';
 import {
   type WatchScheduleScope,
   type WatchScheduleTrigger,
-  clearFenceUnconfirmed,
-  fenceWatchScheduleOnExit,
   getWatchScheduleStatus,
   hasFenceUnconfirmed,
   isAppleWatchScheduleAvailable,
@@ -15,6 +13,7 @@ import {
   isWatchScheduleSessionCurrent,
   recoverWatchScheduleCleanup,
   refreshWatchSchedule,
+  retryWatchScheduleUnconfirmedExit,
   watchScheduleCredential,
   watchScheduleScope,
   watchScheduleSessionEpoch,
@@ -79,20 +78,21 @@ export function useWatchScheduleSync() {
     let cancelled = false;
 
     const launch = async () => {
-      let session = watchScheduleSessionEpoch();
+      const session = watchScheduleSessionEpoch();
       if (!isWatchScheduleSessionCurrent(session)) return;
       if (hasFenceUnconfirmed()) {
-        const beforeFence = session;
-        const acknowledged = await fenceWatchScheduleOnExit();
-        if (cancelled || isWatchScheduleExitLatched()) return;
-        // The fence is a session boundary inside this authenticated session.
-        // Accept only the boundary this call created; never adopt an arbitrary
-        // newer epoch if a logout or another fence happened meanwhile.
-        const afterFence = watchScheduleSessionEpoch();
-        if (afterFence !== beforeFence + 1) return;
-        if (!acknowledged) return;
-        clearFenceUnconfirmed();
-        session = afterFence;
+        // A marker can belong to the account that left this device. Retry it
+        // against its own saved scope and durable teardown only; never fall
+        // back to a global fence that would retire the account signed in now.
+        const resolved = await retryWatchScheduleUnconfirmedExit();
+        if (
+          cancelled ||
+          isWatchScheduleExitLatched() ||
+          !isWatchScheduleSessionCurrent(session)
+        ) {
+          return;
+        }
+        if (!resolved) return;
       }
       const status = await getWatchScheduleStatus(scope);
       if (cancelled || !isWatchScheduleSessionCurrent(session)) return;

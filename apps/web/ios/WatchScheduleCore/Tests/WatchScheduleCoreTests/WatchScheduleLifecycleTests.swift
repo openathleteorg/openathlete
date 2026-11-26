@@ -3153,6 +3153,264 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         XCTAssertEqual(reads, 0)
     }
 
+    // MARK: - Round 6: identity proof and stale recovery restoration
+
+    /// The bearer must prove `GET /athlete/me` before the lifecycle may retire
+    /// a foreign opt-in or ask for scheduling permission. A mismatched bearer
+    /// therefore leaves every durable value untouched.
+    func testMismatchedBearerCannotRetireOrChangeAForeignOptIn()
+        async throws
+    {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn(scope: otherScope)
+        let teardown = LifecycleFakeTeardown()
+        let authorization = LifecycleFakeAuthorization(permission: .authorized)
+        let loader = LifecycleSnapshotLoader { requested in
+            self.snapshot(scope: requested)
+        }
+        let (lifecycle, _, vault) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            authorization: authorization,
+            teardown: teardown,
+            loader: loader,
+            verifyAccount: { _ in 999 }
+        )
+
+        let report = await lifecycle.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: true
+        )
+
+        XCTAssertEqual(report.outcome, .deferred(.scopeMismatch))
+        let storedOptIn = try await optIn.load()
+        XCTAssertEqual(storedOptIn, otherScope)
+        let pendingTeardown = try await teardown.load()
+        XCTAssertEqual(pendingTeardown, [])
+        let permissionReads = await authorization.permissionCount
+        XCTAssertEqual(permissionReads, 0)
+        let permissionRequests = await authorization.requestCount
+        XCTAssertEqual(permissionRequests, 0)
+        let kept = try await vault.load()
+        XCTAssertNil(kept)
+        let schedules = await store.scheduleCount
+        XCTAssertEqual(schedules, 0)
+        let reads = await loader.loadCount
+        XCTAssertEqual(reads, 0)
+    }
+
+    /// A denied or unreadable own-athlete proof is not authorization to clear
+    /// another account's opt-in either.
+    func testVerificationDenialCannotChangeTheStoredOptIn() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn(scope: otherScope)
+        let teardown = LifecycleFakeTeardown()
+        let authorization = LifecycleFakeAuthorization(permission: .authorized)
+        let loader = LifecycleSnapshotLoader { requested in
+            self.snapshot(scope: requested)
+        }
+        let (lifecycle, _, vault) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            authorization: authorization,
+            teardown: teardown,
+            loader: loader,
+            verifyAccount: { _ in
+                throw ScheduleSourceError.unauthorized
+            }
+        )
+
+        let report = await lifecycle.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: true
+        )
+
+        XCTAssertEqual(report.outcome, .deferred(.credentialRequired))
+        let storedOptIn = try await optIn.load()
+        XCTAssertEqual(storedOptIn, otherScope)
+        let pendingTeardown = try await teardown.load()
+        XCTAssertEqual(pendingTeardown, [])
+        let permissionReads = await authorization.permissionCount
+        XCTAssertEqual(permissionReads, 0)
+        let permissionRequests = await authorization.requestCount
+        XCTAssertEqual(permissionRequests, 0)
+        let kept = try await vault.load()
+        XCTAssertNil(kept)
+        let schedules = await store.scheduleCount
+        XCTAssertEqual(schedules, 0)
+        let reads = await loader.loadCount
+        XCTAssertEqual(reads, 0)
+    }
+
+    /// A fence blocks reuse of the vaulted token. The next sign-in still has to
+    /// prove its own new bearer, so verification may pin that presented token
+    /// without making it durable or re-enabling stored background reuse.
+    func testVerificationPinSurvivesBlockedStoredReuse() async throws {
+        let credentials = WatchScheduleCredentialStore(
+            vault: LifecycleFakeVault(),
+            now: { self.now }
+        )
+        await credentials.blockReuse()
+
+        await credentials.beginPass(credential())
+        let blocked = try await credentials.credential(for: scope)
+        XCTAssertNil(blocked)
+
+        await credentials.beginVerification(credential())
+        let verified = try await credentials.credential(for: scope)
+        XCTAssertEqual(verified?.accessToken, "access-token")
+
+        await credentials.endPass()
+        let cleared = try await credentials.credential(for: scope)
+        XCTAssertNil(cleared)
+    }
+
+    /// A connect after logout must be able to verify the new account with the
+    /// credential it was just given, even though the fence blocked the previous
+    /// stored token. Adopting happens only after that proof.
+    func testConnectAfterFenceVerifiesWithTheNewCredential() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let vault = LifecycleFakeVault()
+        let credentials = WatchScheduleCredentialStore(
+            vault: vault,
+            now: { self.now }
+        )
+        let loader = LifecycleSnapshotLoader { requested in
+            self.snapshot(candidates: [self.candidate(3501)], scope: requested)
+        }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            loader: loader,
+            credentials: credentials,
+            verifyAccount: { requested in
+                guard let proof = try await credentials.credential(for: requested),
+                      proof.scope == requested
+                else {
+                    throw ScheduleSourceError.unauthorized
+                }
+                return requested.athleteId
+            }
+        )
+        let fenced = await lifecycle.fence()
+        XCTAssertTrue(fenced)
+
+        let report = await lifecycle.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: true
+        )
+
+        guard case .synced(let summary) = report.outcome else {
+            return XCTFail(
+                "a new sign-in must verify after a fence, got \(report.outcome)"
+            )
+        }
+        XCTAssertEqual(summary.scheduledEventIDs, [3501])
+        let stored = try await vault.load()
+        XCTAssertEqual(stored?.accessToken, "access-token")
+    }
+
+    /// A recovery that is suspended on the opt-in read must recheck its epoch
+    /// after that read. A fence that lands while it waits owns the binding; the
+    /// stale recovery may not reactivate the account that was active at entry.
+    func testFenceDuringRecoveryOptInReadPreventsRestoringTheBinding()
+        async throws
+    {
+        let planA = UUID()
+        let store = LifecycleFakeStore(
+            workouts: [
+                ScheduledWorkoutState(
+                    planID: planA,
+                    startDate: readAt.addingTimeInterval(3_600),
+                    isComplete: false
+                ),
+            ]
+        )
+        let (journal, _) = temporaryJournal()
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 3401,
+                planID: planA,
+                scheduledDate: readAt.addingTimeInterval(3_600),
+                fingerprint: "a"
+            )
+        )
+        let optIn = LifecycleFakeOptIn(scope: otherScope)
+        // B's connect must not drain A's teardown, otherwise recovery has
+        // nothing left to suspend on. The teardown is added after B is bound.
+        let teardown = LifecycleFakeTeardown()
+        let authorization = LifecycleFakeAuthorization(permission: .authorized)
+        let nextCredential = credential(scope: otherScope)
+        let vault = LifecycleFakeVault(credential: nextCredential)
+        let credentials = WatchScheduleCredentialStore(
+            vault: vault,
+            now: { self.now }
+        )
+        let reconciler = ScheduleReconciler(
+            store: store,
+            journal: journal,
+            calendar: calendar
+        )
+        let lifecycle = WatchScheduleLifecycle(
+            reconciler: reconciler,
+            journal: journal,
+            credentials: credentials,
+            optIn: optIn,
+            teardown: teardown,
+            authorization: authorization,
+            calendar: calendar,
+            now: { self.now },
+            loadSnapshot: { requested, _, _ in
+                self.snapshot(scope: requested)
+            }
+        )
+        _ = await lifecycle.connect(
+            scope: otherScope,
+            credential: nextCredential,
+            requestPermission: true
+        )
+        let initialBinding = await reconciler.isActive(for: otherScope)
+        XCTAssertTrue(initialBinding)
+        try await teardown.add(scope)
+
+        // Pause the teardown read, then arm the restoration read for the
+        // suspension point. The recovery therefore waits on the opt-in read
+        // after the teardown step and before it may restore B.
+        await store.suspendNextRead()
+        let recovery = Task { await lifecycle.recoverCleanup() }
+        await store.waitUntilReadSuspended()
+        await optIn.suspendNextLoad()
+        await store.resumeSuspendedRead()
+        await optIn.waitUntilLoadSuspended()
+
+        let acknowledged = await lifecycle.fence()
+        XCTAssertTrue(acknowledged)
+
+        await optIn.resumeSuspendedLoad()
+        _ = await recovery.value
+
+        // The fence cleared the opt-in while the stale read was pending. The
+        // read still reports B (it started earlier), so only the post-read epoch
+        // check can prevent the reactivation.
+        let storedOptIn = try await optIn.load()
+        XCTAssertNil(storedOptIn)
+        let restored = await reconciler.isActive(for: otherScope)
+        XCTAssertFalse(
+            restored,
+            "a recovery must not restore a binding across a fence"
+        )
+    }
+
     /// Recovering another scope's durable teardown waits for the current
     /// account's pass and leaves its opt-in/credential intact.
     func testRecoveryOfAnotherScopesTeardownKeepsTheActivePass() async throws {
@@ -3458,6 +3716,11 @@ private actor LifecycleFakeOptIn: WatchScheduleOptInStore {
     }
 
     func load() async throws -> AccountScope? {
+        // Model a read that started before the suspension: it returns the value
+        // that was durable at call time, not whatever a concurrent fence wrote
+        // while it was waiting. A stale restore must therefore be rejected by
+        // its own epoch check, not by the new storage value.
+        let value = scope
         if suspendLoad {
             suspendLoad = false
             loadIsSuspended = true
@@ -3469,7 +3732,7 @@ private actor LifecycleFakeOptIn: WatchScheduleOptInStore {
             loadFailures -= 1
             throw LifecycleFakeStoreError.unavailable
         }
-        return scope
+        return value
     }
 
     func save(_ scope: AccountScope) async throws {
