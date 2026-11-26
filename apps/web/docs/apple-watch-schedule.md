@@ -234,7 +234,7 @@ length to match the prescription exactly. Until then, keep
 
 | Check | Result |
 | --- | --- |
-| Portable core tests (Linux Swift 6.4.3) | 272 of 272 passed in both debug and release |
+| Portable core tests (Linux Swift 6.4.3) | 275 of 275 passed in both debug and release, including retirement of a stale background credential. |
 | Web unit tests (`pnpm web test`) | passed, including settings, lifecycle hook, bridge logging/storage audit and server no-op |
 | `scripts/verify.sh` | Passed with Node 22.23.3 and pnpm 9.15.9, including lint, type checks, translations and unit tests. |
 | Cross-tab sign-in (headless Chromium) | Passed on HTTP and HTTPS. A second login survived while the first tab was paused between its credential and owner writes. |

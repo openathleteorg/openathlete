@@ -14,6 +14,7 @@ import { isCapacitor } from './utils/capacitor';
 import { initChunkLoadRecovery } from './utils/chunk-recovery';
 import { initErrorMonitoring } from './utils/error-monitoring';
 import { initPwa } from './utils/pwa';
+import { retireLegacyProviderOAuth } from './utils/provider-oauth-storage';
 import { captureSignupAttribution } from './utils/signup-attribution';
 import { initStatusBar } from './utils/status-bar';
 
@@ -30,6 +31,7 @@ if (isCapacitor()) {
 document.documentElement.lang = getLocale();
 
 migrateLegacyAuthSession();
+retireLegacyProviderOAuth();
 
 // Before a redirect drops the query of the first page
 captureSignupAttribution();

@@ -11,6 +11,10 @@ import {
   removeItem,
   setItem,
 } from './local-storage';
+import {
+  retireLegacyProviderOAuth,
+  retireProviderOAuth,
+} from './provider-oauth-storage';
 
 /**
  * The exact auth session a request or authentication flow belongs to.
@@ -309,12 +313,14 @@ export function installAuthTokens(
   setItem(AUTH_SESSION, owner);
   removeItem(LEGACY_SEED_KEY);
   clearLegacyTokens();
+  retireLegacyProviderOAuth();
   // The pointer no longer names the previous owner. Its record can go, along
   // with its sign-out tombstone; a stale refresh may recreate the record, but
   // the pointer already names this login, so it stays unreachable.
   if (previousOwner && previousOwner !== owner) {
     removeItem(recordKey(previousOwner));
     removeItem(revokedKey(previousOwner));
+    retireProviderOAuth(previousOwner);
   }
   return captureAuthSession();
 }
@@ -398,6 +404,8 @@ export function clearAuthTokens(expected?: AuthSessionSnapshot): boolean {
   const initialRecord = initialOwner ? readAuthRecord(owner) : null;
   setItem(revokedKey(owner), '1');
   clearLegacyTokens();
+  retireLegacyProviderOAuth();
+  retireProviderOAuth(owner);
   if (initialOwner) {
     removeItem(LEGACY_SEED_KEY);
     if (!initialRecord) return false;

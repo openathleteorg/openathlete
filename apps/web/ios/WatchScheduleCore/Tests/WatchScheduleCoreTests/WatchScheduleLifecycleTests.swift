@@ -277,6 +277,127 @@ final class WatchScheduleLifecycleTests: XCTestCase {
 
     // MARK: - Foreground and background refresh
 
+    func testForegroundRefreshWithoutExpiryRetiresTheOldBackgroundCredential() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn(scope: scope)
+        let vault = LifecycleFakeVault(credential: credential())
+        let replacement = WatchScheduleCredential(
+            scope: scope,
+            accessToken: "foreground-only-token",
+            expiresAt: nil
+        )
+        let credentials = WatchScheduleCredentialStore(vault: vault, now: { self.now })
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            optIn: optIn,
+            loader: loader,
+            credentials: credentials
+        )
+
+        let foreground = await lifecycle.refresh(
+            trigger: .manual,
+            scope: scope,
+            credential: replacement
+        )
+        guard case .synced = foreground.outcome else {
+            return XCTFail("Expected the foreground refresh to use its own token")
+        }
+        let foregroundCredential = try await credentials.credential(for: scope)
+        XCTAssertEqual(foregroundCredential, replacement)
+        let immediate = await lifecycle.handleBackgroundRefresh()
+        XCTAssertEqual(immediate.outcome, .deferred(.credentialRequired))
+
+        let (relaunched, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            optIn: optIn,
+            loader: loader
+        )
+        let afterRelaunch = await relaunched.handleBackgroundRefresh()
+        XCTAssertEqual(afterRelaunch.outcome, .deferred(.credentialRequired))
+        let refreshes = await loader.loadCount
+        XCTAssertEqual(refreshes, 1)
+    }
+
+    func testFailedRetirementBlocksBackgroundUntilABoundedReplacementIsSaved() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let vault = LifecycleFakeVault(credential: credential())
+        await vault.failNextPurge()
+        let loader = LifecycleSnapshotLoader { _ in self.snapshot() }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            vault: vault,
+            optIn: LifecycleFakeOptIn(scope: scope),
+            loader: loader
+        )
+        let foreground = await lifecycle.refresh(
+            trigger: .manual,
+            scope: scope,
+            credential: WatchScheduleCredential(
+                scope: scope,
+                accessToken: "foreground-only-token",
+                expiresAt: nil
+            )
+        )
+        guard case .synced = foreground.outcome else {
+            return XCTFail("Expected foreground refresh despite the failed vault deletion")
+        }
+        let blocked = await lifecycle.handleBackgroundRefresh()
+        XCTAssertEqual(blocked.outcome, .deferred(.credentialRequired))
+
+        let bounded = WatchScheduleCredential(
+            scope: scope,
+            accessToken: "new-background-token",
+            expiresAt: readAt.addingTimeInterval(3_600)
+        )
+        let renewed = await lifecycle.refresh(trigger: .manual, scope: scope, credential: bounded)
+        guard case .synced = renewed.outcome else {
+            return XCTFail("Expected a bounded replacement to restore background refresh")
+        }
+        let stored = try await vault.load()
+        XCTAssertEqual(stored, bounded)
+        let resumed = await lifecycle.handleBackgroundRefresh()
+        guard case .synced = resumed.outcome else {
+            return XCTFail("Expected background refresh to use the saved replacement")
+        }
+    }
+
+    func testVaultAccessBlocksReadsAcrossRelaunchAfterDeletionFails() throws {
+        let suite = "watch-vault-access-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let access = WatchScheduleVaultAccess(defaults: defaults)
+        var stored = credential()
+        XCTAssertEqual(access.read { stored }, stored)
+
+        XCTAssertThrowsError(try access.purge {
+            throw LifecycleFakeStoreError.unavailable
+        })
+        let relaunched = WatchScheduleVaultAccess(
+            defaults: try XCTUnwrap(UserDefaults(suiteName: suite))
+        )
+        XCTAssertNil(relaunched.read { stored })
+        XCTAssertThrowsError(try relaunched.replace {
+            throw LifecycleFakeStoreError.unavailable
+        })
+        XCTAssertNil(relaunched.read { stored })
+
+        let bounded = WatchScheduleCredential(
+            scope: scope,
+            accessToken: "new-background-token",
+            expiresAt: readAt.addingTimeInterval(3_600)
+        )
+        relaunched.replace { stored = bounded }
+        XCTAssertEqual(access.read { stored }, bounded)
+    }
+
     func testForegroundRefreshWithoutCredentialDefersWithoutNetwork() async throws {
         let store = LifecycleFakeStore()
         let (journal, _) = temporaryJournal()

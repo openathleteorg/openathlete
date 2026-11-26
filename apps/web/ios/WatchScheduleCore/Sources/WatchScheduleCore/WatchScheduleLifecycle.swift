@@ -34,8 +34,53 @@ public protocol WatchScheduleCredentialProviding: Sendable {
 /// cannot restore the token from a backup.
 public protocol WatchScheduleCredentialVault: Sendable {
     func load() async throws -> WatchScheduleCredential?
+    /// Inspects the stored item for scoped deletion even if reuse is blocked.
+    func loadForRetirement() async throws -> WatchScheduleCredential?
     func save(_ credential: WatchScheduleCredential) async throws
     func purge() async throws
+}
+
+public extension WatchScheduleCredentialVault {
+    func loadForRetirement() async throws -> WatchScheduleCredential? {
+        try await load()
+    }
+}
+
+/// The native vault shares this durable gate between async refreshes and
+/// synchronous background task registration. It stores only the presence of
+/// a revocation marker, never a token or account information.
+public final class WatchScheduleVaultAccess: @unchecked Sendable {
+    private let defaults: UserDefaults
+    private let lock = NSLock()
+    private let blockedKey = "org.openathlete.watch-schedule.background-credential-blocked"
+
+    public init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    public func read(_ load: () throws -> WatchScheduleCredential?) rethrows -> WatchScheduleCredential? {
+        try lock.withLock {
+            guard defaults.object(forKey: blockedKey) == nil else {
+                return nil
+            }
+            return try load()
+        }
+    }
+
+    public func replace(_ save: () throws -> Void) rethrows {
+        try lock.withLock {
+            defaults.set(true, forKey: blockedKey)
+            try save()
+            defaults.removeObject(forKey: blockedKey)
+        }
+    }
+
+    public func purge(_ delete: () throws -> Void) rethrows {
+        try lock.withLock {
+            defaults.set(true, forKey: blockedKey)
+            try delete()
+        }
+    }
 }
 
 /// Remembers that the athlete enabled scheduling for one exact account. It is
@@ -331,8 +376,8 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
     /// Pins the credential a pass was validated with: a background pass must
     /// never silently prefer a newer foreground token of the same scope.
     private var pinned: WatchScheduleCredential?
-    /// Set when a purge failed or the fence retired the session. Stored
-    /// credentials are never reused until a new foreground token is adopted.
+    /// Stored credentials are unavailable while a replacement is pending,
+    /// after revocation, or when the current foreground token has no expiry.
     private var reuseBlocked = false
 
     public init(
@@ -343,27 +388,34 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
         self.now = now
     }
 
-    /// Adopt the app session's token. Only a token with an expiry is persisted:
-    /// background work must never use a credential whose lifetime is unknown.
+    /// A token without an expiry replaces the foreground credential and
+    /// retires the old background token without storing its replacement.
     public func adopt(_ credential: WatchScheduleCredential) async {
         foreground = credential
-        reuseBlocked = false
+        reuseBlocked = true
         guard credential.expiresAt != nil else {
+            try? await vault.purge()
             return
         }
+        // The new token still works in the foreground after a failed vault
+        // write. Only a successful save for the current session reopens reuse.
         do {
             try await vault.save(credential)
         } catch {
-            // The foreground pass can still use the app session's token, but a
-            // stale stored token must not be reused later.
-            reuseBlocked = true
+            return
         }
+        guard foreground == credential else {
+            return
+        }
+        reuseBlocked = false
     }
 
     /// The pass uses this exact credential, even if another token arrives while
     /// the pass is waiting on the network.
     public func beginPass(_ credential: WatchScheduleCredential) {
-        guard !reuseBlocked else {
+        // The adopted foreground token can be pinned while the vault is
+        // blocked. A fence also clears the foreground token.
+        guard !reuseBlocked || foreground == credential else {
             return
         }
         pinned = credential
@@ -405,10 +457,7 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
            !isExpired(foreground) {
             return foreground
         }
-        guard !reuseBlocked else {
-            return nil
-        }
-        guard let stored = try await vault.load(),
+        guard let stored = try await storedCredential(),
               stored.scope == scope,
               !isExpired(stored)
         else {
@@ -423,7 +472,12 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
         guard !reuseBlocked else {
             return nil
         }
-        return try await vault.load()
+        let previousForeground = foreground
+        let stored = try await vault.load()
+        guard !reuseBlocked, foreground == previousForeground else {
+            return nil
+        }
+        return stored
     }
 
     /// Retires the credential belonging to one account only. Another account's
@@ -438,7 +492,7 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
         }
         let stored: WatchScheduleCredential?
         do {
-            stored = try await vault.load()
+            stored = try await vault.loadForRetirement()
         } catch {
             reuseBlocked = true
             throw error
@@ -451,27 +505,16 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
             // current account's credential.
             return true
         }
-        do {
-            try await vault.purge()
-            return true
-        } catch {
-            reuseBlocked = true
-            throw error
-        }
+        reuseBlocked = true
+        try await vault.purge()
+        return true
     }
 
     /// Throws when the Keychain item could not be removed. The caller must not
     /// report a successful logout or retry stored background work in that case.
     public func purge() async throws {
-        pinned = nil
-        foreground = nil
-        reuseBlocked = true
-        do {
-            try await vault.purge()
-            reuseBlocked = false
-        } catch {
-            throw error
-        }
+        blockReuse()
+        try await vault.purge()
     }
 
     private func isExpired(_ credential: WatchScheduleCredential) -> Bool {

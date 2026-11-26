@@ -1,3 +1,4 @@
+import type { AuthSessionSnapshot } from '@/utils/auth-attempt';
 import client, { routes } from '@/utils/axios';
 
 import {
@@ -45,12 +46,15 @@ export class ProviderAPI {
   static async getOAuthUri({
     provider,
     region,
+    authSession,
   }: {
     provider: ConnectorProvider;
     region?: CorosRegion;
+    authSession?: AuthSessionSnapshot;
   }): Promise<GetOAuthUriResponse> {
     const res = await client.get(routes.provider.getOAuthUri(provider), {
       params: { region },
+      authSession,
     });
     return res.data;
   }
@@ -60,18 +64,24 @@ export class ProviderAPI {
     code,
     codeVerifier,
     scope,
+    authSession,
   }: {
     provider: ConnectorProvider;
     code: string;
     codeVerifier?: string;
     /** Scopes the user accepted, from the redirect (Strava) */
     scope?: string;
+    authSession?: AuthSessionSnapshot;
   }): Promise<void> {
-    await client.post(routes.provider.setOAuthToken(provider), {
-      code,
-      ...(codeVerifier && { codeVerifier }),
-      ...(scope && { scope }),
-    });
+    await client.post(
+      routes.provider.setOAuthToken(provider),
+      {
+        code,
+        ...(codeVerifier && { codeVerifier }),
+        ...(scope && { scope }),
+      },
+      { authSession },
+    );
   }
 
   static async disconnect(

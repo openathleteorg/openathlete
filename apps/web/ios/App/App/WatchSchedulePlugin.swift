@@ -24,8 +24,27 @@ struct KeychainWatchScheduleVault: WatchScheduleCredentialVault {
 
     private let service = "org.openathlete.watch-schedule"
     private let account = "current-access-credential"
+    private static let access = WatchScheduleVaultAccess()
 
     func load() async throws -> WatchScheduleCredential? {
+        try loadEligibleCredential()
+    }
+
+    /// The background task scheduler needs the expiry synchronously to decide
+    /// whether an opportunity can still use this token.
+    func loadSync() -> WatchScheduleCredential? {
+        try? loadEligibleCredential()
+    }
+
+    func loadForRetirement() async throws -> WatchScheduleCredential? {
+        try readKeychainItem()
+    }
+
+    private func loadEligibleCredential() throws -> WatchScheduleCredential? {
+        try Self.access.read { try readKeychainItem() }
+    }
+
+    private func readKeychainItem() throws -> WatchScheduleCredential? {
         var query = baseQuery
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -42,21 +61,6 @@ struct KeychainWatchScheduleVault: WatchScheduleCredentialVault {
             throw WatchScheduleVaultError.unreadable(errSecDecode)
         }
         return credential
-    }
-
-    /// The background task scheduler needs the expiry synchronously to decide
-    /// whether an opportunity can still use this token.
-    func loadSync() -> WatchScheduleCredential? {
-        var query = baseQuery
-        query[kSecReturnData as String] = true
-        query[kSecMatchLimit as String] = kSecMatchLimitOne
-        var item: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
-              let data = item as? Data
-        else {
-            return nil
-        }
-        return Self.decode(data)
     }
 
     private static func decode(_ data: Data) -> WatchScheduleCredential? {
@@ -86,24 +90,28 @@ struct KeychainWatchScheduleVault: WatchScheduleCredentialVault {
             accessToken: credential.accessToken,
             expiresAt: credential.expiresAt
         )
-        let data = try JSONEncoder().encode(stored)
-        // Replace atomically: two accounts must never leave two live tokens.
-        SecItemDelete(baseQuery as CFDictionary)
-
-        var attributes = baseQuery
-        attributes[kSecValueData as String] = data
-        // Device protected, not restored to another device from a backup, and
-        // readable for background refresh only after the first unlock.
-        attributes[kSecAttrAccessible as String] =
-            kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        attributes[kSecAttrSynchronizable as String] = false
-        let status = SecItemAdd(attributes as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw WatchScheduleVaultError.unwritable(status)
+        try Self.access.replace {
+            let data = try JSONEncoder().encode(stored)
+            try deleteKeychainItem()
+            var attributes = baseQuery
+            attributes[kSecValueData as String] = data
+            // Device protected, not restored to another device from a backup,
+            // and readable for background refresh only after the first unlock.
+            attributes[kSecAttrAccessible as String] =
+                kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            attributes[kSecAttrSynchronizable as String] = false
+            let status = SecItemAdd(attributes as CFDictionary, nil)
+            guard status == errSecSuccess else {
+                throw WatchScheduleVaultError.unwritable(status)
+            }
         }
     }
 
     func purge() async throws {
+        try Self.access.purge { try deleteKeychainItem() }
+    }
+
+    private func deleteKeychainItem() throws {
         let status = SecItemDelete(baseQuery as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw WatchScheduleVaultError.unwritable(status)
