@@ -13,6 +13,12 @@ const data = vi.hoisted(() => ({
   metrics: { FTP_RUNNING: { value: 310 } } as unknown,
   economy: { value: 80, activities: 7, days: 90 } as unknown,
 }));
+// Rendered without the app's query client: the user reads metric units
+vi.mock('@/hooks/use-units', async () => {
+  const { unitsFor } = await import('@/utils/units');
+  return { useUnits: () => unitsFor('METRIC') };
+});
+
 vi.mock('@/api/record', () => ({
   useGetModeledMetricsQuery: () => ({ data: data.modeled }),
   useGetRunningEconomyQuery: () => ({ data: data.economy }),

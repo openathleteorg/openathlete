@@ -78,7 +78,7 @@ describe('unit conversions', () => {
 
   it('names mph, and splits imperial speeds per mile', () => {
     expect(formatSpeedUnit('mph')).toBe('mph');
-    expect(paceDistanceMeters('mph')).toBe(1609.34);
+    expect(paceDistanceMeters('mph')).toBe(1609.344);
     expect(paceDistanceMeters('km/h')).toBe(1000);
   });
 });
@@ -94,8 +94,10 @@ describe('units of a screen', () => {
     expect(imperial.distanceLabel).toBe('mi');
   });
 
-  it('shows pool distances in yards, in imperial only', () => {
-    expect(imperial.formatSportDist(100, 'min/100m')).toBe('109 yd');
+  it('shows yard pool distances in yards, in imperial only', () => {
+    expect(imperial.formatSportDist(91.44, 'min/100m')).toBe('100 yd');
+    // Swum in a metre pool: metres, beside the /100 m pace
+    expect(imperial.formatSportDist(100, 'min/100m')).toBe('100 m');
     expect(imperial.formatSportDist(1609.34, 'min/km')).toBe('1.00 mi');
     expect(metric.formatSportDist(1000, 'min/100m')).toBe('1.00 km');
   });
@@ -174,7 +176,7 @@ describe('existing formatters', () => {
   it('format screen helpers in imperial when requested', () => {
     const imperial = unitsFor('IMPERIAL');
     expect(formatAxisValue(1609.34, 'distance', imperial)).toBe('1.00 mi');
-    expect(formatMeters(1609.34, imperial)).toBe('1 mi');
+    expect(formatMeters(1609.344, imperial)).toBe('1 mi');
     expect(formatCompactKilometers(1609.34, 'en-US', 'IMPERIAL')).toBe('1');
     expect(
       formatDayTotal(
@@ -197,7 +199,10 @@ describe('existing formatters', () => {
     ).toBe('1 mi');
     expect(
       formatWorkoutDuration(WORKOUT_DURATION_TYPE.DISTANCE, 400, 'IMPERIAL'),
-    ).toBe('437 yd');
+    ).toBe('400 m');
+    expect(
+      formatWorkoutDuration(WORKOUT_DURATION_TYPE.DISTANCE, 91.44, 'IMPERIAL'),
+    ).toBe('100 yd');
     expect(
       formatTarget(
         {
@@ -241,13 +246,14 @@ describe('existing formatters', () => {
       ),
     ).toBe('1 × 109yd');
     expect(formatKm(1609.344, 'IMPERIAL')).toBe('1 mi');
-    expect(formatKm(400, 'IMPERIAL')).toBe('437 yd');
+    // A total converts; a step keeps the unit it was planned in
+    expect(formatKm(400, 'IMPERIAL')).toBe('0.25 mi');
     expect(
       formatStepLength(
         { durationType: WORKOUT_DURATION_TYPE.DISTANCE, durationValue: 400 },
         'IMPERIAL',
       ),
-    ).toBe('437 yd');
+    ).toBe('400 m');
     const imperialRun = parseWorkoutText('- 1mi 7:30/mi', {
       sport: SPORT_TYPE.RUNNING,
     });
@@ -317,7 +323,9 @@ describe('existing formatters', () => {
       ),
     ).toBe('1 mi');
     expect(formatRecordDistance(1609.34, 'IMPERIAL')).toBe('1 mi');
-    expect(formatRecordDistance(400, 'IMPERIAL')).toBe('437 yd');
+    // Race distances keep their names
+    expect(formatRecordDistance(400, 'IMPERIAL')).toBe('400 m');
+    expect(formatRecordDistance(5000, 'IMPERIAL')).toBe('5 km');
     expect(formatSportSpeed(10, SPORT_TYPE.CYCLING, 'IMPERIAL')).toBe(
       '22.4 mph',
     );

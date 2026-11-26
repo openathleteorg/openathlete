@@ -46,7 +46,7 @@ export function recap(
         value: formatNumber(Math.round(units.distanceValue(totals.distance))),
         label:
           units.unitSystem === 'IMPERIAL'
-            ? units.distanceLabel
+            ? m.year_review_recap_miles()
             : m.year_review_recap_kilometers(),
       },
       {

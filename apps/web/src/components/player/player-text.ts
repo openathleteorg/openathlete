@@ -38,12 +38,11 @@ export function workText(
   unitSystem: UnitSystem = 'METRIC',
 ): string {
   const work = moment.work;
-  const load = moment.load
-    ? (() => {
-        const w = toUnitWeight(moment.load, unitSystem);
-        return ` · ${w.value} ${w.unit}`;
-      })()
-    : '';
+  const load = !moment.load
+    ? ''
+    : unitSystem === 'IMPERIAL'
+      ? ` · ${toUnitWeight(moment.load, unitSystem).value} lb`
+      : ` · ${moment.load} kg`;
   if (work.type === 'open') return '';
   switch (work.type) {
     case WORKOUT_DURATION_TYPE.REPS:

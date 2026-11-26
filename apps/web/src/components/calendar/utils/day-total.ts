@@ -1,4 +1,4 @@
-import { UnitSystem } from '@openathlete/shared';
+import { UnitSystem, localDistanceUnit } from '@openathlete/shared';
 
 import {
   PlannedDone,
@@ -28,7 +28,7 @@ export function formatDayTotal(
   const distance = pair(totals.distance, (meters) =>
     formatCompactKilometers(meters, locale, unitSystem),
   );
-  const unit = unitSystem === 'IMPERIAL' ? 'mi' : 'km';
+  const unit = localDistanceUnit(unitSystem);
   return [duration, distance && `${distance} ${unit}`]
     .filter((part): part is string => !!part)
     .join(' · ');

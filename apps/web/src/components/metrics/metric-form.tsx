@@ -48,21 +48,21 @@ export function MetricForm({
 }: MetricFormProps) {
   const units = useUnits();
   const initialType = defaultValues?.type || METRIC_TYPE.WEIGHT;
+  // A converted value shows two decimals; a stored one shows as it is
+  const toDisplay = (type: METRIC_TYPE, value: number) => {
+    const shown = metricToDisplay(type, value, units.unitSystem);
+    return shown === value ? value : Number(shown.toFixed(2));
+  };
+  const initialDisplay =
+    defaultValues?.value !== undefined
+      ? toDisplay(initialType, defaultValues.value)
+      : undefined;
   const methods = useForm<CreateMetricDto>({
     resolver: zodResolver(createMetricDtoSchema),
     defaultValues: {
       type: initialType,
       date: defaultValues?.date ? new Date(defaultValues.date) : new Date(),
-      value:
-        defaultValues?.value !== undefined
-          ? Number(
-              metricToDisplay(
-                initialType,
-                defaultValues.value,
-                units.unitSystem,
-              ).toFixed(2),
-            )
-          : undefined,
+      value: initialDisplay,
       notes: defaultValues?.notes || '',
     },
   });
@@ -81,16 +81,9 @@ export function MetricForm({
     try {
       const calculatedValue = await MetricAPI.calculateMetric(selectedType);
       if (calculatedValue !== null && calculatedValue !== undefined) {
-        setValue(
-          'value',
-          Number(
-            metricToDisplay(
-              selectedType,
-              calculatedValue,
-              units.unitSystem,
-            ).toFixed(2),
-          ),
-        );
+        setValue('value', toDisplay(selectedType, calculatedValue), {
+          shouldDirty: true,
+        });
       }
     } catch (error) {
       console.error('Failed to calculate metric:', error);
@@ -105,15 +98,17 @@ export function MetricForm({
   }, [selectedType]);
 
   const onFormSubmit = handleSubmit(async (data) => {
-    const originalValue = defaultValues?.value;
-    const keepOriginal =
-      !methods.formState.dirtyFields.value &&
-      originalValue !== undefined &&
-      data.type === initialType;
+    // The value shown unchanged saves as stored: 80 kg shown as 176.37 lb
+    // would otherwise come back as 79.99998 kg
+    const original = defaultValues?.value;
+    const unchanged =
+      original !== undefined &&
+      data.type === initialType &&
+      data.value === initialDisplay;
     onSubmit({
       ...data,
-      value: keepOriginal
-        ? originalValue
+      value: unchanged
+        ? original
         : metricFromDisplay(data.type, data.value, units.unitSystem),
     });
   });

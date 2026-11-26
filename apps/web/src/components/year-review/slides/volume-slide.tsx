@@ -49,7 +49,7 @@ export function VolumeSlide({ review }: SlideProps) {
           }
           label={
             units.unitSystem === 'IMPERIAL'
-              ? units.elevationLabel
+              ? m.year_review_elevation_ft()
               : m.year_review_elevation()
           }
         />

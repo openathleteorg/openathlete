@@ -1,4 +1,9 @@
-import { EVENT_TYPE, Event, UnitSystem } from '@openathlete/shared';
+import {
+  EVENT_TYPE,
+  Event,
+  METERS_PER_MILE,
+  UnitSystem,
+} from '@openathlete/shared';
 
 import { getCompliance, isPlannedEvent } from './compliance';
 
@@ -72,7 +77,8 @@ export function formatCompactKilometers(
   locale?: string,
   unitSystem: UnitSystem = 'METRIC',
 ) {
-  const distance = meters / (unitSystem === 'IMPERIAL' ? 1609.34 : 1000);
+  const distance =
+    meters / (unitSystem === 'IMPERIAL' ? METERS_PER_MILE : 1000);
   return new Intl.NumberFormat(locale, {
     maximumFractionDigits: distance >= 10 ? 0 : 1,
   }).format(distance);

@@ -59,7 +59,7 @@ export function formatMeters(
   meters: number,
   units: Units = unitsFor('METRIC'),
 ): string {
-  const label = units.unitSystem === 'IMPERIAL' ? 'mi' : 'km';
+  const label = units.distanceUnit;
   if (!meters) return `0 ${label}`;
   const dist = units.distanceValue(meters);
   return dist % 1 === 0 ? `${dist} ${label}` : `${dist.toFixed(1)} ${label}`;

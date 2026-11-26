@@ -48,11 +48,14 @@ export function DurationDisplay({
   );
 
   if (estimatedDistance !== null && estimatedDistance > 0) {
-    const formattedDistance = formatDuration(
-      WORKOUT_DURATION_TYPE.DISTANCE,
-      Math.round(estimatedDistance),
-      units.unitSystem,
-    );
+    // An estimate, not a planned length: converted like any distance read
+    const formattedDistance =
+      units.unitSystem === 'IMPERIAL'
+        ? `${units.formatDist(estimatedDistance)} ${units.distanceLabel}`
+        : formatDuration(
+            WORKOUT_DURATION_TYPE.DISTANCE,
+            Math.round(estimatedDistance),
+          );
     return (
       <span className={className}>
         {formatted} (~{formattedDistance})

@@ -3,11 +3,48 @@ import { METRIC_TYPE } from '../types/misc/core/metric-type.enum';
 import type { DistanceUnit, SpeedUnit } from '../types/misc/core/metrics';
 import { metricUnitMap } from './metric-unit.map';
 
-export const KM_TO_MI = 0.621371;
-export const M_TO_FT = 3.28084;
-export const KG_TO_LB = 2.20462;
-export const CM_TO_IN = 0.393701;
-export const M_TO_YD = 1.09361;
+// Exact by definition (international yard and pound, 1959): every factor
+// below derives from these, so a value converted back lands where it started
+export const METERS_PER_MILE = 1609.344;
+export const METERS_PER_YARD = 0.9144;
+export const METERS_PER_FOOT = 0.3048;
+export const KG_PER_LB = 0.45359237;
+export const MM_PER_INCH = 25.4;
+
+export const KM_TO_MI = 1000 / METERS_PER_MILE;
+export const M_TO_FT = 1 / METERS_PER_FOOT;
+export const KG_TO_LB = 1 / KG_PER_LB;
+export const CM_TO_IN = 1 / 2.54;
+export const M_TO_YD = 1 / METERS_PER_YARD;
+/** m/s to miles per hour */
+export const MS_TO_MPH = 3600 / METERS_PER_MILE;
+
+/** Within a centimetre: the precision distances are stored with */
+const SAME_DISTANCE = 0.01;
+
+/**
+ * A planned distance in the imperial unit it is a round number of: miles to
+ * two decimals, or whole yards. Null when it is round in neither, as 400 m
+ * on the track or 1 km reps written in metres: those stay metric, so what
+ * the coach wrote reads, and saves, unchanged. In the pool, yards only.
+ */
+export function roundImperialDistance(
+  meters: number,
+  pool = false,
+): { value: number; unit: 'mi' | 'yd' } | null {
+  if (!(meters > 0)) return null;
+  const miles = Math.round((meters / METERS_PER_MILE) * 100) / 100;
+  const yards = Math.round(meters / METERS_PER_YARD);
+  const inMiles =
+    miles > 0 && Math.abs(miles * METERS_PER_MILE - meters) < SAME_DISTANCE;
+  const inYards =
+    yards > 0 && Math.abs(yards * METERS_PER_YARD - meters) < SAME_DISTANCE;
+  // 440 yd is a quarter mile: miles from there, yards for strides
+  if (!pool && inMiles && (miles >= 0.25 || !inYards))
+    return { value: miles, unit: 'mi' };
+  if (inYards) return { value: yards, unit: 'yd' };
+  return null;
+}
 
 /** The unit long distances are shown in */
 export function localDistanceUnit(unitSystem: UnitSystem): DistanceUnit {

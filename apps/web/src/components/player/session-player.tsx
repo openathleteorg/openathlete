@@ -41,6 +41,7 @@ import type {
   WorkMoment,
 } from '@openathlete/shared';
 import {
+  KG_TO_LB,
   WORKOUT_DURATION_TYPE,
   nextWork,
   sessionTimeline,
@@ -272,6 +273,7 @@ function WorkView({
   paused: boolean;
 }) {
   const units = useUnits();
+  const imperial = units.unitSystem === 'IMPERIAL';
   const [howTo, setHowTo] = useState(false);
   const timed = moment.work.type === WORKOUT_DURATION_TYPE.TIME;
   const isReps = moment.work.type === WORKOUT_DURATION_TYPE.REPS;
@@ -365,11 +367,14 @@ function WorkView({
             {load !== null && (
               <Adjuster
                 label={m.strength_load()}
-                value={units.weight(load)}
-                step={units.unitSystem === 'IMPERIAL' ? 5 : 2.5}
+                // Whole pounds, so 5 lb steps land on plates: 60 kg reads 132
+                value={imperial ? Math.round(load * KG_TO_LB) : load}
+                step={imperial ? 5 : 2.5}
                 unit={units.weightLabel}
-                onChange={(display) =>
-                  onLoad(Number((display / units.weightFactor).toFixed(2)))
+                onChange={(shown) =>
+                  onLoad(
+                    imperial ? Number((shown / KG_TO_LB).toFixed(2)) : shown,
+                  )
                 }
               />
             )}
@@ -821,7 +826,9 @@ export function SessionPlayer({
             [String(totals.sets), m.player_total_sets()],
             [
               totals.volume
-                ? `${Math.round(totals.volume * units.weightFactor)} ${units.weightLabel}`
+                ? units.unitSystem === 'IMPERIAL'
+                  ? `${Math.round(totals.volume * KG_TO_LB)} ${units.weightLabel}`
+                  : `${totals.volume} kg`
                 : String(totals.reps),
               totals.volume ? m.player_total_volume() : m.player_total_reps(),
             ],

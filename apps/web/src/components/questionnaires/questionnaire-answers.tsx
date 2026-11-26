@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 
@@ -19,6 +20,7 @@ export function QuestionnaireAnswers({
   score,
   className,
 }: P) {
+  const { unitSystem } = useUnits();
   return (
     <dl className={cn('divide-y rounded-lg border', className)}>
       {score !== null && score !== undefined && (
@@ -50,7 +52,7 @@ export function QuestionnaireAnswers({
                 !answer && 'text-muted-foreground',
               )}
             >
-              {formatAnswer(question, answer)}
+              {formatAnswer(question, answer, unitSystem)}
             </dd>
           </div>
         );

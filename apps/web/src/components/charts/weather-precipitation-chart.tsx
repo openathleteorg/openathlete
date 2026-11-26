@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import type { GetEventWeatherResponseDto } from '@openathlete/shared';
+import { MM_PER_INCH } from '@openathlete/shared';
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 
@@ -58,7 +59,7 @@ export function WeatherPrecipitationChart({ samples }: P) {
                 formatter={(value) => (
                   <span className="text-foreground tabular-nums">
                     {units.unitSystem === 'IMPERIAL'
-                      ? `${(Number(value) / 25.4).toFixed(2)} in`
+                      ? `${(Number(value) / MM_PER_INCH).toFixed(2)} in`
                       : `${Number(value).toFixed(1)} mm`}
                   </span>
                 )}

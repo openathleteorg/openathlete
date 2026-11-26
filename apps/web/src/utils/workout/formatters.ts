@@ -1,11 +1,11 @@
 import { m } from '@/paraglide/messages';
 
 import {
-  M_TO_YD,
   UnitSystem,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
+  roundImperialDistance,
 } from '@openathlete/shared';
 
 /**
@@ -51,14 +51,10 @@ export function formatDuration(
     }
 
     case 'DISTANCE': {
-      if (unitSystem === 'IMPERIAL') {
-        const miles = durationValue / 1609.34;
-        if (miles >= 0.5) {
-          const rounded = Number(miles.toFixed(1));
-          return `${rounded} mi`;
-        }
-        return `${Math.round(durationValue * M_TO_YD)} yd`;
-      }
+      // A step keeps the unit it was planned in: 400 m stays 400 m
+      const imperial =
+        unitSystem === 'IMPERIAL' ? roundImperialDistance(durationValue) : null;
+      if (imperial) return `${imperial.value} ${imperial.unit}`;
       if (durationValue >= 1000) {
         const km = durationValue / 1000;
         return km % 1 === 0 ? `${km} km` : `${km.toFixed(1)} km`;

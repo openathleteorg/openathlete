@@ -14,7 +14,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import {
@@ -84,10 +83,11 @@ function lengthPresets(env: BuilderEnv): string[] {
     '1h',
   ];
   const distance =
+    // Tracks are metric everywhere: imperial runners still run 400 m reps
     env.unitSystem === 'IMPERIAL'
       ? env.sport === 'SWIMMING'
-        ? ['25yd', '50yd', '100yd', '200yd', '400yd']
-        : ['200yd', '400yd', '800yd', '1mi', '2mi', '5mi']
+        ? ['25yd', '50yd', '100yd', '200yd', '500yd']
+        : ['200m', '400m', '800m', '1mi', '2mi', '5mi']
       : env.sport === 'SWIMMING'
         ? ['25m', '50m', '100m', '200m', '400m']
         : ['200m', '400m', '1km', '2km', '5km'];
@@ -183,7 +183,9 @@ function LengthEditor({
             ? parsed
               ? `→ ${formatStepLength(parsed, env.unitSystem) ?? ''}`
               : m.builder_not_understood()
-            : m.builder_length_hint()}
+            : m.builder_length_hint({
+                distance: env.unitSystem === 'IMPERIAL' ? '1mi' : '2km',
+              })}
         </p>
         <div className="mt-2 flex flex-wrap gap-1">
           {lengthPresets(env).map((preset) => (
@@ -215,7 +217,6 @@ function TargetEditor({
   labels: TargetLabel[];
   onChange: (targets: CreateWorkoutStepTarget[]) => void;
 }) {
-  const units = useUnits();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const parsed = text.trim() ? parseTargets(text, env) : null;
@@ -300,7 +301,7 @@ function TargetEditor({
                       env.sport,
                       env.zonesByType,
                       env.metrics,
-                      units.unitSystem,
+                      env.unitSystem,
                     ),
                   )
                   .filter(Boolean)
@@ -311,7 +312,9 @@ function TargetEditor({
                   )
                   .join(' + ') || m.builder_target_none()
               : m.builder_not_understood()
-            : m.builder_target_hint()}
+            : m.builder_target_hint({
+                pace: env.unitSystem === 'IMPERIAL' ? '7:15/mi' : '4:30/km',
+              })}
         </p>
         {(step.targets?.length ?? 0) > 0 && (
           <Button
@@ -424,7 +427,6 @@ export function StepRow({
   expanded,
   onExpandedChange,
 }: StepRowProps) {
-  const units = useUnits();
   const labels = (step.targets ?? [])
     .map((target) =>
       describeTarget(
@@ -432,7 +434,7 @@ export function StepRow({
         env.sport,
         env.zonesByType,
         env.metrics,
-        units.unitSystem,
+        env.unitSystem,
       ),
     )
     .filter((label): label is TargetLabel => label !== null);

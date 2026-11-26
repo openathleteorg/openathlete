@@ -201,10 +201,13 @@ export function TargetForm({
 
   const isInitialWeight =
     initialValues?.targetType === WORKOUT_TARGET_TYPE.WEIGHT;
+  // Pounds to a decimal; kilograms as stored
   const toDisplayWeight = (value: number | null | undefined): number | null =>
     value === null || value === undefined
       ? null
-      : Number((value * units.weightFactor).toFixed(1));
+      : units.weightFactor === 1
+        ? value
+        : Number((value * units.weightFactor).toFixed(1));
 
   const form = useForm<TargetFormValues>({
     resolver: zodResolver(targetFormSchema),
@@ -273,30 +276,27 @@ export function TargetForm({
         values.metricType,
       );
     } else if (values.targetType === WORKOUT_TARGET_TYPE.WEIGHT) {
-      const dirty = form.formState.dirtyFields;
+      // A load shown unchanged saves as stored: 60 kg is 132.3 lb, which
+      // would come back as 60.01 kg
       const fromDisplayWeight = (
-        v: number | null | undefined,
-        isDirty: boolean | undefined,
+        shown: number | null | undefined,
         original: number | null | undefined,
       ) => {
-        if (!isDirty && isInitialWeight && original !== undefined) {
+        if (shown === null || shown === undefined) return null;
+        if (
+          isInitialWeight &&
+          original !== null &&
+          original !== undefined &&
+          shown === toDisplayWeight(original)
+        ) {
           return original;
         }
-        return v === null || v === undefined ? null : v / units.weightFactor;
+        return shown / units.weightFactor;
       };
-      finalMin = fromDisplayWeight(
-        values.targetMin,
-        dirty.targetMin,
-        initialValues?.targetMin,
-      );
-      finalMax = fromDisplayWeight(
-        values.targetMax,
-        dirty.targetMax,
-        initialValues?.targetMax,
-      );
+      finalMin = fromDisplayWeight(values.targetMin, initialValues?.targetMin);
+      finalMax = fromDisplayWeight(values.targetMax, initialValues?.targetMax);
       finalValue = fromDisplayWeight(
         values.targetValue,
-        dirty.targetValue,
         initialValues?.targetValue,
       );
     }

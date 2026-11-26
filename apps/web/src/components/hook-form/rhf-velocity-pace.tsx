@@ -9,6 +9,8 @@ import {
   useFormContext,
 } from 'react-hook-form';
 
+import { METERS_PER_MILE, MS_TO_MPH } from '@openathlete/shared';
+
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import {
@@ -30,9 +32,6 @@ type Props = Omit<ComponentProps<'input'>, 'onChange'> & {
   /** Unit selected when the field first renders (defaults to km/h or mph) */
   defaultUnit?: VelocityUnit;
 };
-
-const METERS_PER_MILE = 1609.34;
-const MS_TO_MPH = 2.23694;
 
 // Convert m/s to km/h or mph
 const msToKmh = (ms: number): number => ms * 3.6;

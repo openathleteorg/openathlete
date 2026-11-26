@@ -1,6 +1,10 @@
 import { m } from '@/paraglide/messages';
 
-import { UnitSystem, YearReviewRecordDto } from '@openathlete/shared';
+import {
+  UnitSystem,
+  YearReviewRecordDto,
+  roundImperialDistance,
+} from '@openathlete/shared';
 
 import { formatClock, formatNumber } from './format';
 
@@ -24,10 +28,14 @@ export function recordLabel(
   }
   if (meters === 21097.5) return m.year_review_record_half();
   if (meters === 42195) return m.year_review_record_marathon();
-  if (unitSystem === 'IMPERIAL') {
-    const miles = meters / 1609.34;
-    return `${formatNumber(miles, Number.isInteger(Number(miles.toFixed(1))) ? 0 : 1)} mi`;
-  }
+  // Race distances keep their names: a 10 km is no 6.2 mi
+  const imperial =
+    unitSystem === 'IMPERIAL' ? roundImperialDistance(meters) : null;
+  if (imperial)
+    return `${formatNumber(
+      imperial.value,
+      Number.isInteger(imperial.value) ? 0 : 2,
+    )} ${imperial.unit}`;
   return `${formatNumber(meters / 1000, meters % 1000 ? 1 : 0)} km`;
 }
 

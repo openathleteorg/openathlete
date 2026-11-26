@@ -2,6 +2,7 @@ import type { CreateWorkoutStepTarget, UnitSystem } from '@openathlete/shared';
 import {
   KG_TO_LB,
   KM_TO_MI,
+  MS_TO_MPH,
   SPORT_TYPE,
   TRAINING_ZONE_TYPE,
   WORKOUT_TARGET_TYPE,
@@ -48,7 +49,7 @@ export function formatSportSpeed(
     unitSystem,
   );
   if (unit === 'km/h') return `${(speed * 3.6).toFixed(1)} km/h`;
-  if (unit === 'mph') return `${(speed * 2.23694).toFixed(1)} mph`;
+  if (unit === 'mph') return `${(speed * MS_TO_MPH).toFixed(1)} mph`;
   const per =
     unit === 'min/100m'
       ? '/100m'
@@ -156,7 +157,7 @@ function speedRange(
   if (unit === 'km/h')
     return `${(low * 3.6).toFixed(1)}–${(high * 3.6).toFixed(1)} km/h`;
   if (unit === 'mph')
-    return `${(low * 2.23694).toFixed(1)}–${(high * 2.23694).toFixed(1)} mph`;
+    return `${(low * MS_TO_MPH).toFixed(1)}–${(high * MS_TO_MPH).toFixed(1)} mph`;
   // Faster first: 3:50–4:00/km
   const faster = formatSportSpeed(Math.max(low, high), sport, unitSystem);
   const slower = formatSportSpeed(Math.min(low, high), sport, unitSystem);

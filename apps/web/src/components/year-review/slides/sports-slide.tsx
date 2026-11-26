@@ -64,7 +64,8 @@ export function SportsSlide({ review }: SlideProps) {
               </span>
               <span className="yr-sport-meta">
                 {[
-                  sport.distance >= 1000 &&
+                  // At least one whole kilometre or mile to show
+                  units.distanceValue(sport.distance) >= 1 &&
                     `${formatNumber(Math.round(units.distanceValue(sport.distance)))} ${units.distanceLabel}`,
                   sport.count === 1
                     ? m.year_review_one_session()

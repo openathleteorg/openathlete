@@ -13,6 +13,7 @@ import {
   formatSpeedUnit,
   isPaceUnit,
   localSpeedUnit,
+  roundImperialDistance,
 } from '@openathlete/shared';
 
 export type ChartRecord = Pick<
@@ -88,16 +89,17 @@ export function recordPosition(record: ChartRecord): number | null {
   return record.distance ?? record.duration;
 }
 
-/** "400 m", "1.5 km", "21.1 km" (or yards / miles in imperial) */
+/**
+ * "400 m", "1.5 km", "21.1 km". Record distances are race distances, named
+ * the same in imperial units (a 5 km is no 3.1 mi), unless round in miles.
+ */
 export function formatRecordDistance(
   metres: number,
   unitSystem: UnitSystem = 'METRIC',
 ): string {
-  if (unitSystem === 'IMPERIAL') {
-    const miles = metres / 1609.34;
-    if (miles < 0.5) return `${Math.round(metres * 1.09361)} yd`;
-    return `${Number(miles.toFixed(1))} mi`;
-  }
+  const imperial =
+    unitSystem === 'IMPERIAL' ? roundImperialDistance(metres) : null;
+  if (imperial) return `${imperial.value} ${imperial.unit}`;
   if (metres < 1000) return `${Math.round(metres)} m`;
   const km = metres / 1000;
   return `${Number.isInteger(km) ? km : km.toFixed(1)} km`;

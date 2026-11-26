@@ -1,8 +1,9 @@
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 
 import {
   type AnswerError,
@@ -14,7 +15,7 @@ import {
   scalePoints,
 } from '@openathlete/shared';
 
-import { answerErrorMessage } from './answer-format';
+import { answerErrorMessage, numberAnswerUnit } from './answer-format';
 
 /** Past this many points a scale is a slider: buttons would wrap */
 const MAX_SCALE_BUTTONS = 11;
@@ -50,6 +51,57 @@ function ChoiceButton({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * A number, in the athlete's units when it fills a metric: a weight is
+ * typed in pounds and stored in kilograms. What is typed stays as typed
+ * until the field is left, so "176." keeps its point.
+ */
+function NumberAnswer({
+  id,
+  question,
+  value,
+  onChange,
+}: {
+  id: string;
+  question: Extract<Question, { type: QUESTION_TYPE.NUMBER }>;
+  value: number | null;
+  onChange: (value: number | null) => void;
+}) {
+  const { unitSystem } = useUnits();
+  const { unit, toDisplay, fromDisplay } = numberAnswerUnit(
+    question,
+    unitSystem,
+  );
+  const { min, max, decimals } = question.config;
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = (stored: number) =>
+    String(Number(toDisplay(stored).toFixed(Math.max(decimals, 1))));
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        id={id}
+        type="number"
+        inputMode={decimals > 0 ? 'decimal' : 'numeric'}
+        className="max-w-40"
+        min={min === null || min === undefined ? undefined : shown(min)}
+        max={max === null || max === undefined ? undefined : shown(max)}
+        step={decimals > 0 ? 1 / 10 ** decimals : 1}
+        value={draft ?? (value === null ? '' : shown(value))}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          onChange(
+            event.target.value === ''
+              ? null
+              : fromDisplay(Number(event.target.value)),
+          );
+        }}
+        onBlur={() => setDraft(null)}
+      />
+      {unit && <span className="text-sm text-muted-foreground">{unit}</span>}
+    </div>
   );
 }
 
@@ -211,32 +263,15 @@ function Control({
         </div>
       );
     }
-    case QUESTION_TYPE.NUMBER: {
-      const { unit, min, max, decimals } = question.config;
+    case QUESTION_TYPE.NUMBER:
       return (
-        <div className="flex items-center gap-2">
-          <Input
-            id={id}
-            type="number"
-            inputMode={decimals > 0 ? 'decimal' : 'numeric'}
-            className="max-w-40"
-            min={min ?? undefined}
-            max={max ?? undefined}
-            step={decimals > 0 ? 1 / 10 ** decimals : 1}
-            value={value.valueNumber ?? ''}
-            onChange={(event) =>
-              set({
-                valueNumber:
-                  event.target.value === '' ? null : Number(event.target.value),
-              })
-            }
-          />
-          {unit && (
-            <span className="text-sm text-muted-foreground">{unit}</span>
-          )}
-        </div>
+        <NumberAnswer
+          id={id}
+          question={question}
+          value={value.valueNumber ?? null}
+          onChange={(valueNumber) => set({ valueNumber })}
+        />
       );
-    }
     case QUESTION_TYPE.YES_NO:
       return (
         <div role="radiogroup" className="grid max-w-xs grid-cols-2 gap-2">

@@ -1,4 +1,5 @@
 import {
+  METERS_PER_MILE,
   M_TO_FT,
   SPORT_TYPE,
   StatisticsVolumeDto,
@@ -24,7 +25,7 @@ const scaleFor = (metric: VolumeMetric, unitSystem: UnitSystem): number => {
     case 'movingTime':
       return 1 / 3600;
     case 'distance':
-      return unitSystem === 'IMPERIAL' ? 1 / 1609.34 : 1 / 1000;
+      return unitSystem === 'IMPERIAL' ? 1 / METERS_PER_MILE : 1 / 1000;
     case 'elevationGain':
       return unitSystem === 'IMPERIAL' ? M_TO_FT : 1;
     case 'count':

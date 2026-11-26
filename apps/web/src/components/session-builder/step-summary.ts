@@ -1,8 +1,9 @@
 import type { CreateWorkoutStepDto, UnitSystem } from '@openathlete/shared';
 import {
-  M_TO_YD,
+  METERS_PER_MILE,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
+  roundImperialDistance,
 } from '@openathlete/shared';
 
 /** 0:45, 12:30, 1:05:00 — a running clock */
@@ -24,13 +25,13 @@ export function formatTotal(seconds: number): string {
   return rest ? `${h} h ${String(rest).padStart(2, '0')}` : `${h} h`;
 }
 
+/** A total distance: 850 m, 12.4 km, or 0.53 mi, 7.7 mi */
 export function formatKm(
   meters: number,
   unitSystem: UnitSystem = 'METRIC',
 ): string {
   if (unitSystem === 'IMPERIAL') {
-    if (meters < 1609.34) return `${Math.round(meters * M_TO_YD)} yd`;
-    const mi = meters / 1609.344;
+    const mi = meters / METERS_PER_MILE;
     return `${Number(mi.toFixed(mi >= 10 ? 1 : 2))} mi`;
   }
   if (meters < 1000) return `${Math.round(meters)} m`;
@@ -54,8 +55,13 @@ export function formatStepLength(
       if (min === 0) return `${s}"`;
       return s ? `${min}'${String(s).padStart(2, '0')}` : `${min}'`;
     }
-    case WORKOUT_DURATION_TYPE.DISTANCE:
-      return formatKm(value, unitSystem);
+    case WORKOUT_DURATION_TYPE.DISTANCE: {
+      // In the unit it was planned in, as the text writes it: 400 m, 1 mi
+      const imperial =
+        unitSystem === 'IMPERIAL' ? roundImperialDistance(value) : null;
+      if (imperial) return `${imperial.value} ${imperial.unit}`;
+      return value >= 1000 ? formatKm(value) : `${Math.round(value)} m`;
+    }
     case WORKOUT_DURATION_TYPE.REPS:
       return `×${Math.round(value)}`;
     case WORKOUT_DURATION_TYPE.CALORIES:

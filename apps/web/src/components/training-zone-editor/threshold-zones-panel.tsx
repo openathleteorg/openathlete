@@ -193,20 +193,22 @@ export function ThresholdZonesPanel({
     }),
   );
 
+  const shownValue = (source: Source) =>
+    isPace ? formatPace(source.value * units.paceFactor) : String(source.value);
+  const picked = sources.find((source) => source.id === sourceId);
   const parsedThreshold = isPace ? parsePace(input) : Number(input);
+  // A picked source untouched gives its own value, not the rounded one shown
   const threshold =
-    parsedThreshold !== null && isPace
-      ? parsedThreshold / units.paceFactor
-      : parsedThreshold;
+    picked && input === shownValue(picked)
+      ? picked.value
+      : parsedThreshold !== null && isPace
+        ? parsedThreshold / units.paceFactor
+        : parsedThreshold;
   const valid = threshold !== null && threshold > 0;
 
   const pick = (source: Source) => {
     setSourceId(source.id);
-    setInput(
-      isPace
-        ? formatPace(source.value * units.paceFactor)
-        : String(source.value),
-    );
+    setInput(shownValue(source));
   };
 
   const choose = (id: string) => {

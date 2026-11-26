@@ -36,7 +36,7 @@ function speed(
     const unit = units.speedUnit('min/km');
     return [
       formatSpeed(mps, unit),
-      unit === 'min/mi' ? formatSpeedUnit(unit) : m.year_review_pace_km(),
+      unit === 'min/mi' ? m.year_review_pace_mi() : m.year_review_pace_km(),
     ];
   }
   const unit = units.speedUnit('km/h');
@@ -71,7 +71,7 @@ export function HighlightSlide({ review }: SlideProps) {
       : [
           formatNumber(units.elevation(highlight.elevationGain)),
           units.unitSystem === 'IMPERIAL'
-            ? units.elevationLabel
+            ? m.year_review_elevation_ft()
             : m.year_review_elevation(),
         ],
   ];

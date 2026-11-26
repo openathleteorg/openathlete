@@ -9,7 +9,11 @@ import {
   useFormContext,
 } from 'react-hook-form';
 
-import { DistanceUnit } from '@openathlete/shared';
+import {
+  DistanceUnit,
+  METERS_PER_MILE,
+  METERS_PER_YARD,
+} from '@openathlete/shared';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -30,8 +34,8 @@ type Props = ComponentProps<'input'> & {
 const UNIT_CONVERSION = {
   m: 1,
   km: 1000,
-  mi: 1609.34,
-  yd: 0.9144,
+  mi: METERS_PER_MILE,
+  yd: METERS_PER_YARD,
 };
 
 /**

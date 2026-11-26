@@ -103,11 +103,11 @@ describe('parseQuickExercise', () => {
     expect(parseQuickExercise('squat 4x8 @135', 'IMPERIAL')).toMatchObject({
       query: 'squat',
       sets: 4,
-      load: 61.24,
+      load: 61.23,
     });
     expect(parseQuickExercise('squat 4x8 @135lb', 'METRIC')).toMatchObject({
       query: 'squat',
-      load: 61.24,
+      load: 61.23,
     });
     expect(parseQuickExercise('squat 4x8 @60kg', 'IMPERIAL')).toMatchObject({
       query: 'squat',
