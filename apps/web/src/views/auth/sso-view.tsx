@@ -4,6 +4,7 @@ import { Loader } from '@/components/ui/loader';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
+import { takeOidcLoginAttempt } from '@/utils/oidc-login-attempt';
 import { takeReturnTo } from '@/utils/return-to';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -25,13 +26,21 @@ export function SsoView() {
   const nav = useNavigate();
   const { initialize } = useAuthContext();
   const started = useRef(false);
+  const committed = useRef(false);
   const [error, setError] = useState<OidcError | null>(null);
   const exchange = useExchangeOidcCodeMutation({
-    onSuccess: async () => {
-      await initialize();
+    onSuccess: async (_, __, isCurrent) => {
+      committed.current = true;
+      await initialize({ authenticated: true });
+      if (!isCurrent()) {
+        setError('failed');
+        return;
+      }
       nav(takeReturnTo(getPath(['dashboard'])), { replace: true });
     },
-    onError: () => setError('failed'),
+    onSettled: () => {
+      if (!committed.current) setError('failed');
+    },
   });
 
   useEffect(() => {
@@ -42,8 +51,9 @@ export function SsoView() {
     window.history.replaceState(null, '', window.location.pathname);
     const code = params.get('code');
     const failure = params.get('error');
-    if (code) {
-      exchange.mutate({ code });
+    const attempt = takeOidcLoginAttempt(params.get('attempt'));
+    if (code && attempt) {
+      exchange.mutate({ code }, attempt);
     } else {
       setError(
         OIDC_ERRORS.includes(failure as OidcError)

@@ -1,23 +1,23 @@
 import { Browser } from '@capacitor/browser';
 
 import { isCapacitor } from './capacitor';
-import { withNativeOAuthState } from './native-oauth';
+import { withNativeOAuthState, withOAuthState } from './native-oauth';
 
 /**
  * Open a provider's consent page: in the in-app browser in the native apps,
  * from which the web callback page sends the code back to the app (see
  * native-oauth.ts), in the same tab on the web.
  */
-export async function openOAuthUrl(url: string): Promise<void> {
+export async function openOAuthUrl(url: string, nonce?: string): Promise<void> {
   if (isCapacitor()) {
     await Browser.open({
-      url: withNativeOAuthState(url),
+      url: withNativeOAuthState(url, nonce),
       windowName: '_self',
       presentationStyle: 'popover',
     });
   } else {
     // Use window.open for web
-    window.open(url, '_self')?.focus();
+    window.open(nonce ? withOAuthState(url, nonce) : url, '_self')?.focus();
   }
 }
 

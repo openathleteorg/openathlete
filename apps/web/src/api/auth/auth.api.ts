@@ -1,3 +1,4 @@
+import type { AuthSessionSnapshot } from '@/utils/auth-attempt';
 import client, { routes } from '@/utils/axios';
 import { getApiBaseUrl } from '@/utils/capacitor';
 
@@ -11,27 +12,45 @@ import {
 } from '@openathlete/shared';
 
 export class AuthAPI {
-  static async login(body: LoginDto): Promise<AuthResponseDto> {
-    const res = await client.post(routes.auth.login, body);
+  static async login(
+    body: LoginDto,
+    session?: AuthSessionSnapshot,
+  ): Promise<AuthResponseDto> {
+    const res = await client.post(
+      routes.auth.login,
+      body,
+      session ? { authSession: session } : undefined,
+    );
     return res.data;
   }
 
   static async loginWithFirebase(
     body: FirebaseLoginDto,
+    session?: AuthSessionSnapshot,
   ): Promise<AuthResponseDto> {
-    const res = await client.post(routes.auth.firebaseLogin, body);
+    const res = await client.post(
+      routes.auth.firebaseLogin,
+      body,
+      session ? { authSession: session } : undefined,
+    );
     return res.data;
   }
 
   static async exchangeOidcCode(
     body: OidcExchangeDto,
+    session?: AuthSessionSnapshot,
   ): Promise<AuthResponseDto> {
-    const res = await client.post(routes.auth.oidcExchange, body);
+    const res = await client.post(
+      routes.auth.oidcExchange,
+      body,
+      session ? { authSession: session } : undefined,
+    );
     return res.data;
   }
 
   /** Where the browser goes to sign in with the instance's provider */
   static oidcSignInUrl(params: {
+    attempt?: string;
     invitation?: string;
     coachInvitation?: string;
     clubJoin?: string;

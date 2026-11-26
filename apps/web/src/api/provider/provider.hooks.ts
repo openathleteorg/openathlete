@@ -1,3 +1,4 @@
+import { isAuthSessionCurrent } from '@/utils/auth-attempt';
 import {
   MutationOptions,
   QueryOptions,
@@ -16,14 +17,22 @@ import {
 import { ConnectedProvider, ProviderAPI } from './provider.api';
 import { providerKeys } from './provider.keys';
 
+type GetOAuthUriVariables = Parameters<typeof ProviderAPI.getOAuthUri>[0] & {
+  nonce?: string;
+};
+
 export const useGetOAuthUriMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof ProviderAPI.getOAuthUri>>,
     Error,
-    Parameters<typeof ProviderAPI.getOAuthUri>[0]
+    GetOAuthUriVariables
   >,
 ) => {
-  return useMutation({
+  return useMutation<
+    Awaited<ReturnType<typeof ProviderAPI.getOAuthUri>>,
+    Error,
+    GetOAuthUriVariables
+  >({
     ...opt,
     mutationFn: ProviderAPI.getOAuthUri,
   });
@@ -41,6 +50,8 @@ export const useSetOAuthTokenMutation = (
     ...opt,
     mutationFn: ProviderAPI.setOAuthToken,
     onSuccess: (data, variables, onMutateResult, context) => {
+      if (variables.authSession && !isAuthSessionCurrent(variables.authSession))
+        return;
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({ queryKey: [providerKeys.getConnected] });

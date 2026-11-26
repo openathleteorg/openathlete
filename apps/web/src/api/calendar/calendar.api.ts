@@ -1,9 +1,10 @@
 import { socketUrl } from '@/config';
 import { getAccessToken } from '@/utils/auth';
-import { ACCESS_TOKEN, setItem } from '@/utils/local-storage';
+import { captureAuthSession } from '@/utils/auth-attempt';
 import {
   type SocketAuthentication,
   keepSocketAuthenticated,
+  socketSessionKey,
 } from '@/utils/socket-auth';
 import { Socket, io } from 'socket.io-client';
 
@@ -54,11 +55,21 @@ export type CalendarWebSocketEvent =
 export class CalendarAPI {
   private static socket: Socket | null = null;
   private static socketAuth: SocketAuthentication | null = null;
+  private static socketErrorHandler: ((error: unknown) => void) | null = null;
   private static connectingPromise: Promise<void> | null = null;
+  private static connectingSocket: Socket | null = null;
+  private static connectingAttempt: object | null = null;
+  private static socketSessionKey: string | null = null;
 
   static getSocket(): Socket {
+    const session = captureAuthSession();
+    const sessionKey = socketSessionKey(session);
+    if (this.socket && this.socketSessionKey !== sessionKey) {
+      // Never reuse account A's handshake for account B or another instance.
+      this.disconnectSocket();
+    }
     if (!this.socket) {
-      this.socket = io(socketUrl('calendar'), {
+      const socket = io(socketUrl('calendar'), {
         transports: ['polling', 'websocket'],
         withCredentials: true,
         autoConnect: false,
@@ -72,10 +83,15 @@ export class CalendarAPI {
         timeout: 45000, // Connection timeout (matches server)
         // Socket.IO will handle ping/pong automatically
       });
-      this.socketAuth = keepSocketAuthenticated(this.socket);
+      this.socket = socket;
+      this.socketSessionKey = sessionKey;
+      this.socketAuth = keepSocketAuthenticated(socket, session);
 
-      // Handle session errors by forcing a fresh connection
-      this.socket.io.on('error', (error: unknown) => {
+      // Handle session errors by forcing a fresh connection. The listener is
+      // bound to this exact socket and detached when it is disposed: a late
+      // manager error from a replaced socket must not clear the successor.
+      const onManagerError = (error: unknown) => {
+        if (this.socket !== socket) return;
         const errorMessage =
           error && typeof error === 'object' && 'message' in error
             ? String(error.message)
@@ -94,77 +110,96 @@ export class CalendarAPI {
             errorData.code === 1)
         ) {
           // Disconnect and clear socket to force a fresh connection
-          const oldSocket = this.socket;
-          this.socket = null;
-          this.socketAuth?.stop();
-          this.socketAuth = null;
-          if (oldSocket) {
-            oldSocket.disconnect();
-            oldSocket.removeAllListeners();
-          }
-          // Next getSocket() call will create a fresh socket
+          this.disposeSocket(socket);
         }
-      });
+      };
+      this.socketErrorHandler = onManagerError;
+      socket.io.on('error', onManagerError);
 
-      this.socket.on('connect_error', (error: Error) => {
+      socket.on('connect_error', (error: Error) => {
         console.error('[CalendarAPI] Connection error:', error.message);
       });
     }
     return this.socket;
   }
 
-  static async connectSocket(): Promise<void> {
-    // Prevent multiple simultaneous connection attempts
-    if (this.connectingPromise) {
-      return this.connectingPromise;
+  /** Detach everything that belongs to one socket, and only that socket. */
+  private static disposeSocket(socket: Socket): void {
+    if (this.socket === socket) {
+      if (this.socketErrorHandler) {
+        socket.io.off('error', this.socketErrorHandler);
+        this.socketErrorHandler = null;
+      }
+      this.socketAuth?.stop();
+      this.socketAuth = null;
+      this.socketSessionKey = null;
+      this.connectingPromise = null;
+      this.connectingSocket = null;
+      this.connectingAttempt = null;
+      this.socket = null;
     }
+    socket.disconnect();
+    socket.removeAllListeners();
+  }
 
+  static async connectSocket(): Promise<void> {
     const socket = this.getSocket();
     if (socket.connected) {
       return;
     }
+    // A pending attempt belongs only to the socket it was started for. A newer
+    // login may already have replaced that socket and started its own work.
+    if (this.connectingPromise && this.connectingSocket === socket) {
+      return this.connectingPromise;
+    }
 
-    this.connectingPromise = (async () => {
+    // Each call is its own attempt. Timers and continuations compare this
+    // identity, not only the socket: a retry on the same socket must survive
+    // the failed attempt's cleanup.
+    const attempt = {};
+    const connection = (async () => {
       try {
         // Ensure we have a valid token before connecting
         const tokenInfo = await getAccessToken();
+        if (this.socket !== socket || this.connectingAttempt !== attempt)
+          return;
         if (!tokenInfo) {
           console.error(
             '[CalendarAPI] No valid token available for connection',
           );
-          this.connectingPromise = null;
           return;
-        }
-
-        if (tokenInfo.refreshToken) {
-          setItem(ACCESS_TOKEN, tokenInfo.accessToken);
         }
 
         // Connect the socket
         socket.connect();
       } catch (error) {
         console.error('[CalendarAPI] Error connecting socket:', error);
-        this.connectingPromise = null;
+        if (this.connectingAttempt === attempt) {
+          this.connectingPromise = null;
+          this.connectingSocket = null;
+          this.connectingAttempt = null;
+        }
         throw error;
       } finally {
-        // Clear the promise after a delay to allow connection to establish
+        // Clear only this attempt after a delay to allow connection to
+        // establish; a stale cleanup must not erase a successor's work.
         setTimeout(() => {
+          if (this.connectingAttempt !== attempt) return;
           this.connectingPromise = null;
+          this.connectingSocket = null;
+          this.connectingAttempt = null;
         }, 2000);
       }
     })();
 
-    return this.connectingPromise;
+    this.connectingPromise = connection;
+    this.connectingSocket = socket;
+    this.connectingAttempt = attempt;
+    return connection;
   }
 
   static disconnectSocket(): void {
-    this.socketAuth?.stop();
-    this.socketAuth = null;
-    this.connectingPromise = null;
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-    }
+    if (this.socket) this.disposeSocket(this.socket);
   }
 
   // Reconnects first when the token expired: the server would refuse the

@@ -31,6 +31,11 @@ import { describeTarget } from './step-format';
 import { TargetChip } from './step-row';
 import { STEP_TONE } from './step-summary';
 import { stepTypeLabel } from './step-type-label';
+import {
+  type SwimDistanceUnit,
+  displayDistance,
+  toMetres,
+} from './swim-distance';
 import type { BuilderEnv } from './use-builder-env';
 
 const TYPES = [
@@ -197,8 +202,10 @@ function LengthSection({
   const kind = kindOf(step.durationType);
   const swim = env.sport === SPORT_TYPE.SWIMMING;
   const value = step.durationValue ?? 0;
-  // Kilometres read better past 1 km, except in the pool
+  // Kilometres read better past 1 km, except in the pool: lengths stay in
+  // metres or yards, as the lane is measured
   const [km, setKm] = useState(!swim && value >= 1000);
+  const [poolUnit, setPoolUnit] = useState<SwimDistanceUnit>('m');
 
   const setKind = (next: LengthKind) => {
     if (next === kind) return;
@@ -212,9 +219,14 @@ function LengthSection({
         durationType: WORKOUT_DURATION_TYPE.TIME,
         durationValue: FIRST_LENGTH.time,
       });
+    } else if (swim) {
+      update({
+        durationType: WORKOUT_DURATION_TYPE.DISTANCE,
+        durationValue: toMetres(FIRST_LENGTH.swimDistance, poolUnit),
+      });
     } else {
-      const meters = swim ? FIRST_LENGTH.swimDistance : FIRST_LENGTH.distance;
-      setKm(!swim && meters >= 1000);
+      const meters = FIRST_LENGTH.distance;
+      setKm(meters >= 1000);
       update({
         durationType: WORKOUT_DURATION_TYPE.DISTANCE,
         durationValue: meters,
@@ -233,7 +245,9 @@ function LengthSection({
     if (meters > 0)
       update({
         durationType: WORKOUT_DURATION_TYPE.DISTANCE,
-        durationValue: Math.round(meters),
+        // A pool length keeps the fraction a yard entry gives: 100 yd is
+        // 91.44 m, not 91 m
+        durationValue: swim ? meters : Math.round(meters),
       });
   };
 
@@ -306,45 +320,93 @@ function LengthSection({
         <>
           <div className="flex items-center gap-2">
             <NumberField
-              value={km ? Number((value / 1000).toFixed(3)) : value}
+              value={
+                swim
+                  ? displayDistance(value, poolUnit)
+                  : km
+                    ? Number((value / 1000).toFixed(3))
+                    : value
+              }
               label={m.builder_panel_distance()}
-              suffix={km ? 'km' : 'm'}
-              step={km ? 0.1 : 1}
+              suffix={
+                swim
+                  ? poolUnit === 'yd'
+                    ? m.yards()
+                    : m.meters()
+                  : km
+                    ? 'km'
+                    : 'm'
+              }
+              step={swim ? 0.01 : km ? 0.1 : 1}
               className="w-32"
-              onValue={(next) => setMeters((next ?? 0) * (km ? 1000 : 1))}
+              onValue={(next) => {
+                const entered = next ?? 0;
+                setMeters(
+                  swim
+                    ? toMetres(entered, poolUnit)
+                    : entered * (km ? 1000 : 1),
+                );
+              }}
               data-panel-distance
             />
-            {!swim && (
-              <div className="inline-flex rounded-lg bg-muted p-0.5">
-                {([false, true] as const).map((inKm) => (
-                  <button
-                    key={String(inKm)}
-                    type="button"
-                    aria-pressed={km === inKm}
-                    onClick={() => setKm(inKm)}
-                    className={cn(
-                      'h-9 rounded-md px-3 text-sm font-medium text-muted-foreground',
-                      km === inKm && 'bg-background text-foreground shadow-sm',
-                    )}
-                  >
-                    {inKm ? 'km' : 'm'}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="inline-flex rounded-lg bg-muted p-0.5">
+              {swim
+                ? (['m', 'yd'] as const).map((unit) => (
+                    <button
+                      key={unit}
+                      type="button"
+                      aria-pressed={poolUnit === unit}
+                      onClick={() => setPoolUnit(unit)}
+                      className={cn(
+                        'h-9 rounded-md px-3 text-sm font-medium text-muted-foreground',
+                        poolUnit === unit &&
+                          'bg-background text-foreground shadow-sm',
+                      )}
+                      data-panel-pool-unit={unit}
+                    >
+                      {unit === 'm' ? m.meters() : m.yards()}
+                    </button>
+                  ))
+                : ([false, true] as const).map((inKm) => (
+                    <button
+                      key={String(inKm)}
+                      type="button"
+                      aria-pressed={km === inKm}
+                      onClick={() => setKm(inKm)}
+                      className={cn(
+                        'h-9 rounded-md px-3 text-sm font-medium text-muted-foreground',
+                        km === inKm &&
+                          'bg-background text-foreground shadow-sm',
+                      )}
+                    >
+                      {inKm ? 'km' : 'm'}
+                    </button>
+                  ))}
+            </div>
           </div>
           <div className="flex flex-wrap gap-1">
             {(swim ? SWIM_DISTANCES : RUN_DISTANCES).map((preset) => (
               <Chip
                 key={preset}
-                active={value === preset}
+                active={
+                  swim
+                    ? Math.abs(value - toMetres(preset, poolUnit)) < 1e-6
+                    : value === preset
+                }
                 onClick={() => {
-                  setKm(!swim && preset >= 1000);
-                  setMeters(preset);
+                  if (swim) {
+                    setMeters(toMetres(preset, poolUnit));
+                  } else {
+                    setKm(preset >= 1000);
+                    setMeters(preset);
+                  }
                 }}
                 className="h-8 px-2.5 text-xs"
+                data-panel-distance-preset={String(preset)}
               >
-                {distanceLabel(preset)}
+                {swim
+                  ? `${preset} ${poolUnit === 'yd' ? m.yards() : m.meters()}`
+                  : distanceLabel(preset)}
               </Chip>
             ))}
           </div>

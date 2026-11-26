@@ -4,6 +4,7 @@ import {
   NATIVE_OAUTH_STATE,
   callbackPathFromAppUrl,
   nativeReturnUrl,
+  providerOAuthNonce,
   withNativeOAuthState,
 } from './native-oauth';
 
@@ -22,6 +23,32 @@ describe('withNativeOAuthState', () => {
 });
 
 describe('nativeReturnUrl', () => {
+  it('keeps a correlated PKCE nonce in the consent URL and the app callback', () => {
+    const nonce = '00112233445566778899aabbccddeeff';
+    const consent = new URL(
+      withNativeOAuthState('https://provider.example.test/oauth', nonce),
+    );
+    const state = consent.searchParams.get('state');
+    expect(state).toBe(`openathlete-native.${nonce}`);
+    const appUrl = nativeReturnUrl(
+      'COROS',
+      `?state=${state}&code=provider-code`,
+    );
+    expect(appUrl).toBe(
+      `org.openathlete://auth/callback/COROS?state=${state}&code=provider-code`,
+    );
+    const path = callbackPathFromAppUrl(appUrl!);
+    expect(path).toBe(`/auth/callback/COROS?state=${state}&code=provider-code`);
+    expect(
+      providerOAuthNonce(
+        new URL(path!, 'https://app.example.test').searchParams.get('state'),
+        true,
+      ),
+    ).toBe(nonce);
+    expect(providerOAuthNonce(state, false)).toBeNull();
+    expect(providerOAuthNonce(NATIVE_OAUTH_STATE, true)).toBeNull();
+  });
+
   it('sends a connection started in the app back to it', () => {
     expect(
       nativeReturnUrl(

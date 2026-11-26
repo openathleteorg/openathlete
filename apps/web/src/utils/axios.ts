@@ -1,11 +1,31 @@
 import { getAccessToken } from '@/utils/auth';
+import {
+  type AuthAttempt,
+  type AuthSessionSnapshot,
+  captureAuthSession,
+  invalidateAuthTokens,
+  isAuthSessionCurrent,
+} from '@/utils/auth-attempt';
 import { QueryClient } from '@tanstack/react-query';
-import axios, { isAxiosError } from 'axios';
+import axios, { getAdapter, isAxiosError } from 'axios';
+import type {
+  AxiosInstance,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from 'axios';
 
 import { ConnectorProvider, Event } from '@openathlete/shared';
 
 import { getApiBaseUrl } from './capacitor';
-import { ACCESS_TOKEN, REFRESH_TOKEN, setItem } from './local-storage';
+
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    /** Pin this request to the exact token/instance that started the attempt. */
+    authAttempt?: AuthAttempt;
+    /** The owner and instance captured synchronously when the call started. */
+    authSession?: AuthSessionSnapshot;
+  }
+}
 
 export const routes = {
   auth: {
@@ -381,33 +401,169 @@ const client = axios.create({
   baseURL: getApiBaseUrl(),
 });
 
+/**
+ * Each method captures the session synchronously, before React or Axios can
+ * yield. Waiting for the async request interceptor would let a login committed
+ * in the same tick make an earlier call run as the successor account.
+ */
+function withInitiatedSession<C extends AxiosRequestConfig | undefined>(
+  config: C,
+): C {
+  if (config?.authAttempt || config?.authSession) return config;
+  return { ...(config ?? {}), authSession: captureAuthSession() } as C;
+}
+
+const rawRequest = client.request.bind(client);
+const rawGet = client.get.bind(client);
+const rawDelete = client.delete.bind(client);
+const rawHead = client.head.bind(client);
+const rawOptions = client.options.bind(client);
+const rawPost = client.post.bind(client);
+const rawPut = client.put.bind(client);
+const rawPatch = client.patch.bind(client);
+const rawPostForm = client.postForm.bind(client);
+const rawPutForm = client.putForm.bind(client);
+const rawPatchForm = client.patchForm.bind(client);
+const rawQuery = client.query.bind(client);
+
+client.request = ((config: AxiosRequestConfig) =>
+  rawRequest(withInitiatedSession(config))) as AxiosInstance['request'];
+client.get = ((url: string, config?: AxiosRequestConfig) =>
+  rawGet(url, withInitiatedSession(config))) as AxiosInstance['get'];
+client.delete = ((url: string, config?: AxiosRequestConfig) =>
+  rawDelete(url, withInitiatedSession(config))) as AxiosInstance['delete'];
+client.head = ((url: string, config?: AxiosRequestConfig) =>
+  rawHead(url, withInitiatedSession(config))) as AxiosInstance['head'];
+client.options = ((url: string, config?: AxiosRequestConfig) =>
+  rawOptions(url, withInitiatedSession(config))) as AxiosInstance['options'];
+client.post = ((url: string, data?: unknown, config?: AxiosRequestConfig) =>
+  rawPost(url, data, withInitiatedSession(config))) as AxiosInstance['post'];
+client.put = ((url: string, data?: unknown, config?: AxiosRequestConfig) =>
+  rawPut(url, data, withInitiatedSession(config))) as AxiosInstance['put'];
+client.patch = ((url: string, data?: unknown, config?: AxiosRequestConfig) =>
+  rawPatch(url, data, withInitiatedSession(config))) as AxiosInstance['patch'];
+client.postForm = ((url: string, data?: unknown, config?: AxiosRequestConfig) =>
+  rawPostForm(
+    url,
+    data,
+    withInitiatedSession(config),
+  )) as AxiosInstance['postForm'];
+client.putForm = ((url: string, data?: unknown, config?: AxiosRequestConfig) =>
+  rawPutForm(
+    url,
+    data,
+    withInitiatedSession(config),
+  )) as AxiosInstance['putForm'];
+client.patchForm = ((
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig,
+) =>
+  rawPatchForm(
+    url,
+    data,
+    withInitiatedSession(config),
+  )) as AxiosInstance['patchForm'];
+client.query = ((url: string, data?: unknown, config?: AxiosRequestConfig) =>
+  rawQuery(url, data, withInitiatedSession(config))) as AxiosInstance['query'];
+
+// Axios instances are callable too (`client(config)` and `client(url, config)`).
+// Route those through the same synchronous capture as the named methods.
+const callableClient = new Proxy(client, {
+  apply(target, _thisArg, args: unknown[]) {
+    const first = args[0] as AxiosRequestConfig | string | undefined;
+    const second = args[1] as AxiosRequestConfig | undefined;
+    const config =
+      typeof first === 'string' ? { ...(second ?? {}), url: first } : first;
+    return target(withInitiatedSession(config) as AxiosRequestConfig);
+  },
+}) as AxiosInstance;
+
 /** The request got no answer: the device is offline or the API unreachable. */
 export const isNetworkError = (error: unknown) =>
   isAxiosError(error) && !error.response;
 
-client.interceptors.request.use(async (config) => {
-  config.baseURL = getApiBaseUrl();
-  const token = await getAccessToken();
-  if (token?.refreshToken) {
-    setItem(REFRESH_TOKEN, token.refreshToken);
-    setItem(ACCESS_TOKEN, token.accessToken);
+/**
+ * The session that started a request was replaced while its token was being
+ * refreshed. Sending it now would run account A's mutation as account B, so
+ * the request stops before the adapter instead.
+ */
+export class AuthSessionChangedError extends Error {
+  constructor() {
+    super('auth_session_changed');
+    this.name = 'AuthSessionChangedError';
   }
-  if (token) {
-    config.headers.Authorization = `Bearer ${token.accessToken}`;
+}
+
+function fenceAdapter(
+  config: InternalAxiosRequestConfig,
+  session: AuthSessionSnapshot,
+): void {
+  const adapter = getAdapter(config.adapter ?? client.defaults.adapter, config);
+  config.adapter = (adapterConfig) => {
+    // The adapter is the last point before a request leaves this module. A
+    // login may have committed while interceptors or refreshes were running.
+    if (!isAuthSessionCurrent(session)) {
+      return Promise.reject(new AuthSessionChangedError());
+    }
+    return adapter(adapterConfig);
+  };
+}
+
+client.interceptors.request.use(async (config) => {
+  // An auth continuation pins the token and instance it started with. Taking
+  // whatever is in storage later is how account A's getMe could be sent with
+  // account B's bearer after a second login in the same tab.
+  if (config.authAttempt) {
+    const attempt = config.authAttempt;
+    if (!isAuthSessionCurrent(attempt)) throw new AuthSessionChangedError();
+    config.authSession = attempt;
+    config.baseURL = attempt.instanceURL;
+    fenceAdapter(config, attempt);
+    if (attempt.accessToken) {
+      config.headers.Authorization = `Bearer ${attempt.accessToken}`;
+    } else {
+      delete config.headers.Authorization;
+    }
+    return config;
+  }
+
+  // Use the snapshot captured when the call was made, not when this async
+  // interceptor happens to run. A refresh may rotate this owner's token, but
+  // it must never make an already-started request adopt a successor login's
+  // bearer or API instance.
+  const initiated = config.authSession ?? captureAuthSession();
+  config.authSession = initiated;
+  config.baseURL = initiated.instanceURL;
+  fenceAdapter(config, initiated);
+
+  await getAccessToken(initiated);
+  if (!isAuthSessionCurrent(initiated)) throw new AuthSessionChangedError();
+
+  const attempt = captureAuthSession();
+  config.authAttempt = attempt;
+  if (attempt.accessToken) {
+    config.headers.Authorization = `Bearer ${attempt.accessToken}`;
   }
   return config;
 });
 
 client.interceptors.response.use(undefined, async (error) => {
   if (isAxiosError(error) && error.response?.status === 401) {
-    localStorage.removeItem(ACCESS_TOKEN);
-    localStorage.removeItem(REFRESH_TOKEN);
-    const queryClient = new QueryClient();
-    queryClient.clear();
+    const attempt = error.config?.authAttempt;
+    // Address the invalidation to the exact credential the rejected request
+    // used. A successor may have committed since; it is never the target, and
+    // an answer without a pinned attempt cannot name an owner at all.
+    if (attempt && invalidateAuthTokens(attempt)) {
+      // Invalidates this credential without replacing the login, so a logout
+      // already waiting for native cleanup can still finish its own teardown.
+      const queryClient = new QueryClient();
+      queryClient.clear();
+    }
   }
   // Callers still need the failure: swallowing it made a wrong password look
   // like a broken response, and an unauthorized change like a success.
   throw error;
 });
 
-export default client;
+export default callableClient;

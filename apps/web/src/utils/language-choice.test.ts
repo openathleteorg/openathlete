@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { captureAuthSession } from './auth-attempt';
 import { rememberLanguageChoice, saveLanguageChoice } from './language-choice';
 
 const api = vi.hoisted(() => ({ updateLanguage: vi.fn() }));
@@ -52,6 +53,15 @@ describe('saveLanguageChoice', () => {
     expect(api.updateLanguage).toHaveBeenCalledWith('PL');
     await saveLanguageChoice('EN', '?lang=nl');
     expect(api.updateLanguage).toHaveBeenCalledWith('NL');
+  });
+
+  it('passes the profile owner that started the language save', async () => {
+    rememberLanguageChoice('it');
+    const session = captureAuthSession();
+
+    await saveLanguageChoice('FR', '', session);
+
+    expect(api.updateLanguage).toHaveBeenCalledWith('IT', session);
   });
 
   it('does nothing when the choice is already saved', async () => {

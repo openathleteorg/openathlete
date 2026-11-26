@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { clearAuthTokens } from './auth-attempt';
 import { getApiBaseUrl, getDefaultApiBaseUrl } from './capacitor';
 import { clear } from './local-storage';
 import {
   getSelectedServerUrl,
+  isServerChange,
   resolveServerUrl,
   saveSelectedServerUrl,
   serverUrlCandidates,
@@ -59,7 +61,7 @@ describe('mobile server selection', () => {
     );
   });
 
-  it('keeps an existing install signed in when it has no selected server', () => {
+  it('keeps existing storage when the selected server does not change', () => {
     localStorage.setItem('access_token', 'secret');
     localStorage.setItem('refresh_token', 'refresh-secret');
     sessionStorage.setItem('pendingPlanToken', 'secret');
@@ -96,12 +98,26 @@ describe('mobile server selection', () => {
     expect(getApiBaseUrl()).toBe(defaultUrl);
   });
 
+  it('treats a canonical no-op as the same instance', () => {
+    const defaultUrl = getDefaultApiBaseUrl();
+    const customUrl = 'https://train.example.org/api';
+
+    expect(isServerChange(defaultUrl, defaultUrl)).toBe(false);
+    expect(isServerChange(customUrl, defaultUrl)).toBe(true);
+    saveSelectedServerUrl(customUrl, defaultUrl);
+    expect(isServerChange(customUrl, defaultUrl)).toBe(false);
+    expect(isServerChange(defaultUrl, defaultUrl)).toBe(true);
+  });
+
   it('keeps a custom server choice on logout', () => {
     const defaultUrl = getDefaultApiBaseUrl();
     const customUrl = 'https://train.example.org/api';
     saveSelectedServerUrl(customUrl, defaultUrl);
 
     localStorage.setItem('access_token', 'new-secret');
+    // Credentials are removed by the sign-out itself; the device-state
+    // cleanup only removes UI keys and keeps the selected server.
+    clearAuthTokens();
     clear();
     expect(localStorage.getItem('access_token')).toBeNull();
     expect(getSelectedServerUrl()).toBe(customUrl);

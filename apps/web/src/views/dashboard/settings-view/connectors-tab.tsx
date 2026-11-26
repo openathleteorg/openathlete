@@ -2,7 +2,6 @@ import { useInstanceInfoQuery } from '@/api/instance';
 import {
   useDisconnectProviderMutation,
   useGetConnectedProvidersQuery,
-  useGetOAuthUriMutation,
   useImportAllActivitiesMutation,
   useUpdateProviderPreferencesMutation,
 } from '@/api/provider';
@@ -14,6 +13,7 @@ import {
   offeredProviders,
 } from '@/components/connectors';
 import { CorosRegionDialog } from '@/components/connectors/coros-region-dialog';
+import { useProviderConnect } from '@/components/connectors/use-provider-connect';
 import { ImportFitDialog } from '@/components/import-fit-dialog/import-fit-dialog';
 import { ImportIcsPlanDialog } from '@/components/import-ics-plan-dialog/import-ics-plan-dialog';
 import { Button } from '@/components/ui/button';
@@ -26,12 +26,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useUserRoles } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
-import {
-  AnalyticsEvent,
-  setOauthConnectSourceForRedirect,
-} from '@/utils/analytics-events';
+import { AnalyticsEvent } from '@/utils/analytics-events';
 import { connectorProviderLabelMap } from '@/utils/label-map/core/connector-provider.label-map';
-import { openOAuthUrl } from '@/utils/oauth';
 import { cn } from '@/utils/shadcn';
 import { CheckCircle2, ChevronDown, Link2, Link2Off } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
@@ -45,6 +41,7 @@ import {
   isFullImportInProgress,
 } from '@openathlete/shared';
 
+import { AppleWatchScheduleSection } from './apple-watch-schedule';
 import { CalendarFeedSection } from './calendar-feed-section';
 import { DuplicateActivitiesSection } from './duplicate-activities-section';
 import { GarminPersonalSection } from './garmin-personal-section';
@@ -66,7 +63,13 @@ const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
 
 export function ConnectorsTab() {
   const posthog = usePostHog();
-  const [corosRegionOpen, setCorosRegionOpen] = useState(false);
+  const {
+    connect,
+    connectCoros,
+    corosRegionOpen,
+    setCorosRegionOpen,
+    isPending: isConnecting,
+  } = useProviderConnect('settings');
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
   const [providerToDisconnect, setProviderToDisconnect] =
     useState<ConnectorProvider | null>(null);
@@ -89,28 +92,6 @@ export function ConnectorsTab() {
     instance?.providers ?? [],
     connectedProviders.map((account) => account.provider),
   );
-
-  const getOAuthUriMutation = useGetOAuthUriMutation({
-    onSuccess: async (response, { provider }) => {
-      setOauthConnectSourceForRedirect('settings');
-      posthog?.capture(AnalyticsEvent.provider_connect_initiated, {
-        provider,
-        source: 'settings',
-      });
-      // For PKCE providers (like Garmin), store codeVerifier in localStorage
-      // Using localStorage instead of sessionStorage to persist across OAuth redirects
-      if (response.codeVerifier) {
-        const storageKey = `oauth_code_verifier_${provider.toUpperCase()}`;
-        localStorage.setItem(storageKey, response.codeVerifier);
-      } else if (provider.toUpperCase() === 'GARMIN') {
-        console.error('Garmin OAuth: codeVerifier not found in response');
-      }
-      await openOAuthUrl(response.uri);
-    },
-    onError: (error) => {
-      toast.error(error.message || m.failed_to_initiate_connection());
-    },
-  });
 
   const disconnectMutation = useDisconnectProviderMutation({
     onSuccess: (_, provider) => {
@@ -183,14 +164,6 @@ export function ConnectorsTab() {
     return connectedProviders.some((p) => p.provider === provider);
   };
 
-  const handleConnect = (provider: ConnectorProvider) => {
-    if (provider === 'COROS') {
-      setCorosRegionOpen(true);
-      return;
-    }
-    getOAuthUriMutation.mutate({ provider });
-  };
-
   const handleDisconnect = (provider: ConnectorProvider) => {
     setProviderToDisconnect(provider);
     setDisconnectDialogOpen(true);
@@ -247,7 +220,7 @@ export function ConnectorsTab() {
           {providers.map((provider) => {
             const connected = isConnected(provider);
             const isLoading =
-              getOAuthUriMutation.isPending ||
+              isConnecting ||
               disconnectMutation.isPending ||
               isLoadingConnected;
             const providerDetails = connectedProviders.find(
@@ -317,7 +290,7 @@ export function ConnectorsTab() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleConnect(provider)}
+                    onClick={() => connect(provider)}
                     disabled={isLoading}
                   >
                     <Link2 className="size-4" />
@@ -391,9 +364,7 @@ export function ConnectorsTab() {
                   {capabilities.writeActivityDescription && (
                     <StravaActivityDescriptionRows
                       account={providerDetails}
-                      onAuthorize={() =>
-                        getOAuthUriMutation.mutate({ provider })
-                      }
+                      onAuthorize={() => connect(provider)}
                     />
                   )}
                   {capabilities.supportsFullImport && (
@@ -483,13 +454,13 @@ export function ConnectorsTab() {
 
       {roles?.includes('ATHLETE') && <CalendarFeedSection />}
 
+      {/* iPhone only; the section hides itself on the web and Android */}
+      {roles?.includes('ATHLETE') && <AppleWatchScheduleSection />}
+
       <CorosRegionDialog
         open={corosRegionOpen}
         onOpenChange={setCorosRegionOpen}
-        onSelect={(region) => {
-          setCorosRegionOpen(false);
-          getOAuthUriMutation.mutate({ provider: 'COROS', region });
-        }}
+        onSelect={connectCoros}
       />
 
       <ConfirmAction
