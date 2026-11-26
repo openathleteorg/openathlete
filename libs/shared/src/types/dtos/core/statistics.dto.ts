@@ -375,6 +375,56 @@ export const trainingCheckSchema = z.object({
 });
 export type TrainingCheckDto = z.infer<typeof trainingCheckSchema>;
 
+const datedValueSchema = z.object({
+  /** YYYY-MM-DD */
+  date: z.string(),
+  value: z.number(),
+});
+
+/** The figures behind the training check, over the last six months */
+export const trainingCheckHistorySchema = z.object({
+  from: z.coerce.date(),
+  to: z.coerce.date(),
+  /**
+   * Each run with flat stretches: heart rate against the usual one at the
+   * same output, in beats a minute
+   */
+  fitness: z.object({
+    basis: z.enum(['POWER', 'SPEED']),
+    reference: z.number().nullable(),
+    runs: z.array(datedValueSchema),
+  }),
+  /** Critical speed (m/s) or power (W) every two weeks, null without a model */
+  speed: z.array(
+    z.object({
+      date: z.string(),
+      speed: z.number().nullable(),
+      power: z.number().nullable(),
+    }),
+  ),
+  /** Decoupling of each long, steady, flat run, in percent */
+  durability: z.array(datedValueSchema),
+  /** Week by week, named by its last day; null without enough days */
+  recovery: z.array(
+    z.object({
+      date: z.string(),
+      variability: z.number().nullable(),
+      restingHeartrate: z.number().nullable(),
+    }),
+  ),
+  /** Week by week: hours of training and the share of easy time */
+  design: z.array(
+    z.object({
+      date: z.string(),
+      hours: z.number(),
+      easyShare: z.number().nullable(),
+    }),
+  ),
+});
+export type TrainingCheckHistoryDto = z.infer<
+  typeof trainingCheckHistorySchema
+>;
+
 /**
  * The one figure of the Lab a non-Supporter sees: the capacity of the
  * profile that progressed the most over the last twelve months against the

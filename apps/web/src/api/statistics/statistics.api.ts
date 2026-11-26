@@ -18,7 +18,9 @@ import {
   StatisticsTrendsDto,
   StatisticsVolumeDto,
   TrainingCheckDto,
+  TrainingCheckHistoryDto,
   statisticsFiltersSchema,
+  trainingCheckHistorySchema,
   trainingCheckSchema,
 } from '@openathlete/shared';
 
@@ -108,6 +110,16 @@ export class StatisticsAPI {
       params: { athleteId },
     });
     return trainingCheckSchema.parse(res.data);
+  }
+
+  /** The figures behind the training check, over half a year. */
+  static async getCheckHistory(
+    athleteId?: number,
+  ): Promise<TrainingCheckHistoryDto> {
+    const res = await client.get(routes.statistics.checkHistory, {
+      params: { athleteId },
+    });
+    return trainingCheckHistorySchema.parse(res.data);
   }
 
   static async getDurability(

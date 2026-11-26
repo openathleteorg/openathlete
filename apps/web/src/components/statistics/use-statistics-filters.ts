@@ -37,6 +37,7 @@ const oneOf = <T extends string>(
 export const STATISTICS_VIEWS = [
   'overview',
   'load',
+  'check',
   'capacities',
   'trends',
   'review',

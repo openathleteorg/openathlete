@@ -359,6 +359,59 @@ describe('TrainingCheckService (PostgreSQL)', () => {
     );
   });
 
+  it('gives the course of the figures over half a year', async () => {
+    // Four runs with flat stretches: 150, 148, 146 and 144 beats at 300 W
+    for (const [index, days] of [150, 100, 50, 3].entries()) {
+      await run(
+        new Date(NOW.getTime() - days * 86_400_000).toISOString().slice(0, 10),
+        {
+          bands: [{ kind: 'FLAT_POWER', bin: 30, value: 150 - index * 2 }],
+          intensitySeconds: [2400, 400, 200],
+        },
+      );
+    }
+    // Older than the half year: out
+    await run('2025-11-01', {
+      bands: [{ kind: 'FLAT_POWER', bin: 30, value: 100 }],
+    });
+    await prisma.athleteMetric.deleteMany({
+      where: { athleteId: DELETED_ATHLETE_ID },
+    });
+    await prisma.athleteMetric.createMany({
+      data: Array.from({ length: 5 }, (_, i) => ({
+        type: 'HRV_LAST_NIGHT_AVG' as const,
+        date: new Date(NOW.getTime() - (i + 0.5) * 86_400_000),
+        value: 50,
+        athleteId: DELETED_ATHLETE_ID,
+      })),
+    });
+
+    const history = await service.getHistory(athlete, undefined, NOW);
+    expect(history.fitness).toMatchObject({ basis: 'POWER', reference: 305 });
+    // Against the usual 147 beats, oldest first
+    expect(history.fitness.runs.map(({ value }) => value)).toEqual([
+      3, 1, -1, -3,
+    ]);
+    expect(history.fitness.runs[3].date).toBe('2026-06-27');
+    expect(history.speed).toHaveLength(14);
+    expect(history.speed[13]).toEqual({
+      date: '2026-06-30',
+      speed: null,
+      power: null,
+    });
+    expect(history.recovery).toHaveLength(26);
+    expect(history.recovery[25]).toMatchObject({
+      date: '2026-06-30',
+      restingHeartrate: null,
+    });
+    expect(history.recovery[25].variability).toBeCloseTo(50, 9);
+    expect(history.recovery[24].variability).toBeNull();
+    // The last week: one run of 50 minutes, 80 % of it easy
+    expect(history.design[25].hours).toBeCloseTo(3000 / 3600, 9);
+    expect(history.design[25].easyShare).toBeCloseTo(0.8, 9);
+    expect(history.design[24]).toMatchObject({ hours: 0, easyShare: null });
+  });
+
   it('refuses an athlete the user cannot read', async () => {
     await expect(
       service.getCheck(stranger, DELETED_ATHLETE_ID, NOW),

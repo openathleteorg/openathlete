@@ -14,6 +14,7 @@ import {
 const VIEWS: { id: StatisticsView; label: () => string }[] = [
   { id: 'overview', label: m.statistics_view_overview },
   { id: 'load', label: m.statistics_view_load },
+  { id: 'check', label: m.statistics_view_check },
   { id: 'capacities', label: m.statistics_view_capacities },
   { id: 'trends', label: m.statistics_view_trends },
   { id: 'review', label: m.statistics_view_review },

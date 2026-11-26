@@ -16,6 +16,6 @@ test('an instance without Stripe locks nothing on a phone', async ({
   }
   await page.goto('/dashboard/statistics');
   await expect(page.getByRole('tablist').first().getByRole('tab')).toHaveCount(
-    5,
+    6,
   );
 });

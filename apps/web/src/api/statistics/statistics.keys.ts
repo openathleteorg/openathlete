@@ -9,6 +9,7 @@ export const statisticsKeys = {
   cardiacCost: 'StatisticsAPI.cardiacCost',
   efficiency: 'StatisticsAPI.efficiency',
   check: 'StatisticsAPI.check',
+  checkHistory: 'StatisticsAPI.checkHistory',
   durability: 'StatisticsAPI.durability',
   longRuns: 'StatisticsAPI.longRuns',
   intensity: 'StatisticsAPI.intensity',

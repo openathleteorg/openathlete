@@ -4,6 +4,8 @@ import {
   CardiacBand,
   RangeSignal,
   cardiacScores,
+  cardiacSeries,
+  checkSummary,
   compareModels,
   compareWindows,
   rangeSignal,
@@ -233,5 +235,55 @@ describe('recoveryStatus', () => {
     expect(recoveryStatus(signal('HIGH'), signal('LOW'))).toBe('BETTER');
     expect(recoveryStatus(signal('LOW'), signal('NORMAL'))).toBe('SAME');
     expect(recoveryStatus(signal('LOW'), signal('LOW'))).toBe('SAME');
+  });
+});
+
+describe('cardiacSeries', () => {
+  it('scores every run of the span against the usual heart rate', () => {
+    const row = (activityId: number, heartrate: number, band = 30) => ({
+      activityId,
+      band,
+      seconds: 900,
+      heartrate,
+    });
+    const { scores, referenceBand } = cardiacSeries([
+      row(1, 150),
+      row(2, 148),
+      row(3, 146),
+      row(4, 144),
+      // A band three runs touched: too few to know its usual heart rate
+      row(1, 160, 34),
+      row(2, 160, 34),
+      row(3, 160, 34),
+    ]);
+    expect(referenceBand).toBe(30);
+    expect([...scores]).toEqual([
+      [1, 3],
+      [2, 1],
+      [3, -1],
+      [4, -3],
+    ]);
+  });
+});
+
+describe('checkSummary', () => {
+  it('reads progress with what it costs', () => {
+    expect(checkSummary(['BETTER', 'SAME', 'OPEN'], 'SAME')).toBe('WORKING');
+    expect(checkSummary(['BETTER', 'SAME', 'OPEN'], 'WORSE')).toBe(
+      'WORKING_COSTLY',
+    );
+    expect(checkSummary(['SAME', 'WORSE', 'OPEN'], 'BETTER')).toBe('DECLINING');
+    expect(checkSummary(['SAME', 'WORSE', 'OPEN'], 'WORSE')).toBe(
+      'DECLINING_TIRED',
+    );
+    expect(checkSummary(['BETTER', 'WORSE', 'SAME'], 'SAME')).toBe('MIXED');
+  });
+
+  it('says so when nothing moved, or nothing is known', () => {
+    expect(checkSummary(['SAME', 'SAME', 'OPEN'], 'OPEN')).toBe('STABLE');
+    expect(checkSummary(['SAME', 'OPEN', 'OPEN'], 'WORSE')).toBe(
+      'STABLE_TIRED',
+    );
+    expect(checkSummary(['OPEN', 'OPEN', 'OPEN'], 'SAME')).toBe('OPEN');
   });
 });

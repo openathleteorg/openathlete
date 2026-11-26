@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TrainingCheckDto } from '@openathlete/shared';
@@ -70,7 +71,13 @@ describe('TrainingCheckCard', () => {
 
   const render = (data: TrainingCheckDto) => {
     state.data = data;
-    act(() => root.render(<TrainingCheckCard athleteId={1} />));
+    act(() =>
+      root.render(
+        <MemoryRouter>
+          <TrainingCheckCard athleteId={1} />
+        </MemoryRouter>,
+      ),
+    );
   };
   const row = (id: string) =>
     container.querySelector<HTMLElement>(`[data-check="${id}"]`)!;
@@ -119,6 +126,39 @@ describe('TrainingCheckCard', () => {
     expect(row('fitness').textContent).toMatch(
       /check_fitness_same 5:00.*\|6\|4/,
     );
+  });
+
+  it('reads the answers together, and links to their course', () => {
+    const better = {
+      status: 'BETTER' as const,
+      current: -3.6,
+      previous: 0.4,
+      noise: 4,
+      counts: [12, 11] as [number, number],
+      basis: 'POWER' as const,
+      reference: 285,
+    };
+    const summary = () =>
+      container.querySelector<HTMLElement>('[data-check-summary]')!;
+    render(check({ fitness: better }));
+    expect(summary().dataset.checkSummary).toBe('WORKING');
+    expect(summary().textContent).toContain('check_summary_working');
+    expect(container.querySelector('a')?.getAttribute('href')).toBe(
+      '/dashboard/statistics/1?view=check',
+    );
+
+    // Fitter, but the week of variability sits below the usual range
+    render(
+      check({
+        fitness: better,
+        recovery: {
+          status: 'WORSE',
+          variability: { state: 'LOW', week: 40, low: 44, high: 52, days: 6 },
+          restingHeartrate: null,
+        },
+      }),
+    );
+    expect(summary().dataset.checkSummary).toBe('WORKING_COSTLY');
   });
 
   it('says what is missing while a question is open', () => {

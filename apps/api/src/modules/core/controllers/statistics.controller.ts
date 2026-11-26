@@ -318,6 +318,31 @@ export class StatisticsController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get('check/history')
+  @ApiOperation({
+    summary: 'Course of the training check figures',
+    description:
+      'The figures behind the training check over the last 26 weeks: per run with flat stretches, heart rate against the usual one at the same output; critical speed and power every two weeks; decoupling of each long, steady, flat run; and week by week the mean heart rate variability and resting heart rate, the hours trained and the share of easy time.',
+  })
+  @ApiQuery({
+    name: 'athleteId',
+    type: Number,
+    required: false,
+    description: 'Absent: the athlete asking',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid athlete id' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getCheckHistory(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getTrainingCheckQuerySchema))
+    { athleteId }: GetTrainingCheckQueryDto,
+  ) {
+    return this.trainingCheck.getHistory(user, athleteId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('efficiency')
   @ApiOperation({
     summary: 'Efficiency of each run',

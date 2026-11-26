@@ -198,7 +198,7 @@ export interface CardiacBand {
 }
 
 /** The band below which 90 % of the time was spent; bands start at zero */
-function briskBand(bands: CardiacBand[]): number {
+function briskBand(bands: Pick<CardiacBand, 'band' | 'seconds'>[]): number {
   const seconds = new Map<number, number>();
   let total = 0;
   for (const row of bands) {
@@ -345,4 +345,83 @@ export function recoveryStatus(
   if (signs.every((sign) => sign > 0)) return 'BETTER';
   if (signs.every((sign) => sign < 0)) return 'WORSE';
   return 'SAME';
+}
+
+/** Runs a band needs over the months of a history */
+const MIN_SERIES_RUNS = 4;
+
+/**
+ * Heart rate of each run against the athlete's usual one at the same output
+ * on flat ground, over a longer span than the check: one figure a run, in
+ * beats a minute, to draw as a course. Bands count with enough runs over
+ * the span, above walking pace.
+ */
+export function cardiacSeries(bands: Omit<CardiacBand, 'current'>[]): {
+  scores: Map<number, number>;
+  referenceBand: number | null;
+} {
+  const floor = briskBand(bands) * FLOOR_SHARE;
+  const byBand = new Map<number, Omit<CardiacBand, 'current'>[]>();
+  for (const row of bands) {
+    if (row.band < floor) continue;
+    byBand.set(row.band, [...(byBand.get(row.band) ?? []), row]);
+  }
+  const usual = new Map<number, number>();
+  let referenceBand: number | null = null;
+  let most = 0;
+  for (const [band, rows] of byBand) {
+    if (rows.length < MIN_SERIES_RUNS) continue;
+    usual.set(band, median(rows.map((row) => row.heartrate)));
+    const seconds = rows.reduce((sum, row) => sum + row.seconds, 0);
+    if (seconds > most) {
+      most = seconds;
+      referenceBand = band;
+    }
+  }
+  const runs = new Map<number, { seconds: number; beats: number }>();
+  for (const row of bands) {
+    const reference = usual.get(row.band);
+    if (reference === undefined) continue;
+    const run = runs.get(row.activityId) ?? { seconds: 0, beats: 0 };
+    run.seconds += row.seconds;
+    run.beats += (row.heartrate - reference) * row.seconds;
+    runs.set(row.activityId, run);
+  }
+  const scores = new Map<number, number>();
+  for (const [activityId, run] of runs) {
+    if (run.seconds >= MIN_RUN_SECONDS) {
+      scores.set(activityId, run.beats / run.seconds);
+    }
+  }
+  return { scores, referenceBand };
+}
+
+/**
+ * The answers read together, in one line. Ours, not a study's: fitter,
+ * faster or lasting longer is progress, and recovery says what it costs.
+ */
+export type CheckSummary =
+  | 'WORKING'
+  | 'WORKING_COSTLY'
+  | 'DECLINING'
+  | 'DECLINING_TIRED'
+  | 'MIXED'
+  | 'STABLE'
+  | 'STABLE_TIRED'
+  | 'OPEN';
+
+export function checkSummary(
+  progress: CheckStatus[],
+  recovery: CheckStatus,
+): CheckSummary {
+  const better = progress.includes('BETTER');
+  const worse = progress.includes('WORSE');
+  const tired = recovery === 'WORSE';
+  if (better && worse) return 'MIXED';
+  if (better) return tired ? 'WORKING_COSTLY' : 'WORKING';
+  if (worse) return tired ? 'DECLINING_TIRED' : 'DECLINING';
+  if (progress.every((status) => status === 'OPEN')) {
+    return tired ? 'STABLE_TIRED' : 'OPEN';
+  }
+  return tired ? 'STABLE_TIRED' : 'STABLE';
 }
