@@ -359,6 +359,19 @@ public actor FileScheduleJournal: ScheduleJournal {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
+            // `{}` is what a truncated or non-journal document can look like.
+            // Only a document that names at least one of this journal's keys
+            // is a readable empty journal; never infer ownership from `{}`.
+            guard container.contains(.receipts)
+                || container.contains(.tombstones)
+            else {
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: decoder.codingPath,
+                        debugDescription: "Journal document has no known keys"
+                    )
+                )
+            }
             receipts = try container.decodeIfPresent(
                 [ScheduleReceipt].self,
                 forKey: .receipts
@@ -711,6 +724,16 @@ public actor ScheduleReconciler {
             }
         }
         let schedulableEventIDs = Set(schedulableCandidates.map(\.eventId))
+        // Capacity, replacement and removal decisions use the effective
+        // disposition: an ambiguous date or a device/capability preflight
+        // failure is a confirmed skip even though the snapshot still lists the
+        // event as a candidate. Such an event must free its previous entry
+        // instead of holding capacity against later sessions.
+        let candidateByEvent = Dictionary(
+            uniqueKeysWithValues: schedulableCandidates.map {
+                ($0.eventId, $0)
+            }
+        )
         try Task.checkCancellation()
 
         var actual = try await readActual(calendar: calendar)
@@ -740,9 +763,6 @@ public actor ScheduleReconciler {
 
         let retryable = Set(snapshot.retryableEventIds)
         let completed = Set(snapshot.completedEventIds)
-        let candidateByEvent = Dictionary(
-            uniqueKeysWithValues: snapshot.candidates.map { ($0.eventId, $0) }
-        )
 
         var scheduled: [Int] = []
         var confirmed: [Int] = []
@@ -858,6 +878,7 @@ public actor ScheduleReconciler {
                 completedAt: Date(),
                 actual: &actual,
                 generation: generation,
+                calendar: calendar,
                 fence: makeGenerationFence(generation: generation)
             )
             guard outcome.confirmed else {
@@ -904,7 +925,8 @@ public actor ScheduleReconciler {
                     intent: receipt.removalIntent ?? .calendar,
                     completedAt: snapshot.readAt,
                     actual: &actual,
-                    generation: generation
+                    generation: generation,
+                    calendar: calendar
                 )
                 guard outcome.confirmed else {
                     throw ScheduleReconcileError.unresolvedWrite(
@@ -936,7 +958,8 @@ public actor ScheduleReconciler {
                     intent: receipt.removalIntent ?? .calendar,
                     completedAt: snapshot.readAt,
                     actual: &actual,
-                    generation: generation
+                    generation: generation,
+                    calendar: calendar
                 )
                 guard outcome.confirmed else {
                     throw ScheduleReconcileError.unresolvedWrite(
@@ -1006,7 +1029,8 @@ public actor ScheduleReconciler {
                         intent: receipt.removalIntent ?? .calendar,
                         completedAt: snapshot.readAt,
                         actual: &actual,
-                        generation: generation
+                        generation: generation,
+                        calendar: calendar
                     )
                     guard outcome.confirmed else {
                         throw ScheduleReconcileError.storeUnavailable
@@ -1025,7 +1049,8 @@ public actor ScheduleReconciler {
                     intent: receipt.removalIntent ?? .calendar,
                     completedAt: snapshot.readAt,
                     actual: &actual,
-                    generation: generation
+                    generation: generation,
+                    calendar: calendar
                 )
                 if outcome.confirmed {
                     receiptsByEvent[eventID] = nil
@@ -1056,7 +1081,8 @@ public actor ScheduleReconciler {
                     intent: .calendar,
                     completedAt: snapshot.readAt,
                     actual: &actual,
-                    generation: generation
+                    generation: generation,
+                    calendar: calendar
                 )
                 guard outcome.confirmed else {
                     throw ScheduleReconcileError.storeUnavailable
@@ -1079,7 +1105,8 @@ public actor ScheduleReconciler {
                 intent: .calendar,
                 completedAt: snapshot.readAt,
                 actual: &actual,
-                generation: generation
+                generation: generation,
+                calendar: calendar
             )
             if outcome.confirmed {
                 receiptsByEvent[eventID] = nil
@@ -1111,7 +1138,8 @@ public actor ScheduleReconciler {
                         intent: .calendar,
                         completedAt: snapshot.readAt,
                         actual: &actual,
-                        generation: generation
+                        generation: generation,
+                        calendar: calendar
                     )
                     if !outcome.confirmed {
                         throw ScheduleReconcileError.storeUnavailable
@@ -1153,7 +1181,8 @@ public actor ScheduleReconciler {
                         intent: .calendar,
                         completedAt: snapshot.readAt,
                         actual: &actual,
-                        generation: generation
+                        generation: generation,
+                        calendar: calendar
                     )
                     guard outcome.confirmed else {
                         throw ScheduleReconcileError.storeUnavailable
@@ -1354,9 +1383,13 @@ public actor ScheduleReconciler {
                     try rethrowCancellation(error)
                     throw ScheduleReconcileError.storeUnavailable
                 }
-                if actual.contains(where: {
+                let hasCompletedCopy = actual.contains {
                     $0.planID == planID && $0.isComplete
-                }) {
+                }
+                if hasCompletedCopy {
+                    // Completed copies are Apple history. Persist them before
+                    // deciding about the incomplete siblings that the removal
+                    // read-back may still show.
                     try await recordCompletion(
                         scope: scope,
                         eventID: eventID,
@@ -1364,6 +1397,18 @@ public actor ScheduleReconciler {
                         at: snapshot.readAt,
                         generation: generation
                     )
+                }
+                let remaining = actual.filter {
+                    $0.planID == planID && !$0.isComplete
+                }
+                guard remaining.isEmpty else {
+                    // The old entry is still visible. Keep the receipt (and its
+                    // stable plan ID) and fail closed rather than scheduling a
+                    // second entry or dropping ownership of an incomplete
+                    // sibling.
+                    throw ScheduleReconcileError.storeUnavailable
+                }
+                if hasCompletedCopy {
                     try await deleteReceipt(
                         scope: scope,
                         eventID: eventID,
@@ -1373,14 +1418,6 @@ public actor ScheduleReconciler {
                     completedEventIDs.append(eventID)
                     tombstonedEvents.insert(eventID)
                     continue
-                }
-                let remaining = actual.filter {
-                    $0.planID == planID && !$0.isComplete
-                }
-                guard remaining.isEmpty else {
-                    // The old entry is still visible. Fail closed rather than
-                    // scheduling a second entry.
-                    throw ScheduleReconcileError.storeUnavailable
                 }
                 receipt.pendingPhase = .writing
                 try await saveReceipt(receipt, generation: generation)
@@ -1458,18 +1495,21 @@ public actor ScheduleReconciler {
                 isComplete: true
             )
             if hasCompletedTarget {
-                try await recordCompletion(
-                    scope: scope,
-                    eventID: eventID,
-                    planID: planID,
-                    at: snapshot.readAt,
-                    generation: generation
+                // Apple may return the completed copy together with an
+                // incomplete sibling. Removing through the stored ownership
+                // persists the completion, evicts the sibling, and keeps the
+                // receipt pending when Apple does not confirm the eviction.
+                let outcome = try await removeOwnedEntry(
+                    confirmingReceipt,
+                    intent: .calendar,
+                    completedAt: snapshot.readAt,
+                    actual: &actual,
+                    generation: generation,
+                    calendar: calendar
                 )
-                try await deleteReceipt(
-                    scope: scope,
-                    eventID: eventID,
-                    generation: generation
-                )
+                guard outcome.confirmed else {
+                    throw ScheduleReconcileError.storeUnavailable
+                }
                 receiptsByEvent[eventID] = nil
                 completedEventIDs.append(eventID)
                 tombstonedEvents.insert(eventID)
@@ -1544,11 +1584,13 @@ public actor ScheduleReconciler {
 
     /// At Apple's capacity, remove the farthest *confirmed, owned, incomplete*
     /// entry for another eligible session that sorts after `candidate`. The
-    /// victim's own receipt is deleted; its later turn in the same pass either
-    /// fits or is reported as overflow, so a nearer session is never starved by
-    /// a farther one. Apple's order is the only interaction here: foreign,
-    /// completed, transiently-skipped and unresolved entries have no eligible
-    /// victim receipt and are never touched.
+    /// Apple entry must carry the receipt's UUID at its normalized date; a
+    /// same-UUID copy at another date is not a victim. The victim's own receipt
+    /// is deleted; its later turn in the same pass either fits or is reported
+    /// as overflow, so a nearer session is never starved by a farther one.
+    /// Apple's order is the only interaction here: foreign, completed,
+    /// transiently-skipped and unresolved entries have no eligible victim
+    /// receipt and are never touched. An unconfirmed eviction stops the pass.
     private func makeRoomForNearest(
         _ candidate: ScheduleCandidate,
         scope: AccountScope,
@@ -1585,7 +1627,12 @@ public actor ScheduleReconciler {
                         victim.startDate
                       ),
                       actual.contains(where: {
-                        $0.planID == receipt.planID && !$0.isComplete
+                        $0.planID == receipt.planID
+                            && !$0.isComplete
+                            && ScheduleDate.areEqual(
+                                $0.startDate,
+                                receipt.scheduledDate
+                            )
                       }),
                       !actual.contains(where: {
                         $0.planID == receipt.planID && $0.isComplete
@@ -1615,7 +1662,10 @@ public actor ScheduleReconciler {
                 calendar: calendar
             )
             guard outcome.confirmed, outcome.removed else {
-                return false
+                // The eviction was not proven by a fresh read-back. Stop here:
+                // scheduling another candidate at capacity the app cannot
+                // verify would either overflow silently or duplicate an entry.
+                throw ScheduleReconcileError.storeUnavailable
             }
             receiptsByEvent[victimReceipt.eventID] = nil
             removed.append(victimReceipt.eventID)
@@ -1715,7 +1765,8 @@ public actor ScheduleReconciler {
                     intent: .cleanup,
                     completedAt: Date(),
                     actual: &actual,
-                    generation: generation
+                    generation: generation,
+                    calendar: calendar
                 )
                 if outcome.confirmed {
                     if outcome.removed {
@@ -1732,7 +1783,8 @@ public actor ScheduleReconciler {
                 intent: .cleanup,
                 completedAt: Date(),
                 actual: &actual,
-                generation: generation
+                generation: generation,
+                calendar: calendar
             )
             if outcome.confirmed {
                 if outcome.removed {
@@ -1961,6 +2013,7 @@ public actor ScheduleReconciler {
                 completedAt: Date(),
                 actual: &actual,
                 generation: generation,
+                calendar: calendar,
                 fence: makeGenerationFence(generation: generation)
             )
             guard outcome.confirmed else {
@@ -1978,10 +2031,9 @@ public actor ScheduleReconciler {
         completedAt: Date,
         actual: inout [ScheduledWorkoutState],
         generation: UInt64,
-        calendar: Calendar? = nil,
+        calendar: Calendar,
         fence: ScheduleSubmissionFence? = nil
     ) async throws -> RemovalOutcome {
-        let calendar = calendar ?? calendarProvider()
         try requireCurrentGeneration(generation)
         try Task.checkCancellation()
         let submissionFence = fence ?? makeFence(

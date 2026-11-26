@@ -2687,6 +2687,348 @@ final class ScheduleReconcilerTests: XCTestCase {
         XCTAssertEqual(summary.overflowEventIDs, [891])
     }
 
+    func testUnsupportedPreflightEditAtCapacityFreesRoomForALaterRun()
+        async throws
+    {
+        let store = FakeStore(capacity: 1)
+        let journal = FakeJournal()
+        let reconciler = await makeReconciler(store: store, journal: journal)
+        let obsoleteStart = "2026-06-02T12:00:00.000Z"
+
+        _ = try await reconciler.reconcile(
+            try snapshot(candidates: [
+                try candidate(1201, start: obsoleteStart, sport: .cycling),
+            ]),
+            scope: scope,
+            generation: 1
+        )
+        let obsoleteValue = try await journal.receipt(
+            scope: scope,
+            eventID: 1201
+        )
+        let obsolete = try XCTUnwrap(obsoleteValue)
+        await store.setUnsupportedPreflight(
+            .cycling,
+            reason: .nativeAlertUnsupported
+        )
+
+        // The ride is still a snapshot candidate, but this device can no
+        // longer take it. Its confirmed entry is obsolete and must not hold
+        // the only capacity slot against the later valid run.
+        let summary = try await reconciler.reconcile(
+            try snapshot(
+                candidates: [
+                    try candidate(
+                        1201,
+                        start: obsoleteStart,
+                        sport: .cycling
+                    ),
+                    try candidate(
+                        1202,
+                        start: "2026-06-03T12:00:00.000Z"
+                    ),
+                ],
+                readAt: "2026-06-01T13:00:00.000Z"
+            ),
+            scope: scope,
+            generation: 1
+        )
+
+        XCTAssertEqual(summary.removedEventIDs, [1201])
+        XCTAssertEqual(summary.scheduledEventIDs, [1202])
+        XCTAssertEqual(summary.overflowEventIDs, [])
+        XCTAssertEqual(
+            summary.skipped.map(\.reason),
+            [.unsupported(.nativeAlertUnsupported)]
+        )
+        let workouts = await store.workouts
+        let obsoleteAfter = try await journal.receipt(
+            scope: scope,
+            eventID: 1201
+        )
+        let runReceipt = try await journal.receipt(
+            scope: scope,
+            eventID: 1202
+        )
+        XCTAssertEqual(workouts.count, 1)
+        XCTAssertNotEqual(workouts.first?.planID, obsolete.planID)
+        XCTAssertNil(obsoleteAfter)
+        XCTAssertNotNil(runReceipt)
+    }
+
+    func testParisPassUsesParisForRemovalDespiteNewYorkStartup()
+        async throws
+    {
+        let box = MutableCalendarBox(calendar: calendar)
+        let store = FakeStore()
+        let journal = FakeJournal()
+        let reconciler = ScheduleReconciler(
+            store: store,
+            journal: journal,
+            calendarProvider: { box.calendar }
+        )
+        await reconciler.activate(generation: 1, for: scope)
+        _ = try await reconciler.reconcile(
+            try snapshot(candidates: [
+                try candidate(1211, start: "2026-06-02T12:00:00.000Z"),
+            ]),
+            scope: scope,
+            generation: 1,
+            calendar: calendar
+        )
+
+        var paris = Calendar(identifier: .gregorian)
+        paris.timeZone = TimeZone(identifier: "Europe/Paris")!
+        paris.locale = Locale(identifier: "en_US_POSIX")
+        let readsBefore = await store.calendarsUsed.count
+
+        // The provider still says New York; the pass's explicit calendar must
+        // be the one used by the removal and its read-back.
+        _ = try await reconciler.reconcile(
+            try snapshot(
+                candidates: [],
+                readAt: "2026-06-01T13:00:00.000Z"
+            ),
+            scope: scope,
+            generation: 1,
+            calendar: paris
+        )
+
+        let readsDuringRemoval = Array(
+            await store.calendarsUsed.dropFirst(readsBefore)
+        )
+        let removalCalendars = await store.removalCalendarsUsed
+        XCTAssertEqual(Set(readsDuringRemoval), ["Europe/Paris"])
+        XCTAssertEqual(removalCalendars, ["Europe/Paris"])
+    }
+
+    func testImmediatePostSubmitMixedCopiesRetainOwnershipUntilEvicted()
+        async throws
+    {
+        let store = FakeStore()
+        let journal = FakeJournal()
+        let reconciler = await makeReconciler(store: store, journal: journal)
+
+        await store.completeAndLeaveIncompleteOnNextWrite()
+        await store.completeAndLeaveIncompleteOnNextRemove()
+        do {
+            _ = try await reconciler.reconcile(
+                try snapshot(candidates: [
+                    try candidate(
+                        1301,
+                        start: "2026-06-02T12:00:00.000Z"
+                    ),
+                    try candidate(
+                        1302,
+                        start: "2026-06-03T12:00:00.000Z"
+                    ),
+                ]),
+                scope: scope,
+                generation: 1
+            )
+            XCTFail("An unconfirmed eviction must stop the pass")
+        } catch let error as ScheduleReconcileError {
+            XCTAssertEqual(error, .storeUnavailable)
+        }
+
+        let requests = await store.scheduleRequests
+        let workouts = await store.workouts
+        let receiptValue = try await journal.receipt(
+            scope: scope,
+            eventID: 1301
+        )
+        let receipt = try XCTUnwrap(receiptValue)
+        XCTAssertEqual(requests.map(\.eventID), [1301])
+        XCTAssertEqual(receipt.planID, requests.first?.planID)
+        XCTAssertEqual(receipt.pendingOperation, .remove)
+        XCTAssertEqual(
+            workouts.filter { $0.planID == receipt.planID }.count,
+            2
+        )
+        XCTAssertFalse(requests.contains { $0.eventID == 1302 })
+    }
+
+    func testReplacementMixedCopiesRetainOwnershipAndStopBeforeWriting()
+        async throws
+    {
+        let store = FakeStore()
+        let journal = FakeJournal()
+        let reconciler = await makeReconciler(store: store, journal: journal)
+        let oldStart = "2026-06-02T12:00:00.000Z"
+
+        _ = try await reconciler.reconcile(
+            try snapshot(candidates: [
+                try candidate(1311, start: oldStart),
+            ]),
+            scope: scope,
+            generation: 1
+        )
+        let originalValue = try await journal.receipt(
+            scope: scope,
+            eventID: 1311
+        )
+        let original = try XCTUnwrap(originalValue)
+        let requestsBefore = await store.scheduleRequests.count
+        await store.completeAndLeaveIncompleteOnNextRemove()
+
+        do {
+            _ = try await reconciler.reconcile(
+                try snapshot(
+                    candidates: [
+                        try candidate(
+                            1311,
+                            start: "2026-06-04T12:00:00.000Z",
+                            power: 250...280
+                        ),
+                    ],
+                    readAt: "2026-06-01T13:00:00.000Z"
+                ),
+                scope: scope,
+                generation: 1
+            )
+            XCTFail("An unconfirmed replacement eviction must stop the pass")
+        } catch let error as ScheduleReconcileError {
+            XCTAssertEqual(error, .storeUnavailable)
+        }
+
+        let requests = await store.scheduleRequests
+        let workouts = await store.workouts
+        let receiptValue = try await journal.receipt(
+            scope: scope,
+            eventID: 1311
+        )
+        let receipt = try XCTUnwrap(receiptValue)
+        let tombstone = try await journal.completionTombstone(
+            scope: scope,
+            eventID: 1311
+        )
+        XCTAssertEqual(requests.count, requestsBefore)
+        XCTAssertEqual(receipt.planID, original.planID)
+        XCTAssertEqual(receipt.pendingOperation, .replace)
+        XCTAssertEqual(receipt.pendingPhase, .removing)
+        XCTAssertEqual(
+            workouts.filter { $0.planID == original.planID }.count,
+            2
+        )
+        XCTAssertNotNil(tombstone)
+    }
+
+    func testWrongDateVictimIsNotDisplacedAtCapacity() async throws {
+        let store = FakeStore(capacity: 1)
+        let journal = FakeJournal()
+        let reconciler = await makeReconciler(store: store, journal: journal)
+        let victimStart = "2026-06-03T12:00:00.000Z"
+
+        _ = try await reconciler.reconcile(
+            try snapshot(candidates: [
+                try candidate(1401, start: victimStart),
+            ]),
+            scope: scope,
+            generation: 1
+        )
+        let receiptValue = try await journal.receipt(
+            scope: scope,
+            eventID: 1401
+        )
+        let receipt = try XCTUnwrap(receiptValue)
+        let wrongDate = try date("2026-06-04T12:00:00.000Z")
+        await store.forget(planID: receipt.planID)
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: receipt.planID,
+                startDate: wrongDate,
+                isComplete: false
+            )
+        )
+
+        // The same UUID is present, but at a different Apple date than the
+        // confirmed receipt. It is not proof of a displaceable entry.
+        let summary = try await reconciler.reconcile(
+            try snapshot(
+                candidates: [
+                    try candidate(
+                        1400,
+                        start: "2026-06-02T12:00:00.000Z"
+                    ),
+                    try candidate(1401, start: victimStart),
+                ],
+                readAt: "2026-06-01T13:00:00.000Z"
+            ),
+            scope: scope,
+            generation: 1
+        )
+
+        XCTAssertEqual(summary.overflowEventIDs, [1400])
+        XCTAssertFalse(summary.removedEventIDs.contains(1401))
+        XCTAssertEqual(summary.replacedEventIDs, [1401])
+        let workouts = await store.workouts
+        XCTAssertEqual(workouts.count, 1)
+        XCTAssertEqual(
+            workouts.first?.startDate,
+            try date(victimStart)
+        )
+    }
+
+    func testFailedEvictionReadBackStopsSubsequentMutations() async throws {
+        let store = FakeStore(capacity: 1)
+        let journal = FakeJournal()
+        let reconciler = await makeReconciler(store: store, journal: journal)
+
+        _ = try await reconciler.reconcile(
+            try snapshot(candidates: [
+                try candidate(1602, start: "2026-06-03T12:00:00.000Z"),
+            ]),
+            scope: scope,
+            generation: 1
+        )
+        let requestsBefore = await store.scheduleRequests.map(\.eventID)
+        let receiptValue = try await journal.receipt(
+            scope: scope,
+            eventID: 1602
+        )
+        let receipt = try XCTUnwrap(receiptValue)
+        await store.failNextReadAfterRemove()
+
+        do {
+            _ = try await reconciler.reconcile(
+                try snapshot(
+                    candidates: [
+                        try candidate(
+                            1600,
+                            start: "2026-06-02T12:00:00.000Z"
+                        ),
+                        try candidate(
+                            1602,
+                            start: "2026-06-03T12:00:00.000Z"
+                        ),
+                        try candidate(
+                            1603,
+                            start: "2026-06-04T12:00:00.000Z"
+                        ),
+                    ],
+                    readAt: "2026-06-01T13:00:00.000Z"
+                ),
+                scope: scope,
+                generation: 1
+            )
+            XCTFail("A failed eviction read-back must stop the pass")
+        } catch let error as ScheduleReconcileError {
+            XCTAssertEqual(error, .storeUnavailable)
+        }
+
+        let requestsAfter = await store.scheduleRequests.map(\.eventID)
+        let workouts = await store.workouts
+        let retainedValue = try await journal.receipt(
+            scope: scope,
+            eventID: 1602
+        )
+        let retained = try XCTUnwrap(retainedValue)
+        XCTAssertEqual(requestsAfter, requestsBefore)
+        XCTAssertTrue(workouts.isEmpty)
+        XCTAssertEqual(retained.pendingOperation, .remove)
+        XCTAssertEqual(retained.planID, receipt.planID)
+    }
+
     func testUnsupportedPreflightDoesNotClearAnAmbiguousSubmittedWrite()
         async throws
     {
@@ -2817,6 +3159,23 @@ final class ScheduleReconcilerTests: XCTestCase {
         } catch let error as ScheduleJournalError {
             XCTAssertEqual(error, .corrupt)
         }
+
+        // A present `{}` does not name either collection. It is as
+        // untrustworthy as truncated JSON; only an explicit empty document is
+        // an empty journal.
+        try Data("{}".utf8).write(to: url)
+        let emptyObject = FileScheduleJournal(fileURL: url)
+        do {
+            _ = try await emptyObject.allReceipts()
+            XCTFail("A present empty object is not an empty journal")
+        } catch let error as ScheduleJournalError {
+            XCTAssertEqual(error, .corrupt)
+        }
+
+        try Data(#"{"receipts":[],"tombstones":[]}"#.utf8).write(to: url)
+        let emptyDocument = FileScheduleJournal(fileURL: url)
+        let emptyReceipts = try await emptyDocument.allReceipts()
+        XCTAssertEqual(emptyReceipts, [])
     }
 
     func testHiddenCleanupForAccountABlocksBUntilVisible() async throws {
@@ -3544,8 +3903,10 @@ private actor FakeStore: ScheduleWorkoutStore {
     private(set) var scheduleRequests: [ScheduleWorkoutRequest] = []
     private(set) var removeRequests: [UUID] = []
     private(set) var calendarsUsed: [String] = []
+    private(set) var removalCalendarsUsed: [String] = []
     private var unsupportedPreflight: [String: UnsupportedReason] = [:]
     private var readFailures = 0
+    private var failReadsAfterNextRemove = false
     private var scheduleFailure: ScheduleFailure = .none
     private var removeFailure = false
     private var scheduleStoreError: ScheduleStoreError?
@@ -3554,6 +3915,7 @@ private actor FakeStore: ScheduleWorkoutStore {
     private var cancelAfterNextWrite = false
     private var shouldCompleteInsteadOfNextRemove = false
     private var shouldCompleteAndLeaveIncompleteOnNextRemove = false
+    private var shouldCompleteAndLeaveIncompleteOnNextWrite = false
     private var shouldSuspendNextWrite = false
     private var shouldSuspendBeforeFence = false
     private var shouldSuspendRemoveBeforeFence = false
@@ -3664,6 +4026,16 @@ private actor FakeStore: ScheduleWorkoutStore {
                     )
                 )
             }
+        } else if shouldCompleteAndLeaveIncompleteOnNextWrite {
+            shouldCompleteAndLeaveIncompleteOnNextWrite = false
+            workouts.append(
+                ScheduledWorkoutState(
+                    planID: request.planID,
+                    startDate: request.startDate,
+                    isComplete: true
+                )
+            )
+            workouts.append(state)
         } else {
             workouts.append(state)
         }
@@ -3691,6 +4063,7 @@ private actor FakeStore: ScheduleWorkoutStore {
             await suspendAtFence()
         }
         try await fence.check()
+        removalCalendarsUsed.append(calendar.timeZone.identifier)
         removeRequests.append(planID)
         await log?.append("store.remove:\(planID)")
         if removeFailure {
@@ -3742,6 +4115,10 @@ private actor FakeStore: ScheduleWorkoutStore {
             return
         }
         workouts.removeAll { $0.planID == planID && !$0.isComplete }
+        if failReadsAfterNextRemove {
+            failReadsAfterNextRemove = false
+            readFailures += 1
+        }
     }
 
     private func suspendAtFence() async {
@@ -3778,6 +4155,10 @@ private actor FakeStore: ScheduleWorkoutStore {
 
     func failNextRemove() {
         removeFailure = true
+    }
+
+    func failNextReadAfterRemove() {
+        failReadsAfterNextRemove = true
     }
 
     func failNextRead(with error: ScheduleStoreError) {
@@ -3838,6 +4219,10 @@ private actor FakeStore: ScheduleWorkoutStore {
 
     func completeAndLeaveIncompleteOnNextRemove() {
         shouldCompleteAndLeaveIncompleteOnNextRemove = true
+    }
+
+    func completeAndLeaveIncompleteOnNextWrite() {
+        shouldCompleteAndLeaveIncompleteOnNextWrite = true
     }
 
     func suspendNextWrite() {
