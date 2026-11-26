@@ -148,6 +148,10 @@ public enum ScheduleOperation: String, Codable, Equatable, Sendable {
 public enum ScheduleRemovalIntent: String, Codable, Equatable, Sendable {
     case calendar
     case cleanup
+    /// A date-scoped calendar target was proven gone, but incomplete same-UUID
+    /// siblings remain. The receipt is durable ownership for a later explicit
+    /// account cleanup only; ordinary calendar replay must not remove them.
+    case cleanupOnly
 }
 
 /// Durable phase of an in-flight schedule/replace. Confirmation is a separate
@@ -1002,10 +1006,15 @@ public actor ScheduleReconciler {
                         eventID: eventID
                     )
                 }
-                receiptsByEvent[eventID] = nil
+                if let retained = outcome.retainedReceipt {
+                    receiptsByEvent[eventID] = retained
+                } else {
+                    receiptsByEvent[eventID] = nil
+                }
                 if outcome.removed {
                     removed.append(eventID)
-                } else if outcome.completed {
+                }
+                if outcome.completed {
                     completedEventIDs.append(eventID)
                     tombstonedEvents.insert(eventID)
                 }
@@ -1049,6 +1058,12 @@ public actor ScheduleReconciler {
             let isCandidate = candidateByEvent[eventID] != nil
 
             if receipt.pendingOperation == .remove {
+                if receipt.removalIntent == .cleanupOnly {
+                    // The scoped target is already gone. This receipt owns
+                    // remaining same-UUID dates for explicit cleanup only and
+                    // must not replay an ordinary removal.
+                    continue
+                }
                 let hasCompletedEntry = actual.contains(where: {
                     $0.planID == receipt.planID && $0.isComplete
                 })
@@ -1160,7 +1175,8 @@ public actor ScheduleReconciler {
                 receiptsByEvent[eventID] = nil
                 if outcome.removed {
                     removed.append(eventID)
-                } else if outcome.completed {
+                }
+                if outcome.completed {
                     completedEventIDs.append(eventID)
                     tombstonedEvents.insert(eventID)
                 }
@@ -1181,8 +1197,7 @@ public actor ScheduleReconciler {
 
             if let retained = receiptsByEvent[eventID],
                retained.pendingOperation == .remove,
-               retained.removalIntent == .calendar,
-               retained.removalTargetDate != nil {
+               retained.removalIntent == .cleanupOnly {
                 // This UUID's selected date was evicted. Remaining same-UUID
                 // siblings are durable cleanup ownership only: neither the
                 // sibling nor this candidate may be rescheduled or displaced
@@ -1387,7 +1402,7 @@ public actor ScheduleReconciler {
                     candidateByEvent: candidateByEvent,
                     retryable: retryable,
                     completed: completed,
-                    tombstoned: tombstonedEvents,
+                    tombstoned: &tombstonedEvents,
                     generation: generation,
                     calendar: calendar,
                     removed: &removed
@@ -1673,7 +1688,7 @@ public actor ScheduleReconciler {
         candidateByEvent: [Int: ScheduleCandidate],
         retryable: Set<Int>,
         completed: Set<Int>,
-        tombstoned: Set<Int>,
+        tombstoned: inout Set<Int>,
         generation: UInt64,
         calendar: Calendar,
         removed: inout [Int]
@@ -1745,6 +1760,12 @@ public actor ScheduleReconciler {
                 receiptsByEvent[victimReceipt.eventID] = retained
             } else {
                 receiptsByEvent[victimReceipt.eventID] = nil
+            }
+            if outcome.completed {
+                // Completion observed before or during the eviction read-back
+                // must be in-memory before any later candidate can allocate a
+                // new UUID for this event.
+                tombstoned.insert(victimReceipt.eventID)
             }
             removed.append(victimReceipt.eventID)
         }
@@ -2202,6 +2223,25 @@ public actor ScheduleReconciler {
         }
     }
 
+    /// Persist the post-eviction state: the selected date is gone, but the
+    /// receipt still owns same-UUID siblings for a later explicit cleanup. It
+    /// is deliberately distinct from `.calendar` so no ordinary replay removes
+    /// a sibling that later reappears at the old date.
+    private func persistCleanupOnlyOwnership(
+        _ receipt: ScheduleReceipt,
+        generation: UInt64
+    ) async throws -> ScheduleReceipt {
+        var retained = receipt
+        retained.pendingOperation = .remove
+        retained.pendingPhase = nil
+        retained.submittedDate = nil
+        retained.pendingPreviousDate = nil
+        retained.removalIntent = .cleanupOnly
+        retained.removalTargetDate = nil
+        try await saveReceipt(retained, generation: generation)
+        return retained
+    }
+
     private func removeOwnedEntry(
         _ original: ScheduleReceipt,
         intent: ScheduleRemovalIntent,
@@ -2219,6 +2259,19 @@ public actor ScheduleReconciler {
             generation: generation,
             eventID: original.eventID
         )
+        // A retained cleanup-only receipt is already the durable result of a
+        // proven scoped eviction. Only explicit cleanup may turn it back into
+        // an actionable removal, even if the old target date reappears.
+        if original.pendingOperation == .remove,
+           original.removalIntent == .cleanupOnly,
+           intent != .cleanup {
+            return RemovalOutcome(
+                confirmed: true,
+                removed: false,
+                completed: false,
+                retainedReceipt: original
+            )
+        }
         var receipt = original
         // The first call selects the eviction target; a replay must use the
         // durable value even if the caller does not repeat it. Cleanup and
@@ -2277,11 +2330,15 @@ public actor ScheduleReconciler {
                 // sibling remains. Keep the receipt for an explicit account
                 // cleanup; its pending removal keeps the sibling out of
                 // capacity displacement.
+                let retained = try await persistCleanupOnlyOwnership(
+                    receipt,
+                    generation: generation
+                )
                 return RemovalOutcome(
                     confirmed: true,
                     removed: false,
                     completed: completedObserved,
-                    retainedReceipt: receipt
+                    retainedReceipt: retained
                 )
             }
             // A completed entry is Apple history and stays. The durable
@@ -2313,7 +2370,7 @@ public actor ScheduleReconciler {
             return RemovalOutcome(
                 confirmed: false,
                 removed: false,
-                completed: false,
+                completed: completedObserved,
                 failure: .unreadable
             )
         }
@@ -2326,7 +2383,7 @@ public actor ScheduleReconciler {
             return RemovalOutcome(
                 confirmed: false,
                 removed: false,
-                completed: false,
+                completed: completedObserved,
                 failure: .unreadable
             )
         }
@@ -2354,6 +2411,8 @@ public actor ScheduleReconciler {
                     || !ScheduleDate.areEqual($0.startDate, effectiveTarget!))
         }
 
+        let completionObserved = completedObserved || readBackCompleted
+
         let remaining = scopedReadBack.filter { !$0.isComplete }
         guard remaining.isEmpty else {
             // Apple did not apply this removal (or the targeted incomplete
@@ -2361,7 +2420,7 @@ public actor ScheduleReconciler {
             return RemovalOutcome(
                 confirmed: false,
                 removed: false,
-                completed: false,
+                completed: completionObserved,
                 failure: .stillPresent
             )
         }
@@ -2373,11 +2432,15 @@ public actor ScheduleReconciler {
             // same-UUID sibling remains. Retaining this receipt is the only
             // durable ownership an explicit cleanup can later act on, while
             // the pending removal keeps the sibling out of capacity choices.
+            let retained = try await persistCleanupOnlyOwnership(
+                receipt,
+                generation: generation
+            )
             return RemovalOutcome(
                 confirmed: true,
                 removed: true,
-                completed: readBackCompleted,
-                retainedReceipt: receipt
+                completed: completionObserved,
+                retainedReceipt: retained
             )
         }
 
@@ -2386,17 +2449,13 @@ public actor ScheduleReconciler {
             eventID: receipt.eventID,
             generation: generation
         )
-        if readBackCompleted {
-            return RemovalOutcome(
-                confirmed: true,
-                removed: false,
-                completed: true
-            )
-        }
+        // The native removal succeeded for the selected date. A completion
+        // seen before or during the read-back is a separate fact: return both
+        // so the caller can tombstone it before scheduling any candidate.
         return RemovalOutcome(
             confirmed: true,
             removed: true,
-            completed: false
+            completed: completionObserved
         )
     }
 

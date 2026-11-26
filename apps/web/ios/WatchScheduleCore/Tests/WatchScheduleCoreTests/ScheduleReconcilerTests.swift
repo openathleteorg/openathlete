@@ -3126,7 +3126,8 @@ final class ScheduleReconcilerTests: XCTestCase {
         XCTAssertEqual(removeCountAfter, removeCount)
         XCTAssertEqual(schedulesAfter, 0)
         XCTAssertEqual(receiptAfter?.pendingOperation, .remove)
-        XCTAssertEqual(receiptAfter?.removalTargetDate, targetStart)
+        XCTAssertEqual(receiptAfter?.removalIntent, .cleanupOnly)
+        XCTAssertNil(receiptAfter?.removalTargetDate)
         XCTAssertEqual(retry.overflowEventIDs, [1800])
 
         // The retained UUID receipt is what lets an explicit account cleanup
@@ -3214,8 +3215,53 @@ final class ScheduleReconcilerTests: XCTestCase {
         XCTAssertEqual(summary.overflowEventIDs, [1803])
         XCTAssertEqual(workouts.map(\.startDate), [wrongStart])
         XCTAssertEqual(retained.pendingOperation, .remove)
-        XCTAssertEqual(retained.removalTargetDate, targetStart)
+        XCTAssertEqual(retained.removalIntent, .cleanupOnly)
+        XCTAssertNil(retained.removalTargetDate)
         XCTAssertEqual(targets, [targetStart])
+
+        // Even if the old target date reappears without capacity pressure, the
+        // cleanup-only receipt must not replay an ordinary removal.
+        await store.setCapacity(5)
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: planID,
+                startDate: targetStart,
+                isComplete: false
+            )
+        )
+        let removeCountBeforeReappearance = await store.removeRequests.count
+        let schedulesBeforeReappearance = await store.scheduleRequests.count
+        _ = try await reconciler.reconcile(
+            try snapshot(
+                candidates: [victim],
+                readAt: "2026-06-01T13:00:00.000Z"
+            ),
+            scope: scope,
+            generation: 1
+        )
+        let reappeared = await store.workouts
+        let removeCountAfterReappearance = await store.removeRequests.count
+        let schedulesAfterReappearance = await store.scheduleRequests.count
+        let retainedAfterReappearance = try await journal.receipt(
+            scope: scope,
+            eventID: 1802
+        )
+        XCTAssertEqual(
+            Set(reappeared.map(\.startDate)),
+            Set([targetStart, wrongStart])
+        )
+        XCTAssertEqual(
+            removeCountAfterReappearance,
+            removeCountBeforeReappearance
+        )
+        XCTAssertEqual(
+            schedulesAfterReappearance,
+            schedulesBeforeReappearance
+        )
+        XCTAssertEqual(
+            retainedAfterReappearance?.removalIntent,
+            .cleanupOnly
+        )
 
         let cleanup = try await reconciler.cleanup(
             scope: scope,
@@ -3379,6 +3425,161 @@ final class ScheduleReconcilerTests: XCTestCase {
         let schedulesAfter = await store.scheduleRequests.count
         XCTAssertEqual(later.completedEventIDs, [1903])
         XCTAssertEqual(schedulesAfter, 0)
+    }
+
+    func testPendingScopedReplayCombinesPreRemoveCompletionWhenReadBackLosesIt()
+        async throws
+    {
+        let store = FakeStore(capacity: 2)
+        let journal = FakeJournal()
+        let planID = UUID()
+        let targetStart = try date("2026-06-03T12:00:00.000Z")
+        let siblingStart = try date("2026-06-04T12:00:00.000Z")
+        let candidateValue = try candidate(
+            1904,
+            start: "2026-06-03T12:00:00.000Z"
+        )
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 1904,
+                planID: planID,
+                scheduledDate: targetStart,
+                fingerprint: PrescriptionFingerprint.make(candidateValue.plan),
+                pendingOperation: .remove,
+                removalIntent: .calendar,
+                removalTargetDate: targetStart
+            )
+        )
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: planID,
+                startDate: targetStart,
+                isComplete: false
+            )
+        )
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: planID,
+                startDate: siblingStart,
+                isComplete: false
+            )
+        )
+        // The first list read misses the sibling completion; the pre-removal
+        // read sees it; the removal read-back loses both copies.
+        await store.completeSiblingsAfterNextRead(except: targetStart)
+        await store.loseCompletedHistoryOnNextRemove()
+        let reconciler = await makeReconciler(store: store, journal: journal)
+
+        let summary = try await reconciler.reconcile(
+            try snapshot(candidates: [candidateValue]),
+            scope: scope,
+            generation: 1
+        )
+
+        let receipt = try await journal.receipt(scope: scope, eventID: 1904)
+        let tombstone = try await journal.completionTombstone(
+            scope: scope,
+            eventID: 1904
+        )
+        let workouts = await store.workouts
+        let schedules = await store.scheduleRequests.count
+        XCTAssertEqual(summary.completedEventIDs, [1904])
+        XCTAssertEqual(summary.removedEventIDs, [1904])
+        XCTAssertNil(receipt)
+        XCTAssertNotNil(tombstone)
+        XCTAssertTrue(workouts.isEmpty)
+        XCTAssertEqual(schedules, 0)
+
+        let later = try await reconciler.reconcile(
+            try snapshot(
+                candidates: [candidateValue],
+                readAt: "2026-06-01T13:00:00.000Z"
+            ),
+            scope: scope,
+            generation: 1
+        )
+        let schedulesAfter = await store.scheduleRequests.count
+        XCTAssertEqual(later.completedEventIDs, [1904])
+        XCTAssertEqual(schedulesAfter, 0)
+    }
+
+    func testEvictionTombstonesReadBackCompletionAndStillSchedulesNearer()
+        async throws
+    {
+        let store = FakeStore(capacity: 2)
+        let journal = FakeJournal()
+        let planID = UUID()
+        let targetStart = try date("2026-06-04T12:00:00.000Z")
+        let siblingStart = try date("2026-06-05T12:00:00.000Z")
+        let victim = try candidate(1805, start: "2026-06-04T12:00:00.000Z")
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 1805,
+                planID: planID,
+                scheduledDate: targetStart,
+                fingerprint: PrescriptionFingerprint.make(victim.plan)
+            )
+        )
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: planID,
+                startDate: targetStart,
+                isComplete: false
+            )
+        )
+        await store.seed(
+            ScheduledWorkoutState(
+                planID: planID,
+                startDate: siblingStart,
+                isComplete: false
+            )
+        )
+        await store.completeSiblingsAfterNextRemove()
+        let reconciler = await makeReconciler(store: store, journal: journal)
+
+        let summary = try await reconciler.reconcile(
+            try snapshot(candidates: [
+                try candidate(1804, start: "2026-06-03T12:00:00.000Z"),
+                victim,
+            ]),
+            scope: scope,
+            generation: 1
+        )
+
+        let workouts = await store.workouts
+        let requests = await store.scheduleRequests
+        let nearStart = try date("2026-06-03T12:00:00.000Z")
+        let receipt = try await journal.receipt(scope: scope, eventID: 1805)
+        let tombstone = try await journal.completionTombstone(
+            scope: scope,
+            eventID: 1805
+        )
+        XCTAssertEqual(summary.scheduledEventIDs, [1804])
+        XCTAssertEqual(summary.removedEventIDs, [1805])
+        XCTAssertEqual(summary.completedEventIDs, [1805])
+        XCTAssertEqual(requests.map(\.eventID), [1804])
+        XCTAssertNil(receipt)
+        XCTAssertNotNil(tombstone)
+        XCTAssertEqual(workouts.count, 2)
+        XCTAssertTrue(
+            workouts.contains {
+                $0.planID == planID
+                    && $0.isComplete
+                    && ScheduleDate.areEqual($0.startDate, siblingStart)
+            }
+        )
+        XCTAssertTrue(
+            workouts.contains {
+                $0.planID == requests.first?.planID
+                    && !$0.isComplete
+                    && ScheduleDate.areEqual(
+                        $0.startDate,
+                        nearStart
+                    )
+            }
+        )
     }
 
     func testImmediateMixedCompletionWritesTombstoneBeforeTheReceiptDowngrade()
@@ -4519,6 +4720,7 @@ private actor FakeStore: ScheduleWorkoutStore {
     private var oldCompletionDateOnNextWrite: Date?
     private var shouldLoseCompletedHistoryOnNextRemove = false
     private var loseCompletedHistoryAfterReadPlanID: UUID?
+    private var completeSiblingsOnNextReadExcept: Date?
     private var hiddenWorkouts: [ScheduledWorkoutState] = []
     private var writeIsSuspended = false
     private var resumeWaiters: [CheckedContinuation<Void, Never>] = []
@@ -4575,6 +4777,21 @@ private actor FakeStore: ScheduleWorkoutStore {
         if let planID = loseCompletedHistoryAfterReadPlanID {
             loseCompletedHistoryAfterReadPlanID = nil
             workouts.removeAll { $0.planID == planID && $0.isComplete }
+        }
+        if let exception = completeSiblingsOnNextReadExcept {
+            completeSiblingsOnNextReadExcept = nil
+            workouts = workouts.map {
+                guard !$0.isComplete,
+                      !ScheduleDate.areEqual($0.startDate, exception)
+                else {
+                    return $0
+                }
+                return ScheduledWorkoutState(
+                    planID: $0.planID,
+                    startDate: $0.startDate,
+                    isComplete: true
+                )
+            }
         }
         return result
     }
@@ -4809,6 +5026,10 @@ private actor FakeStore: ScheduleWorkoutStore {
 
     func loseCompletedHistoryOnNextRemove() {
         shouldLoseCompletedHistoryOnNextRemove = true
+    }
+
+    func completeSiblingsAfterNextRead(except date: Date) {
+        completeSiblingsOnNextReadExcept = date
     }
 
     /// Returns the current entries once, then drops the completed copy so the
