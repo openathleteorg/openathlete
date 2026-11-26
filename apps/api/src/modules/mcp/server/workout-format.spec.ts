@@ -828,15 +828,129 @@ describe('strength sessions', () => {
     });
   });
 
-  it('reads a whole session step by step when one block is not clean', () => {
+  it.each<[string, CreateWorkoutStepDto[]]>([
+    [
+      'an interval repeat',
+      [
+        repeatOf(
+          6,
+          [
+            active({
+              stepType: STEP.INTERVAL_ACTIVE,
+              exerciseRef: null,
+              durationType: TIME,
+              durationValue: 180,
+              targets: [],
+            }),
+            rest(120),
+          ],
+          { notes: 'Jog the recoveries' },
+        ),
+      ],
+    ],
+    [
+      'an EMOM of steps with a name and reps but no exercise',
+      [
+        repeatOf(
+          10,
+          [
+            active({
+              name: 'Push-up',
+              exerciseRef: null,
+              targets: [],
+              durationValue: 10,
+            }),
+          ],
+          { notes: 'Unbroken', kind: KIND.EMOM, intervalSeconds: 60 },
+        ),
+      ],
+    ],
+  ])('reads the notes of %s and writes them back', (_name, steps) => {
+    const read = fromStoredWorkout(rows(steps));
+
+    expect(read[0]).toMatchObject({ kind: 'repeat' });
+    expect((read[0] as { notes?: string }).notes).toBeTruthy();
+    expect(persisted(roundTrip(steps))).toEqual(persisted(steps));
+  });
+
+  it('adds no notes to a repeat that has none', () => {
+    const [read] = fromStoredWorkout(
+      rows([repeatOf(2, [active({ exerciseRef: null, targets: [] })])]),
+    );
+
+    expect(read).not.toHaveProperty('notes');
+  });
+
+  it('reads only the segment that is not clean step by step', () => {
+    const clean = strengthSteps([
+      strengthBlocks.find((block) => block.kind === 'group')!,
+    ]);
+    const steps = [...clean, squatSet({ exerciseRef: 'c:lunge', name: null })];
+    const read = fromStoredWorkout(rows(steps));
+
+    // The superset stays one group, the unclean step is a plain step
+    expect(read[0].kind).toBe('group');
+    expect(read[read.length - 1]).toMatchObject({
+      kind: 'work',
+      exerciseRef: 'c:lunge',
+    });
+    expect(persisted(roundTrip(steps))).toEqual(persisted(steps));
+  });
+
+  it('reads sets of one exercise stored as a repeat and as a flat set apart', () => {
+    // 5 × 5 at 100 kg, then one back-off set of 10 at 70 kg
     const steps = [
-      ...strengthSteps([strengthBlocks[1]]),
-      squatSet({ exerciseRef: 'c:lunge', name: null }),
+      repeatOf(5, [
+        squatSet({
+          targets: [{ targetType: TARGET.WEIGHT, targetValue: 100 }],
+        }),
+        rest(180),
+      ]),
+      squatSet({
+        durationValue: 10,
+        targets: [{ targetType: TARGET.WEIGHT, targetValue: 70 }],
+      }),
+      rest(120),
     ];
     const read = fromStoredWorkout(rows(steps));
 
-    expect(read.some((item) => item.kind === 'exercise')).toBe(false);
+    expect(read.map((item) => item.kind)).toEqual(['exercise', 'exercise']);
+    expect(workoutSchema.safeParse(read).success).toBe(true);
     expect(persisted(roundTrip(steps))).toEqual(persisted(steps));
+  });
+
+  it('writes back a session of a 5 × 5, a back-off set and an 11-exercise circuit', () => {
+    const members = Array.from({ length: 11 }, (_, i) => ({
+      ref: `c:move-${i}`,
+      name: `Move ${i}`,
+    }));
+    const steps = [
+      repeatOf(5, [squatSet(), rest(180)]),
+      squatSet({
+        durationValue: 10,
+        targets: [{ targetType: TARGET.WEIGHT, targetValue: 70 }],
+      }),
+      rest(120),
+      repeatOf(
+        3,
+        members.flatMap(({ ref, name }, index) => [
+          squatSet({ exerciseRef: ref, name, targets: [] }),
+          rest(index === members.length - 1 ? 60 : 15),
+        ]),
+        { kind: KIND.CIRCUIT },
+      ),
+    ];
+    const read = fromStoredWorkout(rows(steps));
+
+    expect(read.map((item) => item.kind)).toEqual([
+      'exercise',
+      'exercise',
+      'group',
+    ]);
+    // What was read is what the input takes, and gives the same rows
+    const parsed = workoutSchema.safeParse(read);
+    expect(parsed.success).toBe(true);
+    expect(persisted(toStoredWorkout(parsed.data!))).toEqual(persisted(steps));
   });
 
   it.each<[string, CreateWorkoutStepDto[]]>([

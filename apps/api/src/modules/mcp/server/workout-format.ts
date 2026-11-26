@@ -710,14 +710,9 @@ function fromStoredStep(
   };
 }
 
-/**
- * `withNotes`: a repeat's own notes are read for strength sessions only, so
- * an endurance session reads exactly as before
- */
 function fromStoredItem(
   step: CreateWorkoutStepDto,
   zoneNames: Map<number, string>,
-  withNotes: boolean,
 ): WorkoutStep | WorkoutRepeat {
   const block = step.repeatBlock;
   if (step.stepType !== WORKOUT_STEP_TYPE.REPEAT || !block) {
@@ -726,7 +721,7 @@ function fromStoredItem(
   return {
     kind: 'repeat' as const,
     ...(step.name && { name: step.name }),
-    ...(withNotes && step.notes && { notes: step.notes }),
+    ...(step.notes && { notes: step.notes }),
     times: block.repetitions,
     ...(block.kind &&
       block.kind !== WORKOUT_REPEAT_KIND.REPEAT && {
@@ -814,19 +809,61 @@ function fromBlock(
       exercises: block.exercises.map(fromStrengthExercise),
     };
   }
-  return fromStoredItem(block.step, zoneNames, true);
+  return fromStoredItem(block.step, zoneNames);
 }
 
 /**
- * Sessions with strength exercises are read as exercise and group items. The
- * shared block functions are not the identity for every stored session (two
- * sets of one exercise stored flat become a repeat, a named rest loses its
- * name...), so when writing the blocks back would not give the same steps,
- * the session is read step by step. That keeps exercise, reps, load, tempo,
- * side and the repeat kind and its timings, and a repeat's notes. The
- * conversions of endurance steps stay as they are: rounded seconds and reps,
- * OPEN, CALORIES and HR_* durations read as lap button, one value of a
- * weight range.
+ * The steps in the pieces the shared block functions can be applied to one
+ * by one: each repeat on its own, and each run of steps between repeats
+ * (where sets of one exercise written one after the other become one
+ * exercise)
+ */
+function segmentsOf(steps: CreateWorkoutStepDto[]): CreateWorkoutStepDto[][] {
+  const segments: CreateWorkoutStepDto[][] = [];
+  let run: CreateWorkoutStepDto[] | null = null;
+  for (const step of steps) {
+    if (step.stepType === WORKOUT_STEP_TYPE.REPEAT) {
+      segments.push([step]);
+      run = null;
+    } else if (run) {
+      run.push(step);
+    } else {
+      run = [step];
+      segments.push(run);
+    }
+  }
+  return segments;
+}
+
+/**
+ * The shared block functions are not the identity for every stored segment
+ * (two sets of one exercise stored flat become a repeat, a named rest loses
+ * its name...), so a segment whose blocks would not write back to the same
+ * steps is read step by step. That keeps exercise, reps, load, tempo, side
+ * and the repeat kind, its timings and notes.
+ */
+function fromSegment(
+  segment: CreateWorkoutStepDto[],
+  zoneNames: Map<number, string>,
+): Workout {
+  const blocks = strengthBlocks(segment);
+  if (sameSteps(strengthSteps(blocks), segment)) {
+    return blocks.map((block) => fromBlock(block, zoneNames));
+  }
+  return segment.map((step) => fromStoredItem(step, zoneNames));
+}
+
+/**
+ * Sessions with strength exercises are read as exercise and group items,
+ * segment by segment: one segment that does not round-trip is read step by
+ * step and does not change how the others are read. The conversions of
+ * endurance steps stay as they are: rounded seconds and reps, OPEN, CALORIES
+ * and HR_* durations read as lap button, one value of a weight range (a
+ * weight with a maximum only, and the upper bound of an RPE range, are not
+ * read).
+ *
+ * Values above what an agent may write (a long cue, a rest over an hour) are
+ * read as stored: they must be shortened before the session is written back.
  */
 export function fromStoredWorkout(
   steps: StoredStep[],
@@ -834,13 +871,11 @@ export function fromStoredWorkout(
 ): Workout {
   const plain = normalizeWorkoutForCreate({ steps }).steps;
   if (!hasExercise(plain)) {
-    return plain.map((step) => fromStoredItem(step, zoneNames, false));
+    return plain.map((step) => fromStoredItem(step, zoneNames));
   }
-  const blocks = strengthBlocks(plain);
-  if (!sameSteps(strengthSteps(blocks), plain)) {
-    return plain.map((step) => fromStoredItem(step, zoneNames, true));
-  }
-  return blocks.map((block) => fromBlock(block, zoneNames));
+  return segmentsOf(plain).flatMap((segment) =>
+    fromSegment(segment, zoneNames),
+  );
 }
 
 // ---------------------------------------------------------------------------
