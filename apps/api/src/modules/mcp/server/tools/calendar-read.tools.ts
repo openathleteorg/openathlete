@@ -16,7 +16,7 @@ import {
   toCalendarItem,
   workoutOf,
 } from '../presenters';
-import { workoutSchema } from '../workout-format';
+import { workoutOutputSchema } from '../workout-format';
 import { READ_ONLY, ToolRegistrar, registerTool, zoneNamesOf } from './deps';
 
 const round = (value: number, digits = 0) =>
@@ -44,7 +44,7 @@ const calendarOutput = z.object({
 
 const sessionOutput = z.object({
   session: calendarItemSchema(),
-  workoutSteps: workoutSchema
+  workoutSteps: workoutOutputSchema
     .optional()
     .describe('The structured workout, in the format update_session takes'),
   doneActivity: calendarItemSchema().optional(),
@@ -95,7 +95,7 @@ const templateSchema = calendarItemSchema()
   .extend({
     templateId: z.number(),
     folder: z.string().optional(),
-    workoutSteps: workoutSchema.optional(),
+    workoutSteps: workoutOutputSchema.optional(),
   });
 
 const templatesOutput = z.object({ templates: z.array(templateSchema) });
@@ -205,7 +205,7 @@ export const registerCalendarReadTools: ToolRegistrar = (server, ctx, deps) => {
     {
       title: 'Session details',
       description:
-        'One planned session or race in full: its structured workout step by step (in the format update_session takes) and the activity that fulfilled it, if any.',
+        'One planned session or race in full: its structured workout step by step, strength sessions as exercises with sets (in the format update_session takes), and the activity that fulfilled it, if any.',
       inputSchema: {
         eventId: z.number().int().describe('eventId from get_calendar'),
       },

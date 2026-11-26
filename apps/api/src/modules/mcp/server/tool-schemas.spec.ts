@@ -52,4 +52,16 @@ describe('MCP tool definitions', () => {
       expect(schemas).not.toContain('"anyOf":[]');
     }
   });
+
+  // The description of a field wins over that of its schema
+  it('tell the write tools how strength workouts go', async () => {
+    const tools = await listTools();
+    for (const name of ['plan_sessions', 'update_session']) {
+      const tool = tools.find((candidate) => candidate.name === name);
+      expect({ name, schema: JSON.stringify(tool?.inputSchema) }).toEqual({
+        name,
+        schema: expect.stringContaining('exercise and group items'),
+      });
+    }
+  });
 });

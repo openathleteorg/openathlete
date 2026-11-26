@@ -1,12 +1,26 @@
-import { SPORT_TYPE, createWorkoutSchema } from '@openathlete/shared';
+import {
+  CreateWorkoutStepDto,
+  WORKOUT_DURATION_TYPE as DURATION,
+  EXERCISE_SIDE,
+  WORKOUT_REPEAT_KIND as KIND,
+  SPORT_TYPE,
+  WORKOUT_STEP_TYPE as STEP,
+  StrengthBlock,
+  WORKOUT_TARGET_TYPE as TARGET,
+  createWorkoutSchema,
+  strengthSteps,
+} from '@openathlete/shared';
 
 import {
   Workout,
   fromStoredWorkout,
   paceToSpeed,
+  persisted,
   speedToPace,
   summarizeWorkout,
   toStoredWorkout,
+  workoutOutputSchema,
+  workoutProblems,
   workoutSchema,
   workoutSeconds,
   zoneIdsOf,
@@ -222,5 +236,998 @@ describe('agent workout format', () => {
         { kind: 'work', targets: [{ type: 'pace', min: '4.5' }] },
       ]).success,
     ).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Strength sessions
+
+type Row = Parameters<typeof fromStoredWorkout>[0][number];
+
+/** Steps as Prisma returns them: ids, nulls, targets in no set order */
+function row(step: CreateWorkoutStepDto, index = 0): Row {
+  return {
+    workoutStepId: index + 1,
+    orderIndex: index,
+    stepType: step.stepType,
+    name: step.name ?? null,
+    notes: step.notes ?? null,
+    durationType: step.durationType ?? 'OPEN',
+    durationValue: step.durationValue ?? null,
+    exerciseRef: step.exerciseRef ?? null,
+    tempo: step.tempo ?? null,
+    side: step.side ?? null,
+    createdAt: new Date(),
+    targets: (step.targets ?? [])
+      .map((target, i) => ({
+        workoutStepTargetId: i + 1,
+        targetMin: null,
+        targetMax: null,
+        targetValue: null,
+        metricType: null,
+        ...target,
+      }))
+      .reverse(),
+    repeatBlock: step.repeatBlock
+      ? {
+          repetitions: step.repeatBlock.repetitions,
+          kind: step.repeatBlock.kind ?? 'REPEAT',
+          intervalSeconds: step.repeatBlock.intervalSeconds ?? null,
+          timeCapSeconds: step.repeatBlock.timeCapSeconds ?? null,
+          childSteps: step.repeatBlock.childSteps.map(row),
+        }
+      : null,
+  } as Row;
+}
+const rows = (steps: CreateWorkoutStepDto[]) => steps.map(row);
+
+/** read -> agent -> write, through the schema an agent's call goes through */
+const roundTrip = (steps: CreateWorkoutStepDto[]) =>
+  toStoredWorkout(
+    workoutSchema.parse(fromStoredWorkout(rows(steps), new Map())),
+  );
+
+const REPS = DURATION.REPS;
+const TIME = DURATION.TIME;
+const set = (
+  value: number,
+  more: { load?: number; rpe?: number; rest?: number } = {},
+  type: typeof REPS | typeof TIME | DURATION.DISTANCE = REPS,
+) => ({
+  work: { type, value },
+  load: more.load ?? null,
+  rpe: more.rpe ?? null,
+  rest: more.rest ?? null,
+});
+const exercise = (
+  ref: string,
+  name: string,
+  sets: ReturnType<typeof set>[],
+  more: { tempo?: string; side?: EXERCISE_SIDE; notes?: string } = {},
+) => ({
+  exerciseRef: ref,
+  name,
+  sets,
+  tempo: more.tempo ?? null,
+  side: more.side ?? null,
+  notes: more.notes ?? null,
+});
+const group = (
+  kind: Exclude<KIND, KIND.REPEAT>,
+  rounds: number,
+  exercises: ReturnType<typeof exercise>[],
+  more: {
+    name?: string;
+    intervalSeconds?: number;
+    timeCapSeconds?: number;
+    roundRest?: number;
+  } = {},
+): StrengthBlock => ({
+  kind: 'group',
+  group: kind,
+  name: more.name ?? null,
+  rounds,
+  intervalSeconds: more.intervalSeconds ?? null,
+  timeCapSeconds: more.timeCapSeconds ?? null,
+  roundRest: more.roundRest ?? null,
+  exercises,
+});
+
+const squat = 'c:barbell-full-squat';
+// What the web builder saves, built with the same function
+const strengthBlocks: StrengthBlock[] = [
+  {
+    kind: 'step',
+    step: {
+      stepType: STEP.WARMUP,
+      name: 'Row',
+      notes: null,
+      durationType: TIME,
+      durationValue: 600,
+      targets: [],
+    },
+  },
+  {
+    kind: 'exercise',
+    exercise: exercise(
+      squat,
+      'Barbell full squat',
+      [1, 2, 3].map(() => set(5, { load: 80, rest: 90 })),
+      { tempo: '3-1-X-0', notes: 'Belt on' },
+    ),
+  },
+  {
+    kind: 'exercise',
+    exercise: exercise('c:barbell-bench-press', 'Bench press', [
+      set(10, { load: 60, rest: 120 }),
+      set(8, { load: 70, rest: 120 }),
+      set(6, { load: 80, rpe: 8, rest: 120 }),
+    ]),
+  },
+  {
+    kind: 'exercise',
+    exercise: exercise(
+      'u:12',
+      'Split squat',
+      [set(10, { load: 61.2349 }), set(10, { load: 61.2349 })],
+      { side: EXERCISE_SIDE.EACH },
+    ),
+  },
+  group(
+    KIND.SUPERSET,
+    4,
+    [
+      exercise('c:pull-up', 'Pull-up', [set(8, { rest: 15 })]),
+      exercise('c:push-up', 'Push-up', [set(15)]),
+    ],
+    { name: 'Upper', roundRest: 60 },
+  ),
+  group(
+    KIND.EMOM,
+    10,
+    [
+      exercise('c:kettlebell-swing', 'Kettlebell swing', [
+        set(12, { load: 24, rest: 5 }),
+      ]),
+      exercise('c:burpee', 'Burpee', [set(6)]),
+    ],
+    { intervalSeconds: 60 },
+  ),
+  group(
+    KIND.AMRAP,
+    1,
+    [
+      exercise('c:air-squat', 'Air squat', [set(15)]),
+      exercise('c:sit-up', 'Sit-up', [set(10)]),
+    ],
+    { timeCapSeconds: 720 },
+  ),
+  group(KIND.TABATA, 8, [exercise('c:plank', 'Plank', [set(20, {}, TIME)])], {
+    roundRest: 10,
+  }),
+  group(
+    KIND.CIRCUIT,
+    3,
+    [
+      exercise('c:rope-jump', 'Rope jump', [set(30, { rest: 20 }, TIME)]),
+      exercise('c:lunge', 'Lunge', [set(12, { rest: 20 })]),
+      exercise('c:crunch', 'Crunch', [set(20)]),
+    ],
+    { roundRest: 90 },
+  ),
+];
+const strengthStored = strengthSteps(strengthBlocks);
+
+const strengthRead: Workout = [
+  { kind: 'warmup', name: 'Row', durationSeconds: 600 },
+  {
+    kind: 'exercise',
+    exercise: {
+      exerciseRef: squat,
+      name: 'Barbell full squat',
+      sets: [1, 2, 3].map(() => ({
+        work: { type: REPS, value: 5 },
+        load: 80,
+        rest: 90,
+      })),
+      tempo: '3-1-X-0',
+      notes: 'Belt on',
+    },
+  },
+  {
+    kind: 'exercise',
+    exercise: {
+      exerciseRef: 'c:barbell-bench-press',
+      name: 'Bench press',
+      sets: [
+        { work: { type: REPS, value: 10 }, load: 60, rest: 120 },
+        { work: { type: REPS, value: 8 }, load: 70, rest: 120 },
+        { work: { type: REPS, value: 6 }, load: 80, rpe: 8, rest: 120 },
+      ],
+    },
+  },
+  {
+    kind: 'exercise',
+    exercise: {
+      exerciseRef: 'u:12',
+      name: 'Split squat',
+      sets: [
+        { work: { type: REPS, value: 10 }, load: 61.2349 },
+        { work: { type: REPS, value: 10 }, load: 61.2349 },
+      ],
+      side: EXERCISE_SIDE.EACH,
+    },
+  },
+  {
+    kind: 'group',
+    group: KIND.SUPERSET,
+    name: 'Upper',
+    rounds: 4,
+    roundRest: 60,
+    exercises: [
+      {
+        exerciseRef: 'c:pull-up',
+        name: 'Pull-up',
+        sets: [{ work: { type: REPS, value: 8 }, rest: 15 }],
+      },
+      {
+        exerciseRef: 'c:push-up',
+        name: 'Push-up',
+        sets: [{ work: { type: REPS, value: 15 } }],
+      },
+    ],
+  },
+  {
+    kind: 'group',
+    group: KIND.EMOM,
+    rounds: 10,
+    intervalSeconds: 60,
+    exercises: [
+      {
+        exerciseRef: 'c:kettlebell-swing',
+        name: 'Kettlebell swing',
+        sets: [{ work: { type: REPS, value: 12 }, load: 24, rest: 5 }],
+      },
+      {
+        exerciseRef: 'c:burpee',
+        name: 'Burpee',
+        sets: [{ work: { type: REPS, value: 6 } }],
+      },
+    ],
+  },
+  {
+    kind: 'group',
+    group: KIND.AMRAP,
+    rounds: 1,
+    timeCapSeconds: 720,
+    exercises: [
+      {
+        exerciseRef: 'c:air-squat',
+        name: 'Air squat',
+        sets: [{ work: { type: REPS, value: 15 } }],
+      },
+      {
+        exerciseRef: 'c:sit-up',
+        name: 'Sit-up',
+        sets: [{ work: { type: REPS, value: 10 } }],
+      },
+    ],
+  },
+  {
+    kind: 'group',
+    group: KIND.TABATA,
+    rounds: 8,
+    roundRest: 10,
+    exercises: [
+      {
+        exerciseRef: 'c:plank',
+        name: 'Plank',
+        sets: [{ work: { type: TIME, value: 20 } }],
+      },
+    ],
+  },
+  {
+    kind: 'group',
+    group: KIND.CIRCUIT,
+    rounds: 3,
+    roundRest: 90,
+    exercises: [
+      {
+        exerciseRef: 'c:rope-jump',
+        name: 'Rope jump',
+        sets: [{ work: { type: TIME, value: 30 }, rest: 20 }],
+      },
+      {
+        exerciseRef: 'c:lunge',
+        name: 'Lunge',
+        sets: [{ work: { type: REPS, value: 12 }, rest: 20 }],
+      },
+      {
+        exerciseRef: 'c:crunch',
+        name: 'Crunch',
+        sets: [{ work: { type: REPS, value: 20 } }],
+      },
+    ],
+  },
+];
+
+const active = (
+  more: Partial<CreateWorkoutStepDto> = {},
+): CreateWorkoutStepDto => ({
+  stepType: STEP.INTERVAL_ACTIVE,
+  name: 'Barbell full squat',
+  notes: null,
+  durationType: REPS,
+  durationValue: 5,
+  exerciseRef: squat,
+  tempo: null,
+  side: null,
+  targets: [{ targetType: TARGET.WEIGHT, targetValue: 80 }],
+  ...more,
+});
+const rest = (
+  seconds: number,
+  more: Partial<CreateWorkoutStepDto> = {},
+): CreateWorkoutStepDto => ({
+  stepType: STEP.INTERVAL_REST,
+  name: null,
+  notes: null,
+  durationType: TIME,
+  durationValue: seconds,
+  targets: [],
+  ...more,
+});
+const repeatOf = (
+  repetitions: number,
+  childSteps: CreateWorkoutStepDto[],
+  more: Partial<CreateWorkoutStepDto> & {
+    kind?: KIND;
+    intervalSeconds?: number;
+    timeCapSeconds?: number;
+  } = {},
+): CreateWorkoutStepDto => {
+  const { kind, intervalSeconds, timeCapSeconds, ...step } = more;
+  return {
+    stepType: STEP.REPEAT,
+    name: null,
+    durationType: DURATION.OPEN,
+    durationValue: null,
+    targets: [],
+    ...step,
+    repeatBlock: {
+      repetitions,
+      ...(kind && { kind }),
+      ...(intervalSeconds && { intervalSeconds }),
+      ...(timeCapSeconds && { timeCapSeconds }),
+      childSteps,
+    },
+  };
+};
+
+// The shared estimate of calculateWorkoutDuration for strengthRead, pinned
+const SESSION_SECONDS = 4311;
+
+describe('strength sessions', () => {
+  it('reads a session built by the web app as exercises and groups', () => {
+    const read = fromStoredWorkout(rows(strengthStored));
+
+    expect(read).toStrictEqual(strengthRead);
+    expect(workoutSchema.safeParse(read).success).toBe(true);
+    expect(workoutOutputSchema.safeParse(read).success).toBe(true);
+  });
+
+  it('writes it back to the same stored steps', () => {
+    expect(persisted(roundTrip(strengthStored))).toEqual(
+      persisted(strengthStored),
+    );
+    // And what an agent writes by hand gives the web's steps
+    expect(toStoredWorkout(strengthRead)).toStrictEqual(strengthStored);
+    expect(
+      createWorkoutSchema.safeParse({ steps: toStoredWorkout(strengthRead) })
+        .success,
+    ).toBe(true);
+  });
+
+  it('stores a superset as the web app does, pinned step by step', () => {
+    const exerciseStep = (
+      ref: string,
+      name: string,
+      reps: number,
+    ): CreateWorkoutStepDto => ({
+      stepType: STEP.INTERVAL_ACTIVE,
+      name,
+      durationType: REPS,
+      durationValue: reps,
+      notes: null,
+      exerciseRef: ref,
+      tempo: null,
+      side: null,
+      targets: [],
+    });
+
+    const stored = toStoredWorkout(strengthRead);
+    expect(stored.find((step) => step.name === 'Upper')).toStrictEqual({
+      stepType: STEP.REPEAT,
+      name: 'Upper',
+      durationType: DURATION.OPEN,
+      durationValue: null,
+      targets: [],
+      repeatBlock: {
+        repetitions: 4,
+        kind: KIND.SUPERSET,
+        intervalSeconds: null,
+        timeCapSeconds: null,
+        childSteps: [
+          exerciseStep('c:pull-up', 'Pull-up', 8),
+          rest(15, { notes: null }),
+          exerciseStep('c:push-up', 'Push-up', 15),
+          rest(60),
+        ],
+      },
+    });
+  });
+
+  it('leaves an endurance session unchanged', () => {
+    const stored: CreateWorkoutStepDto[] = [
+      {
+        stepType: 'WARMUP' as STEP,
+        name: null,
+        notes: null,
+        durationType: TIME,
+        durationValue: 600,
+        targets: [],
+      },
+      {
+        stepType: 'REPEAT' as STEP,
+        name: null,
+        durationType: DURATION.OPEN,
+        durationValue: null,
+        targets: [],
+        repeatBlock: {
+          repetitions: 4,
+          childSteps: [
+            {
+              stepType: 'INTERVAL_ACTIVE' as STEP,
+              name: null,
+              notes: 'Hard',
+              durationType: TIME,
+              durationValue: 60,
+              targets: [
+                {
+                  targetType: 'HEARTRATE' as TARGET,
+                  targetValue: null,
+                  targetMin: 150,
+                  targetMax: 160,
+                  metricType: null,
+                },
+              ],
+            },
+            {
+              stepType: 'INTERVAL_REST' as STEP,
+              name: null,
+              notes: null,
+              durationType: TIME,
+              durationValue: 60,
+              targets: [],
+            },
+          ],
+        },
+      },
+    ];
+    const agent: Workout = [
+      { kind: 'warmup', durationSeconds: 600 },
+      {
+        kind: 'repeat',
+        times: 4,
+        steps: [
+          {
+            kind: 'work',
+            notes: 'Hard',
+            durationSeconds: 60,
+            targets: [{ type: 'heart_rate', min: 150, max: 160 }],
+          },
+          { kind: 'recovery', durationSeconds: 60 },
+        ],
+      },
+    ];
+
+    expect(fromStoredWorkout(rows(stored))).toStrictEqual(agent);
+    // No strength key is added to what is stored
+    expect(toStoredWorkout(agent)).toStrictEqual(stored);
+  });
+
+  const squatSet = (more: Partial<CreateWorkoutStepDto> = {}) => active(more);
+  it.each<[string, CreateWorkoutStepDto[]]>([
+    ['a repeat of one exercise, once', [repeatOf(1, [squatSet(), rest(90)])]],
+    [
+      'a plain repeat of several exercises',
+      [repeatOf(3, [squatSet(), squatSet({ exerciseRef: 'c:lunge' })])],
+    ],
+    [
+      'a named repeat of one exercise',
+      [repeatOf(3, [squatSet()], { name: 'Heavy' })],
+    ],
+    [
+      'an exercise that is not an active interval',
+      [squatSet({ stepType: STEP.WARMUP })],
+    ],
+    [
+      'a weight range',
+      [
+        squatSet({
+          targets: [
+            { targetType: TARGET.WEIGHT, targetMin: 60, targetMax: 70 },
+          ],
+        }),
+      ],
+    ],
+    [
+      'a target that is not a load',
+      [
+        squatSet({
+          targets: [{ targetType: TARGET.ZONE, targetValue: 4 }],
+        }),
+      ],
+    ],
+    [
+      'a rest with a name',
+      [squatSet(), rest(60, { name: 'Breathe', notes: 'Walk' })],
+    ],
+    [
+      'identical sets stored one by one',
+      [squatSet(), rest(60), squatSet(), rest(60)],
+    ],
+    [
+      'two rests in a row inside a group',
+      [
+        repeatOf(
+          2,
+          [
+            squatSet(),
+            rest(20),
+            rest(30),
+            squatSet({ exerciseRef: 'c:lunge' }),
+          ],
+          { kind: KIND.SUPERSET },
+        ),
+      ],
+    ],
+    [
+      'an exercise whose name is null (blocks would store an empty name)',
+      [squatSet({ name: null })],
+    ],
+    [
+      'a repeat with notes',
+      [repeatOf(3, [squatSet(), rest(60)], { notes: 'Heavy day' })],
+    ],
+    [
+      'two targets of the same type',
+      [
+        squatSet({
+          targets: [
+            { targetType: TARGET.WEIGHT, targetValue: 80 },
+            { targetType: TARGET.WEIGHT, targetValue: 60 },
+          ],
+        }),
+      ],
+    ],
+  ])('reads %s step by step and writes it back unchanged', (_name, steps) => {
+    const read = fromStoredWorkout(rows(steps));
+
+    expect(read.every((item) => item.kind !== 'exercise')).toBe(true);
+    expect(read.every((item) => item.kind !== 'group')).toBe(true);
+    expect(persisted(roundTrip(steps))).toEqual(persisted(steps));
+  });
+
+  it('keeps the notes of a repeat read step by step', () => {
+    const steps = [repeatOf(3, [squatSet(), rest(60)], { notes: 'Heavy day' })];
+
+    expect(fromStoredWorkout(rows(steps))[0]).toMatchObject({
+      kind: 'repeat',
+      notes: 'Heavy day',
+    });
+  });
+
+  it.each<[string, CreateWorkoutStepDto[]]>([
+    [
+      'an interval repeat',
+      [
+        repeatOf(
+          6,
+          [
+            active({
+              stepType: STEP.INTERVAL_ACTIVE,
+              exerciseRef: null,
+              durationType: TIME,
+              durationValue: 180,
+              targets: [],
+            }),
+            rest(120),
+          ],
+          { notes: 'Jog the recoveries' },
+        ),
+      ],
+    ],
+    [
+      'an EMOM of steps with a name and reps but no exercise',
+      [
+        repeatOf(
+          10,
+          [
+            active({
+              name: 'Push-up',
+              exerciseRef: null,
+              targets: [],
+              durationValue: 10,
+            }),
+          ],
+          { notes: 'Unbroken', kind: KIND.EMOM, intervalSeconds: 60 },
+        ),
+      ],
+    ],
+  ])('reads the notes of %s and writes them back', (_name, steps) => {
+    const read = fromStoredWorkout(rows(steps));
+
+    expect(read[0]).toMatchObject({ kind: 'repeat' });
+    expect((read[0] as { notes?: string }).notes).toBeTruthy();
+    expect(persisted(roundTrip(steps))).toEqual(persisted(steps));
+  });
+
+  it('adds no notes to a repeat that has none', () => {
+    const [read] = fromStoredWorkout(
+      rows([repeatOf(2, [active({ exerciseRef: null, targets: [] })])]),
+    );
+
+    expect(read).not.toHaveProperty('notes');
+  });
+
+  it('reads only the segment that is not clean step by step', () => {
+    const clean = strengthSteps([
+      strengthBlocks.find((block) => block.kind === 'group')!,
+    ]);
+    const steps = [...clean, squatSet({ exerciseRef: 'c:lunge', name: null })];
+    const read = fromStoredWorkout(rows(steps));
+
+    // The superset stays one group, the unclean step is a plain step
+    expect(read[0].kind).toBe('group');
+    expect(read[read.length - 1]).toMatchObject({
+      kind: 'work',
+      exerciseRef: 'c:lunge',
+    });
+    expect(persisted(roundTrip(steps))).toEqual(persisted(steps));
+  });
+
+  it('reads sets of one exercise stored as a repeat and as a flat set apart', () => {
+    // 5 × 5 at 100 kg, then one back-off set of 10 at 70 kg
+    const steps = [
+      repeatOf(5, [
+        squatSet({
+          targets: [{ targetType: TARGET.WEIGHT, targetValue: 100 }],
+        }),
+        rest(180),
+      ]),
+      squatSet({
+        durationValue: 10,
+        targets: [{ targetType: TARGET.WEIGHT, targetValue: 70 }],
+      }),
+      rest(120),
+    ];
+    const read = fromStoredWorkout(rows(steps));
+
+    expect(read.map((item) => item.kind)).toEqual(['exercise', 'exercise']);
+    expect(workoutSchema.safeParse(read).success).toBe(true);
+    expect(persisted(roundTrip(steps))).toEqual(persisted(steps));
+  });
+
+  it('writes back a session of a 5 × 5, a back-off set and an 11-exercise circuit', () => {
+    const members = Array.from({ length: 11 }, (_, i) => ({
+      ref: `c:move-${i}`,
+      name: `Move ${i}`,
+    }));
+    const steps = [
+      repeatOf(5, [squatSet(), rest(180)]),
+      squatSet({
+        durationValue: 10,
+        targets: [{ targetType: TARGET.WEIGHT, targetValue: 70 }],
+      }),
+      rest(120),
+      repeatOf(
+        3,
+        members.flatMap(({ ref, name }, index) => [
+          squatSet({ exerciseRef: ref, name, targets: [] }),
+          rest(index === members.length - 1 ? 60 : 15),
+        ]),
+        { kind: KIND.CIRCUIT },
+      ),
+    ];
+    const read = fromStoredWorkout(rows(steps));
+
+    expect(read.map((item) => item.kind)).toEqual([
+      'exercise',
+      'exercise',
+      'group',
+    ]);
+    // What was read is what the input takes, and gives the same rows
+    const parsed = workoutSchema.safeParse(read);
+    expect(parsed.success).toBe(true);
+    expect(persisted(toStoredWorkout(parsed.data!))).toEqual(persisted(steps));
+  });
+
+  it.each<[string, CreateWorkoutStepDto[]]>([
+    [
+      'a repeat next to a single set of the same exercise',
+      [repeatOf(3, [squatSet(), rest(60)]), squatSet()],
+    ],
+    [
+      'endurance steps with a zone and a percent target in a strength session',
+      [
+        {
+          stepType: STEP.WARMUP,
+          name: null,
+          notes: null,
+          durationType: TIME,
+          durationValue: 600,
+          targets: [{ targetType: TARGET.ZONE, targetValue: 4 }],
+        },
+        ...strengthSteps([strengthBlocks[1]]),
+        {
+          stepType: STEP.COOLDOWN,
+          name: null,
+          notes: null,
+          durationType: TIME,
+          durationValue: 300,
+          targets: [
+            {
+              targetType: TARGET.HEARTRATE,
+              targetValue: 0.85,
+              metricType: 'HR_MAX',
+            },
+          ],
+        },
+      ],
+    ],
+  ])('writes %s back unchanged', (_name, steps) => {
+    expect(persisted(roundTrip(steps))).toEqual(persisted(steps));
+  });
+
+  it('reads stored values the input would refuse', () => {
+    const odd = strengthSteps([
+      {
+        kind: 'exercise',
+        exercise: exercise(squat, 'x'.repeat(200), [
+          set(0.4, { load: -20, rpe: 0.5, rest: 37.5 }),
+        ]),
+      },
+      {
+        kind: 'group',
+        group: KIND.EMOM,
+        name: null,
+        rounds: 500,
+        intervalSeconds: 5,
+        timeCapSeconds: null,
+        roundRest: 7200,
+        exercises: [exercise('c:burpee', 'Burpee', [set(6)])],
+      },
+    ]);
+    const flat = fromStoredWorkout(
+      rows([
+        active({
+          exerciseRef: 'zzz',
+          tempo: 'fast',
+          side: 'LEFT' as EXERCISE_SIDE,
+          durationValue: 0,
+          targets: [{ targetType: TARGET.WEIGHT, targetValue: -5 }],
+        }),
+      ]),
+    );
+    const blocks = fromStoredWorkout(rows(odd));
+
+    expect(blocks[0].kind).toBe('exercise');
+    for (const read of [blocks, flat]) {
+      expect(workoutOutputSchema.safeParse(read).success).toBe(true);
+      expect(workoutSchema.safeParse(read).success).toBe(false);
+    }
+  });
+
+  it('accepts a rest of 0 and does not ask for roundRest for it', () => {
+    const reps = (value: number, more: object = {}) => ({
+      work: { type: 'REPS', value },
+      ...more,
+    });
+    const lunges = [
+      { exerciseRef: 'c:lunge', name: 'Lunge', sets: [reps(8)] },
+      { exerciseRef: 'c:crunch', name: 'Crunch', sets: [reps(8, { rest: 0 })] },
+    ];
+    const workout = workoutSchema.parse([
+      { kind: 'group', group: 'SUPERSET', rounds: 3, exercises: lunges },
+    ]);
+
+    expect(workoutProblems(workout)).toEqual([]);
+    expect(toStoredWorkout(workout)).toStrictEqual(
+      toStoredWorkout(
+        workoutSchema.parse([
+          {
+            kind: 'group',
+            group: 'SUPERSET',
+            rounds: 3,
+            exercises: [lunges[0], { ...lunges[1], sets: [reps(8)] }],
+          },
+        ]),
+      ),
+    );
+  });
+
+  it('keeps reps, weight ranges and the repeat kind on plain steps', () => {
+    const steps = [
+      active({ exerciseRef: null, name: 'Sled', tempo: null }),
+      repeatOf(6, [active({ stepType: STEP.WARMUP }), rest(20)], {
+        kind: KIND.EMOM,
+        intervalSeconds: 90,
+      }),
+    ];
+    const read = fromStoredWorkout(rows(steps));
+
+    expect(read[0]).toEqual({
+      kind: 'work',
+      name: 'Sled',
+      reps: 5,
+      targets: [{ type: 'weight', min: 80 }],
+    });
+    expect(read[1]).toMatchObject({
+      kind: 'repeat',
+      times: 6,
+      repeatKind: 'EMOM',
+      intervalSeconds: 90,
+    });
+    expect(persisted(roundTrip(steps))).toEqual(persisted(steps));
+  });
+
+  it('does not round loads', () => {
+    const read = fromStoredWorkout(rows(strengthStored));
+
+    expect(JSON.stringify(read)).toContain('61.2349');
+    expect(JSON.stringify(roundTrip(strengthStored))).toContain('61.2349');
+  });
+
+  it('refuses what storage would drop', () => {
+    const reps = (value: number, more: object = {}) => ({
+      work: { type: 'REPS', value },
+      ...more,
+    });
+    const swing = (sets: object[]) => ({
+      exerciseRef: 'c:kettlebell-swing',
+      name: 'Swing',
+      sets,
+    });
+    const problems = workoutProblems(
+      workoutSchema.parse([
+        {
+          kind: 'group',
+          group: 'SUPERSET',
+          rounds: 3,
+          exercises: [
+            swing([reps(10), reps(10)]),
+            swing([reps(10, { rest: 30 })]),
+          ],
+        },
+        { kind: 'work', reps: 10, durationSeconds: 30 },
+        {
+          kind: 'repeat',
+          times: 2,
+          steps: [{ kind: 'work', reps: 5, distanceMeters: 100 }],
+        },
+        { kind: 'work', reps: 10 },
+      ]),
+    );
+
+    expect(problems).toEqual([
+      'workoutSteps[0].exercises[0]: group exercises take one set, done each round',
+      'workoutSteps[0].exercises[1]: use roundRest for the rest after the last exercise',
+      'workoutSteps[1]: give reps, durationSeconds or distanceMeters, not several',
+      'workoutSteps[2].steps[0]: give reps, durationSeconds or distanceMeters, not several',
+    ]);
+  });
+
+  it('checks formats and limits on what an agent writes', () => {
+    const item = (more: object) => [
+      {
+        kind: 'exercise',
+        exercise: {
+          exerciseRef: squat,
+          name: 'Squat',
+          sets: [{ work: { type: 'REPS', value: 5 } }],
+          ...more,
+        },
+      },
+    ];
+
+    expect(workoutSchema.safeParse(item({})).success).toBe(true);
+    expect(
+      workoutSchema.safeParse(item({ exerciseRef: 'squat' })).success,
+    ).toBe(false);
+    expect(workoutSchema.safeParse(item({ tempo: '3-1' })).success).toBe(false);
+    expect(workoutSchema.safeParse(item({ sets: [] })).success).toBe(false);
+    expect(
+      workoutSchema.safeParse([
+        { kind: 'work', reps: 5, exerciseRef: 'c:Squat' },
+      ]).success,
+    ).toBe(false);
+  });
+
+  it('reads sessions longer than the input limits', () => {
+    const long = Array.from({ length: 80 }, (_, i) =>
+      active({ name: `Set ${i}`, durationValue: 5 + i, exerciseRef: 'c:a' }),
+    );
+    const name = 'x'.repeat(120);
+    const read = fromStoredWorkout(
+      rows([
+        ...long,
+        active({ name, stepType: STEP.WARMUP, exerciseRef: 'c:b' }),
+      ]),
+    );
+
+    expect(read).toHaveLength(81);
+    expect(workoutOutputSchema.safeParse(read).success).toBe(true);
+    expect(workoutSchema.safeParse(read).success).toBe(false);
+
+    // A 120-character exercise name, read as an exercise item
+    const named = fromStoredWorkout(
+      rows(
+        strengthSteps([
+          {
+            kind: 'exercise',
+            exercise: exercise('u:3', name, [set(5, { load: 20 })]),
+          },
+        ]),
+      ),
+    );
+    expect(named[0].kind).toBe('exercise');
+    expect(workoutOutputSchema.safeParse(named).success).toBe(true);
+    expect(workoutSchema.safeParse(named).success).toBe(true);
+    // And the same name on a flat step, which the input takes as well
+    expect(
+      workoutSchema.safeParse([{ kind: 'work', name, reps: 5 }]).success,
+    ).toBe(true);
+  });
+
+  it('summarizes a strength session on one line', () => {
+    expect(summarizeWorkout(strengthRead)).toBe(
+      [
+        'warmup 10min',
+        '3×5 Barbell full squat @ 80 kg, rest 1min30s',
+        '10/8/6 Bench press @ 60/70/80 kg, rest 2min',
+        '2×10 Split squat @ 61.23 kg',
+        'superset 4×(8 Pull-up, 15 Push-up)',
+        'emom 10×(12 Kettlebell swing @ 24 kg, 6 Burpee) every 1min',
+        'amrap 12min (15 Air squat, 10 Sit-up)',
+        'tabata 8×(20s Plank)',
+        'circuit 3×(30s Rope jump, 12 Lunge, 20 Crunch)',
+      ].join(' · '),
+    );
+    expect(
+      summarizeWorkout([
+        {
+          kind: 'work',
+          reps: 10,
+          exerciseRef: 'c:sled-push',
+          name: 'Sled push',
+          targets: [{ type: 'weight', min: 40.123 }],
+        },
+        {
+          kind: 'repeat',
+          repeatKind: KIND.EMOM,
+          times: 5,
+          steps: [{ kind: 'recovery', durationSeconds: 30 }],
+        },
+        { kind: 'work', reps: 10, targets: [{ type: 'weight', min: 40 }] },
+      ]),
+    ).toBe(
+      'work 10 reps Sled push @ 40.12 kg · emom 5×(recovery 30s) · work 10 reps @ 40 kg',
+    );
+  });
+
+  it('counts the planned seconds of a strength session', () => {
+    expect(workoutSeconds(strengthRead)).toBe(SESSION_SECONDS);
+    expect(zoneIdsOf(strengthRead)).toEqual([]);
   });
 });
