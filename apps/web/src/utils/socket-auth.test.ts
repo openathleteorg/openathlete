@@ -3,8 +3,11 @@ import type { Socket } from 'socket.io-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getAccessToken, refreshToken } from './auth';
-import { installAuthTokens } from './auth-attempt';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from './local-storage';
+import {
+  installAuthTokens,
+  storedAccessToken,
+  storedRefreshToken,
+} from './auth-attempt';
 import { keepSocketAuthenticated } from './socket-auth';
 
 vi.mock('./auth', async (importActual) => ({
@@ -83,8 +86,8 @@ describe('keepSocketAuthenticated', () => {
     await expect(handshake(socket)).resolves.toEqual({ token: second });
     // Refreshing is auth's job: a consumer must not write its result, or a
     // late answer could restore the previous account.
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('installed-access');
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('installed-refresh');
+    expect(storedAccessToken()).toBe('installed-access');
+    expect(storedRefreshToken()).toBe('installed-refresh');
   });
 
   it('does not send a handshake for a session replaced while resolving', async () => {
@@ -200,8 +203,8 @@ describe('keepSocketAuthenticated', () => {
     expect(refreshToken).toHaveBeenCalledTimes(1);
     expect(socket.disconnect).toHaveBeenCalledTimes(1);
     // The refresh helper owns installation; the socket only reconnects.
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(stale);
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('stale-refresh');
+    expect(storedAccessToken()).toBe(stale);
+    expect(storedRefreshToken()).toBe('stale-refresh');
   });
 
   it('ignores a refresh that resolves after a successor signed in', async () => {
@@ -242,8 +245,8 @@ describe('keepSocketAuthenticated', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(storedAccessToken()).toBe('token-b');
+    expect(storedRefreshToken()).toBe('refresh-b');
     expect(socket.disconnect).not.toHaveBeenCalled();
   });
 

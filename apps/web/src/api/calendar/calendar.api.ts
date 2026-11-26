@@ -56,6 +56,7 @@ export class CalendarAPI {
   private static socket: Socket | null = null;
   private static socketAuth: SocketAuthentication | null = null;
   private static connectingPromise: Promise<void> | null = null;
+  private static connectingSocket: Socket | null = null;
   private static socketSessionKey: string | null = null;
 
   static getSocket(): Socket {
@@ -106,6 +107,8 @@ export class CalendarAPI {
           const oldSocket = this.socket;
           this.socket = null;
           this.socketSessionKey = null;
+          this.connectingPromise = null;
+          this.connectingSocket = null;
           this.socketAuth?.stop();
           this.socketAuth = null;
           if (oldSocket) {
@@ -124,25 +127,25 @@ export class CalendarAPI {
   }
 
   static async connectSocket(): Promise<void> {
-    // Prevent multiple simultaneous connection attempts
-    if (this.connectingPromise) {
-      return this.connectingPromise;
-    }
-
     const socket = this.getSocket();
     if (socket.connected) {
       return;
     }
+    // A pending attempt belongs only to the socket it was started for. A newer
+    // login may already have replaced that socket and started its own work.
+    if (this.connectingPromise && this.connectingSocket === socket) {
+      return this.connectingPromise;
+    }
 
-    this.connectingPromise = (async () => {
+    const connection = (async () => {
       try {
         // Ensure we have a valid token before connecting
         const tokenInfo = await getAccessToken();
+        if (this.socket !== socket || this.connectingSocket !== socket) return;
         if (!tokenInfo) {
           console.error(
             '[CalendarAPI] No valid token available for connection',
           );
-          this.connectingPromise = null;
           return;
         }
 
@@ -150,17 +153,26 @@ export class CalendarAPI {
         socket.connect();
       } catch (error) {
         console.error('[CalendarAPI] Error connecting socket:', error);
-        this.connectingPromise = null;
+        if (this.connectingSocket === socket) {
+          this.connectingPromise = null;
+          this.connectingSocket = null;
+        }
         throw error;
       } finally {
-        // Clear the promise after a delay to allow connection to establish
+        // Clear only this socket's attempt after a delay to allow connection
+        // to establish; a stale cleanup must not erase a successor's work.
         setTimeout(() => {
-          this.connectingPromise = null;
+          if (this.connectingSocket === socket) {
+            this.connectingPromise = null;
+            this.connectingSocket = null;
+          }
         }, 2000);
       }
     })();
 
-    return this.connectingPromise;
+    this.connectingPromise = connection;
+    this.connectingSocket = socket;
+    return connection;
   }
 
   static disconnectSocket(): void {
@@ -168,6 +180,7 @@ export class CalendarAPI {
     this.socketAuth = null;
     this.socketSessionKey = null;
     this.connectingPromise = null;
+    this.connectingSocket = null;
     if (this.socket) {
       this.socket.disconnect();
       this.socket.removeAllListeners();

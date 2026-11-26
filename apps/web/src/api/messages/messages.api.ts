@@ -27,6 +27,7 @@ export class MessagesAPI {
   private static socket: Socket | null = null;
   private static socketAuth: SocketAuthentication | null = null;
   private static connectingPromise: Promise<void> | null = null;
+  private static connectingSocket: Socket | null = null;
   private static socketSessionKey: string | null = null;
 
   // ==================== REST API Methods ====================
@@ -144,6 +145,8 @@ export class MessagesAPI {
             const oldSocket = this.socket;
             this.socket = null;
             this.socketSessionKey = null;
+            this.connectingPromise = null;
+            this.connectingSocket = null;
             this.socketAuth?.stop();
             this.socketAuth = null;
             if (oldSocket) {
@@ -158,20 +161,21 @@ export class MessagesAPI {
   }
 
   static async connectSocket(): Promise<void> {
-    // Prevent multiple simultaneous connection attempts
-    if (this.connectingPromise) {
-      return this.connectingPromise;
-    }
-
     const socket = this.getSocket();
     if (socket.connected) {
       return;
     }
+    // A pending attempt belongs only to the socket it was started for. A newer
+    // login may already have replaced that socket and started its own work.
+    if (this.connectingPromise && this.connectingSocket === socket) {
+      return this.connectingPromise;
+    }
 
-    this.connectingPromise = (async () => {
+    const connection = (async () => {
       try {
         // Ensure we have a valid token before connecting
         const tokenInfo = await getAccessToken();
+        if (this.socket !== socket || this.connectingSocket !== socket) return;
         if (!tokenInfo) {
           console.error(
             '[MessagesAPI] No valid token available for connection',
@@ -181,14 +185,20 @@ export class MessagesAPI {
 
         socket.connect();
       } finally {
-        // Clear the promise after a short delay to allow connection to establish
+        // Clear only this socket's attempt after a short delay to allow the
+        // connection to establish; stale cleanup must not erase newer work.
         setTimeout(() => {
-          this.connectingPromise = null;
+          if (this.connectingSocket === socket) {
+            this.connectingPromise = null;
+            this.connectingSocket = null;
+          }
         }, 1000);
       }
     })();
 
-    return this.connectingPromise;
+    this.connectingPromise = connection;
+    this.connectingSocket = socket;
+    return connection;
   }
 
   static disconnectSocket(): void {
@@ -196,6 +206,7 @@ export class MessagesAPI {
     this.socketAuth = null;
     this.socketSessionKey = null;
     this.connectingPromise = null;
+    this.connectingSocket = null;
     if (this.socket) {
       this.socket.disconnect();
       this.socket.removeAllListeners();

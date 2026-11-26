@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
-import { installAuthTokens } from '@/utils/auth-attempt';
+import {
+  installAuthTokens,
+  storedAccessToken,
+  storedRefreshToken,
+} from '@/utils/auth-attempt';
 import client from '@/utils/axios';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/utils/local-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   AxiosError,
@@ -162,17 +165,15 @@ describe('auth login hooks', () => {
 
     // The second login answers first, then the first answers late.
     await act(async () => respond(requestWith('idToken'), 'token-b'));
-    await vi.waitFor(() =>
-      expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b'),
-    );
+    await vi.waitFor(() => expect(storedAccessToken()).toBe('token-b'));
     await act(async () => respond(requestWith('email'), 'token-a'));
 
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-token-b');
+    expect(storedAccessToken()).toBe('token-b');
+    expect(storedRefreshToken()).toBe('refresh-token-b');
     expect(successes).toEqual(['firebase']);
   });
 
@@ -197,8 +198,8 @@ describe('auth login hooks', () => {
 
     // The old login must not dispatch at all, let alone with B's bearer.
     expect(pending).toHaveLength(0);
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(successor);
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(storedAccessToken()).toBe(successor);
+    expect(storedRefreshToken()).toBe('refresh-b');
     expect(successes).toEqual([]);
   });
 
@@ -217,8 +218,8 @@ describe('auth login hooks', () => {
       await Promise.resolve();
     });
 
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(successor);
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(storedAccessToken()).toBe(successor);
+    expect(storedRefreshToken()).toBe('refresh-b');
     expect(successes).toEqual([]);
   });
 
@@ -235,7 +236,7 @@ describe('auth login hooks', () => {
       await Promise.resolve();
     });
 
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+    expect(storedAccessToken()).toBeNull();
     expect(successes).toEqual([]);
   });
 
@@ -253,17 +254,15 @@ describe('auth login hooks', () => {
     await vi.waitFor(() => expect(pending).toHaveLength(2));
 
     await act(async () => respond(requestWith('email'), 'token-b'));
-    await vi.waitFor(() =>
-      expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b'),
-    );
+    await vi.waitFor(() => expect(storedAccessToken()).toBe('token-b'));
     await act(async () => respond(oidc, 'token-a'));
 
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-token-b');
+    expect(storedAccessToken()).toBe('token-b');
+    expect(storedRefreshToken()).toBe('refresh-token-b');
     expect(successes).toEqual(['email']);
   });
 });

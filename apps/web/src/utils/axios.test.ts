@@ -7,9 +7,13 @@ import {
 } from 'axios';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { captureAuthSession, installAuthTokens } from './auth-attempt';
+import {
+  captureAuthSession,
+  installAuthTokens,
+  storedAccessToken,
+  storedRefreshToken,
+} from './auth-attempt';
 import client, { AuthSessionChangedError, isNetworkError } from './axios';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from './local-storage';
 
 const auth = vi.hoisted(() => ({ getAccessToken: vi.fn() }));
 const capacitor = vi.hoisted(() => ({
@@ -58,8 +62,8 @@ describe('API client errors', () => {
     await expect(request).rejects.toMatchObject({
       response: { status: 401 },
     });
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBeNull();
+    expect(storedAccessToken()).toBeNull();
+    expect(storedRefreshToken()).toBeNull();
   });
 
   it('keeps the tokens on other failures', async () => {
@@ -67,7 +71,7 @@ describe('API client errors', () => {
     await expect(request).rejects.toMatchObject({
       response: { status: 500 },
     });
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(ACCESS);
+    expect(storedAccessToken()).toBe(ACCESS);
   });
 
   it('does not clear a newer session from a stale 401', async () => {
@@ -89,8 +93,8 @@ describe('API client errors', () => {
     await expect(request).rejects.toMatchObject({
       response: { status: 401 },
     });
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(storedAccessToken()).toBe('token-b');
+    expect(storedRefreshToken()).toBe('refresh-b');
   });
 
   it('never sends a request with a successor token after a refresh', async () => {
@@ -115,8 +119,8 @@ describe('API client errors', () => {
 
     await expect(outcome).resolves.toBeInstanceOf(AuthSessionChangedError);
     expect(adapter).not.toHaveBeenCalled();
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(storedAccessToken()).toBe('token-b');
+    expect(storedRefreshToken()).toBe('refresh-b');
   });
 
   it('never sends a request after its API instance changed during refresh', async () => {
@@ -140,7 +144,7 @@ describe('API client errors', () => {
 
     await expect(outcome).resolves.toBeInstanceOf(AuthSessionChangedError);
     expect(adapter).not.toHaveBeenCalled();
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(ACCESS);
+    expect(storedAccessToken()).toBe(ACCESS);
   });
 
   const starts: [string, (adapter: AxiosAdapter) => Promise<unknown>][] = [
@@ -176,7 +180,7 @@ describe('API client errors', () => {
 
       await expect(outcome).resolves.toBeInstanceOf(AuthSessionChangedError);
       expect(adapter).not.toHaveBeenCalled();
-      expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+      expect(storedAccessToken()).toBe('token-b');
     },
   );
 
@@ -196,7 +200,7 @@ describe('API client errors', () => {
 
     await expect(outcome).resolves.toBeInstanceOf(AuthSessionChangedError);
     expect(adapter).not.toHaveBeenCalled();
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(storedAccessToken()).toBe('token-b');
   });
 
   it('rechecks the owner at the adapter boundary', async () => {
@@ -220,7 +224,7 @@ describe('API client errors', () => {
 
     await expect(outcome).resolves.toBeInstanceOf(AuthSessionChangedError);
     expect(adapter).not.toHaveBeenCalled();
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(storedAccessToken()).toBe('token-b');
   });
 
   it('binds a locale write to the session that invoked it', async () => {
@@ -239,7 +243,7 @@ describe('API client errors', () => {
 
     await expect(outcome).resolves.toBeInstanceOf(AuthSessionChangedError);
     expect(adapter).not.toHaveBeenCalled();
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(storedAccessToken()).toBe('token-b');
   });
 
   it('sends a locale write for the session that still owns the profile', async () => {
@@ -271,7 +275,7 @@ describe('API client errors', () => {
     const error = await offline.catch((e: unknown) => e);
     expect(isNetworkError(error)).toBe(true);
     // The session is kept for when the connection comes back
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(ACCESS);
+    expect(storedAccessToken()).toBe(ACCESS);
 
     const unauthorized = await client
       .get('/user/me', { adapter: respondWith(401) })

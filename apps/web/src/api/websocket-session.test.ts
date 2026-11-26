@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
-import { installAuthTokens } from '@/utils/auth-attempt';
-import { ACCESS_TOKEN } from '@/utils/local-storage';
+import { installAuthTokens, storedAccessToken } from '@/utils/auth-attempt';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CalendarAPI } from './calendar/calendar.api';
@@ -49,12 +48,16 @@ const cases = [
   {
     name: 'calendar',
     getSocket: () => CalendarAPI.getSocket() as unknown as FakeSocket,
+    connectSocket: () => CalendarAPI.connectSocket(),
     disconnect: () => CalendarAPI.disconnectSocket(),
+    cleanupDelay: 2000,
   },
   {
     name: 'messages',
     getSocket: () => MessagesAPI.getSocket() as unknown as FakeSocket,
+    connectSocket: () => MessagesAPI.connectSocket(),
     disconnect: () => MessagesAPI.disconnectSocket(),
+    cleanupDelay: 1000,
   },
 ];
 
@@ -74,7 +77,7 @@ describe('cached API sockets', () => {
     });
     auth.getAccessToken.mockReset();
     auth.getAccessToken.mockImplementation(async () => ({
-      accessToken: localStorage.getItem(ACCESS_TOKEN),
+      accessToken: storedAccessToken(),
       refreshed: false,
     }));
   });
@@ -102,6 +105,39 @@ describe('cached API sockets', () => {
       expect(ioMock).toHaveBeenCalledTimes(2);
 
       disconnect();
+    },
+  );
+
+  it.each(cases)(
+    'connects a $name successor while the old cleanup timer is pending',
+    async ({ connectSocket, disconnect, cleanupDelay }) => {
+      vi.useFakeTimers();
+      try {
+        installAuthTokens('token-a', 'refresh-a');
+        await connectSocket();
+        expect(created).toHaveLength(1);
+        expect(created[0].connect).toHaveBeenCalledTimes(1);
+
+        // Leave A's cleanup timer pending, then switch accounts.
+        vi.advanceTimersByTime(100);
+        installAuthTokens('token-b', 'refresh-b');
+        await connectSocket();
+
+        expect(created).toHaveLength(2);
+        expect(created[1].connect).toHaveBeenCalledTimes(1);
+        const tokenCalls = auth.getAccessToken.mock.calls.length;
+
+        // A's timer fires before B's and must not erase B's pending attempt.
+        vi.advanceTimersByTime(cleanupDelay - 100);
+        await connectSocket();
+
+        expect(created).toHaveLength(2);
+        expect(auth.getAccessToken).toHaveBeenCalledTimes(tokenCalls);
+        expect(created[1].connect).toHaveBeenCalledTimes(1);
+        disconnect();
+      } finally {
+        vi.useRealTimers();
+      }
     },
   );
 });

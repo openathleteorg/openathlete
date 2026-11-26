@@ -5,9 +5,10 @@ vi.mock('./capacitor', () => ({
   getApiBaseUrl: () => 'https://train.example.org/api',
 }));
 
-const OWNER_KEY = 'auth_session_owner';
-const GENERATION_KEY = 'auth_token_generation';
-const ACCESS_KEY = 'access_token';
+const SESSION_KEY = 'auth_session';
+const ATTEMPT_KEY = 'auth_login_attempt';
+const LEGACY_ACCESS_KEY = 'access_token';
+const LEGACY_REFRESH_KEY = 'refresh_token';
 
 describe('auth session storage ownership', () => {
   beforeEach(() => {
@@ -17,13 +18,24 @@ describe('auth session storage ownership', () => {
     vi.resetModules();
   });
 
-  it('shares owner and generation through storage across module contexts', async () => {
+  it('keeps owner, generation and credentials in one record', async () => {
     const firstContext = await import('./auth-attempt');
     firstContext.installAuthTokens('token-a', 'refresh-a');
     const snapshot = firstContext.captureAuthSession();
+    const record = JSON.parse(localStorage.getItem(SESSION_KEY)!) as Record<
+      string,
+      unknown
+    >;
 
-    expect(localStorage.getItem(OWNER_KEY)).toBe(snapshot.owner);
-    expect(localStorage.getItem(GENERATION_KEY)).toBe(snapshot.generation);
+    expect(record).toMatchObject({
+      owner: snapshot.owner,
+      generation: snapshot.generation,
+      accessToken: 'token-a',
+      refreshToken: 'refresh-a',
+    });
+    // No split legacy credential can disagree with the owner.
+    expect(localStorage.getItem(LEGACY_ACCESS_KEY)).toBeNull();
+    expect(localStorage.getItem(LEGACY_REFRESH_KEY)).toBeNull();
     // Opaque IDs, never a shared read-modify-write counter.
     expect(snapshot.owner).not.toMatch(/^\d+$/);
     expect(snapshot.generation).not.toMatch(/^\d+$/);
@@ -34,6 +46,7 @@ describe('auth session storage ownership', () => {
     expect(secondContext.captureAuthSession()).toMatchObject({
       owner: snapshot.owner,
       generation: snapshot.generation,
+      accessToken: 'token-a',
     });
 
     const rotated = secondContext.captureAuthSession();
@@ -58,6 +71,7 @@ describe('auth session storage ownership', () => {
 
     expect(second.ticket).not.toBe(first.ticket);
     expect(String(first.ticket)).not.toMatch(/^\d+$/);
+    expect(localStorage.getItem(ATTEMPT_KEY)).toBe(second.ticket);
     expect(
       firstContext.commitAuthLogin(first, 'token-a', 'refresh-a'),
     ).toBeNull();
@@ -71,20 +85,73 @@ describe('auth session storage ownership', () => {
     expect(firstContext.captureAuthSession().owner).toBe(committed?.owner);
   });
 
-  it('keeps the non-secret boundary when logout clears device storage', async () => {
-    const { installAuthTokens, captureAuthSession, isAuthSessionCurrent } =
+  it('migrates legacy tokens once, then treats the record as authoritative', async () => {
+    localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
+    localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
+
+    const { captureAuthSession, storedAccessToken, storedRefreshToken } =
       await import('./auth-attempt');
+    expect(captureAuthSession()).toMatchObject({
+      accessToken: 'legacy-access',
+    });
+    expect(storedAccessToken()).toBe('legacy-access');
+    expect(storedRefreshToken()).toBe('legacy-refresh');
+    expect(localStorage.getItem(LEGACY_ACCESS_KEY)).toBeNull();
+    expect(localStorage.getItem(LEGACY_REFRESH_KEY)).toBeNull();
+    expect(localStorage.getItem(SESSION_KEY)).not.toBeNull();
+  });
+
+  it('does not revive legacy tokens after a signed-out record', async () => {
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({
+        owner: 'signed-out-owner',
+        generation: 'signed-out-generation',
+        accessToken: null,
+        refreshToken: null,
+      }),
+    );
+    localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
+
+    const { captureAuthSession } = await import('./auth-attempt');
+    expect(captureAuthSession()).toMatchObject({
+      owner: 'signed-out-owner',
+      accessToken: null,
+    });
+    expect(localStorage.getItem(LEGACY_ACCESS_KEY)).toBeNull();
+    expect(
+      JSON.parse(localStorage.getItem(SESSION_KEY)!).accessToken,
+    ).toBeNull();
+  });
+
+  it('keeps the signed-out boundary when logout clears device storage', async () => {
+    const {
+      installAuthTokens,
+      captureAuthSession,
+      clearAuthTokens,
+      isAuthSessionCurrent,
+    } = await import('./auth-attempt');
     const { clear } = await import('./local-storage');
     installAuthTokens('token-a', 'refresh-a');
     const snapshot = captureAuthSession();
+    expect(clearAuthTokens(snapshot)).toBe(true);
 
     clear();
 
-    expect(localStorage.getItem(ACCESS_KEY)).toBeNull();
-    expect(localStorage.getItem(OWNER_KEY)).toBe(snapshot.owner);
-    expect(localStorage.getItem(GENERATION_KEY)).toBe(snapshot.generation);
-    // A cleared credential is not a replacement: logout continuations for
-    // this login may still finish.
-    expect(isAuthSessionCurrent(snapshot)).toBe(true);
+    expect(localStorage.getItem(LEGACY_ACCESS_KEY)).toBeNull();
+    const signedOut = captureAuthSession();
+    const record = JSON.parse(localStorage.getItem(SESSION_KEY)!) as Record<
+      string,
+      unknown
+    >;
+    expect(record).toMatchObject({
+      owner: signedOut.owner,
+      generation: signedOut.generation,
+      accessToken: null,
+      refreshToken: null,
+    });
+    // A successor owner signalled sign-out; legacy tokens cannot revive it.
+    expect(isAuthSessionCurrent(snapshot)).toBe(false);
+    expect(signedOut.accessToken).toBeNull();
   });
 });

@@ -2,8 +2,7 @@ import { getApiBaseUrl } from './capacitor';
 import {
   ACCESS_TOKEN,
   AUTH_LOGIN_ATTEMPT,
-  AUTH_SESSION_OWNER,
-  AUTH_TOKEN_GENERATION,
+  AUTH_SESSION,
   REFRESH_TOKEN,
   getItem,
   removeItem,
@@ -15,16 +14,16 @@ import {
  *
  * `owner` names the login itself and is stable while refresh tokens rotate.
  * `generation` names the exact credential, so a response that used an older
- * token can still be recognised after a same-owner refresh. Both are opaque
- * IDs persisted without secrets, so a reload or another tab sharing this
- * storage sees the same boundary without relying on a shared counter.
+ * token can still be recognised after a same-owner refresh. The owner,
+ * generation and both credentials live in one authoritative storage record:
+ * a reader can never observe a new owner paired with another login's bearer.
  */
 export type AuthSessionSnapshot = {
   /** Changes only when a login starts or ends, not when tokens rotate. */
   owner: string;
   /** Changes on every token install, rotation or invalidation. */
   generation: string;
-  /** `null` for an unauthenticated bootstrap. */
+  /** `null` for an unauthenticated bootstrap or an invalidated credential. */
   accessToken: string | null;
   /** The API instance the attempt was started against. */
   instanceURL: string;
@@ -41,8 +40,21 @@ export type AuthLoginAttempt = AuthSessionSnapshot & {
   ticket: string;
 };
 
+type AuthSessionRecord = {
+  owner: string;
+  generation: string;
+  accessToken: string | null;
+  refreshToken: string | null;
+};
+
 /** The boundary before the first login or after storage was reset. */
 const NO_SESSION_ID = 'none';
+const NO_SESSION: AuthSessionRecord = {
+  owner: NO_SESSION_ID,
+  generation: NO_SESSION_ID,
+  accessToken: null,
+  refreshToken: null,
+};
 
 function createAuthId(): string {
   if (
@@ -57,29 +69,91 @@ function createAuthId(): string {
     .slice(2)}-${Math.random().toString(36).slice(2)}`;
 }
 
-function readAuthId(key: string): string {
-  const value = getItem(key);
-  return value && value.length > 0 ? value : NO_SESSION_ID;
+function parseAuthRecord(raw: string): AuthSessionRecord | null {
+  try {
+    const parsed = JSON.parse(raw) as Partial<AuthSessionRecord>;
+    if (
+      typeof parsed.owner !== 'string' ||
+      typeof parsed.generation !== 'string' ||
+      (parsed.accessToken !== null && typeof parsed.accessToken !== 'string') ||
+      (parsed.refreshToken !== null && typeof parsed.refreshToken !== 'string')
+    ) {
+      return null;
+    }
+    return {
+      owner: parsed.owner,
+      generation: parsed.generation,
+      accessToken: parsed.accessToken ?? null,
+      refreshToken: parsed.refreshToken ?? null,
+    };
+  } catch {
+    return null;
+  }
 }
 
-function currentOwner(): string {
-  return readAuthId(AUTH_SESSION_OWNER);
+function writeAuthRecord(record: AuthSessionRecord): void {
+  setItem(AUTH_SESSION, JSON.stringify(record));
 }
 
-function currentGeneration(): string {
-  return readAuthId(AUTH_TOKEN_GENERATION);
+function clearLegacyTokens(): void {
+  removeItem(ACCESS_TOKEN);
+  removeItem(REFRESH_TOKEN);
+}
+
+/**
+ * The record is the only authority. Legacy `access_token`/`refresh_token`
+ * keys are read once to migrate an existing install, then removed. A present
+ * signed-out record wins over any lingering legacy token.
+ */
+function readAuthRecord(): AuthSessionRecord | null {
+  const raw = getItem(AUTH_SESSION);
+  if (raw !== null) {
+    // A present but unusable record is signed out, never a reason to fall back
+    // to the old token keys. Old keys are not an authority once a record exists.
+    clearLegacyTokens();
+    return parseAuthRecord(raw) ?? NO_SESSION;
+  }
+
+  const legacyAccess = getItem(ACCESS_TOKEN);
+  const legacyRefresh = getItem(REFRESH_TOKEN);
+  if (legacyAccess === null && legacyRefresh === null) return null;
+
+  const migrated: AuthSessionRecord = {
+    owner: createAuthId(),
+    generation: createAuthId(),
+    accessToken: legacyAccess,
+    refreshToken: legacyRefresh,
+  };
+  writeAuthRecord(migrated);
+  clearLegacyTokens();
+  return migrated;
+}
+
+function currentRecord(): AuthSessionRecord {
+  return readAuthRecord() ?? NO_SESSION;
 }
 
 export function authTokenGeneration(): string {
-  return currentGeneration();
+  return currentRecord().generation;
+}
+
+/** The authoritative stored bearer, without exposing the refresh token. */
+export function storedAccessToken(): string | null {
+  return currentRecord().accessToken;
+}
+
+/** The authoritative stored refresh token, used only by the refresh flow. */
+export function storedRefreshToken(): string | null {
+  return currentRecord().refreshToken;
 }
 
 /** Snapshot of the owner, token, instance and generation at this moment. */
 export function captureAuthSession(): AuthSessionSnapshot {
+  const record = currentRecord();
   return {
-    owner: currentOwner(),
-    generation: currentGeneration(),
-    accessToken: getItem(ACCESS_TOKEN),
+    owner: record.owner,
+    generation: record.generation,
+    accessToken: record.accessToken,
     instanceURL: getApiBaseUrl(),
   };
 }
@@ -95,12 +169,14 @@ export function installAuthTokens(
   accessToken: string,
   refreshToken?: string,
 ): AuthSessionSnapshot {
-  // Publish credentials first and the owner last. A reader in another context
-  // can therefore never see the new owner paired with the previous bearer.
-  if (refreshToken) setItem(REFRESH_TOKEN, refreshToken);
-  setItem(ACCESS_TOKEN, accessToken);
-  setItem(AUTH_TOKEN_GENERATION, createAuthId());
-  setItem(AUTH_SESSION_OWNER, createAuthId());
+  // One write, so no context can see a new owner with the previous bearer.
+  writeAuthRecord({
+    owner: createAuthId(),
+    generation: createAuthId(),
+    accessToken,
+    refreshToken: refreshToken ?? null,
+  });
+  clearLegacyTokens();
   return captureAuthSession();
 }
 
@@ -114,12 +190,15 @@ export function rotateAuthTokens(
   accessToken: string,
   refreshToken?: string,
 ): AuthSessionSnapshot | null {
-  // The refresh caller already fenced its exact refresh token against a
-  // concurrent rotation; here only the owner and instance must still match.
   if (!isAuthSessionCurrent(expected)) return null;
-  if (refreshToken) setItem(REFRESH_TOKEN, refreshToken);
-  setItem(ACCESS_TOKEN, accessToken);
-  setItem(AUTH_TOKEN_GENERATION, createAuthId());
+  const current = currentRecord();
+  writeAuthRecord({
+    owner: current.owner,
+    generation: createAuthId(),
+    accessToken,
+    refreshToken: refreshToken ?? current.refreshToken,
+  });
+  clearLegacyTokens();
   return captureAuthSession();
 }
 
@@ -130,11 +209,13 @@ export function rotateAuthTokens(
  */
 export function clearAuthTokens(expected?: AuthSessionSnapshot): boolean {
   if (expected && !isAuthSessionCurrent(expected)) return false;
-  removeItem(REFRESH_TOKEN);
-  removeItem(ACCESS_TOKEN);
-  setItem(AUTH_TOKEN_GENERATION, createAuthId());
-  // Publish the replacement owner last, after no credential remains.
-  setItem(AUTH_SESSION_OWNER, createAuthId());
+  writeAuthRecord({
+    owner: createAuthId(),
+    generation: createAuthId(),
+    accessToken: null,
+    refreshToken: null,
+  });
+  clearLegacyTokens();
   return true;
 }
 
@@ -144,9 +225,14 @@ export function clearAuthTokens(expected?: AuthSessionSnapshot): boolean {
  * finish; the new generation invalidates every exact credential attempt.
  */
 export function invalidateAuthTokens(): void {
-  setItem(AUTH_TOKEN_GENERATION, createAuthId());
-  removeItem(ACCESS_TOKEN);
-  removeItem(REFRESH_TOKEN);
+  const current = currentRecord();
+  writeAuthRecord({
+    owner: current.owner,
+    generation: createAuthId(),
+    accessToken: null,
+    refreshToken: null,
+  });
+  clearLegacyTokens();
 }
 
 /** Begin a login request and publish it as the newest attempt. */
@@ -165,25 +251,32 @@ export function commitAuthLogin(
   accessToken: string,
   refreshToken?: string,
 ): AuthSessionSnapshot | null {
-  if (attempt.ticket !== readAuthId(AUTH_LOGIN_ATTEMPT)) return null;
-  if (attempt.owner !== currentOwner()) return null;
+  if (attempt.ticket !== readAuthAttemptId()) return null;
+  if (attempt.owner !== currentRecord().owner) return null;
   if (attempt.instanceURL !== getApiBaseUrl()) return null;
   return installAuthTokens(accessToken, refreshToken);
+}
+
+function readAuthAttemptId(): string {
+  const value = getItem(AUTH_LOGIN_ATTEMPT);
+  return value && value.length > 0 ? value : NO_SESSION_ID;
 }
 
 /** True while a continuation still belongs to the same owner and instance. */
 export function isAuthSessionCurrent(snapshot: AuthSessionSnapshot): boolean {
   return (
-    currentOwner() === snapshot.owner &&
+    currentRecord().owner === snapshot.owner &&
     getApiBaseUrl() === snapshot.instanceURL
   );
 }
 
 /** True only while this exact owner, token and generation are installed. */
 export function isAuthAttemptCurrent(attempt: AuthAttempt): boolean {
+  const record = currentRecord();
   return (
-    isAuthSessionCurrent(attempt) &&
-    currentGeneration() === attempt.generation &&
-    getItem(ACCESS_TOKEN) === attempt.accessToken
+    record.owner === attempt.owner &&
+    getApiBaseUrl() === attempt.instanceURL &&
+    record.generation === attempt.generation &&
+    record.accessToken === attempt.accessToken
   );
 }

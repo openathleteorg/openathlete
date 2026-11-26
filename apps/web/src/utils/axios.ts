@@ -6,6 +6,7 @@ import {
   invalidateAuthTokens,
   isAuthAttemptCurrent,
   isAuthSessionCurrent,
+  storedAccessToken,
 } from '@/utils/auth-attempt';
 import { QueryClient } from '@tanstack/react-query';
 import axios, { getAdapter, isAxiosError } from 'axios';
@@ -18,7 +19,6 @@ import type {
 import { ConnectorProvider, Event } from '@openathlete/shared';
 
 import { getApiBaseUrl } from './capacitor';
-import { ACCESS_TOKEN, getItem } from './local-storage';
 
 declare module 'axios' {
   export interface AxiosRequestConfig {
@@ -554,7 +554,7 @@ client.interceptors.response.use(undefined, async (error) => {
   if (isAxiosError(error) && error.response?.status === 401) {
     const attempt = error.config?.authAttempt;
     const requestToken = bearerToken(error.config?.headers?.Authorization);
-    const currentToken = getItem(ACCESS_TOKEN);
+    const currentToken = storedAccessToken();
     // A delayed 401 for an attempt (or a token) that is no longer current
     // must not erase the session that won meanwhile.
     const attemptIsStale = attempt ? !isAuthAttemptCurrent(attempt) : false;

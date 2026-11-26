@@ -7,11 +7,12 @@ import {
   clearAuthTokens,
   isAuthAttemptCurrent,
   isAuthSessionCurrent,
+  storedAccessToken,
 } from '@/utils/auth-attempt';
 import { isNetworkError } from '@/utils/axios';
 import { signOutFirebase } from '@/utils/firebase-auth';
 import { saveLanguageChoice } from '@/utils/language-choice';
-import { ACCESS_TOKEN, clear, getItem } from '@/utils/local-storage';
+import { clear } from '@/utils/local-storage';
 import { initializePushNotifications } from '@/utils/push-notifications';
 import { queryClient } from '@/utils/query-client';
 import { saveTimeZone } from '@/utils/time-zone';
@@ -115,7 +116,7 @@ export function AuthProvider({ children }: Props) {
         // A 401 for a bearer that is no longer installed must not clear the
         // account that won the race. A cleared store means this attempt's own
         // 401 already removed it, so signing out remains correct.
-        if (!isAuthAttemptCurrent(attempt) && getItem(ACCESS_TOKEN) !== null) {
+        if (!isAuthAttemptCurrent(attempt) && storedAccessToken() !== null) {
           return;
         }
         if (bootstrapIsStale()) return;
@@ -133,14 +134,14 @@ export function AuthProvider({ children }: Props) {
         // this user would pair account A's profile with account B's token.
         if (!isAuthSessionCurrent(session)) return;
         if (authenticated && session.accessToken === null) return;
-        if (authenticated && getItem(ACCESS_TOKEN) === null) return;
+        if (authenticated && storedAccessToken() === null) return;
 
         await saveLanguageChoice(user.language, undefined, session);
         // The language write may take a whole request: a successor can commit
         // while it is pending, and a 401 can invalidate the credential while
         // keeping the same owner. Nothing below may then touch that session.
         if (!isAuthSessionCurrent(session)) return;
-        if (authenticated && getItem(ACCESS_TOKEN) === null) return;
+        if (authenticated && storedAccessToken() === null) return;
         if (authenticated) {
           // A newer exit or successor may have won while getMe was in flight.
           // Its boundary/epoch differs, so this result must not release it.

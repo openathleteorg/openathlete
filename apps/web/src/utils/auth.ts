@@ -6,10 +6,11 @@ import {
   captureAuthSession,
   isAuthSessionCurrent,
   rotateAuthTokens,
+  storedAccessToken,
+  storedRefreshToken,
 } from './auth-attempt';
 import { routes } from './axios';
 import { getApiBaseUrl } from './capacitor';
-import { ACCESS_TOKEN, REFRESH_TOKEN, getItem } from './local-storage';
 
 function decodeJWT(token: string): { exp?: number } | null {
   try {
@@ -49,7 +50,7 @@ export async function refreshToken(
   expected: AuthSessionSnapshot = captureAuthSession(),
 ): Promise<TokenInfo | null> {
   if (!isAuthSessionCurrent(expected)) return null;
-  const token = getItem(REFRESH_TOKEN);
+  const token = storedRefreshToken();
   if (!token) return null;
   const startGeneration = authTokenGeneration();
 
@@ -66,7 +67,7 @@ export async function refreshToken(
     if (
       !isAuthSessionCurrent(expected) ||
       authTokenGeneration() !== startGeneration ||
-      getItem(REFRESH_TOKEN) !== token
+      storedRefreshToken() !== token
     ) {
       // A newer session won, or the same owner already rotated this
       // credential. Never install its predecessor over it.
@@ -119,7 +120,7 @@ export async function getAccessToken(
   expected: AuthSessionSnapshot = captureAuthSession(),
 ): Promise<TokenInfo | null> {
   if (!isAuthSessionCurrent(expected)) return null;
-  const token = getItem(ACCESS_TOKEN);
+  const token = storedAccessToken();
   if (!token || !isValidToken(token)) return refreshToken(expected);
   // A login or logout may have replaced the session while the JWT was being
   // inspected. A same-owner rotation is fine: that token still names this user.

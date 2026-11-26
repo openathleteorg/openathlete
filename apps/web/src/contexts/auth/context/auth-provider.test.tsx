@@ -1,8 +1,12 @@
 // @vitest-environment jsdom
 import { useAuthContext } from '@/contexts/auth';
-import { installAuthTokens } from '@/utils/auth-attempt';
+import {
+  installAuthTokens,
+  storedAccessToken,
+  storedRefreshToken,
+} from '@/utils/auth-attempt';
 import client from '@/utils/axios';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/utils/local-storage';
+import { ACCESS_TOKEN } from '@/utils/local-storage';
 import { AxiosError } from 'axios';
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
@@ -305,7 +309,7 @@ describe('auth start without a connection', () => {
     });
 
     expect(text()).not.toBe('app');
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(storedAccessToken()).toBe('token-b');
     expect(watch.establish).not.toHaveBeenCalled();
   });
 
@@ -353,8 +357,8 @@ describe('auth start without a connection', () => {
 
     expect(watch.establish).not.toHaveBeenCalled();
     expect(watch.sessionEpoch).toBe(epochBefore);
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(storedAccessToken()).toBe('token-b');
+    expect(storedRefreshToken()).toBe('refresh-b');
     // The successor may publish its own user; this stale response may not.
     expect(text()).not.toContain('user');
   });
@@ -426,7 +430,7 @@ describe('auth start without a connection', () => {
       await Promise.resolve();
     });
 
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
+    expect(storedAccessToken()).toBe('token-b');
     expect(text()).not.toContain('offline_title');
   });
 
@@ -460,8 +464,8 @@ describe('auth start without a connection', () => {
       await Promise.resolve();
     });
 
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBe('token-b');
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBe('refresh-b');
+    expect(storedAccessToken()).toBe('token-b');
+    expect(storedRefreshToken()).toBe('refresh-b');
     expect(watch.disconnect).not.toHaveBeenCalled();
   });
 
@@ -508,7 +512,7 @@ describe('auth start without a connection', () => {
         })
         .catch(() => undefined);
     });
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+    expect(storedAccessToken()).toBeNull();
 
     await act(async () => {
       resolveFence(true);
@@ -518,8 +522,8 @@ describe('auth start without a connection', () => {
 
     // Invalidating A is not replacing it: sign-out still has to finish.
     expect(watch.disconnect).toHaveBeenCalledTimes(1);
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
-    expect(localStorage.getItem(REFRESH_TOKEN)).toBeNull();
+    expect(storedAccessToken()).toBeNull();
+    expect(storedRefreshToken()).toBeNull();
   });
 
   it('does not publish an authenticated user with invalidated credentials', async () => {
@@ -602,7 +606,7 @@ describe('auth start without a connection', () => {
         )
         .catch(() => undefined);
     });
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+    expect(storedAccessToken()).toBeNull();
 
     await act(async () => {
       resolveLanguage();
@@ -614,7 +618,7 @@ describe('auth start without a connection', () => {
     expect(watch.establish).not.toHaveBeenCalled();
     expect(watch.sessionEpoch).toBe(epochBefore);
     expect(text()).not.toContain('user');
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+    expect(storedAccessToken()).toBeNull();
 
     await act(async () => {
       resolveFence(true);
@@ -622,7 +626,7 @@ describe('auth start without a connection', () => {
       await Promise.resolve();
     });
     expect(watch.disconnect).toHaveBeenCalledTimes(1);
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+    expect(storedAccessToken()).toBeNull();
   });
 
   it('latches the watch exit before waiting for the native fence', async () => {
