@@ -1,12 +1,20 @@
 import { formatMetricValue } from '@/components/metrics/metric-stats';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
+import { Units, unitsFor } from '@/utils/units';
 
-import { CoachDashboardColumn, METRIC_TYPE } from '@openathlete/shared';
-import { CoachAlertDto } from '@openathlete/shared';
+import {
+  CoachAlertDto,
+  CoachDashboardColumn,
+  METRIC_TYPE,
+  UnitSystem,
+} from '@openathlete/shared';
 
 /** One line a coach reads at a glance. */
-export function alertText(alert: CoachAlertDto): string {
+export function alertText(
+  alert: CoachAlertDto,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
   switch (alert.type) {
     case 'pain':
       return m.coach_alert_pain({
@@ -20,17 +28,21 @@ export function alertText(alert: CoachAlertDto): string {
     case 'threshold': {
       const type = alert.metricType as METRIC_TYPE;
       const metric = metricTypeLabelMap[type] ?? alert.metricType;
-      const value = formatMetricValue(type, alert.value);
+      const value = formatMetricValue(type, alert.value, unitSystem);
       return alert.max !== null && alert.value > alert.max
         ? m.coach_alert_threshold_above({
             metric,
             value,
-            bound: formatMetricValue(type, alert.max),
+            bound: formatMetricValue(type, alert.max, unitSystem),
           })
         : m.coach_alert_threshold_below({
             metric,
             value,
-            bound: formatMetricValue(type, alert.min ?? alert.value),
+            bound: formatMetricValue(
+              type,
+              alert.min ?? alert.value,
+              unitSystem,
+            ),
           });
     }
   }
@@ -43,10 +55,14 @@ export function formatSeconds(totalSeconds: number): string {
   return `${minutes}m`;
 }
 
-export function formatMeters(meters: number): string {
-  if (!meters) return '0 km';
-  const km = meters / 1000;
-  return km % 1 === 0 ? `${km} km` : `${km.toFixed(1)} km`;
+export function formatMeters(
+  meters: number,
+  units: Units = unitsFor('METRIC'),
+): string {
+  const label = units.unitSystem === 'IMPERIAL' ? 'mi' : 'km';
+  if (!meters) return `0 ${label}`;
+  const dist = units.distanceValue(meters);
+  return dist % 1 === 0 ? `${dist} ${label}` : `${dist.toFixed(1)} ${label}`;
 }
 
 /** The title of a dashboard column */

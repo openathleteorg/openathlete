@@ -1,8 +1,13 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 
-import type { StrengthLog, StrengthLogSet } from '@openathlete/shared';
-import { strengthLogSchema } from '@openathlete/shared';
+import type {
+  StrengthLog,
+  StrengthLogSet,
+  UnitSystem,
+} from '@openathlete/shared';
+import { strengthLogSchema, toUnitWeight } from '@openathlete/shared';
 
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { ExerciseVisual } from './exercise-visual';
@@ -24,14 +29,16 @@ function byExercise(sets: StrengthLogSet[]) {
   return [...groups.values()];
 }
 
-function setText(set: StrengthLogSet): string {
+function setText(set: StrengthLogSet, unitSystem: UnitSystem): string {
   const work =
     set.reps !== null
       ? String(set.reps)
       : set.seconds !== null
         ? formatSeconds(set.seconds) || '0"'
         : '✓';
-  return set.load ? `${work} × ${set.load} kg` : work;
+  if (!set.load) return work;
+  const weight = toUnitWeight(set.load, unitSystem);
+  return `${work} × ${weight.value} ${weight.unit}`;
 }
 
 /** What the athlete did in the session player, set by set */
@@ -42,6 +49,7 @@ export function StrengthLogCard({
   log: unknown;
   className?: string;
 }) {
+  const units = useUnits();
   const { resolve } = useExercises();
   const parsed = strengthLogSchema.safeParse(raw);
   if (!parsed.success) return null;
@@ -78,7 +86,7 @@ export function StrengthLogCard({
                       )}
                       title={set.skipped ? m.player_log_skipped() : undefined}
                     >
-                      {setText(set)}
+                      {setText(set, units.unitSystem)}
                     </span>
                   ))}
                 </div>

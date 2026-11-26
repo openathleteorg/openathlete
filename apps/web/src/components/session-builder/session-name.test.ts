@@ -16,6 +16,14 @@ describe('suggestSessionName', () => {
         3600,
       ),
     ).toBe("6 × 1 km · 3 × 10'");
+    expect(
+      suggestSessionName(
+        steps('- 15m\n- 6x(1mi / 2m)\n- 10m'),
+        'Run',
+        3600,
+        'IMPERIAL',
+      ),
+    ).toBe('6 × 1 mi');
   });
 
   it('prefers the name given to a set', () => {

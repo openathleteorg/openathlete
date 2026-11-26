@@ -1,6 +1,7 @@
 import { SportIcon } from '@/components/sport-icon/sport-icon';
 import { Separator } from '@/components/ui/separator';
 import { WorkoutGraph } from '@/components/workout/workout-graph';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { Fragment } from 'react/jsx-runtime';
 
@@ -13,7 +14,6 @@ import {
   QuestionnaireEvent,
   SPORT_TYPE,
   TrainingEvent,
-  formatDistance,
   formatDuration,
   formatSpeed,
   formatSpeedUnit,
@@ -25,7 +25,9 @@ interface CalendarEventTooltipProps {
 }
 
 function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
+  const units = useUnits();
   const sportConfig = getSportConfig(event.sport);
+  const speedUnit = units.speedUnit(sportConfig.speedUnit);
   return (
     <div className="space-y-3">
       <div className="space-y-2">
@@ -65,7 +67,7 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground">{m.distance()}</span>
               <span className="font-medium">
-                {formatDistance(event.distance, 'km')} km
+                {units.formatSportDist(event.distance, sportConfig.speedUnit)}
               </span>
             </div>
           )}
@@ -73,7 +75,7 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
           <div className="flex justify-between items-center text-xs">
             <span className="text-muted-foreground">{m.elevation_gain()}</span>
             <span className="font-medium">
-              {Math.round(event.elevationGain)} m
+              {units.elevation(event.elevationGain)} {units.elevationLabel}
             </span>
           </div>
         )}
@@ -87,8 +89,8 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
           <div className="flex justify-between items-center text-xs">
             <span className="text-muted-foreground">{m.average_speed()}</span>
             <span className="font-medium">
-              {formatSpeed(event.averageSpeed, sportConfig.speedUnit)}{' '}
-              {formatSpeedUnit(sportConfig.speedUnit)}
+              {formatSpeed(event.averageSpeed, speedUnit)}{' '}
+              {formatSpeedUnit(speedUnit)}
             </span>
           </div>
         )}
@@ -98,6 +100,7 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
 }
 
 function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
+  const units = useUnits();
   return (
     <div className="space-y-3">
       <div className="space-y-2">
@@ -132,7 +135,7 @@ function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
           <div className="flex justify-between items-center text-xs">
             <span className="text-muted-foreground">{m.goal_distance()}</span>
             <span className="font-medium">
-              {formatDistance(event.goalDistance, 'km')} km
+              {units.formatDist(event.goalDistance)} {units.distanceLabel}
             </span>
           </div>
         )}
@@ -142,7 +145,7 @@ function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
               {m.goal_elevation_gain()}
             </span>
             <span className="font-medium">
-              {Math.round(event.goalElevationGain)} m
+              {units.elevation(event.goalElevationGain)} {units.elevationLabel}
             </span>
           </div>
         )}
@@ -175,6 +178,7 @@ function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
 }
 
 function CompetitionTooltipContent({ event }: { event: CompetitionEvent }) {
+  const units = useUnits();
   return (
     <div className="space-y-3">
       <div className="space-y-2">
@@ -209,7 +213,7 @@ function CompetitionTooltipContent({ event }: { event: CompetitionEvent }) {
           <div className="flex justify-between items-center text-xs">
             <span className="text-muted-foreground">{m.goal_distance()}</span>
             <span className="font-medium">
-              {formatDistance(event.goalDistance, 'km')} km
+              {units.formatDist(event.goalDistance)} {units.distanceLabel}
             </span>
           </div>
         )}
@@ -219,7 +223,7 @@ function CompetitionTooltipContent({ event }: { event: CompetitionEvent }) {
               {m.goal_elevation_gain()}
             </span>
             <span className="font-medium">
-              {Math.round(event.goalElevationGain)} m
+              {units.elevation(event.goalElevationGain)} {units.elevationLabel}
             </span>
           </div>
         )}

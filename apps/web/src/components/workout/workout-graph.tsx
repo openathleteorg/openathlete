@@ -7,6 +7,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { formatDuration, getStepTypeLabel } from '@/utils/workout';
 import { useMemo } from 'react';
@@ -93,6 +94,7 @@ function StepBar({
   /** The zones of the workout's athlete, undefined while loading */
   zones?: TrainingZone[];
 }) {
+  const units = useUnits();
   const height = Math.max(
     MIN_BAR_HEIGHT,
     (segment.intensity / 5) * maxHeight || MIN_BAR_HEIGHT,
@@ -138,6 +140,7 @@ function StepBar({
                 {formatDuration(
                   segment.step.durationType,
                   segment.step.durationValue ?? segment.duration,
+                  units.unitSystem,
                 )}
               </div>
               {segment.step.targets && segment.step.targets.length > 0 && (
@@ -155,6 +158,7 @@ function StepBar({
                           metrics,
                           zones,
                           zones ? m.workout_target_unknown_zone() : '…',
+                          units.unitSystem,
                         )}
                       </span>
                     ),

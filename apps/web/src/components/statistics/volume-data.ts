@@ -1,4 +1,9 @@
-import { SPORT_TYPE, StatisticsVolumeDto } from '@openathlete/shared';
+import {
+  M_TO_FT,
+  SPORT_TYPE,
+  StatisticsVolumeDto,
+  UnitSystem,
+} from '@openathlete/shared';
 
 export type VolumeMetric =
   'movingTime' | 'distance' | 'elevationGain' | 'count';
@@ -14,22 +19,30 @@ export type VolumeRow = { period: string; partial: boolean } & Partial<
   Record<VolumeSeries, number>
 >;
 
-const SCALE: Record<VolumeMetric, number> = {
-  movingTime: 1 / 3600,
-  distance: 1 / 1000,
-  elevationGain: 1,
-  count: 1,
+const scaleFor = (metric: VolumeMetric, unitSystem: UnitSystem): number => {
+  switch (metric) {
+    case 'movingTime':
+      return 1 / 3600;
+    case 'distance':
+      return unitSystem === 'IMPERIAL' ? 1 / 1609.34 : 1 / 1000;
+    case 'elevationGain':
+      return unitSystem === 'IMPERIAL' ? M_TO_FT : 1;
+    case 'count':
+      return 1;
+  }
 };
 
 /**
  * One row per bucket, one value per sport, in display units: hours,
- * kilometres, metres or activities. The sports with the most volume over the
- * period come first; beyond four, they are summed as "other".
+ * kilometres/miles, metres/feet or activities. The sports with the most volume
+ * over the period come first; beyond four, they are summed as "other".
  */
 export function volumeChartData(
   buckets: StatisticsVolumeDto['buckets'],
   metric: VolumeMetric,
+  unitSystem: UnitSystem = 'METRIC',
 ): { rows: VolumeRow[]; series: VolumeSeries[] } {
+  const scale = scaleFor(metric, unitSystem);
   const totals = new Map<SPORT_TYPE, number>();
   for (const bucket of buckets) {
     for (const sport of bucket.sports) {
@@ -53,7 +66,7 @@ export function volumeChartData(
     for (const sport of sports) {
       const key = own.has(sport.sport) ? sport.sport : OTHER_SPORTS;
       if (!series.includes(key)) continue;
-      row[key] = (row[key] ?? 0) + sport[metric] * SCALE[metric];
+      row[key] = (row[key] ?? 0) + sport[metric] * scale;
     }
     return row;
   });
@@ -64,8 +77,10 @@ export function volumeChartData(
 export function chartTotals(
   buckets: StatisticsVolumeDto['buckets'],
   metric: VolumeMetric,
+  unitSystem: UnitSystem = 'METRIC',
 ): number[] {
-  return bucketTotals(buckets, metric).map((total) => total * SCALE[metric]);
+  const scale = scaleFor(metric, unitSystem);
+  return bucketTotals(buckets, metric).map((total) => total * scale);
 }
 
 /** A figure per bucket, for a sparkline */

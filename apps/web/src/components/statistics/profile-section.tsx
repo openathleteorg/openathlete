@@ -4,6 +4,7 @@ import {
   useStatisticsDurabilityQuery,
   useStatisticsTerrainQuery,
 } from '@/api/statistics';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { subYears } from 'date-fns';
 import { useMemo } from 'react';
@@ -111,6 +112,7 @@ function useProfile({ athleteId, sport }: P, enabled: boolean) {
 }
 
 function Profile({ athleteId, sport, visible }: P & { visible: boolean }) {
+  const units = useUnits();
   const { figures, fit, reference, unit, ready } = useProfile(
     { athleteId, sport },
     visible,
@@ -130,14 +132,14 @@ function Profile({ athleteId, sport, visible }: P & { visible: boolean }) {
       case 'climb':
       case 'descent':
         return {
-          value: `${Math.round(current)}`,
-          unit: m.statistics_metres_per_hour(),
+          value: `${units.elevation(current)}`,
+          unit: units.verticalSpeedLabel,
         };
       case 'critical': {
         if (fit?.kind === 'power') {
           return { value: `${Math.round(current)}`, unit: 'W' };
         }
-        const speedUnit = SPORT_CONFIG[sport].speedUnit;
+        const speedUnit = units.speedUnit(SPORT_CONFIG[sport].speedUnit);
         return {
           value: formatSpeed(current, speedUnit),
           unit: formatSpeedUnit(speedUnit),
@@ -151,7 +153,9 @@ function Profile({ athleteId, sport, visible }: P & { visible: boolean }) {
   };
   const caption = (figure: ProfileFigure) => {
     if (figure.axis === 'cost' && reference) {
-      return unit === 'power' ? `${reference.bin} W` : `${reference.bin} km/h`;
+      return unit === 'power'
+        ? `${reference.bin} W`
+        : units.formatKmh(reference.bin);
     }
     if (figure.axis === 'climb') return `+10${m.percent_symbol()}`;
     if (figure.axis === 'descent') return `-10${m.percent_symbol()}`;

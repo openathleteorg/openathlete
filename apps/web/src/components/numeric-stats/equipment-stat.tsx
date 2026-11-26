@@ -1,4 +1,5 @@
 import { useGetMyEquipmentQuery } from '@/api/equipment';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -8,6 +9,7 @@ interface P {
 }
 
 export function EquipmentStat({ equipmentId }: P) {
+  const units = useUnits();
   const { data: equipment = [] } = useGetMyEquipmentQuery();
   const equipmentItem = equipment.find((e) => e.equipmentId === equipmentId);
 
@@ -24,7 +26,8 @@ export function EquipmentStat({ equipmentId }: P) {
           <div>
             {m.total_distance()}:{' '}
             <span className="text-muted-foreground text-sm">
-              {(equipmentItem.totalDistance / 1000).toFixed(1)} km
+              {units.distanceValue(equipmentItem.totalDistance).toFixed(1)}{' '}
+              {units.distanceLabel}
             </span>
           </div>
         </div>

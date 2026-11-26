@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { Bike, Footprints, Pencil, Trash } from 'lucide-react';
@@ -31,6 +32,7 @@ import {
 } from './settings-section';
 
 export function EquipmentTab() {
+  const units = useUnits();
   const [isOpen, setIsOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(
     null,
@@ -125,7 +127,7 @@ export function EquipmentTab() {
                     item.sports
                       .map((sport) => sportTypeLabelMap[sport])
                       .join(', '),
-                    `${(item.totalDistance / 1000).toFixed(1)} km`,
+                    `${units.distanceValue(item.totalDistance).toFixed(1)} ${units.distanceLabel}`,
                   ].join(' · ')}
                 >
                   <Button

@@ -7,8 +7,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
+import { Units } from '@/utils/units';
 import { Plus, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -66,14 +68,14 @@ const DEFAULT_COLORS = [
   '#EC4899', // pink-500
 ];
 
-function getUnitLabel(type: TRAINING_ZONE_TYPE): string {
+function getUnitLabel(type: TRAINING_ZONE_TYPE, units: Units): string {
   switch (type) {
     case TRAINING_ZONE_TYPE.HEARTRATE:
       return m.bpm();
     case TRAINING_ZONE_TYPE.POWER:
       return m.watts();
     case TRAINING_ZONE_TYPE.PACE:
-      return m.per_km();
+      return units.perDistanceLabel;
     default:
       return '';
   }
@@ -101,6 +103,7 @@ export function TrainingZoneBulkEditor({
   zones: existingZones,
   onComplete,
 }: TrainingZoneBulkEditorProps) {
+  const units = useUnits();
   const isHeartRate = type === TRAINING_ZONE_TYPE.HEARTRATE;
   const isPace = type === TRAINING_ZONE_TYPE.PACE;
   const lastKey = useRef(0);
@@ -195,7 +198,7 @@ export function TrainingZoneBulkEditor({
   const activeResolved = resolved.get(active.key);
   const step = percentageMode ? 0 : isPace ? paceStep : 1;
   const descending = isDescending(zones);
-  const unit = percentageMode ? '%' : getUnitLabel(type);
+  const unit = percentageMode ? '%' : getUnitLabel(type, units);
 
   const changeMode = (nextMode: ZoneMode) => {
     const nextPercentageMode = nextMode !== 'absolute';

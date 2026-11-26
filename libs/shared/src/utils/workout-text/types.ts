@@ -1,3 +1,4 @@
+import type { UnitSystem } from '../../types/dtos/core/unit-system.dto';
 import type { CreateWorkoutStepDto } from '../../types/dtos/core/workout.dto';
 import type { TRAINING_ZONE_TYPE, WORKOUT_STEP_TYPE } from '../../types/misc';
 import type { SPORT_TYPE } from '../../types/misc/core/sport-type.enum';
@@ -24,6 +25,8 @@ export interface WorkoutTextContext {
 export interface WorkoutTextSerializeOptions extends WorkoutTextContext {
   /** Language of the step type words the text is written with */
   locale?: WorkoutTextLocale;
+  /** Unit system used to write distances, speeds, paces and weights */
+  unitSystem?: UnitSystem;
 }
 
 export type WorkoutTextIssueCode =

@@ -1,7 +1,7 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { useMemo } from 'react';
 
-import { formatDistance } from '@openathlete/shared';
 import { Climb } from '@openathlete/shared';
 
 import { indexRange, xSeries } from '../activity-analysis/stream-range';
@@ -28,6 +28,7 @@ export function ActivityDetailsMap({
   timerPaused,
   climbs,
 }: P) {
+  const units = useUnits();
   const { domain, setDomain, xAxis } = useActivityDetailsSelection();
   const series = xSeries({ distance, time }, xAxis);
   const highlights: MapHighlight[] = (climbs ?? []).map((climb, i) => ({
@@ -35,7 +36,7 @@ export function ActivityDetailsMap({
     range: [climb.start, climb.end],
     label: m.activity_climb_label({
       n: i + 1,
-      distance: `${formatDistance(climb.lengthM)} ${m.kilometers()}`,
+      distance: `${units.formatDist(climb.lengthM)} ${units.distanceLabel}`,
       grade: `${(climb.grade * 100).toFixed(1)}${m.percent_symbol()}`,
     }),
     onClick: series

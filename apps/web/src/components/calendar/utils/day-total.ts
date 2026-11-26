@@ -1,3 +1,5 @@
+import { UnitSystem } from '@openathlete/shared';
+
 import {
   PlannedDone,
   WeekTotals,
@@ -17,12 +19,17 @@ function pair(values: PlannedDone, format: (value: number) => string) {
  * A day's volume in a few characters, for the week view's day headers:
  * "45min / 1h05 · 9 / 12 km". Done comes first, as in the week summary.
  */
-export function formatDayTotal(totals: WeekTotals, locale?: string): string {
+export function formatDayTotal(
+  totals: WeekTotals,
+  locale?: string,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
   const duration = pair(totals.duration, formatCompactDuration);
   const distance = pair(totals.distance, (meters) =>
-    formatCompactKilometers(meters, locale),
+    formatCompactKilometers(meters, locale, unitSystem),
   );
-  return [duration, distance && `${distance} km`]
+  const unit = unitSystem === 'IMPERIAL' ? 'mi' : 'km';
+  return [duration, distance && `${distance} ${unit}`]
     .filter((part): part is string => !!part)
     .join(' · ');
 }

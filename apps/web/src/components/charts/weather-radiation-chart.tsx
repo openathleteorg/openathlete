@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { useMemo } from 'react';
 import { Line, LineChart, XAxis, YAxis } from 'recharts';
@@ -11,6 +12,7 @@ interface P {
 }
 
 export function WeatherRadiationChart({ samples }: P) {
+  const units = useUnits();
   const data = useMemo(
     () =>
       samples.map((s) => ({
@@ -38,7 +40,9 @@ export function WeatherRadiationChart({ samples }: P) {
             dataKey="x"
             domain={xDomain}
             allowDataOverflow
-            tickFormatter={(v) => `${(v / 1000).toFixed(1)} km`}
+            tickFormatter={(v) =>
+              `${units.distanceValue(v).toFixed(1)} ${units.distanceLabel}`
+            }
           />
           <YAxis hide />
           <Line

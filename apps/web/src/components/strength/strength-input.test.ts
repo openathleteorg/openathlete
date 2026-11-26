@@ -54,6 +54,21 @@ describe('parseWork', () => {
   it('writes work back', () => {
     expect(formatWork({ type: D.TIME, value: 45 })).toBe('45"');
     expect(formatWork({ type: D.REPS, value: 8 })).toBe('8');
+    expect(formatWork({ type: D.DISTANCE, value: 100 })).toBe('100m');
+    expect(formatWork({ type: D.DISTANCE, value: 100 }, 'IMPERIAL')).toBe(
+      '109yd',
+    );
+  });
+
+  it('converts yards to metres in imperial mode', () => {
+    expect(parseWork('109', D.DISTANCE, 'IMPERIAL')).toEqual({
+      type: D.DISTANCE,
+      value: 100,
+    });
+    expect(parseWork('20yd', D.REPS, 'IMPERIAL')).toEqual({
+      type: D.DISTANCE,
+      value: 18,
+    });
   });
 });
 
@@ -81,6 +96,22 @@ describe('parseQuickExercise', () => {
     ).toMatchObject({
       query: 'developpe couche',
       load: 42.5,
+    });
+  });
+
+  it('converts lb loads and imperial unitless loads to kg', () => {
+    expect(parseQuickExercise('squat 4x8 @135', 'IMPERIAL')).toMatchObject({
+      query: 'squat',
+      sets: 4,
+      load: 61.24,
+    });
+    expect(parseQuickExercise('squat 4x8 @135lb', 'METRIC')).toMatchObject({
+      query: 'squat',
+      load: 61.24,
+    });
+    expect(parseQuickExercise('squat 4x8 @60kg', 'IMPERIAL')).toMatchObject({
+      query: 'squat',
+      load: 60,
     });
   });
 

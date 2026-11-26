@@ -14,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import {
@@ -83,9 +84,13 @@ function lengthPresets(env: BuilderEnv): string[] {
     '1h',
   ];
   const distance =
-    env.sport === 'SWIMMING'
-      ? ['25m', '50m', '100m', '200m', '400m']
-      : ['200m', '400m', '1km', '2km', '5km'];
+    env.unitSystem === 'IMPERIAL'
+      ? env.sport === 'SWIMMING'
+        ? ['25yd', '50yd', '100yd', '200yd', '400yd']
+        : ['200yd', '400yd', '800yd', '1mi', '2mi', '5mi']
+      : env.sport === 'SWIMMING'
+        ? ['25m', '50m', '100m', '200m', '400m']
+        : ['200m', '400m', '1km', '2km', '5km'];
   return [...time, ...distance, 'lap'];
 }
 
@@ -136,7 +141,8 @@ function LengthEditor({
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const parsed = text.trim() ? parseLength(text, env) : null;
-  const label = formatStepLength(step) ?? m.builder_length_open();
+  const label =
+    formatStepLength(step, env.unitSystem) ?? m.builder_length_open();
 
   const apply = (value: string) => {
     const length = parseLength(value, env);
@@ -175,7 +181,7 @@ function LengthEditor({
         <p className="mt-1.5 h-4 text-xs text-muted-foreground">
           {text.trim()
             ? parsed
-              ? `→ ${formatStepLength(parsed) ?? ''}`
+              ? `→ ${formatStepLength(parsed, env.unitSystem) ?? ''}`
               : m.builder_not_understood()
             : m.builder_length_hint()}
         </p>
@@ -209,6 +215,7 @@ function TargetEditor({
   labels: TargetLabel[];
   onChange: (targets: CreateWorkoutStepTarget[]) => void;
 }) {
+  const units = useUnits();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const parsed = text.trim() ? parseTargets(text, env) : null;
@@ -293,6 +300,7 @@ function TargetEditor({
                       env.sport,
                       env.zonesByType,
                       env.metrics,
+                      units.unitSystem,
                     ),
                   )
                   .filter(Boolean)
@@ -416,9 +424,16 @@ export function StepRow({
   expanded,
   onExpandedChange,
 }: StepRowProps) {
+  const units = useUnits();
   const labels = (step.targets ?? [])
     .map((target) =>
-      describeTarget(target, env.sport, env.zonesByType, env.metrics),
+      describeTarget(
+        target,
+        env.sport,
+        env.zonesByType,
+        env.metrics,
+        units.unitSystem,
+      ),
     )
     .filter((label): label is TargetLabel => label !== null);
   const zoneColor = labels.find((label) => label.color)?.color;

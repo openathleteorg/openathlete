@@ -1,4 +1,5 @@
 import { useTrainingZones } from '@/hooks/use-training-zones';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { useMemo, useState } from 'react';
 
@@ -34,7 +35,9 @@ interface P {
  * over the whole activity or the part selected on the charts.
  */
 export function ZonesCard({ event, stream }: P) {
+  const units = useUnits();
   const config = getSportConfig(event.sport);
+  const speedUnit = units.speedUnit(config.speedUnit);
   const athleteId = event.athleteId ?? undefined;
   const { domain, xAxis } = useActivityDetailsSelection();
   const heartrateZones = useTrainingZones(
@@ -107,9 +110,9 @@ export function ZonesCard({ event, stream }: P) {
   const bounds = (zone: { min: number; max: number }) => {
     if (kind === 'speed') {
       const speed = paceZoneAsSpeed({ id: 0, ...zone });
-      const unit = formatSpeedUnit(config.speedUnit);
+      const unit = formatSpeedUnit(speedUnit);
       // Read from slow to fast, as the zones go up
-      return `${formatSpeed(speed.min, config.speedUnit)}–${formatSpeed(speed.max, config.speedUnit)} ${unit}`;
+      return `${formatSpeed(speed.min, speedUnit)}–${formatSpeed(speed.max, speedUnit)} ${unit}`;
     }
     const unit = kind === 'power' ? m.watts() : m.bpm();
     return `${Math.round(zone.min)}–${Math.round(zone.max)} ${unit}`;

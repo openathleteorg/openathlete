@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { despikeAndEma } from '@/utils/despike';
 import { useMemo } from 'react';
@@ -18,6 +19,7 @@ export function WeatherTemperatureChart({
   deviceDistance,
   deviceTemp,
 }: P) {
+  const units = useUnits();
   // Build interpolation function to align device temp on provider distances
   const interpDevice = useMemo(() => {
     if (!deviceDistance?.length || !deviceTemp?.length)
@@ -87,7 +89,9 @@ export function WeatherTemperatureChart({
             dataKey="x"
             domain={xDomain}
             allowDataOverflow
-            tickFormatter={(v) => `${(v / 1000).toFixed(1)} km`}
+            tickFormatter={(v) =>
+              `${units.distanceValue(v).toFixed(1)} ${units.distanceLabel}`
+            }
           />
           <YAxis hide />
           <Line
@@ -119,7 +123,7 @@ export function WeatherTemperatureChart({
                     <div className="flex w-full items-center justify-between gap-2">
                       <span className="text-muted-foreground">{label}</span>
                       <span className="text-foreground tabular-nums">
-                        {Number(value).toFixed(1)} °C
+                        {units.formatTemp(Number(value))}
                       </span>
                     </div>
                   );

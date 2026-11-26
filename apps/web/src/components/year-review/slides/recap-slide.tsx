@@ -1,10 +1,11 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { Download, RotateCcw, Share } from 'lucide-react';
 import { CSSProperties, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { BrandLogoLayers } from '../brand-logo-layers';
-import { formatNumber, hours, kilometers } from '../format';
+import { formatNumber, hours } from '../format';
 import { mixLabel, recap } from '../share/recap';
 import { renderShareImage } from '../share/share-image';
 import {
@@ -21,7 +22,8 @@ export function RecapSlide({
   review,
   onReplay,
 }: SlideProps & { onReplay: () => void }) {
-  const card = useMemo(() => recap(review), [review]);
+  const units = useUnits();
+  const card = useMemo(() => recap(review, units), [review, units]);
   const [busy, setBusy] = useState(false);
 
   const withImage = async (handle: (image: Blob) => Promise<void>) => {
@@ -42,7 +44,7 @@ export function RecapSlide({
         title: m.year_review_share_title({ year: review.year }),
         text: m.year_review_share_text({
           year: review.year,
-          distance: formatNumber(kilometers(review.totals.distance)),
+          distance: `${formatNumber(Math.round(units.distanceValue(review.totals.distance)))} ${units.distanceLabel}`,
           hours: formatNumber(hours(review.totals.movingTime)),
         }),
       });

@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 
@@ -44,6 +45,7 @@ export function RecordsYearsTable({
   dateFormat,
   onSelect,
 }: P) {
+  const units = useUnits();
   const rows = records
     .filter((record) => metric.type === record.type)
     .sort((a, b) => (recordPosition(a) ?? 0) - (recordPosition(b) ?? 0));
@@ -56,7 +58,7 @@ export function RecordsYearsTable({
   const yearValue = (record: BestRecordDto) =>
     metric.type === RECORD_TYPE.SPEED
       ? formatRecordTime(record)
-      : metric.format(metric.plotted(record, sport), sport);
+      : metric.format(metric.plotted(record, sport), sport, units.unitSystem);
   const columns = {
     '--record-years': years.length,
   } as React.CSSProperties;
@@ -77,7 +79,12 @@ export function RecordsYearsTable({
         </div>
         {rows.map((record) => {
           const position = recordPosition(record)!;
-          const { value, unit } = formatRecordValue(metric, record, sport);
+          const { value, unit } = formatRecordValue(
+            metric,
+            record,
+            sport,
+            units.unitSystem,
+          );
           return (
             <button
               key={position}
@@ -87,7 +94,7 @@ export function RecordsYearsTable({
               className="grid w-full grid-cols-2 md:grid-cols-[5rem_minmax(13rem,1fr)_repeat(var(--record-years),5rem)] items-center gap-x-2 gap-y-2 px-4 py-2 border-b last:border-0 text-left text-sm cursor-pointer hover:bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
             >
               <span className="font-semibold whitespace-nowrap">
-                {formatRecordPosition(metric, position)}
+                {formatRecordPosition(metric, position, units.unitSystem)}
               </span>
               <span className="min-w-0 text-right md:text-left">
                 <span className="font-semibold tabular-nums">{value}</span>{' '}

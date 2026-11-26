@@ -1,4 +1,5 @@
 import { useTrainingZones } from '@/hooks/use-training-zones';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { ZoomOut } from 'lucide-react';
@@ -79,7 +80,9 @@ export function ActivityStreamsChart({
   laps,
   onHover,
 }: P) {
+  const units = useUnits();
   const config = getSportConfig(sport);
+  const speedUnit = units.speedUnit(config.speedUnit);
   const { domain, setDomain, reset, fullDomain, xAxis, setXAxis } =
     useActivityDetailsSelection();
   const { hidden, toggle } = useHiddenTracks(sport);
@@ -146,17 +149,17 @@ export function ActivityStreamsChart({
     switch (track) {
       case 'speed':
       case 'gap':
-        return `${formatSpeed(value, config.speedUnit)} ${formatSpeedUnit(config.speedUnit)}`;
+        return `${formatSpeed(value, speedUnit)} ${formatSpeedUnit(speedUnit)}`;
       case 'power':
         return `${Math.round(value)} ${m.watts()}`;
       case 'heartrate':
         return `${Math.round(value)} ${m.bpm()}`;
       case 'altitude':
-        return `${Math.round(value)} ${m.meters()}`;
+        return `${units.elevation(value)} ${units.elevationLabel}`;
       case 'cadence':
         return `${Math.round(value)} ${cadenceFactor(sport) === 2 ? m.ppm() : m.rpm()}`;
       case 'temperature':
-        return `${value.toFixed(1)} °C`;
+        return units.formatTemp(value);
     }
   };
 
@@ -276,7 +279,7 @@ export function ActivityStreamsChart({
           {hoverRow ? (
             <>
               <span className="font-medium tabular-nums">
-                {formatAxisValue(hoverRow.x, xAxis)}
+                {formatAxisValue(hoverRow.x, xAxis, units)}
               </span>
               {visible.map((track) => {
                 const value = hoverRow[track];
@@ -439,7 +442,7 @@ export function ActivityStreamsChart({
                     : undefined
                 }
               >
-                {formatAxisValue(tick, xAxis)}
+                {formatAxisValue(tick, xAxis, units)}
               </span>
             ))}
           </div>

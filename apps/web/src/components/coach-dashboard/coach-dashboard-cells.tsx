@@ -3,6 +3,7 @@ import {
   hasOwnUnit,
 } from '@/components/metrics/metric-stats';
 import { Badge } from '@/components/ui/badge';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
@@ -152,6 +153,8 @@ export function ColumnCell({
   column: CoachDashboardColumn;
   row: Row;
 }) {
+  const units = useUnits();
+  const formatDist = (meters: number) => formatMeters(meters, units);
   const previous = row.previous;
   switch (column) {
     case 'sessions':
@@ -183,7 +186,7 @@ export function ColumnCell({
             />
           ) : (
             <span className="text-xs text-muted-foreground">
-              {formatMeters(row.completedDistance)}
+              {formatDist(row.completedDistance)}
             </span>
           )}
         </div>
@@ -191,12 +194,12 @@ export function ColumnCell({
     case 'distance':
       return (
         <div className="flex flex-col tabular-nums">
-          <span>{formatMeters(row.completedDistance)}</span>
+          <span>{formatDist(row.completedDistance)}</span>
           {previous && (
             <Delta
               now={row.completedDistance}
               before={previous.completedDistance}
-              format={formatMeters}
+              format={formatDist}
             />
           )}
         </div>
@@ -228,10 +231,10 @@ export function ColumnCell({
           )}
           title={reading.date}
         >
-          {formatMetricValue(type, reading.value)}
-          {!hasOwnUnit(type) && getMetricUnit(type) && (
+          {formatMetricValue(type, reading.value, units.unitSystem)}
+          {!hasOwnUnit(type) && getMetricUnit(type, units.unitSystem) && (
             <span className="ml-0.5 text-xs text-muted-foreground">
-              {getMetricUnit(type)}
+              {getMetricUnit(type, units.unitSystem)}
             </span>
           )}
         </span>

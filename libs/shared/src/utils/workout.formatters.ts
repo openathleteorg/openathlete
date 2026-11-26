@@ -1,7 +1,8 @@
 import { TrainingZone } from '../entities';
-import { WorkoutStepTargetDto } from '../types';
-import { formatSpeed } from './numeric-stats.formatter';
+import { UnitSystem, WorkoutStepTargetDto } from '../types';
+import { formatSpeed, formatSpeedUnit } from './numeric-stats.formatter';
 import { getTargetIntensity } from './target-intensity';
+import { localSpeedUnit, toUnitWeight } from './units';
 
 /**
  * Format a workout target for display
@@ -10,6 +11,7 @@ import { getTargetIntensity } from './target-intensity';
  * @param metrics - Optional record of metric types to their values for calculating absolute values
  * @param trainingZones - The zones of the athlete the workout belongs to
  * @param unknownZoneLabel - Shown for a zone id that is not one of them
+ * @param unitSystem - User display unit system (defaults to metric)
  * @returns Human-readable formatted target
  */
 export function formatTarget(
@@ -18,8 +20,12 @@ export function formatTarget(
   metrics?: Record<string, { value: number } | number>,
   trainingZones?: TrainingZone[],
   unknownZoneLabel?: string,
+  unitSystem: UnitSystem = 'METRIC',
 ): string {
   const { targetType, targetMin, targetMax, targetValue, metricType } = target;
+  const paceUnit = localSpeedUnit('min/km', unitSystem);
+  const paceUnitLabel = formatSpeedUnit(paceUnit);
+  const formatWeight = (kg: number) => toUnitWeight(kg, unitSystem);
 
   // Helper to format percentage
   const formatPercent = (value: number): string => {
@@ -75,7 +81,7 @@ export function formatTarget(
         let absoluteStr = '';
         switch (targetType) {
           case 'PACE':
-            absoluteStr = `${formatSpeed(absoluteValues.min)} - ${formatSpeed(absoluteValues.max)} min/km`;
+            absoluteStr = `${formatSpeed(absoluteValues.min, paceUnit)} - ${formatSpeed(absoluteValues.max, paceUnit)} ${paceUnitLabel}`;
             break;
           case 'HEARTRATE':
             absoluteStr = `${Math.round(absoluteValues.min)} - ${Math.round(absoluteValues.max)} bpm`;
@@ -100,7 +106,7 @@ export function formatTarget(
         if (targetMin === null || targetMax === null) {
           return 'Open';
         }
-        return `${formatSpeed(targetMin)} - ${formatSpeed(targetMax)}`;
+        return `${formatSpeed(targetMin, paceUnit)} - ${formatSpeed(targetMax, paceUnit)}`;
       }
 
       case 'HEARTRATE':
@@ -115,8 +121,11 @@ export function formatTarget(
       case 'RPE':
         return `RPE ${targetMin} - ${targetMax}`;
 
-      case 'WEIGHT':
-        return `${targetMin} - ${targetMax} kg`;
+      case 'WEIGHT': {
+        const minW = formatWeight(targetMin);
+        const maxW = formatWeight(targetMax);
+        return `${minW.value} - ${maxW.value} ${maxW.unit}`;
+      }
 
       default:
         return `${targetMin} - ${targetMax}`;
@@ -135,7 +144,7 @@ export function formatTarget(
         let absoluteStr = '';
         switch (targetType) {
           case 'PACE':
-            absoluteStr = `${formatSpeed(absoluteValues.value)}`;
+            absoluteStr = `${formatSpeed(absoluteValues.value, paceUnit)}`;
             break;
           case 'HEARTRATE':
             absoluteStr = `${Math.round(absoluteValues.value)} bpm`;
@@ -156,14 +165,16 @@ export function formatTarget(
     }
 
     switch (targetType) {
-      case 'WEIGHT':
-        return `${targetValue} kg`;
+      case 'WEIGHT': {
+        const w = formatWeight(targetValue);
+        return `${w.value} ${w.unit}`;
+      }
 
       case 'PACE': {
         if (targetValue === null) {
           return 'Open';
         }
-        return `${formatSpeed(targetValue)} min/km`;
+        return `${formatSpeed(targetValue, paceUnit)} ${paceUnitLabel}`;
       }
 
       case 'HEARTRATE':
