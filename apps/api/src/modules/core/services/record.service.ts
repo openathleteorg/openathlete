@@ -29,9 +29,11 @@ import {
   RecordExclusionDto,
   RecordHistoryDto,
   RunningEconomyDto,
+  SPORT_TYPE,
   YEAR_REVIEW_RECORD_SPORTS,
   YearBestRecordDto,
   YearReviewRecordDto,
+  criticalFit,
   median,
   modelFtp,
   runEnergyPerMetre,
@@ -69,6 +71,9 @@ const notExcluded = Prisma.sql`NOT EXISTS (
 
 // Pace records hold a time: lower is better
 const bestFirst = Prisma.sql`CASE WHEN r.type = 'SPEED' THEN r.value ELSE -r.value END`;
+
+/** Weeks of bests a critical speed is read from (Smyth & Muniz-Pumares 2020) */
+const CRITICAL_MODEL_DAYS = 112;
 
 const toBestRecord = (row: BestRecordRow): BestRecordDto => ({
   recordId: row.record_id,
@@ -300,6 +305,40 @@ export class RecordService {
       days: FTP_MODEL_DAYS,
       ftpRunning: modelFtp(running),
       ftpCycling: modelFtp(cycling),
+    };
+  }
+
+  /**
+   * What a runner holds for long, from the bests of the 16 weeks up to a
+   * date: critical speed from the best times over each distance. For the
+   * training check, which compares two dates; the caller has checked access.
+   * There is no model of running power here yet: `power` stays null.
+   */
+  async runningCriticalAt(
+    athleteId: number,
+    to: Date,
+  ): Promise<{ speed: number | null; power: number | null }> {
+    const from = new Date(to.getTime() - CRITICAL_MODEL_DAYS * 86_400_000);
+    const bests = await this.prisma.$queryRaw<
+      Pick<BestRecordDto, 'type' | 'distance' | 'duration' | 'value'>[]
+    >`
+      SELECT DISTINCT ON (r.distance)
+        r.type::text AS type, r.distance, r.duration, r.value
+      FROM record r
+      JOIN event_activity a ON a.event_activity_id = r.event_activity_id
+      WHERE r.athlete_id = ${athleteId}
+        AND r.type = 'SPEED'
+        AND r.distance IS NOT NULL
+        AND a.sport = 'RUNNING'
+        AND r.date >= ${from}
+        AND r.date <= ${to}
+        AND ${notExcluded}
+      ORDER BY r.distance, r.value ASC`;
+    return {
+      speed:
+        criticalFit(bests as BestRecordDto[], SPORT_TYPE.RUNNING)?.critical ??
+        null,
+      power: null,
     };
   }
 

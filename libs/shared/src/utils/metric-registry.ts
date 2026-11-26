@@ -252,6 +252,53 @@ export const METRIC_REGISTRY = {
       },
     ],
   },
+  trainingCheck: {
+    verdict: 'estimate',
+    formula:
+      '|Δ median| > spread × max(0.5, 1.6 × √(1/n₁ + 1/n₂)); critical speed or power: > 1%; week of ln HRV and resting HR: outside mean ± SD × max(0.5, 1.28 × √(1/n₁ + 1/n₂))',
+    sources: [
+      {
+        label: 'Buchheit 2014',
+        url: 'https://doi.org/10.3389/fphys.2014.00073',
+      },
+      {
+        label: 'Vesterinen et al. 2014',
+        url: 'https://doi.org/10.1519/JSC.0000000000000349',
+      },
+      {
+        label: 'Shushan et al. 2023',
+        url: 'https://doi.org/10.1186/s40798-023-00564-w',
+      },
+      {
+        label: 'Hopkins 2004',
+        url: 'https://sportsci.org/jour/04/wghtests.htm',
+      },
+      {
+        label: 'Maunder et al. 2021',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/33886100/',
+      },
+      {
+        label: 'Smyth et al. 2022',
+        url: 'https://doi.org/10.1007/s40279-022-01680-5',
+      },
+      {
+        label: 'Plews et al. 2012',
+        url: 'https://doi.org/10.1007/s00421-012-2354-4',
+      },
+      {
+        label: 'Bellenger et al. 2016',
+        url: 'https://doi.org/10.1007/s40279-016-0484-2',
+      },
+      {
+        label: 'Bosquet et al. 2008',
+        url: 'https://doi.org/10.1136/bjsm.2007.042200',
+      },
+      {
+        label: 'Frandsen et al. 2025',
+        url: 'https://doi.org/10.1136/bjsports-2024-109380',
+      },
+    ],
+  },
 } as const satisfies Record<string, MetricEntry>;
 
 export type MetricKey = keyof typeof METRIC_REGISTRY;

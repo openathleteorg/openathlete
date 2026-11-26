@@ -31,6 +31,7 @@ const COPY = {
   criticalSwimSpeed: ["statistics_critical_swim", "critical_swim"],
   criticalPower: ["statistics_critical_power", "critical_power"],
   gap: ["gap", "gap"],
+  trainingCheck: ["check_title", "training_check"],
 };
 
 const VERDICTS = {

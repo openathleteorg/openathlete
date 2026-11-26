@@ -66,6 +66,11 @@ test('an activity dragged onto its planned session colours it as done', async ({
 
   // Raw mouse moves, in steps, as dnd-kit expects a real drag
   await page.waitForLoadState('networkidle');
+  // The figures above the calendar can push these days under the fold, where
+  // the mouse does not reach
+  await sessionCard.evaluate((card) =>
+    card.scrollIntoView({ block: 'center' }),
+  );
   const from = (await activityCard.boundingBox())!;
   const to = (await sessionCard.boundingBox())!;
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);

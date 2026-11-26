@@ -23,6 +23,7 @@ import {
 } from '@/components/statistics/statistics-tabs';
 import { SummarySection } from '@/components/statistics/summary-section';
 import { TerrainSection } from '@/components/statistics/terrain-section';
+import { TrainingCheckSection } from '@/components/statistics/training-check-section';
 import { TrendsSection } from '@/components/statistics/trends-section';
 import {
   LAB_VIEWS,
@@ -75,7 +76,8 @@ export function StatisticsView({ athleteId }: P) {
   return (
     <div className="w-full space-y-4 p-4 md:space-y-6 md:p-8 md:pt-6">
       <PageTitle desktopOnly>{pageTitle}</PageTitle>
-      {view !== 'review' && (
+      {/* The year in review and the training check set their own periods */}
+      {view !== 'review' && view !== 'check' && (
         <StatisticsFilters filters={filters} sports={options?.sports ?? []} />
       )}
       <StatisticsTabs value={view} onChange={filters.setView} />
@@ -140,6 +142,7 @@ export function StatisticsView({ athleteId }: P) {
           )}
         </>
       )}
+      {view === 'check' && <TrainingCheckSection athleteId={athleteId} />}
       {view === 'review' && (
         <YearReviewSection
           athleteId={athleteId}

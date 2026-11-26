@@ -14,6 +14,7 @@ import {
   formTone,
   formatSeconds,
 } from '@/components/coach-dashboard/coach-dashboard-format';
+import { CoachTrainingCheck } from '@/components/coach-dashboard/coach-training-check';
 import { CompareAthletesDialog } from '@/components/coach-dashboard/compare-athletes-dialog';
 import { summarizeGroup } from '@/components/coach-dashboard/group-summary';
 import { ThresholdsDialog } from '@/components/coach-dashboard/thresholds-dialog';
@@ -555,6 +556,12 @@ export function CoachDashboardView() {
             />
           )}
           <Watchlist rows={rows} />
+          <CoachTrainingCheck
+            athletes={rows.map((row) => ({
+              athleteId: row.athleteId,
+              name: name(row),
+            }))}
+          />
 
           {/* Wide screens: one row per athlete, no horizontal scroll */}
           <div className="hidden md:block rounded-lg border">

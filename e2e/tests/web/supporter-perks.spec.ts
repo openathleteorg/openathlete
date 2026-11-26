@@ -41,5 +41,5 @@ test('an instance without Stripe locks no feature', async ({ page }) => {
   // The Lab views are there, without a lock
   await page.goto('/dashboard/statistics');
   const tabs = page.getByRole('tablist').first().getByRole('tab');
-  await expect(tabs).toHaveCount(5);
+  await expect(tabs).toHaveCount(6);
 });
