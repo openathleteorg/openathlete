@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -162,6 +163,7 @@ export function TargetForm({
   cancelLabel = m.target_form_cancel(),
   sport,
 }: TargetFormProps) {
+  const units = useUnits();
   const { data: athlete } = useGetMyAthleteQuery();
   // Percentages read the session athlete's FTP or VMA, not the coach's
   const workoutAthleteId = useWorkoutAthleteId();
@@ -197,6 +199,16 @@ export function TargetForm({
     return value / 100;
   };
 
+  const isInitialWeight =
+    initialValues?.targetType === WORKOUT_TARGET_TYPE.WEIGHT;
+  // Pounds to a decimal; kilograms as stored
+  const toDisplayWeight = (value: number | null | undefined): number | null =>
+    value === null || value === undefined
+      ? null
+      : units.weightFactor === 1
+        ? value
+        : Number((value * units.weightFactor).toFixed(1));
+
   const form = useForm<TargetFormValues>({
     resolver: zodResolver(targetFormSchema),
     defaultValues: {
@@ -206,19 +218,25 @@ export function TargetForm({
             initialValues?.targetMin,
             initialMetricType,
           )
-        : initialValues?.targetMin || null,
+        : isInitialWeight
+          ? toDisplayWeight(initialValues?.targetMin)
+          : initialValues?.targetMin || null,
       targetMax: hasInitialMetric
         ? convertFromStoredPercentage(
             initialValues?.targetMax,
             initialMetricType,
           )
-        : initialValues?.targetMax || null,
+        : isInitialWeight
+          ? toDisplayWeight(initialValues?.targetMax)
+          : initialValues?.targetMax || null,
       targetValue: hasInitialMetric
         ? convertFromStoredPercentage(
             initialValues?.targetValue,
             initialMetricType,
           )
-        : initialValues?.targetValue || null,
+        : isInitialWeight
+          ? toDisplayWeight(initialValues?.targetValue)
+          : initialValues?.targetValue || null,
       metricType: initialMetricType,
     },
   });
@@ -256,6 +274,30 @@ export function TargetForm({
       finalValue = convertToStoredPercentage(
         values.targetValue,
         values.metricType,
+      );
+    } else if (values.targetType === WORKOUT_TARGET_TYPE.WEIGHT) {
+      // A load shown unchanged saves as stored: 60 kg is 132.3 lb, which
+      // would come back as 60.01 kg
+      const fromDisplayWeight = (
+        shown: number | null | undefined,
+        original: number | null | undefined,
+      ) => {
+        if (shown === null || shown === undefined) return null;
+        if (
+          isInitialWeight &&
+          original !== null &&
+          original !== undefined &&
+          shown === toDisplayWeight(original)
+        ) {
+          return original;
+        }
+        return shown / units.weightFactor;
+      };
+      finalMin = fromDisplayWeight(values.targetMin, initialValues?.targetMin);
+      finalMax = fromDisplayWeight(values.targetMax, initialValues?.targetMax);
+      finalValue = fromDisplayWeight(
+        values.targetValue,
+        initialValues?.targetValue,
       );
     }
 
@@ -499,13 +541,13 @@ export function TargetForm({
               <RHFNumberWithUnit
                 name="targetMin"
                 label={m.target_form_min_value()}
-                unit="kg"
+                unit={units.weightLabel}
                 min={0}
               />
               <RHFNumberWithUnit
                 name="targetMax"
                 label={m.target_form_max_value()}
-                unit="kg"
+                unit={units.weightLabel}
                 min={0}
               />
             </div>
@@ -513,7 +555,7 @@ export function TargetForm({
             <RHFNumberWithUnit
               name="targetValue"
               label={m.target_form_single_value()}
-              unit="kg"
+              unit={units.weightLabel}
               min={0}
             />
           )

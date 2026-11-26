@@ -1,7 +1,8 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { CSSProperties } from 'react';
 
-import { formatNumber, hours, kilometers, monthName } from '../format';
+import { formatNumber, hours, monthName } from '../format';
 import { after } from '../story/after';
 import { Eyebrow, Slide, Title } from '../story/slide';
 import { SlideProps } from './types';
@@ -16,6 +17,7 @@ function bestMonthIndex(months: SlideProps['review']['months']) {
 }
 
 export function BestMonthSlide({ review }: SlideProps) {
+  const units = useUnits();
   const { months } = review;
   const best = bestMonthIndex(months);
   const longest = months[best].movingTime;
@@ -31,7 +33,7 @@ export function BestMonthSlide({ review }: SlideProps) {
       </Title>
       <p className="yr-lead yr-reveal" style={after(250)}>
         {m.year_review_month_lead({
-          distance: formatNumber(kilometers(months[best].distance)),
+          distance: `${formatNumber(Math.round(units.distanceValue(months[best].distance)))} ${units.distanceLabel}`,
           hours: formatNumber(hours(months[best].movingTime)),
         })}
       </p>

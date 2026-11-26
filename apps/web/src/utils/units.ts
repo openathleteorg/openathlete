@@ -3,17 +3,18 @@ import { m } from '@/paraglide/messages';
 import {
   KG_TO_LB,
   KM_TO_MI,
+  METERS_PER_MILE,
   SpeedUnit,
   UnitSystem,
   formatDistance,
   localDistanceUnit,
   localSpeedUnit,
+  roundImperialDistance,
   toUnitElevation,
   toUnitTemperature,
   toUnitWeight,
 } from '@openathlete/shared';
 
-const METERS_PER_MILE = 1609.34;
 const KM_PER_MILE = 1 / KM_TO_MI;
 
 /**
@@ -44,11 +45,19 @@ export function unitsFor(unitSystem: UnitSystem) {
       meters / (imperial ? METERS_PER_MILE : 1000),
     /** "5.00": metres in this system's long distance unit */
     formatDist: (meters: number) => formatDistance(meters, distanceUnit),
-    /** Pool distances read in yards; other sports as any distance */
-    formatSportDist: (meters: number, sportSpeedUnit: SpeedUnit) =>
-      imperial && sportSpeedUnit === 'min/100m'
-        ? `${formatDistance(meters, 'yd')} ${m.yards()}`
-        : `${formatDistance(meters, distanceUnit)} ${imperial ? m.miles() : m.kilometers()}`,
+    /**
+     * Swims in imperial units read in yards when swum in a yard pool, else
+     * in metres beside their /100 m pace; other sports as any distance
+     */
+    formatSportDist: (meters: number, sportSpeedUnit: SpeedUnit) => {
+      if (imperial && sportSpeedUnit === 'min/100m') {
+        const yards = roundImperialDistance(meters, true);
+        return yards
+          ? `${yards.value} ${m.yards()}`
+          : `${Math.round(meters)} ${m.meters()}`;
+      }
+      return `${formatDistance(meters, distanceUnit)} ${imperial ? m.miles() : m.kilometers()}`;
+    },
     /** "21.5 °C" or "70.7 °F" */
     formatTemp: (celsius: number) => {
       const { value, unit } = toUnitTemperature(celsius, unitSystem);

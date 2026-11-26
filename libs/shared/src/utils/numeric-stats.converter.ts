@@ -1,4 +1,5 @@
 import { SpeedUnit } from '../types';
+import { METERS_PER_MILE, MS_TO_MPH } from './units';
 
 /**
  * Computes the pace in different units based on the distance and duration.
@@ -23,12 +24,12 @@ export const convertSpeed = (
     case 'km/h':
       return pace * 3.6;
     case 'mph':
-      return pace * 2.23694;
+      return pace * MS_TO_MPH;
     case 'min/km':
       // convert meter / seconds to minute / km
       return (pace * 60) / 1000;
     case 'min/mi':
-      return pace / 1609.34;
+      return pace / METERS_PER_MILE;
     default:
       return pace;
   }

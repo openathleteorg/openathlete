@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { CSSProperties } from 'react';
 
@@ -17,6 +18,7 @@ const FAMILY_COLORS: Record<YearReviewRecordDto['family'], string> = {
 };
 
 export function RecordsSlide({ review }: SlideProps) {
+  const units = useUnits();
   const { highlights, improved } = review.records;
   return (
     <Slide>
@@ -39,7 +41,9 @@ export function RecordsSlide({ review }: SlideProps) {
               }
             >
               <div>
-                <p className="yr-record-kind">{recordLabel(record)}</p>
+                <p className="yr-record-kind">
+                  {recordLabel(record, units.unitSystem)}
+                </p>
                 <p className="yr-record-value">{recordValue(record)}</p>
               </div>
               <p className="yr-record-foot">

@@ -1,4 +1,5 @@
 import { useDeleteEventTemplateMutation } from '@/api/event-template';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { useSortable } from '@dnd-kit/sortable';
@@ -15,11 +16,7 @@ import {
 import { useState } from 'react';
 
 import { EventTemplate } from '@openathlete/shared';
-import {
-  EVENT_TYPE,
-  formatDistance,
-  formatDuration,
-} from '@openathlete/shared';
+import { EVENT_TYPE, formatDuration } from '@openathlete/shared';
 
 import { ConfirmAction } from '../confirm-action';
 import { SportIcon } from '../sport-icon/sport-icon';
@@ -50,6 +47,7 @@ export function DraggableTemplate({
   depth = 0,
   showUseButton = true,
 }: Props) {
+  const units = useUnits();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const deleteTemplateMutation = useDeleteEventTemplateMutation();
 
@@ -151,7 +149,8 @@ export function DraggableTemplate({
             {template.event.type === EVENT_TYPE.TRAINING &&
               template.event.goalDistance && (
                 <span className="text-sm text-muted-foreground truncate min-w-0">
-                  {formatDistance(template.event.goalDistance)} km
+                  {units.formatDist(template.event.goalDistance)}{' '}
+                  {units.distanceLabel}
                 </span>
               )}
           </>

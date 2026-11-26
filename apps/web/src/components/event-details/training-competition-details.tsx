@@ -2,6 +2,7 @@ import {
   useSetRelatedActivityMutation,
   useUnsetRelatedActivityMutation,
 } from '@/api/event';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { playerPath } from '@/routes/paths';
@@ -16,7 +17,6 @@ import {
   type Event,
   TrainingEvent,
   type WorkoutStepDto,
-  formatDistance,
   normalizeWorkoutForCreate,
 } from '@openathlete/shared';
 
@@ -44,6 +44,7 @@ interface P {
 }
 
 export function TrainingCompetitionDetails({ event }: P) {
+  const units = useUnits();
   const setRelatedActivityMutation = useSetRelatedActivityMutation();
   const unsetRelatedActivityMutation = useUnsetRelatedActivityMutation();
   const { events, openEventDetails } = useCalendarContext();
@@ -71,7 +72,7 @@ export function TrainingCompetitionDetails({ event }: P) {
         });
     const distance =
       activity.type === EVENT_TYPE.ACTIVITY && activity.distance > 0
-        ? ` · ${formatDistance(activity.distance)} km`
+        ? ` · ${units.formatDist(activity.distance)} ${units.distanceUnit}`
         : '';
     return `${activity.name} · ${when}${distance}`;
   };

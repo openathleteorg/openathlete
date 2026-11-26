@@ -1,5 +1,6 @@
 import { useGetMyEquipmentQuery } from '@/api/equipment';
 import { SportIcon } from '@/components/sport-icon/sport-icon';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { UseFormSetValue } from 'react-hook-form';
@@ -60,6 +61,7 @@ export function EventFormFields({
   isTemplate,
   logging,
 }: Props) {
+  const units = useUnits();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
       <RHFTextField
@@ -152,17 +154,17 @@ export function EventFormFields({
                 {m.pace()}:{' '}
                 {formatSpeed(
                   Number(goalDistanceValue) / Number(goalDurationValue),
-                  'min/km',
+                  units.speedUnit('min/km'),
                 )}{' '}
-                {m.per_km()}
+                {units.perDistanceLabel}
               </span>
               <span className="hidden md:inline"> - </span>
               <span>
                 {formatSpeed(
                   Number(goalDistanceValue) / Number(goalDurationValue),
-                  'km/h',
+                  units.speedUnit('km/h'),
                 )}{' '}
-                {m.kilometers_per_hour()}
+                {units.speedLabel}
               </span>
             </div>
           )}

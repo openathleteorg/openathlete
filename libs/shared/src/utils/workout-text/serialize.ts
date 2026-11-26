@@ -1,3 +1,4 @@
+import type { UnitSystem } from '../../types/dtos/core/unit-system.dto';
 import type {
   CreateWorkoutStepDto,
   CreateWorkoutStepTarget,
@@ -9,9 +10,15 @@ import {
 } from '../../types/misc';
 import type { SPORT_TYPE } from '../../types/misc/core/sport-type.enum';
 import { getSportConfig } from '../sport-config';
+import {
+  KG_TO_LB,
+  METERS_PER_MILE,
+  MS_TO_MPH,
+  roundImperialDistance,
+} from '../units';
 import { inferChildType, inferTopLevelType } from './infer';
 import { defaultZoneType, isReservedWord } from './parse';
-import { MINUTES_BELOW } from './tokens';
+import { MINUTES_BELOW, parseTarget } from './tokens';
 import type { WorkoutTextSerializeOptions, WorkoutTextZone } from './types';
 import {
   ZONE_TYPE_SUFFIX,
@@ -26,6 +33,10 @@ import {
  * Writes steps as workout text, the inverse of parseWorkoutText: the text
  * reads back to the same steps.
  */
+
+/** What the parser rounds speeds (m/s) and loads (kg) to */
+const SPEED_PRECISION = 1e-4;
+const WEIGHT_PRECISION = 0.01;
 
 function trimNumber(value: number, digits = 2): string {
   return String(Math.round(value * 10 ** digits) / 10 ** digits);
@@ -49,7 +60,15 @@ export function formatTextDuration(seconds: number): string {
   return `${minutes}m${String(secs).padStart(2, '0')}`;
 }
 
-export function formatTextDistance(meters: number, sport: SPORT_TYPE): string {
+export function formatTextDistance(
+  meters: number,
+  sport: SPORT_TYPE,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
+  if (unitSystem === 'IMPERIAL') {
+    const imperial = roundImperialDistance(meters, isSwimmingSport(sport));
+    if (imperial) return `${imperial.value}${imperial.unit}`;
+  }
   if (meters >= 1000 && !isSwimmingSport(sport))
     return `${trimNumber(meters / 1000, 3)}km`;
   if (isSwimmingSport(sport) || meters >= MINUTES_BELOW)
@@ -57,13 +76,17 @@ export function formatTextDistance(meters: number, sport: SPORT_TYPE): string {
   return `${trimNumber(meters)}mtr`;
 }
 
-function formatDuration(step: CreateWorkoutStepDto, sport: SPORT_TYPE): string {
+function formatDuration(
+  step: CreateWorkoutStepDto,
+  sport: SPORT_TYPE,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
   const value = step.durationValue ?? 0;
   switch (step.durationType) {
     case WORKOUT_DURATION_TYPE.TIME:
       return formatTextDuration(value);
     case WORKOUT_DURATION_TYPE.DISTANCE:
-      return formatTextDistance(value, sport);
+      return formatTextDistance(value, sport, unitSystem);
     case WORKOUT_DURATION_TYPE.LAP_BUTTON:
       return 'lap';
     case WORKOUT_DURATION_TYPE.HR_BELOW:
@@ -82,6 +105,35 @@ function formatDuration(step: CreateWorkoutStepDto, sport: SPORT_TYPE): string {
 function pace(speed: number, perMeters: number): string {
   const seconds = Math.round(perMeters / speed);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+/**
+ * Whether a target written in imperial units reads back to the values it was
+ * written from, to the precision the parser keeps. The editor reads every
+ * line again on each key: a target that does not stays in metric units, or
+ * an untouched 5:00/km would be saved as 8:03/mi, a little slower.
+ */
+function readsBack(
+  text: string,
+  [low, high]: [number, number | null],
+  precision: number,
+): boolean {
+  const result = parseTarget(text, undefined);
+  if (result?.parsed.kind !== 'target') return false;
+  const { targetValue, targetMin, targetMax } = result.parsed.target;
+  const read =
+    targetValue !== null && targetValue !== undefined
+      ? [targetValue]
+      : [targetMin ?? NaN, targetMax ?? NaN];
+  const wanted =
+    high === null ? [low] : [Math.min(low, high), Math.max(low, high)];
+  return (
+    read.length === wanted.length &&
+    // Half a step: a value the parser rounded reads back within it
+    read.every(
+      (value, index) => Math.abs(value - wanted[index]) <= precision / 2,
+    )
+  );
 }
 
 function bounds(
@@ -105,10 +157,12 @@ function formatTarget(
   target: CreateWorkoutStepTarget,
   sport: SPORT_TYPE,
   zones: WorkoutTextZone[],
+  unitSystem: UnitSystem = 'METRIC',
 ): string | null {
   const values = bounds(target);
   if (!values) return null;
   const [low, high] = values;
+  const imperial = unitSystem === 'IMPERIAL';
   const join = (format: (value: number) => string, suffix: string) =>
     high === null
       ? `${format(low)}${suffix}`
@@ -132,13 +186,21 @@ function formatTarget(
     }
     case WORKOUT_TARGET_TYPE.PACE: {
       const unit = getSportConfig(sport)?.speedUnit;
-      if (unit === 'km/h')
+      if (unit === 'km/h') {
+        const mph = join((value) => trimNumber(value * MS_TO_MPH, 1), 'mph');
+        if (imperial && readsBack(mph, values, SPEED_PRECISION)) return mph;
         return join((value) => trimNumber(value * 3.6, 1), 'km/h');
-      const per = unit === 'min/100m' ? 100 : unit === 'min/500m' ? 500 : 1000;
-      const label = per === 1000 ? 'km' : `${per}m`;
+      }
       // Faster pace first reads as the range runners write: 3:20-3:30/km
       const ordered = high === null ? [low] : [high, low];
-      return `${ordered.map((value) => pace(value, per)).join('-')}/${label}`;
+      const paces = (per: number, label: string) =>
+        `${ordered.map((value) => pace(value, per)).join('-')}/${label}`;
+      if (unit === 'min/100m') return paces(100, '100m');
+      if (unit === 'min/500m') return paces(500, '500m');
+      const perMile = paces(METERS_PER_MILE, 'mi');
+      if (imperial && readsBack(perMile, values, SPEED_PRECISION))
+        return perMile;
+      return paces(1000, 'km');
     }
     case WORKOUT_TARGET_TYPE.HEARTRATE:
       return join((value) => trimNumber(value, 0), 'bpm');
@@ -148,8 +210,12 @@ function formatTarget(
       return join((value) => trimNumber(value, 0), 'rpm');
     case WORKOUT_TARGET_TYPE.RPE:
       return `RPE${join((value) => trimNumber(value, 1), '')}`;
-    case WORKOUT_TARGET_TYPE.WEIGHT:
+    case WORKOUT_TARGET_TYPE.WEIGHT: {
+      const pounds = join((value) => trimNumber(value * KG_TO_LB, 1), 'lb');
+      if (imperial && readsBack(pounds, values, WEIGHT_PRECISION))
+        return pounds;
       return join((value) => trimNumber(value, 1), 'kg');
+    }
     default:
       return null;
   }
@@ -177,7 +243,7 @@ function formatStep(
   options: Required<Pick<WorkoutTextSerializeOptions, 'locale'>> &
     WorkoutTextSerializeOptions,
 ): string {
-  const { sport, zones = [], locale } = options;
+  const { sport, zones = [], locale, unitSystem = 'METRIC' } = options;
   const type = step.stepType as Exclude<
     WORKOUT_STEP_TYPE,
     WORKOUT_STEP_TYPE.REPEAT
@@ -195,9 +261,9 @@ function formatStep(
   } else if (type !== inferred) {
     parts.push(stepTypeLabel(type, locale));
   }
-  parts.push(formatDuration(step, sport));
+  parts.push(formatDuration(step, sport, unitSystem));
   for (const target of step.targets ?? []) {
-    const text = formatTarget(target, sport, zones);
+    const text = formatTarget(target, sport, zones, unitSystem);
     if (text) parts.push(text);
   }
   if (intensity) parts.push(`intensity=${intensity}`);

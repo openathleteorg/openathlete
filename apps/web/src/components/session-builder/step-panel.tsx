@@ -19,10 +19,13 @@ import {
 
 import type { CreateWorkoutStepTarget } from '@openathlete/shared';
 import {
+  METERS_PER_MILE,
+  METERS_PER_YARD,
   SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
+  roundImperialDistance,
 } from '@openathlete/shared';
 
 import { TargetForm } from '../workout/target-form';
@@ -45,6 +48,50 @@ const TYPES = [
 const TIME_PRESETS = [30, 60, 120, 180, 300, 600, 900, 1200, 1800, 3600];
 const RUN_DISTANCES = [200, 400, 800, 1000, 2000, 5000];
 const SWIM_DISTANCES = [25, 50, 100, 200, 400];
+// Tracks are metric everywhere; longer reps in miles, pools in yards
+const RUN_DISTANCES_IMPERIAL = [200, 400, 800, ...[1, 2, 5].map(miles)];
+const SWIM_DISTANCES_IMPERIAL = [25, 50, 100, 200, 500].map(yards);
+
+function miles(value: number) {
+  return toCentimeters(value * METERS_PER_MILE);
+}
+function yards(value: number) {
+  return toCentimeters(value * METERS_PER_YARD);
+}
+/** Distances are stored to the centimetre, as the text editor reads them */
+function toCentimeters(meters: number) {
+  return Math.round(meters * 100) / 100;
+}
+
+type DistanceFieldUnit = 'm' | 'km' | 'mi' | 'yd';
+const METERS_IN: Record<DistanceFieldUnit, number> = {
+  m: 1,
+  km: 1000,
+  mi: METERS_PER_MILE,
+  yd: METERS_PER_YARD,
+};
+
+/** The units the field toggles between: none in a metric pool */
+function distanceUnits(imperial: boolean, swim: boolean): DistanceFieldUnit[] {
+  if (imperial) return swim ? ['yd', 'm'] : ['m', 'mi'];
+  return swim ? ['m'] : ['m', 'km'];
+}
+
+/** The unit a distance reads best in: the one it was planned in */
+function distanceUnitOf(
+  meters: number,
+  imperial: boolean,
+  swim: boolean,
+): DistanceFieldUnit {
+  if (imperial) {
+    const round = roundImperialDistance(meters, swim);
+    if (round && (round.unit === 'yd') === swim) return round.unit;
+    if (swim) return meters > 0 ? 'm' : 'yd';
+    return 'm';
+  }
+  // Kilometres read better past 1 km, except in the pool
+  return !swim && meters >= 1000 ? 'km' : 'm';
+}
 
 /** Lengths a kind switch starts from, before the coach adjusts */
 const FIRST_LENGTH = { time: 300, distance: 1000, swimDistance: 100 };
@@ -67,8 +114,11 @@ function kindOf(type: BuilderStep['durationType']): LengthKind | null {
 const presetLabel = (seconds: number) =>
   seconds >= 3600 ? '1h' : seconds < 60 ? `${seconds}"` : `${seconds / 60}'`;
 
-const distanceLabel = (meters: number) =>
-  meters >= 1000 ? `${meters / 1000} km` : `${meters} m`;
+const distanceLabel = (meters: number, imperial: boolean, swim: boolean) => {
+  const round = imperial ? roundImperialDistance(meters, swim) : null;
+  if (round) return `${round.value} ${round.unit}`;
+  return meters >= 1000 ? `${meters / 1000} km` : `${meters} m`;
+};
 
 /** Keys typed in the panel stay there: Enter must not submit the event form */
 function keepKeys(event: KeyboardEvent<HTMLElement>) {
@@ -194,11 +244,13 @@ function LengthSection({
   env: BuilderEnv;
   update: (patch: Partial<BuilderStep>) => void;
 }) {
+  const imperial = env.unitSystem === 'IMPERIAL';
   const kind = kindOf(step.durationType);
   const swim = env.sport === SPORT_TYPE.SWIMMING;
   const value = step.durationValue ?? 0;
-  // Kilometres read better past 1 km, except in the pool
-  const [km, setKm] = useState(!swim && value >= 1000);
+  const [unit, setUnit] = useState(() => distanceUnitOf(value, imperial, swim));
+  const fieldUnits = distanceUnits(imperial, swim);
+  const long = unit === 'km' || unit === 'mi';
 
   const setKind = (next: LengthKind) => {
     if (next === kind) return;
@@ -213,8 +265,14 @@ function LengthSection({
         durationValue: FIRST_LENGTH.time,
       });
     } else {
-      const meters = swim ? FIRST_LENGTH.swimDistance : FIRST_LENGTH.distance;
-      setKm(!swim && meters >= 1000);
+      const meters = imperial
+        ? swim
+          ? yards(FIRST_LENGTH.swimDistance)
+          : miles(1)
+        : swim
+          ? FIRST_LENGTH.swimDistance
+          : FIRST_LENGTH.distance;
+      setUnit(distanceUnitOf(meters, imperial, swim));
       update({
         durationType: WORKOUT_DURATION_TYPE.DISTANCE,
         durationValue: meters,
@@ -233,7 +291,7 @@ function LengthSection({
     if (meters > 0)
       update({
         durationType: WORKOUT_DURATION_TYPE.DISTANCE,
-        durationValue: Math.round(meters),
+        durationValue: toCentimeters(meters),
       });
   };
 
@@ -306,45 +364,57 @@ function LengthSection({
         <>
           <div className="flex items-center gap-2">
             <NumberField
-              value={km ? Number((value / 1000).toFixed(3)) : value}
+              value={
+                long
+                  ? Number((value / METERS_IN[unit]).toFixed(3))
+                  : Math.round(value / METERS_IN[unit])
+              }
               label={m.builder_panel_distance()}
-              suffix={km ? 'km' : 'm'}
-              step={km ? 0.1 : 1}
+              suffix={unit}
+              step={long ? 0.1 : 1}
               className="w-32"
-              onValue={(next) => setMeters((next ?? 0) * (km ? 1000 : 1))}
+              onValue={(next) => setMeters((next ?? 0) * METERS_IN[unit])}
               data-panel-distance
             />
-            {!swim && (
+            {fieldUnits.length > 1 && (
               <div className="inline-flex rounded-lg bg-muted p-0.5">
-                {([false, true] as const).map((inKm) => (
+                {fieldUnits.map((option) => (
                   <button
-                    key={String(inKm)}
+                    key={option}
                     type="button"
-                    aria-pressed={km === inKm}
-                    onClick={() => setKm(inKm)}
+                    aria-pressed={unit === option}
+                    onClick={() => setUnit(option)}
                     className={cn(
                       'h-9 rounded-md px-3 text-sm font-medium text-muted-foreground',
-                      km === inKm && 'bg-background text-foreground shadow-sm',
+                      unit === option &&
+                        'bg-background text-foreground shadow-sm',
                     )}
                   >
-                    {inKm ? 'km' : 'm'}
+                    {option}
                   </button>
                 ))}
               </div>
             )}
           </div>
           <div className="flex flex-wrap gap-1">
-            {(swim ? SWIM_DISTANCES : RUN_DISTANCES).map((preset) => (
+            {(swim
+              ? imperial
+                ? SWIM_DISTANCES_IMPERIAL
+                : SWIM_DISTANCES
+              : imperial
+                ? RUN_DISTANCES_IMPERIAL
+                : RUN_DISTANCES
+            ).map((preset) => (
               <Chip
                 key={preset}
-                active={value === preset}
+                active={Math.abs(value - preset) < 0.01}
                 onClick={() => {
-                  setKm(!swim && preset >= 1000);
+                  setUnit(distanceUnitOf(preset, imperial, swim));
                   setMeters(preset);
                 }}
                 className="h-8 px-2.5 text-xs"
               >
-                {distanceLabel(preset)}
+                {distanceLabel(preset, imperial, swim)}
               </Chip>
             ))}
           </div>
@@ -480,6 +550,7 @@ function IntensitySection({
             env.sport,
             env.zonesByType,
             env.metrics,
+            env.unitSystem,
           );
           if (!label) return null;
           return (

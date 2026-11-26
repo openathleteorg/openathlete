@@ -1,4 +1,5 @@
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { cn } from '@/utils/shadcn';
@@ -7,7 +8,11 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import { QUESTION_TYPE, type Question } from '@openathlete/shared';
 
-import { formatAnswer, formatShortDay } from '../answer-format';
+import {
+  formatAnswer,
+  formatShortDay,
+  numberAnswerUnit,
+} from '../answer-format';
 import {
   type AnswerPoint,
   SERIES_COLORS,
@@ -59,6 +64,7 @@ export function QuestionWidget({ question, points, athletes, from, to }: P) {
 }
 
 function WidgetBody({ question, points, athletes, from, to }: P) {
+  const { unitSystem } = useUnits();
   const nameOf = (athleteId: number) =>
     athletes?.find((athlete) => athlete.athleteId === athleteId)?.name;
   switch (question.type) {
@@ -73,17 +79,29 @@ function WidgetBody({ question, points, athletes, from, to }: P) {
           to={to}
         />
       );
-    case QUESTION_TYPE.NUMBER:
+    case QUESTION_TYPE.NUMBER: {
+      const { unit, toDisplay } = numberAnswerUnit(question, unitSystem);
       return (
         <NumberChart
           label={question.label}
-          unit={question.config.unit}
-          points={points}
+          unit={unit}
+          points={points.map((point) =>
+            point.answer.valueNumber === null
+              ? point
+              : {
+                  ...point,
+                  answer: {
+                    ...point.answer,
+                    valueNumber: toDisplay(point.answer.valueNumber),
+                  },
+                },
+          )}
           athletes={athletes}
           from={from}
           to={to}
         />
       );
+    }
     case QUESTION_TYPE.YES_NO: {
       const yes = points.filter((point) => point.answer.valueNumber === 1);
       return (

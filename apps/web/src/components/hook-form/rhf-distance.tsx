@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { ComponentProps, useEffect, useState } from 'react';
@@ -8,7 +9,11 @@ import {
   useFormContext,
 } from 'react-hook-form';
 
-import { DistanceUnit } from '@openathlete/shared';
+import {
+  DistanceUnit,
+  METERS_PER_MILE,
+  METERS_PER_YARD,
+} from '@openathlete/shared';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -29,8 +34,8 @@ type Props = ComponentProps<'input'> & {
 const UNIT_CONVERSION = {
   m: 1,
   km: 1000,
-  mi: 1609.34,
-  yd: 0.9144,
+  mi: METERS_PER_MILE,
+  yd: METERS_PER_YARD,
 };
 
 /**
@@ -45,38 +50,71 @@ function DistanceFieldAdapter({
   field: ControllerRenderProps<Record<string, unknown>, string>;
   error?: FieldError;
 } & ComponentProps<'input'>) {
+  const units = useUnits();
   const [distanceInput, setDistanceInput] = useState<string>('');
-  const [unit, setUnit] = useState<DistanceUnit>('km');
+  const [unit, setUnit] = useState<DistanceUnit>(units.distanceUnit);
+  const [userPickedUnit, setUserPickedUnit] = useState(false);
+  const [lastSynced, setLastSynced] = useState<
+    { value: number | null | undefined; unit: DistanceUnit } | undefined
+  >(undefined);
+
+  useEffect(() => {
+    if (!userPickedUnit) {
+      setUnit(units.distanceUnit);
+    }
+  }, [units.distanceUnit, userPickedUnit]);
 
   // Convert stored value (in meters) to display value in selected unit
   useEffect(() => {
+    if (
+      lastSynced !== undefined &&
+      field.value === lastSynced.value &&
+      unit === lastSynced.unit
+    ) {
+      return;
+    }
+
     if (field.value === undefined || field.value === null) {
       setDistanceInput('');
+      setLastSynced({ value: field.value, unit });
     } else {
       // Convert from meters to current unit
       const convertedValue = (field.value as number) / UNIT_CONVERSION[unit];
-      setDistanceInput(convertedValue.toString());
+      setDistanceInput(Number(convertedValue.toFixed(4)).toString());
+      setLastSynced({ value: field.value as number, unit });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [field.value, unit]);
 
   const updateFormValue = (distance: string) => {
     if (distance === '') {
+      setLastSynced({ value: undefined, unit });
       field.onChange(undefined);
     } else {
       // Store the value in meters (base unit)
       const distanceNum = parseFloat(distance);
-      field.onChange(distanceNum * UNIT_CONVERSION[unit]);
+      if (!Number.isNaN(distanceNum)) {
+        const meters = distanceNum * UNIT_CONVERSION[unit];
+        setLastSynced({ value: meters, unit });
+        field.onChange(meters);
+      }
     }
   };
 
   // Handle unit change with conversion
   const handleUnitChange = (newUnit: DistanceUnit) => {
+    setUserPickedUnit(true);
     if (distanceInput !== '') {
-      // Convert current value to meters
-      const valueInMeters = parseFloat(distanceInput) * UNIT_CONVERSION[unit];
-      // Then convert to new unit
-      const convertedValue = valueInMeters / UNIT_CONVERSION[newUnit];
-      setDistanceInput(convertedValue.toFixed(2));
+      const distanceNum = parseFloat(distanceInput);
+      if (!Number.isNaN(distanceNum)) {
+        const valueInMeters = distanceNum * UNIT_CONVERSION[unit];
+        const convertedValue = valueInMeters / UNIT_CONVERSION[newUnit];
+        setDistanceInput(Number(convertedValue.toFixed(2)).toString());
+        setLastSynced({
+          value: field.value as number | null | undefined,
+          unit: newUnit,
+        });
+      }
     }
     setUnit(newUnit);
   };
@@ -108,6 +146,7 @@ function DistanceFieldAdapter({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="m">{m.meters()}</SelectItem>
+          <SelectItem value="yd">{m.yards()}</SelectItem>
           <SelectItem value="km">{m.kilometers()}</SelectItem>
           <SelectItem value="mi">{m.miles()}</SelectItem>
         </SelectContent>

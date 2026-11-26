@@ -535,3 +535,73 @@ describe('serialize', () => {
     ]);
   });
 });
+
+describe('serialize in imperial units', () => {
+  const imperial = (context: typeof run) => ({
+    ...context,
+    unitSystem: 'IMPERIAL' as const,
+  });
+  /** Text typed by a coach, written for an imperial user, read again */
+  const reread = (text: string, context = run) => {
+    const steps = only(text, context);
+    const written = serializeWorkoutText(steps, imperial(context));
+    expect(only(written, context)).toEqual(steps);
+    return written;
+  };
+
+  it('leaves steps planned in metric units as they are', () => {
+    // 400 m is 437.4 yd and 5:00/km is 8:02.8/mi: written in either,
+    // they would be saved changed by the editor reading every line again
+    expect(reread('- 400m 5:00/km\n- 5km 4:10-4:20/km\n- 1km Z4')).toBe(
+      '- 400m 5:00/km\n- 5km 4:10-4:20/km\n- 1km Z4',
+    );
+    expect(reread('- 10m 32km/h\n- 5m 30-34km/h', ride)).toBe(
+      '- 10m 32km/h\n- 5m 30-34km/h',
+    );
+    expect(reread('- 400m 1:40/100m\n- 100m Z4', swim)).toBe(
+      '- 400m 1:40/100m\n- 100m Z4',
+    );
+  });
+
+  it('writes what was typed in imperial units in them', () => {
+    expect(reread('- 1mi 8:00/mi\n- 0.25mi 7:00-7:15/mi\n- 3.1mi Z2')).toBe(
+      '- 1mi 8:00/mi\n- 0.25mi 7:00-7:15/mi\n- 3.1mi Z2',
+    );
+    expect(reread('- 10m 20mph\n- 5m 18-21.5mph', ride)).toBe(
+      '- 10m 20mph\n- 5m 18-21.5mph',
+    );
+    expect(reread('- 500yd Z2\n- 8x(100yd Z4 / 20s)', swim)).toBe(
+      '- 500yd Z2\n\n8x\n- 100yd Z4\n- 20s',
+    );
+    // Strides in yards, not 0.06 mi
+    expect(reread('- 4x(100yd / 1m)')).toBe('4x\n- 100yd\n- 1m');
+  });
+
+  it('keeps loads in the unit they read back exactly in', () => {
+    const load = (targets: CreateWorkoutStepDto['targets']) =>
+      serializeWorkoutText(
+        [
+          {
+            stepType: S.STEADY,
+            durationType: D.REPS,
+            durationValue: 8,
+            targets,
+          },
+        ],
+        imperial(run),
+      );
+    // 60 kg is 132.28 lb: "132.3lb" would read back as 60.01 kg
+    expect(load([{ targetType: T.WEIGHT, targetValue: 60 }])).toBe(
+      '- 8reps 60kg',
+    );
+    // 135 lb typed in the target form, stored unrounded
+    expect(
+      load([{ targetType: T.WEIGHT, targetValue: 135 * 0.45359237 }]),
+    ).toBe('- 8reps 135lb');
+  });
+
+  it('stays metric in metric units', () => {
+    const steps = only('- 1mi 8:00/mi');
+    expect(serializeWorkoutText(steps, run)).toBe('- 1.609km 4:58/km');
+  });
+});

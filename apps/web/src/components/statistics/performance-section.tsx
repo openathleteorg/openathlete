@@ -1,4 +1,5 @@
 import { useGetRecordsQuery } from '@/api/record';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { activityPath } from '@/routes/paths';
@@ -58,7 +59,8 @@ const CURVES = [RECORD_TYPE.SPEED, RECORD_TYPE.POWER];
 const RUNNING_FOR_COHERENCE = new Set([SPORT_TYPE.RUNNING]);
 
 function CriticalCard({ fit, sport }: { fit: CriticalFit; sport: SPORT_TYPE }) {
-  const unit = SPORT_CONFIG[sport].speedUnit;
+  const units = useUnits();
+  const unit = units.speedUnit(SPORT_CONFIG[sport].speedUnit);
   const isSpeed = fit.kind === 'speed';
   const value = isSpeed
     ? `${formatSpeed(fit.critical, unit)} ${formatSpeedUnit(unit)}`
@@ -96,6 +98,7 @@ function CriticalCard({ fit, sport }: { fit: CriticalFit; sport: SPORT_TYPE }) {
 
 /** Whether the records agree: which distance sits behind the others */
 function CoherenceCard({ records }: { records: BestRecordDto[] }) {
+  const units = useUnits();
   const anchors = speedRecords(records)
     .map(({ distance }) => distance!)
     .filter((distance) => distance < 21097.5)
@@ -104,7 +107,9 @@ function CoherenceCard({ records }: { records: BestRecordDto[] }) {
   const anchor = chosen && anchors.includes(chosen) ? chosen : anchors[0];
   const points = anchor ? recordCoherence(records, anchor) : [];
   if (points.filter(({ actual }) => actual !== null).length < 2) return null;
-  const missing = missingDistances(records).map(formatRecordDistance);
+  const missing = missingDistances(records).map((distance) =>
+    formatRecordDistance(distance, units.unitSystem),
+  );
   return (
     <Card className="gap-0 py-0 md:col-span-2" data-coherence>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
@@ -121,7 +126,7 @@ function CoherenceCard({ records }: { records: BestRecordDto[] }) {
           onChange={(value) => setChosen(Number(value))}
           items={anchors.map((distance) => ({
             id: String(distance),
-            label: () => formatRecordDistance(distance),
+            label: () => formatRecordDistance(distance, units.unitSystem),
           }))}
         />
         <QuantileChart
@@ -130,13 +135,14 @@ function CoherenceCard({ records }: { records: BestRecordDto[] }) {
           otherAsDots
           points={points.map((point) => ({
             x: point.distance / 1000,
-            low: point.fast,
-            median: point.expected,
-            high: point.slow,
-            other: point.actual,
+            low: point.fast * units.paceFactor,
+            median: point.expected * units.paceFactor,
+            high: point.slow * units.paceFactor,
+            other:
+              point.actual !== null ? point.actual * units.paceFactor : null,
           }))}
           logX
-          formatX={(km) => formatRecordDistance(km * 1000)}
+          formatX={(km) => formatRecordDistance(km * 1000, units.unitSystem)}
           formatY={(seconds) => formatDuration(Math.round(seconds))}
         />
         {missing.length > 0 && (
@@ -158,6 +164,7 @@ function CoherenceCard({ records }: { records: BestRecordDto[] }) {
 
 /** Ranges only, from a best of the last year: a single time would mislead */
 function PredictionsCard({ athleteId }: { athleteId: number }) {
+  const units = useUnits();
   const from = useMemo(() => subYears(new Date(), 1), []);
   const { data } = useGetRecordsQuery({
     sport: SPORT_TYPE.RUNNING,
@@ -177,13 +184,13 @@ function PredictionsCard({ athleteId }: { athleteId: number }) {
       <CardContent className="space-y-2 p-4 pt-0">
         <p className="text-sm text-muted-foreground">
           {m.statistics_predictions_from({
-            distance: formatRecordDistance(prediction.anchor),
+            distance: formatRecordDistance(prediction.anchor, units.unitSystem),
           })}
         </p>
         <ul className="divide-y text-sm tabular-nums">
           {prediction.races.map(({ distance, fast, slow }) => (
             <li key={distance} className="flex justify-between py-1.5">
-              <span>{formatRecordDistance(distance)}</span>
+              <span>{formatRecordDistance(distance, units.unitSystem)}</span>
               <span className="font-medium">
                 {formatDuration(Math.round(fast))} –{' '}
                 {formatDuration(Math.round(slow))}
@@ -260,6 +267,7 @@ function Performance({
   sport: SPORT_TYPE;
   visible: boolean;
 }) {
+  const units = useUnits();
   const locale = getDateFnsLocale(getLocale());
   const query = (from?: Date, to?: Date) => ({ sport, athleteId, from, to });
   const current = useGetRecordsQuery(query(period.start, period.end), {
@@ -356,7 +364,7 @@ function Performance({
             <ul className="space-y-1 text-sm">
               {newRecords.map((record) => {
                 const label = record.distance
-                  ? formatRecordDistance(record.distance)
+                  ? formatRecordDistance(record.distance, units.unitSystem)
                   : formatRecordDuration(record.duration ?? 0);
                 const row = (
                   <>
@@ -394,7 +402,7 @@ function Performance({
             <CardTitle className="text-sm font-medium">
               {metric.title(sport)}{' '}
               <span className="font-normal text-muted-foreground">
-                ({metric.unit(sport)})
+                ({metric.unit(sport, units.unitSystem)})
               </span>
             </CardTitle>
           </CardHeader>

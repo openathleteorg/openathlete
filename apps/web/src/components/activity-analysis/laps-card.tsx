@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { getStepTypeLabel } from '@/utils/workout/formatters';
@@ -6,7 +7,6 @@ import { useMemo, useState } from 'react';
 import {
   ActivityEvent,
   WORKOUT_STEP_TYPE,
-  formatDistance,
   formatDuration,
   formatSpeed,
   formatSpeedUnit,
@@ -47,7 +47,9 @@ interface P {
  * watch's laps, or even splits. A row selects its part on the charts.
  */
 export function LapsCard({ event, options }: P) {
+  const units = useUnits();
   const config = getSportConfig(event.sport);
+  const speedUnit = units.speedUnit(config.speedUnit);
   const { domain, setDomain, xAxis } = useActivityDetailsSelection();
   const sources = useMemo(() => availableLapSources(options), [options]);
   const [chosen, setChosen] = useState<LapSource>();
@@ -78,15 +80,15 @@ export function LapsCard({ event, options }: P) {
   };
 
   const speed = (value: number) =>
-    `${formatSpeed(value, config.speedUnit)} ${formatSpeedUnit(config.speedUnit)}`;
+    `${formatSpeed(value, speedUnit)} ${formatSpeedUnit(speedUnit)}`;
   const formatTarget = ({ metric, min, max }: ResolvedTarget) => {
     const one = (value: number) => {
-      if (metric === 'speed') return formatSpeed(value, config.speedUnit);
+      if (metric === 'speed') return formatSpeed(value, speedUnit);
       return `${Math.round(value)}`;
     };
     const unit =
       metric === 'speed'
-        ? formatSpeedUnit(config.speedUnit)
+        ? formatSpeedUnit(speedUnit)
         : metric === 'heartrate'
           ? m.bpm()
           : metric === 'power'
@@ -106,7 +108,7 @@ export function LapsCard({ event, options }: P) {
   const formatActual = (row: LapRow) => {
     if (!row.target || row.actual === undefined) return null;
     if (row.target.metric === 'speed')
-      return formatSpeed(row.actual, config.speedUnit);
+      return formatSpeed(row.actual, speedUnit);
     return `${Math.round(row.actual)}`;
   };
 
@@ -119,7 +121,7 @@ export function LapsCard({ event, options }: P) {
     return m.activity_laps_source_splits({
       distance:
         meters >= 1000
-          ? `${meters / 1000} ${m.kilometers()}`
+          ? `${Number(units.distanceValue(meters).toFixed(2))} ${units.distanceLabel}`
           : `${meters} ${m.meters()}`,
     });
   };
@@ -269,7 +271,7 @@ export function LapsCard({ event, options }: P) {
                   {columns.distance && (
                     <TableCell className="text-right">
                       {row.stats.distanceM !== undefined
-                        ? `${formatDistance(row.stats.distanceM)} ${m.kilometers()}`
+                        ? `${units.formatDist(row.stats.distanceM)} ${units.distanceLabel}`
                         : '–'}
                     </TableCell>
                   )}
@@ -306,7 +308,7 @@ export function LapsCard({ event, options }: P) {
                   {columns.elevation && (
                     <TableCell className="text-right">
                       {row.stats.elevationGainM !== undefined
-                        ? Math.round(row.stats.elevationGainM)
+                        ? `${units.elevation(row.stats.elevationGainM)} ${units.elevationLabel}`
                         : '–'}
                     </TableCell>
                   )}

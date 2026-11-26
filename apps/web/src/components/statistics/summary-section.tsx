@@ -2,13 +2,13 @@ import {
   useStatisticsOverviewQuery,
   useStatisticsVolumeQuery,
 } from '@/api/statistics';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 
 import {
   SPORT_TYPE,
   SportGroup,
   StatisticsTotalsDto,
-  formatDistance,
   formatDuration,
   getSportConfig,
 } from '@openathlete/shared';
@@ -36,6 +36,7 @@ export function SummarySection({
   sport,
   group,
 }: P) {
+  const units = useUnits();
   const params = {
     athleteId,
     from: period?.start ?? new Date(0),
@@ -85,8 +86,8 @@ export function SummarySection({
       {(config?.showDistance ?? true) && (
         <StatTile
           label={m.distance()}
-          value={formatDistance(overview.totals.distance)}
-          unit={m.kilometers()}
+          value={units.formatDist(overview.totals.distance)}
+          unit={units.distanceLabel}
           sparkline={sparkline('distance')}
           {...tile('distance')}
         />
@@ -94,8 +95,14 @@ export function SummarySection({
       {(config?.showElevation ?? true) && (
         <StatTile
           label={m.elevation_gain()}
-          value={Math.round(overview.totals.elevationGain).toLocaleString()}
-          unit={m.short_elevation_gain()}
+          value={units
+            .elevation(overview.totals.elevationGain)
+            .toLocaleString()}
+          unit={
+            units.unitSystem === 'IMPERIAL'
+              ? units.elevationLabel
+              : m.short_elevation_gain()
+          }
           sparkline={sparkline('elevationGain')}
           {...tile('elevationGain')}
         />

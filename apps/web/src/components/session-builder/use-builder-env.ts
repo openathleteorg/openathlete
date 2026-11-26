@@ -1,11 +1,13 @@
 import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
 import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
+import { useUnits } from '@/hooks/use-units';
 import { getLocale } from '@/paraglide/runtime';
 import { useMemo } from 'react';
 
 import type {
   SPORT_TYPE,
+  UnitSystem,
   WorkoutTextLocale,
   WorkoutTextZone,
 } from '@openathlete/shared';
@@ -31,12 +33,14 @@ export interface BuilderEnv {
   zoneType: TRAINING_ZONE_TYPE;
   metrics: Record<string, { value: number }> | undefined;
   locale: WorkoutTextLocale;
+  unitSystem: UnitSystem;
 }
 
 export function useBuilderEnv(
   sport: SPORT_TYPE,
   athleteId: number | null,
 ): BuilderEnv {
+  const units = useUnits();
   const { data: me } = useGetMyAthleteQuery();
   const { zones: athleteZones } = useAthleteTrainingZones(athleteId);
   const { data: latestMetrics } = useGetLatestMetricsQuery(
@@ -62,6 +66,7 @@ export function useBuilderEnv(
       zoneType: defaultZoneType(sport, zones),
       metrics: metricValues(latestMetrics),
       locale: getLocale() as WorkoutTextLocale,
+      unitSystem: units.unitSystem,
     };
-  }, [athleteZones, sport, athleteId, latestMetrics]);
+  }, [athleteZones, sport, athleteId, latestMetrics, units.unitSystem]);
 }

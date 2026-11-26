@@ -20,6 +20,12 @@ const calendar = vi.hoisted(() => ({
 const link = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const unlink = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 
+// Rendered without the app's query client: the user reads metric units
+vi.mock('@/hooks/use-units', async () => {
+  const { unitsFor } = await import('@/utils/units');
+  return { useUnits: () => unitsFor('METRIC') };
+});
+
 vi.mock('@/api/event', () => ({
   useSetRelatedActivityMutation: () => link,
   useUnsetRelatedActivityMutation: () => unlink,

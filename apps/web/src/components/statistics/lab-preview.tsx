@@ -1,7 +1,9 @@
 import { useLabTeaserQuery } from '@/api/statistics';
 import { useFeature } from '@/hooks/use-feature';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
+import { Units } from '@/utils/units';
 
 import {
   Feature,
@@ -25,19 +27,19 @@ const AXIS_LABELS: Record<Teaser['axis'], () => string> = {
 };
 
 /** The figure as the Lab's profile shows it */
-function display(teaser: Teaser, sport: SPORT_TYPE) {
+function display(teaser: Teaser, sport: SPORT_TYPE, units: Units) {
   switch (teaser.axis) {
     case 'climb':
     case 'descent':
       return {
-        value: `${Math.round(teaser.value)}`,
-        unit: m.statistics_metres_per_hour(),
+        value: `${units.elevation(teaser.value)}`,
+        unit: units.verticalSpeedLabel,
       };
     case 'critical': {
       if (teaser.unit === 'power') {
         return { value: `${Math.round(teaser.value)}`, unit: 'W' };
       }
-      const speedUnit = SPORT_CONFIG[sport].speedUnit;
+      const speedUnit = units.speedUnit(SPORT_CONFIG[sport].speedUnit);
       return {
         value: formatSpeed(teaser.value, speedUnit),
         unit: formatSpeedUnit(speedUnit),
@@ -50,6 +52,7 @@ function display(teaser: Teaser, sport: SPORT_TYPE) {
 
 /** The capacity that progressed the most: a real figure of the athlete */
 function TeaserTile({ teaser, sport }: { teaser: Teaser; sport: SPORT_TYPE }) {
+  const units = useUnits();
   const change = new Intl.NumberFormat(getLocale(), {
     signDisplay: 'always',
     maximumFractionDigits: 1,
@@ -60,7 +63,7 @@ function TeaserTile({ teaser, sport }: { teaser: Teaser; sport: SPORT_TYPE }) {
       className="max-w-xs bg-background"
       label={AXIS_LABELS[teaser.axis]()}
       caption={m.lab_teaser_progress({ change })}
-      {...display(teaser, sport)}
+      {...display(teaser, sport, units)}
     />
   );
 }

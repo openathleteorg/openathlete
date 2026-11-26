@@ -1,22 +1,19 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
+import { Units } from '@/utils/units';
 import { Check } from 'lucide-react';
 import { ReactNode } from 'react';
 
-import { SPORT_TYPE } from '@openathlete/shared';
+import { SPORT_TYPE, formatSpeed, formatSpeedUnit } from '@openathlete/shared';
 
-import {
-  formatClock,
-  formatLongDate,
-  formatNumber,
-  formatPace,
-} from '../format';
+import { formatClock, formatLongDate, formatNumber } from '../format';
 import { after } from '../story/after';
 import { CountUp } from '../story/count-up';
 import { Eyebrow, Slide, Title } from '../story/slide';
 import { SlideProps } from './types';
 
-/** Sports read in minutes per kilometre; swims per 100 m, others in km/h */
+/** Sports read in minutes per km/mi; swims per 100 m, others in km/h or mph */
 const PACED = new Set<SPORT_TYPE>([
   SPORT_TYPE.RUNNING,
   SPORT_TYPE.TRAIL_RUNNING,
@@ -29,17 +26,28 @@ function speed(
   sport: SPORT_TYPE,
   meters: number,
   seconds: number,
+  units: Units,
 ): [ReactNode, string] {
+  const mps = seconds > 0 ? meters / seconds : 0;
   if (sport === SPORT_TYPE.SWIMMING) {
     return [formatClock(seconds / (meters / 100)), m.year_review_pace_100m()];
   }
   if (PACED.has(sport)) {
-    return [formatPace(meters, seconds), m.year_review_pace_km()];
+    const unit = units.speedUnit('min/km');
+    return [
+      formatSpeed(mps, unit),
+      unit === 'min/mi' ? m.year_review_pace_mi() : m.year_review_pace_km(),
+    ];
   }
-  return [formatNumber(meters / 1000 / (seconds / 3600), 1), 'km/h'];
+  const unit = units.speedUnit('km/h');
+  return [
+    formatNumber(units.distanceValue(meters) / (seconds / 3600), 1),
+    formatSpeedUnit(unit),
+  ];
 }
 
 export function HighlightSlide({ review }: SlideProps) {
+  const units = useUnits();
   const highlight = review.highlight!;
   const isRace = highlight.kind === 'RACE';
   const goalMet =
@@ -50,13 +58,22 @@ export function HighlightSlide({ review }: SlideProps) {
     highlight.sport,
     highlight.distance,
     highlight.duration,
+    units,
   );
   const figures: [ReactNode, string][] = [
-    [formatNumber(highlight.distance / 1000, 1), 'km'],
+    [
+      formatNumber(units.distanceValue(highlight.distance), 1),
+      units.distanceLabel,
+    ],
     [pace, paceUnit],
     highlight.averageHeartrate
       ? [formatNumber(highlight.averageHeartrate), m.year_review_heartrate()]
-      : [formatNumber(highlight.elevationGain), m.year_review_elevation()],
+      : [
+          formatNumber(units.elevation(highlight.elevationGain)),
+          units.unitSystem === 'IMPERIAL'
+            ? m.year_review_elevation_ft()
+            : m.year_review_elevation(),
+        ],
   ];
 
   return (

@@ -8,6 +8,12 @@ import { RECORD_TYPE, SPORT_TYPE } from '@openathlete/shared';
 import { ActivityRecordsCharts } from './activity-records-charts';
 
 const queries = vi.hoisted(() => [] as { from: Date; to: Date }[]);
+// Rendered without the app's query client: the user reads metric units
+vi.mock('@/hooks/use-units', async () => {
+  const { unitsFor } = await import('@/utils/units');
+  return { useUnits: () => unitsFor('METRIC') };
+});
+
 vi.mock('@/api/record', () => ({
   useGetRecordsQuery: (query: { from: Date; to: Date }) => {
     queries.push(query);

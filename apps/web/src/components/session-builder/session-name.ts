@@ -1,4 +1,4 @@
-import type { CreateWorkoutStepDto } from '@openathlete/shared';
+import type { CreateWorkoutStepDto, UnitSystem } from '@openathlete/shared';
 import { WORKOUT_STEP_TYPE } from '@openathlete/shared';
 
 import { formatStepLength, formatTotal } from './step-summary';
@@ -12,6 +12,7 @@ export function suggestSessionName(
   steps: CreateWorkoutStepDto[],
   sportLabel: string,
   totalSeconds: number | null,
+  unitSystem: UnitSystem = 'METRIC',
 ): string {
   // A strength session is named after its first exercises
   const exercises = steps
@@ -33,7 +34,7 @@ export function suggestSessionName(
         children.find(
           (child) => child.stepType !== WORKOUT_STEP_TYPE.INTERVAL_REST,
         ) ?? children[0];
-      const length = formatStepLength(effort);
+      const length = formatStepLength(effort, unitSystem);
       const name = step.name?.trim();
       return name || `${step.repeatBlock!.repetitions} × ${length ?? '…'}`;
     });

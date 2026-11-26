@@ -5,6 +5,7 @@ import {
   useDeleteEventSeriesMutation,
 } from '@/api/event';
 import { SparklesIcon } from '@/components/ui/sparkles-icon';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core/sport-type.label-map';
 import { cn } from '@/utils/shadcn';
@@ -408,6 +409,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     }
   };
 
+  const units = useUnits();
   // Until the coach names it, the session takes the name of its content
   const nameSuggestion = useMemo(
     () =>
@@ -416,9 +418,10 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             workoutSteps,
             sportTypeLabelMap[sportValue],
             calculatedDuration,
+            units.unitSystem,
           )
         : '',
-    [workoutSteps, sportValue, calculatedDuration],
+    [workoutSteps, sportValue, calculatedDuration, units.unitSystem],
   );
   const lastSuggestion = useRef('');
   useEffect(() => {

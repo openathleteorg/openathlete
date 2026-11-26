@@ -2,6 +2,7 @@ import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
 import { Separator } from '@/components/ui/separator';
 import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
+import { useUnits } from '@/hooks/use-units';
 import * as m from '@/paraglide/messages';
 import { getStepTypeLabel } from '@/utils/workout';
 import { useMemo } from 'react';
@@ -14,7 +15,6 @@ import {
   calculateWorkoutDistance,
   calculateWorkoutDuration,
   estimateStepDistanceFromDuration,
-  formatDistance,
   formatDuration,
 } from '@openathlete/shared';
 
@@ -36,6 +36,7 @@ export function WorkoutSummary({
   sport,
   athleteId,
 }: WorkoutSummaryProps) {
+  const units = useUnits();
   const { data: me } = useGetMyAthleteQuery();
   const { zones: trainingZones } = useAthleteTrainingZones(athleteId);
   const { data: latestMetrics } = useGetLatestMetricsQuery(
@@ -201,7 +202,7 @@ export function WorkoutSummary({
                 </span>
                 <span className="ml-2 font-medium">
                   {hasEstimatedDistance ? '~' : ''}
-                  {formatDistance(totalDistance, 'km')}
+                  {units.formatDist(totalDistance)} {units.distanceLabel}
                 </span>
               </div>
             )}

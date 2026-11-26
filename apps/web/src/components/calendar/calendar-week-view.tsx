@@ -1,5 +1,6 @@
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { hapticTap } from '@/utils/haptics';
@@ -24,6 +25,7 @@ export function CalendarWeekView({
 }: {
   isLoading?: boolean;
 }) {
+  const units = useUnits();
   const {
     displayedWeeks,
     weekStart,
@@ -105,6 +107,7 @@ export function CalendarWeekView({
                     weekEvents.filter((event) => sameDay(event, day)),
                   ),
                   locale,
+                  units.unitSystem,
                 )}
                 events={weekEvents.filter(
                   (event) =>

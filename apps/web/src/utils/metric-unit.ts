@@ -1,10 +1,17 @@
 import { m } from '@/paraglide/messages';
 
-import { METRIC_TYPE, metricUnitMap } from '@openathlete/shared';
+import {
+  METRIC_TYPE,
+  UnitSystem,
+  metricDisplayUnit,
+} from '@openathlete/shared';
 
 /** Translate display units without changing stored values or API units. */
-export function getMetricUnit(type: METRIC_TYPE): string {
-  const unit = metricUnitMap[type];
+export function getMetricUnit(
+  type: METRIC_TYPE,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
+  const unit = metricDisplayUnit(type, unitSystem);
   switch (unit) {
     case 'bpm':
       return m.bpm();

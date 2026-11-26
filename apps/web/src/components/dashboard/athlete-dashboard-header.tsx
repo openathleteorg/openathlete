@@ -4,11 +4,16 @@ import { useTrainingLoadMetrics } from '@/api/training-load';
 import { TrainingLoadCalculationType } from '@/api/training-load/training-load.api';
 import { CompetitionPriorityBadge } from '@/components/calendar/competition-priority-badge';
 import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
+import {
+  formatMetricValue,
+  hasOwnUnit,
+} from '@/components/metrics/metric-stats';
 import { Card, CardContent } from '@/components/ui/card';
 import { InsightBanner } from '@/components/ui/insight-banner';
 import { MetricTile } from '@/components/ui/metric-tile';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { isCapacitor } from '@/utils/capacitor';
@@ -45,6 +50,7 @@ export function AthleteDashboardHeader({
   athleteId,
   asCoach = false,
 }: AthleteDashboardHeaderProps) {
+  const units = useUnits();
   const isMobile = isCapacitor();
   const {
     data: upcomingCompetitionsData = [],
@@ -234,21 +240,29 @@ export function AthleteDashboardHeader({
                 </p>
               ) : (
                 <div className="grid grid-cols-3 gap-2">
-                  {recentMetrics.map((metric) => (
-                    <MetricTile
-                      key={metric.athleteMetricId}
-                      label={
-                        metricTypeLabelMap[metric.type as METRIC_TYPE] ||
-                        metric.type
-                      }
-                      value={metric.value}
-                      unit={getMetricUnit(metric.type as METRIC_TYPE) || ''}
-                      // Garmin's attribution, beside each value it provided
-                      caption={
-                        metric.source === 'GARMIN' ? 'Garmin' : undefined
-                      }
-                    />
-                  ))}
+                  {recentMetrics.map((metric) => {
+                    const type = metric.type as METRIC_TYPE;
+                    return (
+                      <MetricTile
+                        key={metric.athleteMetricId}
+                        label={metricTypeLabelMap[type] || metric.type}
+                        value={formatMetricValue(
+                          type,
+                          metric.value,
+                          units.unitSystem,
+                        )}
+                        unit={
+                          hasOwnUnit(type)
+                            ? ''
+                            : getMetricUnit(type, units.unitSystem) || ''
+                        }
+                        // Garmin's attribution, beside each value it provided
+                        caption={
+                          metric.source === 'GARMIN' ? 'Garmin' : undefined
+                        }
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>

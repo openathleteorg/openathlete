@@ -1,5 +1,6 @@
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
+import { getMetricUnit } from '@/utils/metric-unit';
 
 import {
   type Answer,
@@ -7,7 +8,33 @@ import {
   type AnswerInput,
   QUESTION_TYPE,
   type Question,
+  type UnitSystem,
+  metricDisplayUnit,
+  metricFromDisplay,
+  metricToDisplay,
+  metricUnitMap,
 } from '@openathlete/shared';
+
+const same = (value: number) => value;
+
+/**
+ * The unit a number answer reads in. An answer that fills a metric is
+ * stored in the metric's unit, kilograms for a weight, and read in the
+ * user's: the athlete types pounds, the coach reads pounds.
+ */
+export function numberAnswerUnit(question: Question, unitSystem: UnitSystem) {
+  const stored =
+    question.type === QUESTION_TYPE.NUMBER ? question.config.unit : undefined;
+  const type = question.metricType;
+  if (!type || metricDisplayUnit(type, unitSystem) === metricUnitMap[type]) {
+    return { unit: stored, toDisplay: same, fromDisplay: same };
+  }
+  return {
+    unit: getMetricUnit(type, unitSystem),
+    toDisplay: (value: number) => metricToDisplay(type, value, unitSystem),
+    fromDisplay: (value: number) => metricFromDisplay(type, value, unitSystem),
+  };
+}
 
 const number = (value: number, decimals = 1) =>
   new Intl.NumberFormat(getLocale(), {
@@ -15,7 +42,11 @@ const number = (value: number, decimals = 1) =>
   }).format(value);
 
 /** An answer as one line of text, the way it reads in a list */
-export function formatAnswer(question: Question, answer?: Answer): string {
+export function formatAnswer(
+  question: Question,
+  answer?: Answer,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
   if (!answer) return m.questionnaire_not_answered();
   switch (question.type) {
     case QUESTION_TYPE.SHORT_TEXT:
@@ -25,15 +56,16 @@ export function formatAnswer(question: Question, answer?: Answer): string {
       return answer.valueNumber === null
         ? m.questionnaire_not_answered()
         : `${number(answer.valueNumber)} / ${number(question.config.max)}`;
-    case QUESTION_TYPE.NUMBER:
-      return answer.valueNumber === null
-        ? m.questionnaire_not_answered()
-        : [
-            number(answer.valueNumber, question.config.decimals),
-            question.config.unit,
-          ]
-            .filter(Boolean)
-            .join(' ');
+    case QUESTION_TYPE.NUMBER: {
+      if (answer.valueNumber === null) return m.questionnaire_not_answered();
+      const { unit, toDisplay } = numberAnswerUnit(question, unitSystem);
+      return [
+        number(toDisplay(answer.valueNumber), question.config.decimals),
+        unit,
+      ]
+        .filter(Boolean)
+        .join(' ');
+    }
     case QUESTION_TYPE.YES_NO:
       return answer.valueNumber === null
         ? m.questionnaire_not_answered()

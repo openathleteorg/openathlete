@@ -1,4 +1,5 @@
 import { MetricTile } from '@/components/ui/metric-tile';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 
@@ -34,6 +35,7 @@ export function RecordsSummary({
   dateFormat,
   onSelect,
 }: P) {
+  const units = useUnits();
   const at = (list: BestRecordDto[], position: number) =>
     list.find(
       (record) =>
@@ -49,14 +51,24 @@ export function RecordsSummary({
         const record = at(records, position);
         if (!record) return null;
         const season = at(seasonRecords, position);
-        const { value, unit } = formatRecordValue(metric, record, sport);
+        const { value, unit } = formatRecordValue(
+          metric,
+          record,
+          sport,
+          units.unitSystem,
+        );
         const caption = !season
           ? m.records_no_season({ year })
           : season.value === record.value
             ? m.records_season_record({ year })
             : m.records_season_gap({
                 year,
-                value: formatRecordValue(metric, season, sport).value,
+                value: formatRecordValue(
+                  metric,
+                  season,
+                  sport,
+                  units.unitSystem,
+                ).value,
                 gap: percent.format(recordGap(season, record) * 100),
               });
         return (
@@ -68,7 +80,7 @@ export function RecordsSummary({
           >
             <MetricTile
               className="hover:bg-accent h-full"
-              label={`${formatRecordPosition(metric, position)} · ${dateFormat.format(new Date(record.date))}`}
+              label={`${formatRecordPosition(metric, position, units.unitSystem)} · ${dateFormat.format(new Date(record.date))}`}
               value={<span className="tabular-nums">{value}</span>}
               unit={unit}
               caption={caption}

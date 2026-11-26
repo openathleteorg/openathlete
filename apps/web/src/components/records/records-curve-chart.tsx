@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import { SPORT_TYPE } from '@openathlete/shared';
@@ -46,6 +47,7 @@ export function RecordsCurveChart({
   className,
   onSelect,
 }: P) {
+  const units = useUnits();
   // A period without any record of this kind has nothing to draw
   const drawn = series.filter((s) =>
     s.records.some((record) => record.type === metric.type),
@@ -56,7 +58,7 @@ export function RecordsCurveChart({
   const values = data.flatMap((point) =>
     drawn.map((s) => point[s.key]).filter((v): v is number => v !== null),
   );
-  const unit = metric.unit(sport);
+  const unit = metric.unit(sport, units.unitSystem);
 
   return (
     <ChartContainer
@@ -85,14 +87,16 @@ export function RecordsCurveChart({
           minTickGap={8}
           tick={{ fontSize: 11 }}
           tickFormatter={(position: number) =>
-            formatRecordPosition(metric, position)
+            formatRecordPosition(metric, position, units.unitSystem)
           }
         />
         <YAxis
           width={56}
           tick={{ fontSize: 11 }}
           domain={valueDomain(values)}
-          tickFormatter={(value: number) => metric.format(value, sport)}
+          tickFormatter={(value: number) =>
+            metric.format(value, sport, units.unitSystem)
+          }
           label={{
             value: unit,
             angle: -90,
@@ -106,14 +110,15 @@ export function RecordsCurveChart({
               labelFormatter={(_, payload) => {
                 const position = payload?.[0]?.payload?.position;
                 return typeof position === 'number'
-                  ? formatRecordPosition(metric, position)
+                  ? formatRecordPosition(metric, position, units.unitSystem)
                   : '';
               }}
               formatter={(value, name) => (
                 <div className="flex w-full items-center gap-2 text-xs text-muted-foreground">
                   {drawn.find((s) => s.key === name)?.label}
                   <span className="ml-auto font-medium tabular-nums text-foreground">
-                    {metric.format(Number(value), sport)} {unit}
+                    {metric.format(Number(value), sport, units.unitSystem)}{' '}
+                    {unit}
                   </span>
                 </div>
               )}
