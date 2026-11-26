@@ -253,7 +253,10 @@ final class WatchScheduleRuntime {
                     calendar: calendar
                 )
             },
-            calendarProvider: { Calendar.autoupdatingCurrent },
+            // Take one fresh snapshot for each lifecycle pass and cleanup. An
+            // autoupdating calendar follows later device changes mid-pass,
+            // which could mix snapshot dates with native removal targets.
+            calendarProvider: { Calendar.current },
             verifyAccount: { scope in
                 // Native defense: the opt-in and every authoritative list are
                 // tied to GET /athlete/me for the pinned bearer.

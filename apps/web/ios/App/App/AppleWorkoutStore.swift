@@ -152,13 +152,27 @@ final class AppleWorkoutStore: ScheduleWorkoutStore {
 
     func remove(
         planID: UUID,
+        targetDate: Date?,
         calendar: Calendar,
         fence: ScheduleSubmissionFence
     ) async throws {
         try await requireSchedulingAccess()
+        // Fresh list on every call: Apple's scheduler is the authority.
         let scheduled = await WorkoutScheduler.shared.scheduledWorkouts
+        let target = targetDate.map(ScheduleDate.normalized)
         for item in scheduled
             where item.plan.id == planID && !item.complete {
+            if let target {
+                // A capacity eviction is scoped to the exact Apple date it was
+                // selected for. A same-UUID sibling at another date is not an
+                // eviction target and stays for its own event/ownership path.
+                guard let start = calendar.date(from: item.date) else {
+                    throw ScheduleStoreError.unreadableScheduledWorkout
+                }
+                guard ScheduleDate.areEqual(start, target) else {
+                    continue
+                }
+            }
             // Recheck after every preflight/list await and each iteration.
             // The fence includes task cancellation, so a background expiry
             // cannot still remove an entry after the scheduler was fenced.

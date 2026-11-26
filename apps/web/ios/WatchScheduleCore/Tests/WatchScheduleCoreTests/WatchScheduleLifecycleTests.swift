@@ -3784,13 +3784,20 @@ private actor LifecycleFakeStore: ScheduleWorkoutStore {
 
     func remove(
         planID: UUID,
+        targetDate: Date?,
         calendar: Calendar,
         fence: ScheduleSubmissionFence
     ) async throws {
         try await fence.check()
         removeCount += 1
         await log?.append("store.remove")
-        workouts.removeAll { $0.planID == planID && !$0.isComplete }
+        let target = targetDate.map(ScheduleDate.normalized)
+        workouts.removeAll {
+            $0.planID == planID
+                && !$0.isComplete
+                && (target == nil
+                    || ScheduleDate.areEqual($0.startDate, target!))
+        }
     }
 }
 

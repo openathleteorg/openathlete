@@ -112,8 +112,12 @@ public protocol ScheduleWorkoutStore: Sendable {
         calendar: Calendar,
         fence: ScheduleSubmissionFence
     ) async throws
+    /// Remove the incomplete Apple entries owned by `planID`. A `targetDate`
+    /// restricts a calendar eviction to that normalized Apple date; `nil` is
+    /// the separately authorized whole-UUID cleanup used on logout/disconnect.
     func remove(
         planID: UUID,
+        targetDate: Date?,
         calendar: Calendar,
         fence: ScheduleSubmissionFence
     ) async throws
@@ -293,6 +297,11 @@ public struct ScheduleReceipt: Codable, Equatable, Sendable {
     public var submittedDate: Date?
     /// Set when `pendingOperation == .remove`.
     public var removalIntent: ScheduleRemovalIntent?
+    /// The one normalized Apple date a calendar eviction targets. `nil` keeps
+    /// the existing whole-UUID cleanup semantics; a value is persisted before
+    /// the native call so a retry cannot remove a same-UUID sibling at another
+    /// date.
+    public var removalTargetDate: Date?
 
     public init(
         scope: AccountScope,
@@ -304,7 +313,8 @@ public struct ScheduleReceipt: Codable, Equatable, Sendable {
         pendingPreviousDate: Date? = nil,
         pendingPhase: SchedulePhase? = nil,
         submittedDate: Date? = nil,
-        removalIntent: ScheduleRemovalIntent? = nil
+        removalIntent: ScheduleRemovalIntent? = nil,
+        removalTargetDate: Date? = nil
     ) {
         self.scope = scope
         self.eventID = eventID
@@ -316,6 +326,7 @@ public struct ScheduleReceipt: Codable, Equatable, Sendable {
         self.pendingPhase = pendingPhase
         self.submittedDate = submittedDate
         self.removalIntent = removalIntent
+        self.removalTargetDate = removalTargetDate
     }
 }
 
@@ -372,14 +383,38 @@ public actor FileScheduleJournal: ScheduleJournal {
                     )
                 )
             }
-            receipts = try container.decodeIfPresent(
+
+            // A present collection must be an array. `null` is a corrupt or
+            // rewritten value, not an omitted legacy key, and must never clear
+            // durable ownership. Absent keys remain readable for older
+            // documents that only had one collection.
+            func decodeArray<T: Decodable>(
+                _ type: [T].Type,
+                forKey key: CodingKeys
+            ) throws -> [T] {
+                guard container.contains(key) else {
+                    return []
+                }
+                guard try !container.decodeNil(forKey: key) else {
+                    throw DecodingError.dataCorrupted(
+                        DecodingError.Context(
+                            codingPath: decoder.codingPath,
+                            debugDescription:
+                                "Journal collection \(key.stringValue) is null"
+                        )
+                    )
+                }
+                return try container.decode([T].self, forKey: key)
+            }
+
+            receipts = try decodeArray(
                 [ScheduleReceipt].self,
                 forKey: .receipts
-            ) ?? []
-            tombstones = try container.decodeIfPresent(
+            )
+            tombstones = try decodeArray(
                 [ScheduleCompletionTombstone].self,
                 forKey: .tombstones
-            ) ?? []
+            )
         }
     }
 
@@ -1194,6 +1229,7 @@ public actor ScheduleReconciler {
                     receipt.submittedDate = nil
                     receipt.pendingPreviousDate = nil
                     receipt.removalIntent = nil
+                    receipt.removalTargetDate = nil
                     try await saveReceipt(receipt, generation: generation)
                     receiptsByEvent[eventID] = receipt
                     existingReceipt = receipt
@@ -1234,6 +1270,7 @@ public actor ScheduleReconciler {
                     cleared.submittedDate = nil
                     cleared.pendingPreviousDate = nil
                     cleared.removalIntent = nil
+                    cleared.removalTargetDate = nil
                     cleared.scheduledDate = normalizedStart
                     try await saveReceipt(cleared, generation: generation)
                     receiptsByEvent[eventID] = cleared
@@ -1353,6 +1390,7 @@ public actor ScheduleReconciler {
                     ?? existingReceipt?.scheduledDate)
                 : nil
             receipt.removalIntent = nil
+            receipt.removalTargetDate = nil
             // Persist the stable plan ID and pending operation before the
             // first Apple write. A crash after this point replays the record.
             try await saveReceipt(receipt, generation: generation)
@@ -1364,6 +1402,7 @@ public actor ScheduleReconciler {
                 do {
                     try await store.remove(
                         planID: planID,
+                        targetDate: nil,
                         calendar: calendar,
                         fence: makeFence(
                             scope: scope,
@@ -1496,9 +1535,18 @@ public actor ScheduleReconciler {
             )
             if hasCompletedTarget {
                 // Apple may return the completed copy together with an
-                // incomplete sibling. Removing through the stored ownership
-                // persists the completion, evicts the sibling, and keeps the
-                // receipt pending when Apple does not confirm the eviction.
+                // incomplete sibling. The tombstone must be durable before the
+                // removal receipt is saved without its submitted state: if the
+                // ledger is interrupted at that boundary and Apple later loses
+                // the completed history, this event must still never be
+                // rescheduled.
+                try await recordCompletion(
+                    scope: scope,
+                    eventID: eventID,
+                    planID: planID,
+                    at: snapshot.readAt,
+                    generation: generation
+                )
                 let outcome = try await removeOwnedEntry(
                     confirmingReceipt,
                     intent: .calendar,
@@ -1550,6 +1598,7 @@ public actor ScheduleReconciler {
             confirmingReceipt.submittedDate = nil
             confirmingReceipt.pendingPreviousDate = nil
             confirmingReceipt.removalIntent = nil
+            confirmingReceipt.removalTargetDate = nil
             try await saveReceipt(confirmingReceipt, generation: generation)
             receiptsByEvent[eventID] = confirmingReceipt
             if operation == .replace && hadUsableEntry {
@@ -1659,7 +1708,8 @@ public actor ScheduleReconciler {
                 completedAt: Date(),
                 actual: &actual,
                 generation: generation,
-                calendar: calendar
+                calendar: calendar,
+                removalTarget: victimReceipt.scheduledDate
             )
             guard outcome.confirmed, outcome.removed else {
                 // The eviction was not proven by a fresh read-back. Stop here:
@@ -1708,6 +1758,7 @@ public actor ScheduleReconciler {
                     continue
                 }
                 receipt.removalIntent = .cleanup
+                receipt.removalTargetDate = nil
                 try await saveReceipt(receipt, generation: generation)
                 receipts[index] = receipt
             } else {
@@ -1721,6 +1772,7 @@ public actor ScheduleReconciler {
                 receipt.submittedDate = nil
                 receipt.pendingPreviousDate = nil
                 receipt.removalIntent = .cleanup
+                receipt.removalTargetDate = nil
                 try await saveReceipt(receipt, generation: generation)
                 receipts[index] = receipt
             }
@@ -1730,7 +1782,7 @@ public actor ScheduleReconciler {
         var removed: [Int] = []
         var retained: [Int] = []
 
-        for receipt in receipts {
+        for (index, receipt) in receipts.enumerated() {
             try requireActive(generation, scope: scope)
             try Task.checkCancellation()
 
@@ -1772,6 +1824,14 @@ public actor ScheduleReconciler {
                     if outcome.removed {
                         removed.append(current.eventID)
                     }
+                } else if outcome.failure == .unreadable {
+                    // An unreadable removal read-back leaves every later
+                    // entry unverified. Keep all remaining authorized cleanup
+                    // receipts and stop instead of mutating at unknown state.
+                    retained.append(
+                        contentsOf: receipts[index...].map(\.eventID)
+                    )
+                    break
                 } else {
                     retained.append(current.eventID)
                 }
@@ -1790,6 +1850,11 @@ public actor ScheduleReconciler {
                 if outcome.removed {
                     removed.append(receipt.eventID)
                 }
+            } else if outcome.failure == .unreadable {
+                retained.append(
+                    contentsOf: receipts[index...].map(\.eventID)
+                )
+                break
             } else {
                 retained.append(receipt.eventID)
             }
@@ -1842,10 +1907,31 @@ public actor ScheduleReconciler {
         }
     }
 
+    private enum RemovalFailure: Equatable {
+        /// The native removal or its read-back could not be read. We do not
+        /// know whether the entry is still present.
+        case unreadable
+        /// A fresh read proved the targeted incomplete entry still exists.
+        case stillPresent
+    }
+
     private struct RemovalOutcome {
         let confirmed: Bool
         let removed: Bool
         let completed: Bool
+        let failure: RemovalFailure?
+
+        init(
+            confirmed: Bool,
+            removed: Bool,
+            completed: Bool,
+            failure: RemovalFailure? = nil
+        ) {
+            self.confirmed = confirmed
+            self.removed = removed
+            self.completed = completed
+            self.failure = failure
+        }
     }
 
     private func makeFence(
@@ -2032,6 +2118,7 @@ public actor ScheduleReconciler {
         actual: inout [ScheduledWorkoutState],
         generation: UInt64,
         calendar: Calendar,
+        removalTarget: Date? = nil,
         fence: ScheduleSubmissionFence? = nil
     ) async throws -> RemovalOutcome {
         try requireCurrentGeneration(generation)
@@ -2042,25 +2129,48 @@ public actor ScheduleReconciler {
             eventID: original.eventID
         )
         var receipt = original
+        // The first call selects the eviction target; a replay must use the
+        // durable value even if the caller does not repeat it. Cleanup and
+        // other whole-UUID removals keep `nil`.
+        let effectiveTarget: Date?
+        if intent == .cleanup {
+            effectiveTarget = nil
+        } else {
+            effectiveTarget = removalTarget.map(ScheduleDate.normalized)
+                ?? (original.pendingOperation == .remove
+                    ? original.removalTargetDate.map(ScheduleDate.normalized)
+                    : nil)
+        }
         if receipt.pendingOperation != .remove {
             receipt.pendingOperation = .remove
             receipt.pendingPhase = nil
             receipt.submittedDate = nil
             receipt.pendingPreviousDate = nil
             receipt.removalIntent = intent
+            receipt.removalTargetDate = intent == .cleanup ? nil : effectiveTarget
             try await saveReceipt(receipt, generation: generation)
         } else if intent == .cleanup && receipt.removalIntent != .cleanup {
             // Explicit cleanup upgrades a calendar intent before crossing an
-            // account boundary.
+            // account boundary. Cleanup is separately authorized to remove
+            // every incomplete copy of the UUID, so it drops a date target.
             receipt.removalIntent = .cleanup
+            receipt.removalTargetDate = nil
             try await saveReceipt(receipt, generation: generation)
         }
 
         let entries = actual.filter { $0.planID == receipt.planID }
-        let nonComplete = entries.filter { !$0.isComplete }
+        let scopedEntries: [ScheduledWorkoutState]
+        if let effectiveTarget {
+            scopedEntries = entries.filter {
+                ScheduleDate.areEqual($0.startDate, effectiveTarget)
+            }
+        } else {
+            scopedEntries = entries
+        }
+        let nonComplete = scopedEntries.filter { !$0.isComplete }
         if nonComplete.isEmpty {
-            if !entries.isEmpty {
-                // A completed entry is Apple history and stays. The durable
+            if !scopedEntries.isEmpty {
+                // A completed target is Apple history and stays. The durable
                 // tombstone prevents a later recurring event from rescheduling.
                 try await recordCompletion(
                     scope: receipt.scope,
@@ -2070,6 +2180,9 @@ public actor ScheduleReconciler {
                     generation: generation
                 )
             }
+            // With a target, other same-UUID dates are deliberately outside
+            // this eviction: the target is already gone and this receipt no
+            // longer owns it.
             try await deleteReceipt(
                 scope: receipt.scope,
                 eventID: receipt.eventID,
@@ -2078,11 +2191,11 @@ public actor ScheduleReconciler {
             return RemovalOutcome(
                 confirmed: true,
                 removed: false,
-                completed: !entries.isEmpty
+                completed: !scopedEntries.isEmpty
             )
         }
 
-        if entries.contains(where: \.isComplete) {
+        if scopedEntries.contains(where: \.isComplete) {
             // A completed copy is Apple history. Persist it before mutating an
             // incomplete sibling; the removal read-back may lose that history.
             try await recordCompletion(
@@ -2099,6 +2212,7 @@ public actor ScheduleReconciler {
         do {
             try await store.remove(
                 planID: receipt.planID,
+                targetDate: effectiveTarget,
                 calendar: calendar,
                 fence: submissionFence
             )
@@ -2108,7 +2222,8 @@ public actor ScheduleReconciler {
             return RemovalOutcome(
                 confirmed: false,
                 removed: false,
-                completed: false
+                completed: false,
+                failure: .unreadable
             )
         }
 
@@ -2120,13 +2235,21 @@ public actor ScheduleReconciler {
             return RemovalOutcome(
                 confirmed: false,
                 removed: false,
-                completed: false
+                completed: false,
+                failure: .unreadable
             )
         }
 
-        let hasCompletedCopy = actual.contains(where: {
-            $0.planID == receipt.planID && $0.isComplete
-        })
+        let readBackEntries = actual.filter { $0.planID == receipt.planID }
+        let scopedReadBack: [ScheduledWorkoutState]
+        if let effectiveTarget {
+            scopedReadBack = readBackEntries.filter {
+                ScheduleDate.areEqual($0.startDate, effectiveTarget)
+            }
+        } else {
+            scopedReadBack = readBackEntries
+        }
+        let hasCompletedCopy = scopedReadBack.contains(where: \.isComplete)
         if hasCompletedCopy {
             // Completion was observed during the removal read-back. Persist it
             // before the remaining-copy guard so a later failure cannot lose
@@ -2140,18 +2263,15 @@ public actor ScheduleReconciler {
             )
         }
 
-        let remaining = actual.filter {
-            $0.planID == receipt.planID && !$0.isComplete
-        }
+        let remaining = scopedReadBack.filter { !$0.isComplete }
         guard remaining.isEmpty else {
-            // Apple did not apply the removal, or another incomplete copy
-            // sharing this UUID survived. Keep the receipt until every
-            // incomplete copy is confirmed gone, even if a completed copy is
-            // also visible.
+            // Apple did not apply this removal (or the targeted incomplete
+            // copy survived). Keep the receipt until a later complete read.
             return RemovalOutcome(
                 confirmed: false,
                 removed: false,
-                completed: false
+                completed: false,
+                failure: .stillPresent
             )
         }
 
