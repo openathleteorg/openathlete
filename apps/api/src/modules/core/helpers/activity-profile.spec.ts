@@ -89,6 +89,45 @@ describe('activityProfile', () => {
     expect(power).toMatchObject({ bin: 20, value: 140 });
   });
 
+  it('reads heart rate by speed and power on the flat stretches of a run', () => {
+    // 15 minutes on the flat at 150 beats, then 15 up a 10 % slope at 170
+    const flat = steady(15, 3);
+    const climb = steady(15, 3, 0.1);
+    const stream: ActivityStream = {
+      time: [...flat.time!, ...climb.time!.map((t) => t + 900)],
+      distance: [...flat.distance!, ...climb.distance!.map((d) => d + 2700)],
+      altitude: [...flat.altitude!, ...climb.altitude!],
+    };
+    stream.gap = stream.time!.map(() => 3);
+    stream.watts = stream.time!.map(() => 305);
+    stream.heartrate = stream.time!.map((t) => (t < 900 ? 150 : 170));
+    const profile = activityProfile(stream, SPORT_TYPE.TRAIL_RUNNING);
+    const of = (wanted: string) =>
+      profile.filter(({ kind }) => kind === wanted);
+    // The whole run by speed, as before: 150 and 170 beats at 10.8 km/h
+    expect(of('SPEED')[0].value).toBeGreaterThan(160);
+    // The flat part only: the climb and its heart rate stay out
+    expect(of('FLAT_SPEED')).toHaveLength(1);
+    expect(of('FLAT_SPEED')[0]).toMatchObject({ bin: 21 });
+    expect(of('FLAT_SPEED')[0].value).toBeCloseTo(150, 0);
+    expect(of('FLAT_POWER')[0]).toMatchObject({ bin: 30 });
+    expect(of('FLAT_POWER')[0].value).toBeCloseTo(150, 0);
+    // Running power stays out of the whole-outing power bands of a bike
+    expect(of('POWER')).toEqual([]);
+  });
+
+  it('takes a run without altitude as flat all along', () => {
+    const stream = steady(20, 3);
+    delete stream.altitude;
+    stream.gap = stream.time!.map(() => 3);
+    stream.heartrate = stream.time!.map(() => 150);
+    expect(
+      activityProfile(stream, SPORT_TYPE.RUNNING).find(
+        ({ kind }) => kind === 'FLAT_SPEED',
+      ),
+    ).toMatchObject({ bin: 21, value: 150 });
+  });
+
   it('stays out of sports slope and pace do not describe', () => {
     expect(activityProfile(steady(30, 1, 0.1), SPORT_TYPE.SWIMMING)).toEqual(
       [],

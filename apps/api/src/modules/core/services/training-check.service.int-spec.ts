@@ -1,0 +1,450 @@
+import { ForbiddenException } from '@nestjs/common';
+
+import { CaslAbilityFactory } from 'src/modules/auth';
+import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import {
+  DELETED_ATHLETE_ID,
+  DELETED_USER_ID,
+  accountFixtureSql,
+} from 'src/modules/auth/services/account-deletion.fixture';
+import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+
+import { RecordService } from './record.service';
+import { StatisticsService } from './statistics.service';
+import { TrainingCheckService } from './training-check.service';
+import { TrainingLoadService } from './training-load.service';
+
+const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
+if (!databaseUrl)
+  throw new Error(
+    'INTEGRATION_DATABASE_URL must point to a disposable test database',
+  );
+
+const NOW = new Date('2026-06-30T12:00:00Z');
+/**
+ * A day of the last six weeks (from 19 May), and one of the six before
+ * (from 7 April), eight weeks earlier
+ */
+const lately = (day: number) => `2026-06-${String(day).padStart(2, '0')}`;
+const before = (day: number) => `2026-04-${String(day + 7).padStart(2, '0')}`;
+
+describe('TrainingCheckService (PostgreSQL)', () => {
+  let prisma: PrismaService;
+  let service: TrainingCheckService;
+  const athlete = {
+    userId: DELETED_USER_ID,
+    email: 'athlete@example.com',
+    athlete: { athleteId: DELETED_ATHLETE_ID },
+    coachAthletes: [],
+  } as unknown as AuthUser;
+  const stranger = {
+    userId: 999_001,
+    email: 'stranger@example.com',
+    athlete: null,
+    coachAthletes: [],
+  } as unknown as AuthUser;
+
+  beforeAll(async () => {
+    prisma = new PrismaService({ datasourceUrl: databaseUrl });
+    await prisma.$connect();
+    const abilities = new CaslAbilityFactory();
+    service = new TrainingCheckService(
+      prisma,
+      abilities,
+      new RecordService(prisma, abilities),
+      new StatisticsService(
+        prisma,
+        abilities,
+        new TrainingLoadService(prisma, abilities),
+      ),
+    );
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  beforeEach(async () => {
+    const tables = await prisma.$queryRaw<{ table_name: string }[]>`
+      SELECT table_name FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_type = 'BASE TABLE' AND table_name <> '_prisma_migrations'`;
+    await prisma.$executeRawUnsafe(
+      `TRUNCATE ${tables.map((t) => `"${t.table_name}"`).join(', ')} RESTART IDENTITY CASCADE`,
+    );
+    for (const sql of accountFixtureSql) await prisma.$executeRawUnsafe(sql);
+  });
+
+  let count = 0;
+  /** A run of the athlete, with its profile bands and what a test sets */
+  async function run(
+    date: string,
+    {
+      sport = 'TRAIL_RUNNING',
+      bands = [],
+      ...data
+    }: {
+      sport?: 'TRAIL_RUNNING' | 'RUNNING' | 'CYCLING';
+      bands?: {
+        kind: 'FLAT_POWER' | 'FLAT_SPEED';
+        bin: number;
+        value: number;
+      }[];
+      movingTime?: number;
+      distance?: number;
+      elevationGain?: number;
+      decouplingPercent?: number;
+      intensitySeconds?: number[];
+    } = {},
+  ) {
+    const startDate = new Date(`${date}T08:00:00Z`);
+    const event = await prisma.event.create({
+      data: {
+        name: `run ${++count}`,
+        type: 'ACTIVITY',
+        startDate,
+        endDate: new Date(startDate.getTime() + 3600_000),
+        athleteId: DELETED_ATHLETE_ID,
+        activity: {
+          create: {
+            sport,
+            distance: 10000,
+            elevationGain: 300,
+            movingTime: 3000,
+            averageSpeed: 3,
+            maxSpeed: 5,
+            externalId: `check-${count}`,
+            ...data,
+          },
+        },
+      },
+      include: { activity: true },
+    });
+    await prisma.activityProfileBin.createMany({
+      data: bands.map((band) => ({
+        ...band,
+        seconds: 900,
+        eventActivityId: event.activity!.eventActivityId,
+      })),
+    });
+    return event.activity!;
+  }
+
+  it('leaves every question open without runs', async () => {
+    const check = await service.getCheck(athlete, DELETED_ATHLETE_ID, NOW);
+    expect(check.split).toEqual(new Date('2026-05-19T12:00:00Z'));
+    expect(check.from).toEqual(new Date('2026-04-07T12:00:00Z'));
+    expect(check.fitness).toMatchObject({ status: 'OPEN', counts: [0, 0] });
+    expect(check.speed).toEqual({
+      status: 'OPEN',
+      kind: null,
+      current: null,
+      previous: null,
+    });
+    expect(check.durability).toMatchObject({ status: 'OPEN', counts: [0, 0] });
+    expect(check.recovery).toEqual({
+      status: 'OPEN',
+      variability: null,
+      restingHeartrate: null,
+    });
+    expect(check.design).toEqual({
+      status: 'OPEN',
+      weeks: 0,
+      of: 6,
+      easyShare: null,
+      longRun: null,
+    });
+  });
+
+  it('reads the week of variability and resting heart rate against the weeks before', async () => {
+    const day = (ago: number) => new Date(NOW.getTime() - ago * 86_400_000);
+    const metric = (
+      type: 'HRV_LAST_NIGHT_AVG' | 'HR_REST',
+      ago: number,
+      value: number,
+    ) => ({ type, date: day(ago), value, athleteId: DELETED_ATHLETE_ID });
+    await prisma.athleteMetric.deleteMany({
+      where: { athleteId: DELETED_ATHLETE_ID },
+    });
+    await prisma.athleteMetric.createMany({
+      data: [
+        // Three weeks around 50 ms and 45 beats, then a week at 40 and 51
+        ...Array.from({ length: 21 }, (_, i) => [
+          metric('HRV_LAST_NIGHT_AVG', 8 + i, 48 + (i % 3) * 2),
+          metric('HR_REST', 8 + i, 44 + (i % 3)),
+        ]).flat(),
+        ...Array.from({ length: 6 }, (_, i) => [
+          metric('HRV_LAST_NIGHT_AVG', i + 0.5, 40 + (i % 2)),
+          metric('HR_REST', i + 0.5, 51 - (i % 2)),
+        ]).flat(),
+        // Older than the six weeks before: not the athlete of today
+        metric('HRV_LAST_NIGHT_AVG', 60, 5),
+      ],
+    });
+    const { recovery } = await service.getCheck(
+      athlete,
+      DELETED_ATHLETE_ID,
+      NOW,
+    );
+    expect(recovery.status).toBe('WORSE');
+    expect(recovery.variability).toMatchObject({ state: 'LOW', days: 6 });
+    expect(recovery.variability!.week).toBeCloseTo(40.5, 0);
+    expect(recovery.variability!.low).toBeGreaterThan(47);
+    expect(recovery.restingHeartrate).toMatchObject({ state: 'HIGH', days: 6 });
+
+    // The resting heart rate back to usual: the two no longer agree
+    await prisma.athleteMetric.updateMany({
+      where: { type: 'HR_REST', date: { gt: day(7) } },
+      data: { value: 45 },
+    });
+    const calm = await service.getCheck(athlete, DELETED_ATHLETE_ID, NOW);
+    expect(calm.recovery.status).toBe('SAME');
+  });
+
+  it('describes how the six weeks were built, and notes a run far too long', async () => {
+    // Four of the six weeks, 80 % of the time easy
+    for (const days of [1, 8, 9, 22, 36]) {
+      await run(
+        new Date(NOW.getTime() - days * 86_400_000).toISOString().slice(0, 10),
+        { intensitySeconds: [2400, 400, 200], distance: 10000 },
+      );
+    }
+    const steady = await service.getCheck(athlete, DELETED_ATHLETE_ID, NOW);
+    expect(steady.design).toEqual({
+      status: 'FINE',
+      weeks: 4,
+      of: 6,
+      easyShare: 0.8,
+      longRun: null,
+    });
+
+    await run(lately(28), { distance: 16000 });
+    const { design } = await service.getCheck(athlete, DELETED_ATHLETE_ID, NOW);
+    expect(design.status).toBe('NOTE');
+    expect(design.longRun).toEqual({
+      date: '2026-06-28',
+      distance: 16000,
+      longest: 10000,
+    });
+  });
+
+  it('reads a lower heart rate at the same power as fitter', async () => {
+    for (const [index, day] of [2, 9, 16, 23].entries()) {
+      // 300 to 310 W: about 142 lately, 148 before
+      await run(lately(day), {
+        bands: [
+          { kind: 'FLAT_POWER', bin: 30, value: 141 + (index % 2) * 2 },
+          { kind: 'FLAT_SPEED', bin: 21, value: 141 },
+        ],
+      });
+      await run(before(day), {
+        bands: [
+          { kind: 'FLAT_POWER', bin: 30, value: 147 + (index % 2) * 2 },
+          { kind: 'FLAT_SPEED', bin: 21, value: 141 },
+        ],
+      });
+    }
+    // A ride, and a run older than both windows: neither counts
+    await run(lately(5), {
+      sport: 'CYCLING',
+      bands: [{ kind: 'FLAT_POWER', bin: 30, value: 100 }],
+    });
+    await run('2026-03-01', {
+      bands: [{ kind: 'FLAT_POWER', bin: 30, value: 100 }],
+    });
+
+    const { fitness } = await service.getCheck(
+      athlete,
+      DELETED_ATHLETE_ID,
+      NOW,
+    );
+    expect(fitness).toMatchObject({
+      status: 'BETTER',
+      basis: 'POWER',
+      reference: 305,
+      counts: [4, 4],
+    });
+    expect(fitness.current! - fitness.previous!).toBeCloseTo(-6, 6);
+  });
+
+  it('falls back on grade-adjusted speed when few runs have power', async () => {
+    for (const day of [2, 9, 16, 23]) {
+      await run(lately(day), {
+        bands: [{ kind: 'FLAT_SPEED', bin: 21, value: 150 }],
+      });
+      await run(before(day), {
+        bands: [{ kind: 'FLAT_SPEED', bin: 21, value: 150 }],
+      });
+    }
+    await run(lately(24), {
+      bands: [
+        { kind: 'FLAT_POWER', bin: 30, value: 150 },
+        { kind: 'FLAT_SPEED', bin: 21, value: 150 },
+      ],
+    });
+    const { fitness } = await service.getCheck(
+      athlete,
+      DELETED_ATHLETE_ID,
+      NOW,
+    );
+    expect(fitness).toMatchObject({
+      status: 'SAME',
+      basis: 'SPEED',
+      counts: [5, 4],
+    });
+    // 10.5 to 11 km/h
+    expect(fitness.reference).toBeCloseTo(10.75 / 3.6, 9);
+  });
+
+  it('reads less drift on long, steady, flat runs as lasting longer', async () => {
+    const long = (decouplingPercent: number) => ({
+      movingTime: 5400,
+      distance: 18000,
+      elevationGain: 120,
+      intensitySeconds: [4800, 400, 200],
+      decouplingPercent,
+    });
+    await run(lately(6), long(4));
+    await run(lately(20), long(4.4));
+    await run(before(6), long(7));
+    await run(before(20), long(7.4));
+    // Too short, too hard, and a mountain run: not what the drift reads on
+    await run(lately(7), { ...long(20), movingTime: 1800 });
+    await run(lately(8), { ...long(20), intensitySeconds: [2000, 2000, 1400] });
+    await run(lately(9), { ...long(20), elevationGain: 900 });
+    const { durability } = await service.getCheck(
+      athlete,
+      DELETED_ATHLETE_ID,
+      NOW,
+    );
+    expect(durability).toMatchObject({ status: 'BETTER', counts: [2, 2] });
+    expect(durability.current).toBeCloseTo(4.2, 9);
+    expect(durability.previous).toBeCloseTo(7.2, 9);
+  });
+
+  it('compares critical speed between now and six weeks ago', async () => {
+    // Best times over 1, 3 and 5 km: about 4.5 m/s held for long
+    const bests = async (date: string, seconds: number[]) => {
+      const activity = await run(date, { sport: 'RUNNING' });
+      await prisma.record.createMany({
+        data: [1000, 3000, 5000].map((distance, index) => ({
+          type: 'SPEED' as const,
+          distance,
+          value: seconds[index],
+          date: new Date(`${date}T08:00:00Z`),
+          athleteId: DELETED_ATHLETE_ID,
+          eventActivityId: activity.eventActivityId,
+        })),
+      });
+    };
+    // Before the split: the model of six weeks ago rests on these alone
+    await bests(before(5), [200, 640, 1085]);
+    const open = await service.getCheck(athlete, DELETED_ATHLETE_ID, NOW);
+    expect(open.speed.status).toBe('SAME');
+    expect(open.speed.kind).toBe('speed');
+    expect(open.speed.current).toBeCloseTo(4.52, 1);
+
+    // Every best five percent faster
+    await bests(lately(20), [190.5, 609.5, 1033.3]);
+    const { speed } = await service.getCheck(athlete, DELETED_ATHLETE_ID, NOW);
+    expect(speed.status).toBe('BETTER');
+    expect(speed.current! / speed.previous!).toBeCloseTo(1.05, 2);
+  });
+
+  it('answers for the athlete asking when none is named', async () => {
+    const check = await service.getCheck(athlete, undefined, NOW);
+    expect(check.fitness.status).toBe('OPEN');
+    // A coach without an athlete of their own names one
+    await expect(service.getCheck(stranger, undefined, NOW)).rejects.toThrow(
+      'Athlete not found',
+    );
+  });
+
+  it('gives the course of the figures over half a year', async () => {
+    // Four runs with flat stretches: 150, 148, 146 and 144 beats at 300 W
+    for (const [index, days] of [150, 100, 50, 3].entries()) {
+      await run(
+        new Date(NOW.getTime() - days * 86_400_000).toISOString().slice(0, 10),
+        {
+          bands: [{ kind: 'FLAT_POWER', bin: 30, value: 150 - index * 2 }],
+          intensitySeconds: [2400, 400, 200],
+        },
+      );
+    }
+    // Older than the half year: out
+    await run('2025-11-01', {
+      bands: [{ kind: 'FLAT_POWER', bin: 30, value: 100 }],
+    });
+    await prisma.athleteMetric.deleteMany({
+      where: { athleteId: DELETED_ATHLETE_ID },
+    });
+    await prisma.athleteMetric.createMany({
+      data: Array.from({ length: 5 }, (_, i) => ({
+        type: 'HRV_LAST_NIGHT_AVG' as const,
+        date: new Date(NOW.getTime() - (i + 0.5) * 86_400_000),
+        value: 50,
+        athleteId: DELETED_ATHLETE_ID,
+      })),
+    });
+
+    const history = await service.getHistory(athlete, undefined, NOW);
+    expect(history.fitness).toMatchObject({ basis: 'POWER', reference: 305 });
+    // Against the usual 147 beats, oldest first
+    expect(history.fitness.runs.map(({ value }) => value)).toEqual([
+      3, 1, -1, -3,
+    ]);
+    expect(history.fitness.runs[3].date).toBe('2026-06-27');
+    expect(history.speed).toHaveLength(14);
+    expect(history.speed[13]).toEqual({
+      date: '2026-06-30',
+      speed: null,
+      power: null,
+    });
+    expect(history.recovery).toHaveLength(26);
+    expect(history.recovery[25]).toMatchObject({
+      date: '2026-06-30',
+      restingHeartrate: null,
+    });
+    expect(history.recovery[25].variability).toBeCloseTo(50, 9);
+    expect(history.recovery[24].variability).toBeNull();
+    // The last week: one run of 50 minutes, 80 % of it easy
+    expect(history.design[25].hours).toBeCloseTo(3000 / 3600, 9);
+    expect(history.design[25].easyShare).toBeCloseTo(0.8, 9);
+    expect(history.design[24]).toMatchObject({ hours: 0, easyShare: null });
+  });
+
+  it('lists the answers of the athletes a coach follows', async () => {
+    const coach = {
+      userId: 999_002,
+      email: 'coach@example.com',
+      athlete: null,
+      coachAthletes: [
+        { athleteId: DELETED_ATHLETE_ID },
+        { athleteId: 424_242 },
+      ],
+    } as unknown as AuthUser;
+    await run(lately(20), { distance: 10000 });
+    await run(lately(28), { distance: 16000 });
+    // The athlete that no longer exists is left out, the other answered
+    expect(await service.getForAthletes(coach, NOW)).toEqual({
+      athletes: [
+        {
+          athleteId: DELETED_ATHLETE_ID,
+          fitness: 'OPEN',
+          speed: 'OPEN',
+          durability: 'OPEN',
+          recovery: 'OPEN',
+          design: 'NOTE',
+        },
+      ],
+    });
+    expect(await service.getForAthletes(athlete, NOW)).toEqual({
+      athletes: [],
+    });
+  });
+
+  it('refuses an athlete the user cannot read', async () => {
+    await expect(
+      service.getCheck(stranger, DELETED_ATHLETE_ID, NOW),
+    ).rejects.toThrow(ForbiddenException);
+  });
+});
