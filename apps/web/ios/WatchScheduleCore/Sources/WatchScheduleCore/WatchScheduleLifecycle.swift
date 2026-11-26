@@ -729,7 +729,7 @@ public actor WatchScheduleLifecycle {
                 return await report(.failed("pendingCleanup"), scope: scope)
             }
         }
-        guard await recoverPendingTeardown() else {
+        guard await recoverPendingTeardown(from: entryEpoch) else {
             return await report(.failed("pendingCleanup"), scope: scope)
         }
         guard entryEpoch == epoch else {
@@ -737,6 +737,11 @@ public actor WatchScheduleLifecycle {
         }
 
         let current = await authorization.permission()
+        // The permission read itself can suspend. Do not open the system sheet
+        // if a fence or account switch won while it was pending.
+        guard entryEpoch == epoch else {
+            return await report(.deferred(.inactive), scope: scope)
+        }
         let resolved: WatchSchedulePermission
         if current == .notDetermined && requestPermission {
             resolved = await authorization.requestPermission()
@@ -863,7 +868,7 @@ public actor WatchScheduleLifecycle {
         guard stored == scope else {
             return await report(.deferred(.inactive), scope: scope)
         }
-        guard await recoverPendingTeardown() else {
+        guard await recoverPendingTeardown(from: entryEpoch) else {
             return await report(.failed("pendingCleanup"), scope: scope)
         }
         guard entryEpoch == epoch else {
@@ -1093,7 +1098,7 @@ public actor WatchScheduleLifecycle {
             // Cold logout after a crash: recover only the existing durable
             // teardown authorization under the same gate a pass would use.
             await acquireGate()
-            let recovered = await recoverPendingTeardown()
+            let recovered = await recoverPendingTeardown(from: epoch)
             releaseGate()
             cleanupBlocked = !recovered
             return nil
@@ -1145,6 +1150,10 @@ public actor WatchScheduleLifecycle {
     /// fence, no credential change. Other scopes' cleanup waits behind the
     /// lifecycle gate so the signed-in account's pass completes first.
     public func recoverCleanup() async -> Bool {
+        // Capture before the first awaited teardown/opt-in read. A fence that
+        // lands while one is pending owns the binding and must not be undone
+        // by a restore later in this recovery.
+        let entryEpoch = epoch
         let scopes: [AccountScope]
         do {
             scopes = try await teardown.load()
@@ -1163,7 +1172,7 @@ public actor WatchScheduleLifecycle {
             return true
         }
         await acquireGate()
-        let recovered = await recoverPendingTeardown()
+        let recovered = await recoverPendingTeardown(from: entryEpoch)
         releaseGate()
         if recovered {
             if fenceTokens.isEmpty {
@@ -1459,7 +1468,7 @@ public actor WatchScheduleLifecycle {
     /// Runs every durable teardown in the order it was recorded. Returns false
     /// when an account still has unconfirmed work or its credential could not be
     /// retired; callers must then refuse to schedule for anyone else.
-    private func recoverPendingTeardown() async -> Bool {
+    private func recoverPendingTeardown(from entryEpoch: UInt64) async -> Bool {
         let scopes: [AccountScope]
         do {
             scopes = try await teardown.load()
@@ -1482,7 +1491,6 @@ public actor WatchScheduleLifecycle {
             }
             return $0.athleteId < $1.athleteId
         }
-        let entryEpoch = epoch
         let originalActive = activeScope
         for scope in ordered {
             let result = await teardownScope(scope)

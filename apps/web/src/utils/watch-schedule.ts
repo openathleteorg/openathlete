@@ -200,10 +200,54 @@ const FENCE_UNCONFIRMED_KEY = 'watch_schedule_fence_unconfirmed';
 export type WatchScheduleFenceOperation = 'fence' | 'disconnect';
 
 export type WatchScheduleUnconfirmedExit = {
+  /** Identifies this exact exit attempt, never a reused scope/operation pair. */
+  attemptId: string;
   /** The account whose retrieval never acknowledged, when it was known. */
   scope: WatchScheduleScope | null;
   operation: WatchScheduleFenceOperation;
 };
+
+const EXIT_ATTEMPT_NONCE = Math.random().toString(36).slice(2, 10);
+let exitAttemptSerial = 0;
+
+function nextExitAttemptId(boundary: number | null): string {
+  if (boundary !== null) return `${EXIT_ATTEMPT_NONCE}:b${boundary}`;
+  exitAttemptSerial += 1;
+  return `${EXIT_ATTEMPT_NONCE}:n${exitAttemptSerial.toString(36)}`;
+}
+
+/** The validated account a marker may safely act on, or null when unknown. */
+function markerScope(value: unknown): WatchScheduleScope | null {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as Partial<WatchScheduleScope>;
+  if (
+    typeof candidate.instanceURL !== 'string' ||
+    !Number.isSafeInteger(candidate.athleteId) ||
+    (candidate.athleteId ?? 0) <= 0
+  ) {
+    return null;
+  }
+  let url: URL;
+  try {
+    url = new URL(candidate.instanceURL);
+  } catch {
+    return null;
+  }
+  if (
+    (url.protocol !== 'https:' && url.protocol !== 'http:') ||
+    !url.hostname ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash
+  ) {
+    return null;
+  }
+  return {
+    instanceURL: candidate.instanceURL,
+    athleteId: candidate.athleteId as number,
+  };
+}
 
 /**
  * The last account this tab actually used for watch scheduling. Logout needs
@@ -328,14 +372,32 @@ export async function fenceWatchScheduleOnExit(): Promise<boolean> {
 export function markFenceUnconfirmed(
   scope: WatchScheduleScope | null = activeScope,
   operation: WatchScheduleFenceOperation = 'fence',
-): void {
+  boundary: number | null = exitLatchedAt,
+): WatchScheduleUnconfirmedExit | null {
+  // An explicit boundary only belongs to that exit. A late callback from an
+  // older logout/disconnect must never replace a newer exit's marker, whether
+  // that newer exit is still latched or already recorded.
+  if (boundary !== null) {
+    // A still-latched newer exit owns the marker. A finished exit (no latch)
+    // may only rewrite its own marker, never one recorded by another attempt.
+    if (exitLatchedAt !== null && boundary !== exitLatchedAt) return null;
+    const current = readFenceUnconfirmed();
+    const attemptId = nextExitAttemptId(boundary);
+    if (exitLatchedAt === null && current && current.attemptId !== attemptId) {
+      return null;
+    }
+  }
+  const marker: WatchScheduleUnconfirmedExit = {
+    attemptId: nextExitAttemptId(boundary),
+    scope,
+    operation,
+  };
   try {
-    sessionStorage.setItem(
-      FENCE_UNCONFIRMED_KEY,
-      JSON.stringify({ scope, operation }),
-    );
+    sessionStorage.setItem(FENCE_UNCONFIRMED_KEY, JSON.stringify(marker));
+    return marker;
   } catch {
     // Storage disabled: the settings warning degrades, sign-out still works.
+    return null;
   }
 }
 
@@ -344,18 +406,19 @@ export function readFenceUnconfirmed(): WatchScheduleUnconfirmedExit | null {
     const raw = sessionStorage.getItem(FENCE_UNCONFIRMED_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<WatchScheduleUnconfirmedExit>;
-    const scope =
-      parsed.scope &&
-      typeof parsed.scope.instanceURL === 'string' &&
-      typeof parsed.scope.athleteId === 'number'
-        ? (parsed.scope as WatchScheduleScope)
-        : null;
     const operation: WatchScheduleFenceOperation =
       parsed.operation === 'disconnect' ? 'disconnect' : 'fence';
-    return { scope, operation };
+    return {
+      attemptId:
+        typeof parsed.attemptId === 'string' && parsed.attemptId.length > 0
+          ? parsed.attemptId
+          : 'legacy',
+      scope: markerScope(parsed.scope),
+      operation,
+    };
   } catch {
     // Unknown or legacy marker: never turn it into a global fence.
-    return { scope: null, operation: 'fence' };
+    return { attemptId: 'legacy', scope: null, operation: 'fence' };
   }
 }
 
@@ -368,8 +431,9 @@ export function hasFenceUnconfirmed(): boolean {
 }
 
 /**
- * Clears only the marker this caller proved resolved. A newer account's
- * unconfirmed exit is never erased by an older retry.
+ * Clears only the marker this caller proved resolved. The per-exit attempt ID
+ * is authoritative: an older continuation cannot erase a successor's marker
+ * even when both describe the same scope and operation.
  */
 export function clearFenceUnconfirmed(
   expected?: WatchScheduleUnconfirmedExit,
@@ -378,7 +442,8 @@ export function clearFenceUnconfirmed(
   if (!current) return true;
   if (
     expected &&
-    (current.scope?.instanceURL !== expected.scope?.instanceURL ||
+    (current.attemptId !== expected.attemptId ||
+      current.scope?.instanceURL !== expected.scope?.instanceURL ||
       current.scope?.athleteId !== expected.scope?.athleteId ||
       current.operation !== expected.operation)
   ) {
@@ -402,8 +467,14 @@ export function disconnectWatchScheduleOnExit(
   scope: WatchScheduleScope | null = activeScope,
 ): Promise<WatchScheduleDisconnectReport | null> {
   invalidateWatchScheduleSession();
-  if (!isAppleWatchScheduleAvailable() || !scope) {
+  if (!isAppleWatchScheduleAvailable()) {
     return Promise.resolve(null);
+  }
+  if (!scope) {
+    // A cold exit has no JS scope. Durable teardown already authorized by the
+    // fence is the only cleanup that may run; never send `disconnect()` with no
+    // scope, because native would take that as a global teardown.
+    return recoverWatchScheduleCleanup().then(() => null);
   }
   return disconnectWatchSchedule(scope).catch(() => null);
 }
@@ -437,19 +508,22 @@ export async function retryWatchScheduleUnconfirmedExit(): Promise<boolean> {
   if (!marker) return true;
   if (!isAppleWatchScheduleAvailable()) return false;
   try {
-    if (marker.scope) {
-      // Scoped only. A nil report means this account is not the current
-      // opt-in; that is not permission to touch the account that is.
-      await disconnectWatchSchedule(marker.scope);
+    if (!marker.scope) {
+      // Durable teardown only; no scoped retirement is authorized. A successful
+      // recovery of an empty list is a no-op, not proof that an unknown exit
+      // retired its opt-in, so the warning stays until a stronger proof exists.
+      const recovered = await recoverWatchScheduleCleanup();
+      return recovered;
     }
+    // Scoped only. A nil report means this account is not the current opt-in;
+    // that is not permission to touch the account that is.
+    await disconnectWatchSchedule(marker.scope);
     if (!(await recoverWatchScheduleCleanup())) return false;
-    if (marker.scope) {
-      // Positive proof for the saved scope only. The current account's status
-      // is neither read nor replaced by this retry.
-      const proof = await getWatchScheduleStatus(marker.scope);
-      if (proof.enabled || proof.cleanupPending || proof.cleanupUnknown) {
-        return false;
-      }
+    // Positive proof for the saved scope only. The current account's status is
+    // neither read nor replaced by this retry.
+    const proof = await getWatchScheduleStatus(marker.scope);
+    if (proof.enabled || proof.cleanupPending || proof.cleanupUnknown) {
+      return false;
     }
     return clearFenceUnconfirmed(marker);
   } catch {

@@ -3319,6 +3319,135 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         XCTAssertEqual(stored?.accessToken, "access-token")
     }
 
+    /// The recovery epoch is captured before its first awaited teardown read.
+    /// A fence that lands while that read is pending must still prevent the
+    /// later restore, even if the same account opted in again before the read
+    /// resumed.
+    func testFenceDuringInitialRecoveryReadPreventsRestoringTheBinding()
+        async throws
+    {
+        let planA = UUID()
+        let store = LifecycleFakeStore(
+            workouts: [
+                ScheduledWorkoutState(
+                    planID: planA,
+                    startDate: readAt.addingTimeInterval(3_600),
+                    isComplete: false
+                ),
+            ]
+        )
+        let (journal, _) = temporaryJournal()
+        try await journal.save(
+            ScheduleReceipt(
+                scope: scope,
+                eventID: 3451,
+                planID: planA,
+                scheduledDate: readAt.addingTimeInterval(3_600),
+                fingerprint: "a"
+            )
+        )
+        let optIn = LifecycleFakeOptIn(scope: otherScope)
+        let teardown = LifecycleFakeTeardown()
+        let authorization = LifecycleFakeAuthorization(permission: .authorized)
+        let nextCredential = credential(scope: otherScope)
+        let vault = LifecycleFakeVault(credential: nextCredential)
+        let credentials = WatchScheduleCredentialStore(
+            vault: vault,
+            now: { self.now }
+        )
+        let reconciler = ScheduleReconciler(
+            store: store,
+            journal: journal,
+            calendar: calendar
+        )
+        let lifecycle = WatchScheduleLifecycle(
+            reconciler: reconciler,
+            journal: journal,
+            credentials: credentials,
+            optIn: optIn,
+            teardown: teardown,
+            authorization: authorization,
+            calendar: calendar,
+            now: { self.now },
+            loadSnapshot: { requested, _, _ in
+                self.snapshot(scope: requested)
+            }
+        )
+        _ = await lifecycle.connect(
+            scope: otherScope,
+            credential: nextCredential,
+            requestPermission: true
+        )
+        let initialBinding = await reconciler.isActive(for: otherScope)
+        XCTAssertTrue(initialBinding)
+        // Keep the fence's own target on A so it cannot add the surviving
+        // account B to the teardown list and mask the restore we test.
+        try await optIn.save(scope)
+        try await teardown.add(scope)
+
+        await teardown.suspendNextLoad()
+        let recovery = Task { await lifecycle.recoverCleanup() }
+        await teardown.waitUntilLoadSuspended()
+        let acknowledged = await lifecycle.fence()
+        XCTAssertTrue(acknowledged)
+        // Reopt the same account before the stale read resumes. The pre-read
+        // epoch, not the current opt-in value, is what must reject restoration.
+        try await optIn.save(otherScope)
+
+        await teardown.resumeSuspendedLoad()
+        _ = await recovery.value
+
+        let restored = await reconciler.isActive(for: otherScope)
+        XCTAssertFalse(
+            restored,
+            "an earlier recovery must not restore across a fence"
+        )
+    }
+
+    /// A permission read may suspend too. If a fence wins while it is pending,
+    /// the connect must not open the system permission sheet afterwards.
+    func testFenceDuringPermissionReadDoesNotOpenTheSheet() async throws {
+        let store = LifecycleFakeStore()
+        let (journal, _) = temporaryJournal()
+        let optIn = LifecycleFakeOptIn()
+        let authorization = LifecycleFakeAuthorization(
+            permission: .notDetermined
+        )
+        let loader = LifecycleSnapshotLoader { requested in
+            self.snapshot(candidates: [self.candidate(3461)], scope: requested)
+        }
+        let (lifecycle, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: optIn,
+            authorization: authorization,
+            loader: loader
+        )
+        await authorization.suspendNextPermission()
+
+        let connecting = Task {
+            await lifecycle.connect(
+                scope: self.scope,
+                credential: self.credential(),
+                requestPermission: true
+            )
+        }
+        await authorization.waitUntilPermissionSuspended()
+        let acknowledged = await lifecycle.fence()
+        XCTAssertTrue(acknowledged)
+
+        await authorization.resumeSuspendedPermission()
+        let report = await connecting.value
+
+        XCTAssertEqual(report.outcome, .deferred(.inactive))
+        let requests = await authorization.requestCount
+        XCTAssertEqual(requests, 0)
+        let schedules = await store.scheduleCount
+        XCTAssertEqual(schedules, 0)
+        let stored = try await optIn.load()
+        XCTAssertNil(stored)
+    }
+
     /// A recovery that is suspended on the opt-in read must recheck its epoch
     /// after that read. A fence that lands while it waits owns the binding; the
     /// stale recovery may not reactivate the account that was active at entry.
@@ -3812,12 +3941,25 @@ private actor LifecycleFakeTeardown: WatchScheduleTeardownStore {
     private var suspendAdd = false
     private var addSuspended = false
     private var addWaiter: CheckedContinuation<Void, Never>?
+    private var suspendLoad = false
+    private var loadIsSuspended = false
+    private var loadWaiter: CheckedContinuation<Void, Never>?
 
     init(initial: [AccountScope] = []) {
         scopes = initial
     }
 
     func load() async throws -> [AccountScope] {
+        // Capture the value at call time so a read suspended across a fence
+        // returns what was durable when it started, not the newer list.
+        let value = scopes
+        if suspendLoad {
+            suspendLoad = false
+            loadIsSuspended = true
+            await withCheckedContinuation { continuation in
+                loadWaiter = continuation
+            }
+        }
         if loadAlwaysFails {
             throw LifecycleFakeStoreError.unavailable
         }
@@ -3825,7 +3967,26 @@ private actor LifecycleFakeTeardown: WatchScheduleTeardownStore {
             loadFailures -= 1
             throw LifecycleFakeStoreError.unavailable
         }
-        return scopes
+        return value
+    }
+
+    func suspendNextLoad() {
+        suspendLoad = true
+    }
+
+    func waitUntilLoadSuspended() async {
+        while !loadIsSuspended {
+            await Task.yield()
+        }
+        while loadWaiter == nil {
+            await Task.yield()
+        }
+    }
+
+    func resumeSuspendedLoad() {
+        loadIsSuspended = false
+        loadWaiter?.resume()
+        loadWaiter = nil
     }
 
     func add(_ scope: AccountScope) async throws {
@@ -3888,6 +4049,9 @@ private actor LifecycleFakeAuthorization: WatchScheduleAuthorizing {
     private(set) var permissionCount = 0
     private var suspendRequest = false
     private var requestWaiter: CheckedContinuation<WatchSchedulePermission, Never>?
+    private var suspendPermission = false
+    private var permissionIsSuspended = false
+    private var permissionWaiter: CheckedContinuation<Void, Never>?
 
     init(
         permission: WatchSchedulePermission = .authorized,
@@ -3903,7 +4067,33 @@ private actor LifecycleFakeAuthorization: WatchScheduleAuthorizing {
 
     func permission() async -> WatchSchedulePermission {
         permissionCount += 1
+        if suspendPermission {
+            suspendPermission = false
+            permissionIsSuspended = true
+            await withCheckedContinuation { continuation in
+                permissionWaiter = continuation
+            }
+        }
         return permissionValue
+    }
+
+    func suspendNextPermission() {
+        suspendPermission = true
+    }
+
+    func waitUntilPermissionSuspended() async {
+        while !permissionIsSuspended {
+            await Task.yield()
+        }
+        while permissionWaiter == nil {
+            await Task.yield()
+        }
+    }
+
+    func resumeSuspendedPermission() {
+        permissionIsSuspended = false
+        permissionWaiter?.resume()
+        permissionWaiter = nil
     }
 
     func requestPermission() async -> WatchSchedulePermission {

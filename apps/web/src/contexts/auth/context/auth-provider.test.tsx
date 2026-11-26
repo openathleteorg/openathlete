@@ -22,6 +22,7 @@ const watch = vi.hoisted(() => ({
   establish: vi.fn(),
   fence: vi.fn(),
   disconnect: vi.fn(),
+  recover: vi.fn(),
   mark: vi.fn(),
   boundary: null as number | null,
   latched: false,
@@ -35,6 +36,7 @@ vi.mock('@/utils/watch-schedule', () => ({
   establishWatchScheduleSession: watch.establish,
   fenceWatchScheduleOnExit: watch.fence,
   disconnectWatchScheduleOnExit: watch.disconnect,
+  recoverWatchScheduleCleanup: watch.recover,
   markFenceUnconfirmed: watch.mark,
   watchScheduleExitBoundary: () => watch.boundary,
   isWatchScheduleExitLatched: () => watch.latched,
@@ -120,6 +122,8 @@ describe('auth start without a connection', () => {
     watch.fence.mockResolvedValue(true);
     watch.disconnect.mockReset();
     watch.disconnect.mockResolvedValue(null);
+    watch.recover.mockReset();
+    watch.recover.mockResolvedValue(true);
     watch.mark.mockReset();
     watch.boundary = null;
     watch.latched = false;
@@ -387,8 +391,36 @@ describe('auth start without a connection', () => {
       await Promise.resolve();
     });
 
-    expect(watch.mark).toHaveBeenCalledWith(previous, 'fence');
+    expect(watch.mark).toHaveBeenCalledWith(previous, 'fence', 1);
     expect(watch.disconnect).toHaveBeenCalledWith(previous);
+  });
+
+  it('recovers durable teardown only after a cold fence without a JS scope', async () => {
+    watch.activeScope = null;
+    watch.latch.mockReturnValue(1);
+    watch.boundary = 1;
+    watch.fence.mockResolvedValue(true);
+    api.getMe.mockResolvedValue(user);
+    await act(async () =>
+      root.render(
+        <AuthProvider>
+          <AuthConsumer>
+            <LogoutProbe />
+          </AuthConsumer>
+        </AuthProvider>,
+      ),
+    );
+    await act(async () => container.querySelector('button')!.click());
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(watch.fence).toHaveBeenCalledTimes(1);
+    expect(watch.disconnect).not.toHaveBeenCalled();
+    expect(watch.recover).toHaveBeenCalledTimes(1);
+    expect(watch.mark).not.toHaveBeenCalled();
   });
 
   it('never signs out a newer session from a stale 401', async () => {
@@ -470,6 +502,10 @@ describe('auth start without a connection', () => {
 
   it('finishes logout when its own 401 invalidates the session during the fence', async () => {
     api.getMe.mockResolvedValue(user);
+    watch.activeScope = {
+      instanceURL: 'https://train.example.org/api',
+      athleteId: 7,
+    };
     watch.latch.mockReturnValue(1);
     watch.boundary = 1;
     let resolveFence!: (acknowledged: boolean) => void;
@@ -527,6 +563,10 @@ describe('auth start without a connection', () => {
 
   it('does not publish an authenticated user with invalidated credentials', async () => {
     api.getMe.mockRejectedValueOnce(unauthorized()).mockResolvedValue(user);
+    watch.activeScope = {
+      instanceURL: 'https://train.example.org/api',
+      athleteId: 7,
+    };
     await act(async () =>
       root.render(
         <AuthProvider>

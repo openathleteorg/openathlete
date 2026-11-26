@@ -24,6 +24,7 @@ import {
   isWatchScheduleExitLatched,
   latchWatchScheduleExit,
   markFenceUnconfirmed,
+  recoverWatchScheduleCleanup,
   watchScheduleActiveScope,
   watchScheduleExitBoundary,
   watchScheduleSessionEpoch,
@@ -215,22 +216,33 @@ export function AuthProvider({ children }: Props) {
     // The sign-out belongs to the login that existed when the user asked. A
     // successor may commit while the native fence waits.
     const session = captureAuthSession();
-    const finish = () => {
+    // The synchronous latch comes first: while the fence waits, even newly
+    // started work must be refused because the old token is still in storage.
+    const exitBoundary = latchWatchScheduleExit();
+    const finish = (acknowledged: boolean) => {
       // Never tear down a session that replaced this one during the wait.
       if (!isAuthSessionCurrent(session)) return;
       // Cleanup can finish later on the phone; it never holds up navigation.
       // The captured scope makes a delayed teardown unable to retire the
       // account that signs in next.
-      void disconnectWatchScheduleOnExit(exitScope).then((report) => {
-        if (
-          report &&
-          (!report.purgedCredential ||
-            report.retainedEventIDs.length > 0 ||
-            report.unresolvedEventIDs.length > 0)
-        ) {
-          markFenceUnconfirmed(exitScope, 'disconnect');
-        }
-      });
+      if (exitScope) {
+        void disconnectWatchScheduleOnExit(exitScope).then((report) => {
+          if (
+            report &&
+            (!report.purgedCredential ||
+              report.retainedEventIDs.length > 0 ||
+              report.unresolvedEventIDs.length > 0)
+          ) {
+            markFenceUnconfirmed(exitScope, 'disconnect', exitBoundary);
+          }
+        });
+      } else if (acknowledged) {
+        // Cold logout without a JS scope: a successful fence already made any
+        // teardown durable. Recover only that durable authorization; never
+        // call an unscoped disconnect, which native would treat as a global
+        // teardown.
+        void recoverWatchScheduleCleanup().catch(() => undefined);
+      }
       if (!clearAuthTokens(session)) return;
       posthog.capture('user_logged_out');
       posthog.reset();
@@ -255,19 +267,18 @@ export function AuthProvider({ children }: Props) {
     };
     // Fence Apple scheduling before the tokens disappear, and wait for that
     // acknowledgement (bounded) so a stale permission/fetch continuation cannot
-    // opt the signed-out account in after storage was cleared. The synchronous
-    // latch comes first: while the fence waits, even newly started work must be
-    // refused because the old token is still in storage. If native does not
-    // acknowledge, sign-out still escapes and the unconfirmed state is surfaced
-    // in settings instead of being reported as a successful fence.
-    const exitBoundary = latchWatchScheduleExit();
+    // opt the signed-out account in after storage was cleared. If native does
+    // not acknowledge, sign-out still escapes and the unconfirmed state is
+    // surfaced in settings instead of being reported as a successful fence.
     void fenceWatchScheduleOnExit().then((acknowledged) => {
       // A successor (or a newer exit) owns the session now. Its storage and
       // latch must not be cleared by this older sign-out continuation.
       if (watchScheduleExitBoundary() !== exitBoundary) return;
       if (!isAuthSessionCurrent(session)) return;
-      if (!acknowledged) markFenceUnconfirmed(exitScope, 'fence');
-      finish();
+      if (!acknowledged) {
+        markFenceUnconfirmed(exitScope, 'fence', exitBoundary);
+      }
+      finish(acknowledged);
     });
   }, []);
 

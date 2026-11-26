@@ -168,24 +168,88 @@ describe('watch schedule bridge', () => {
   it('binds the marker to the original scope and operation', () => {
     const a = { instanceURL: 'https://train.example.org/api', athleteId: 7 };
     const b = { instanceURL: 'https://train.example.org/api', athleteId: 9 };
-    markFenceUnconfirmed(a, 'fence');
+    const marker = markFenceUnconfirmed(a, 'fence');
 
-    expect(readFenceUnconfirmed()).toEqual({
-      scope: a,
-      operation: 'fence',
-    });
+    expect(readFenceUnconfirmed()).toEqual(marker);
+    expect(marker?.attemptId).toBeTruthy();
     // An older retry may not clear (or act on) another account's marker.
-    expect(clearFenceUnconfirmed({ scope: b, operation: 'fence' })).toBe(false);
+    expect(clearFenceUnconfirmed({ ...marker!, scope: b })).toBe(false);
     expect(hasFenceUnconfirmed()).toBe(true);
-    expect(clearFenceUnconfirmed({ scope: a, operation: 'fence' })).toBe(true);
+    expect(clearFenceUnconfirmed(marker!)).toBe(true);
     expect(hasFenceUnconfirmed()).toBe(false);
   });
 
-  it('never sends an unscoped disconnect for a missed exit', async () => {
+  it('rejects unsafe athlete ids and non-instance URLs in a marker', () => {
+    const marker = (overrides: Record<string, unknown>) =>
+      sessionStorage.setItem(
+        'watch_schedule_fence_unconfirmed',
+        JSON.stringify({
+          attemptId: 'attempt',
+          operation: 'fence',
+          ...overrides,
+        }),
+      );
+
+    for (const scope of [
+      { instanceURL: 'https://train.example.org/api', athleteId: 0 },
+      { instanceURL: 'https://train.example.org/api', athleteId: 1.5 },
+      { instanceURL: 'https://train.example.org/api', athleteId: '7' },
+      {
+        instanceURL: 'https://train.example.org/api',
+        athleteId: Number.MAX_SAFE_INTEGER + 1,
+      },
+      { instanceURL: 'javascript:alert(1)', athleteId: 7 },
+      { instanceURL: 'not a url', athleteId: 7 },
+      { instanceURL: 'https://user:pass@train.example.org/api', athleteId: 7 },
+      { instanceURL: 'https://train.example.org/api?x=1', athleteId: 7 },
+      { instanceURL: 'https://train.example.org/api#x', athleteId: 7 },
+    ]) {
+      marker({ scope });
+      expect(readFenceUnconfirmed()?.scope).toBeNull();
+    }
+
+    marker({
+      scope: {
+        instanceURL: 'https://train.example.org/api',
+        athleteId: 7,
+      },
+    });
+    expect(readFenceUnconfirmed()?.scope).toEqual({
+      instanceURL: 'https://train.example.org/api',
+      athleteId: 7,
+    });
+  });
+
+  it('uses each exit attempt id instead of the scope tuple', () => {
+    const a = { instanceURL: 'https://train.example.org/api', athleteId: 7 };
+    latchWatchScheduleExit();
+    const first = markFenceUnconfirmed(a, 'fence')!;
+    latchWatchScheduleExit();
+    const second = markFenceUnconfirmed(a, 'fence')!;
+
+    expect(second.attemptId).not.toBe(first.attemptId);
+    expect(clearFenceUnconfirmed(first)).toBe(false);
+    expect(readFenceUnconfirmed()).toEqual(second);
+    expect(clearFenceUnconfirmed(second)).toBe(true);
+  });
+
+  it('does not let a late older callback overwrite a newer marker', () => {
+    const a = { instanceURL: 'https://train.example.org/api', athleteId: 7 };
+    const older = latchWatchScheduleExit();
+    const newer = latchWatchScheduleExit();
+    const newerMarker = markFenceUnconfirmed(a, 'fence', newer)!;
+
+    expect(markFenceUnconfirmed(a, 'disconnect', older)).toBeNull();
+    expect(readFenceUnconfirmed()).toEqual(newerMarker);
+  });
+
+  it('recovers durable teardown instead of sending an unscoped disconnect', async () => {
     state.disconnect.mockResolvedValue({ athleteId: 7 });
+    state.recover.mockResolvedValue({ recovered: true });
 
     await expect(disconnectWatchScheduleOnExit()).resolves.toBeNull();
     expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.recover).toHaveBeenCalledTimes(1);
 
     const a = { instanceURL: 'https://train.example.org/api', athleteId: 7 };
     await expect(disconnectWatchScheduleOnExit(a)).resolves.toEqual({
@@ -272,7 +336,7 @@ describe('watch schedule bridge', () => {
       athleteId: 9,
     };
 
-    it('recovers durable teardown only for an unknown scope', async () => {
+    it('recovers durable teardown but keeps an unproven unknown-scope marker', async () => {
       markFenceUnconfirmed(null, 'fence');
       state.recover.mockResolvedValue({ recovered: true });
 
@@ -282,7 +346,9 @@ describe('watch schedule bridge', () => {
       expect(state.fence).not.toHaveBeenCalled();
       expect(state.disconnect).not.toHaveBeenCalled();
       expect(state.status).not.toHaveBeenCalled();
-      expect(hasFenceUnconfirmed()).toBe(false);
+      // An empty recovery is a no-op, not proof that an unknown exit retired
+      // its opt-in. The warning must survive.
+      expect(hasFenceUnconfirmed()).toBe(true);
     });
 
     it('preserves an unknown-scope marker when recovery is not acknowledged', async () => {
@@ -353,7 +419,7 @@ describe('watch schedule bridge', () => {
 
       await expect(retryWatchScheduleUnconfirmedExit()).resolves.toBe(false);
 
-      expect(readFenceUnconfirmed()).toEqual({
+      expect(readFenceUnconfirmed()).toMatchObject({
         scope: previous,
         operation: 'disconnect',
       });

@@ -493,7 +493,20 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func disconnect(_ call: CAPPluginCall) {
-        let requested = Self.scope(from: call)
+        // An omitted scope is the explicit unscoped logout. A supplied but
+        // malformed scope must be rejected: treating it as omitted would run a
+        // global teardown for a request that named an account.
+        let requested: AccountScope?
+        if let scopeValue = call.options["scope"],
+           !(scopeValue is NSNull) {
+            guard let scope = Self.scope(from: call) else {
+                call.reject("invalid scope", "INVALID_SCOPE")
+                return
+            }
+            requested = scope
+        } else {
+            requested = nil
+        }
         #if canImport(HealthKit) && canImport(WorkoutKit)
         if #available(iOS 17.0, *),
            let runtime = WatchScheduleRuntime.shared {
@@ -583,16 +596,49 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
     private static func scope(from call: CAPPluginCall) -> AccountScope? {
         guard let data = call.getObject("scope"),
               let urlString = data["instanceURL"] as? String,
-              let url = URL(string: urlString),
-              let rawAthleteId = data["athleteId"] as? NSNumber,
-              rawAthleteId.intValue > 0
+              let url = Self.instanceURL(from: urlString),
+              let athleteId = Self.athleteId(from: data["athleteId"])
         else {
             return nil
         }
-        return AccountScope(
-            instanceURL: url,
-            athleteId: rawAthleteId.intValue
-        )
+        return AccountScope(instanceURL: url, athleteId: athleteId)
+    }
+
+    /// Only a positive, safe integer identifies an athlete. Booleans, decimals,
+    /// numeric strings and values outside `Int` are malformed, not a wildcard.
+    private static func athleteId(from value: Any?) -> Int? {
+        guard let number = value as? NSNumber,
+              CFGetTypeID(number) != CFBooleanGetTypeID()
+        else {
+            return nil
+        }
+        let double = number.doubleValue
+        guard double.isFinite,
+              double > 0,
+              let athleteId = Int(exactly: double),
+              athleteId > 0
+        else {
+            return nil
+        }
+        return athleteId
+    }
+
+    /// The instance must be a plain HTTP(S) base: no userinfo, query or
+    /// fragment, and a host that can own the bearer.
+    private static func instanceURL(from value: String) -> URL? {
+        guard let url = URL(string: value),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "https" || scheme == "http",
+              let host = url.host,
+              !host.isEmpty,
+              url.user == nil,
+              url.password == nil,
+              url.query == nil,
+              url.fragment == nil
+        else {
+            return nil
+        }
+        return url
     }
 
     private static func credential(
