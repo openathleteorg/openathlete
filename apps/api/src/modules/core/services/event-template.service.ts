@@ -168,6 +168,9 @@ export class EventTemplateService {
                 durationType: step.durationType,
                 durationValue: step.durationValue,
                 durationTarget: step.durationTarget,
+                exerciseRef: step.exerciseRef,
+                tempo: step.tempo,
+                side: step.side,
                 targets: {
                   create: step.targets.map((t) => ({
                     targetType: t.targetType,
@@ -181,6 +184,9 @@ export class EventTemplateService {
                   ? {
                       create: {
                         repetitions: step.repeatBlock.repetitions,
+                        kind: step.repeatBlock.kind,
+                        intervalSeconds: step.repeatBlock.intervalSeconds,
+                        timeCapSeconds: step.repeatBlock.timeCapSeconds,
                         childSteps: {
                           create: step.repeatBlock.childSteps.map(
                             (childStep) => ({
@@ -191,6 +197,9 @@ export class EventTemplateService {
                               durationType: childStep.durationType,
                               durationValue: childStep.durationValue,
                               durationTarget: childStep.durationTarget,
+                              exerciseRef: childStep.exerciseRef,
+                              tempo: childStep.tempo,
+                              side: childStep.side,
                               targets: {
                                 create: childStep.targets.map((t) => ({
                                   targetType: t.targetType,
@@ -407,6 +416,9 @@ export class EventTemplateService {
                 durationType: step.durationType,
                 durationValue: step.durationValue,
                 durationTarget: step.durationTarget,
+                exerciseRef: step.exerciseRef,
+                tempo: step.tempo,
+                side: step.side,
                 targets: {
                   create: step.targets.map((t) => ({
                     targetType: t.targetType,
@@ -420,6 +432,9 @@ export class EventTemplateService {
                   ? {
                       create: {
                         repetitions: step.repeatBlock.repetitions,
+                        kind: step.repeatBlock.kind,
+                        intervalSeconds: step.repeatBlock.intervalSeconds,
+                        timeCapSeconds: step.repeatBlock.timeCapSeconds,
                         childSteps: {
                           create: step.repeatBlock.childSteps.map(
                             (childStep) => ({
@@ -430,6 +445,9 @@ export class EventTemplateService {
                               durationType: childStep.durationType,
                               durationValue: childStep.durationValue,
                               durationTarget: childStep.durationTarget,
+                              exerciseRef: childStep.exerciseRef,
+                              tempo: childStep.tempo,
+                              side: childStep.side,
                               targets: {
                                 create: childStep.targets.map((t) => ({
                                   targetType: t.targetType,

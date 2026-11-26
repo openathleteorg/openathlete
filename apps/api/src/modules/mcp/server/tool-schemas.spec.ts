@@ -8,6 +8,7 @@ import { registerAthleteTools } from './tools/athlete.tools';
 import { registerCalendarReadTools } from './tools/calendar-read.tools';
 import { registerCalendarWriteTools } from './tools/calendar-write.tools';
 import type { ToolDeps } from './tools/deps';
+import { registerExerciseTools } from './tools/exercise.tools';
 import { registerLoadTools } from './tools/load.tools';
 import { registerQuestionnaireTools } from './tools/questionnaire.tools';
 
@@ -20,6 +21,7 @@ async function listTools() {
     registerAthleteWriteTools,
     registerCalendarReadTools,
     registerCalendarWriteTools,
+    registerExerciseTools,
     registerLoadTools,
     registerQuestionnaireTools,
   ]) {
@@ -51,5 +53,32 @@ describe('MCP tool definitions', () => {
       });
       expect(schemas).not.toContain('"anyOf":[]');
     }
+  });
+
+  // The description of a field wins over that of its schema
+  it('tell the write tools how strength workouts go', async () => {
+    const tools = await listTools();
+    for (const name of ['plan_sessions', 'update_session']) {
+      const tool = tools.find((candidate) => candidate.name === name);
+      expect({ name, schema: JSON.stringify(tool?.inputSchema) }).toEqual({
+        name,
+        schema: expect.stringContaining('exercise and group items'),
+      });
+    }
+  });
+
+  it("point plan_sessions' workoutSteps at list_exercises", async () => {
+    const tools = await listTools();
+    const plan = tools.find((tool) => tool.name === 'plan_sessions');
+    const sessions = (
+      plan?.inputSchema.properties as {
+        sessions: {
+          items: { properties: { workoutSteps: { description?: string } } };
+        };
+      }
+    ).sessions;
+    expect(sessions.items.properties.workoutSteps.description).toContain(
+      'list_exercises',
+    );
   });
 });

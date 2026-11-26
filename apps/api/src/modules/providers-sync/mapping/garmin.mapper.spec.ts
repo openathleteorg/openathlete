@@ -1,6 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { SportType } from '@openathlete/database';
+import { catalogExercise, catalogExercises } from '@openathlete/shared';
 import type { WorkoutDto } from '@openathlete/shared';
 
+import { GARMIN_EXERCISES } from './garmin-exercises';
 import { mapWorkoutDtoToGarmin } from './garmin.mapper';
 import type {
   GarminWorkoutRepeatStep,
@@ -247,5 +252,50 @@ describe('mapWorkoutDtoToGarmin', () => {
       SportType.RUNNING,
     );
     expect(garmin.exerciseCategory).toBeNull();
+  });
+});
+
+describe('GARMIN_EXERCISES', () => {
+  it('only maps exercises of the catalog index', () => {
+    const unknown = Object.keys(GARMIN_EXERCISES).filter(
+      (id) => !catalogExercise(`c:${id}`),
+    );
+    expect(unknown).toEqual([]);
+  });
+});
+
+describe('exercise index', () => {
+  // The web app keeps its localised catalog; the index the API checks refs
+  // against must say the same. Fix with: node scripts/exercises/build-index.mjs
+  it('equals the four fields of the English catalog, in id order', () => {
+    const { exercises } = JSON.parse(
+      readFileSync(
+        join(__dirname, '../../../../../web/public/exercises/catalog.en.json'),
+        'utf8',
+      ),
+    ) as {
+      exercises: {
+        id: string;
+        name: string;
+        bodyPart: string;
+        equipment: string;
+      }[];
+    };
+    const expected = exercises
+      .map(({ id, name, bodyPart, equipment }) => [
+        id,
+        name,
+        bodyPart,
+        equipment,
+      ])
+      .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+    expect(
+      catalogExercises().map((entry) => [
+        entry.ref.slice('c:'.length),
+        entry.name,
+        entry.bodyPart,
+        entry.equipment,
+      ]),
+    ).toEqual(expected);
   });
 });

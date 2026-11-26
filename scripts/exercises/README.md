@@ -38,7 +38,30 @@ git clone https://github.com/everkinetic/data /tmp/ek
 node scripts/exercises/build-catalog.mjs /tmp/hy /tmp/ek
 ```
 
-It writes `apps/web/public/exercises` and
-`apps/api/src/modules/providers-sync/mapping/garmin-exercises.ts`. Keep
+It writes `apps/web/public/exercises`,
+`apps/api/src/modules/providers-sync/mapping/garmin-exercises.ts` and, by
+running `build-index.mjs`, the exercise index below. Keep
 `apps/web/public/exercises/ATTRIBUTION.md` with the drawings: CC BY-SA asks
 for the credit and the changes made.
+
+## Exercise index
+
+The API image has neither `scripts/` nor `apps/web`, so the ids, English names,
+body parts and equipment of the catalog are also committed as
+`libs/shared/src/utils/strength/exercise-index.ts` (`catalogExercise` in the
+shared library; the MCP tools `list_exercises` and `get_exercise` and the
+check of planned workouts use it). It is generated from
+`apps/web/public/exercises/catalog.en.json`, no clone needed:
+
+```bash
+node scripts/exercises/build-index.mjs
+```
+
+`build-catalog.mjs` runs it at the end. Commit the result with the catalog.
+Ids are never renamed. Both build scripts fail, before writing anything, if an
+id of the current index would disappear; so does a correction of an English
+name that changes its slug: add an override that keeps the old id first. They
+also print every kept id whose English name changed, to review (a swap of `x`
+and `x-2` after a reorder upstream shows up there).
+The index has one line per exercise (`// prettier-ignore`). A test in
+`apps/api` checks that it equals the catalog.

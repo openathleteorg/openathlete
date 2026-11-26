@@ -6,6 +6,7 @@ import type {
 import { z } from 'zod';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
+import { CustomExerciseService } from 'src/modules/core/services/custom-exercise.service';
 import { CycleService } from 'src/modules/core/services/cycle.service';
 import { EventBatchService } from 'src/modules/core/services/event-batch.service';
 import { EventBulkService } from 'src/modules/core/services/event-bulk.service';
@@ -34,6 +35,7 @@ export type ToolDeps = {
   zones: TrainingZoneService;
   records: RecordService;
   statistics: StatisticsService;
+  customExercises: CustomExerciseService;
 };
 
 export type ToolRegistrar = (

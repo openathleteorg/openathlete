@@ -3,7 +3,14 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { McpScope } from '@openathlete/shared';
+import {
+  EXERCISE_SIDE,
+  McpScope,
+  WORKOUT_DURATION_TYPE,
+  WORKOUT_REPEAT_KIND,
+  mapWorkoutDtoToPrisma,
+  strengthSteps,
+} from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -14,6 +21,7 @@ import {
   DELETED_USER_ID,
   accountFixtureSql,
 } from 'src/modules/auth/services/account-deletion.fixture';
+import { CustomExerciseService } from 'src/modules/core/services/custom-exercise.service';
 import { CycleService } from 'src/modules/core/services/cycle.service';
 import { EventBatchService } from 'src/modules/core/services/event-batch.service';
 import { EventBulkService } from 'src/modules/core/services/event-bulk.service';
@@ -27,6 +35,7 @@ import { TrainingZoneService } from 'src/modules/core/services/training-zone.ser
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { McpServerFactory } from './mcp-server.factory';
+import { WORKOUT_STEPS_INCLUDE } from './presenters';
 
 // An ESM package Jest cannot load, pulled in by the FIT import; unused here
 jest.mock('@garmin/fitsdk', () => ({}));
@@ -50,6 +59,7 @@ type ToolResult = {
 describe('MCP tools (PostgreSQL)', () => {
   let prisma: PrismaService;
   let factory: McpServerFactory;
+  let events: EventService;
   const athlete = {
     userId: DELETED_USER_ID,
     email: 'athlete@example.com',
@@ -61,7 +71,7 @@ describe('MCP tools (PostgreSQL)', () => {
     prisma = new PrismaService({ datasourceUrl: databaseUrl });
     await prisma.$connect();
     const abilities = new CaslAbilityFactory();
-    const events = new EventService(
+    events = new EventService(
       prisma,
       abilities,
       new EventEmitter2(),
@@ -88,6 +98,7 @@ describe('MCP tools (PostgreSQL)', () => {
         abilities,
         new TrainingLoadService(prisma, abilities),
       ),
+      new CustomExerciseService(prisma),
     );
   });
 
@@ -581,6 +592,636 @@ describe('MCP tools (PostgreSQL)', () => {
         .goalDuration;
     expect(await goalOf(byHand.eventId)).toBe(45 * 60);
     expect(await goalOf(following.eventId)).toBe(30 * 60);
+  });
+
+  it('reads a strength session, writes it back unchanged', async () => {
+    const { call } = await connect(athlete);
+    const squat = {
+      exerciseRef: 'c:barbell-full-squat',
+      name: 'Barbell full squat',
+      tempo: '3-1-X-0',
+      side: null,
+      notes: null,
+    };
+    const steps = strengthSteps([
+      {
+        kind: 'exercise',
+        exercise: {
+          ...squat,
+          sets: [1, 2, 3].map(() => ({
+            work: { type: WORKOUT_DURATION_TYPE.REPS as const, value: 5 },
+            load: 61.2349,
+            rpe: 8,
+            rest: 90,
+          })),
+        },
+      },
+      {
+        kind: 'group',
+        group: WORKOUT_REPEAT_KIND.EMOM,
+        name: 'Finisher',
+        rounds: 8,
+        intervalSeconds: 60,
+        timeCapSeconds: null,
+        roundRest: null,
+        exercises: ['c:burpee', 'c:pull-up'].map((ref) => ({
+          ...squat,
+          exerciseRef: ref,
+          tempo: null,
+          side: EXERCISE_SIDE.EACH,
+          sets: [
+            {
+              work: { type: WORKOUT_DURATION_TYPE.REPS as const, value: 6 },
+              load: null,
+              rpe: null,
+              rest: null,
+            },
+          ],
+        })),
+      },
+      // A pyramid: sets that differ, each with its rest
+      {
+        kind: 'exercise',
+        exercise: {
+          ...squat,
+          exerciseRef: 'c:barbell-bench-press',
+          name: 'Bench press',
+          tempo: null,
+          sets: [
+            [10, 60],
+            [8, 70],
+            [6, 80],
+          ].map(([value, load]) => ({
+            work: { type: WORKOUT_DURATION_TYPE.REPS as const, value },
+            load,
+            rpe: null,
+            rest: 120,
+          })),
+        },
+      },
+      // A superset with a rest between its exercises and between rounds
+      {
+        kind: 'group',
+        group: WORKOUT_REPEAT_KIND.SUPERSET,
+        name: null,
+        rounds: 4,
+        intervalSeconds: null,
+        timeCapSeconds: null,
+        roundRest: 60,
+        exercises: [
+          ['c:pull-up', 8, 15],
+          ['c:push-up', 15, null],
+        ].map(([ref, value, rest]) => ({
+          ...squat,
+          exerciseRef: ref as string,
+          tempo: null,
+          sets: [
+            {
+              work: {
+                type: WORKOUT_DURATION_TYPE.REPS as const,
+                value: value as number,
+              },
+              load: null,
+              rpe: null,
+              rest: rest as number | null,
+            },
+          ],
+        })),
+      },
+    ]);
+    const { eventId } = await prisma.event.create({
+      data: {
+        name: 'Strength',
+        type: 'TRAINING',
+        startDate: new Date('2026-10-12T16:00:00Z'),
+        endDate: new Date('2026-10-12T17:00:00Z'),
+        athleteId: DELETED_ATHLETE_ID,
+        training: {
+          create: {
+            sport: 'STRENGTH',
+            workout: { create: mapWorkoutDtoToPrisma({ steps }) },
+          },
+        },
+      },
+    });
+    // Without ids, targets in no set order: what is stored, not where
+    const rowsOf = async () => {
+      const { workout } = await prisma.eventTraining.findUniqueOrThrow({
+        where: { eventId },
+        select: { workout: { include: WORKOUT_STEPS_INCLUDE } },
+      });
+      const clean = (value: unknown, key = ''): unknown => {
+        if (Array.isArray(value)) {
+          const items = value.map((entry) => clean(entry));
+          // Steps keep their order; targets have none
+          return key === 'targets'
+            ? items.sort((a, b) =>
+                JSON.stringify(a).localeCompare(JSON.stringify(b)),
+              )
+            : items;
+        }
+        if (value && typeof value === 'object' && !(value instanceof Date)) {
+          return Object.fromEntries(
+            Object.entries(value)
+              .filter(([name]) => !/Id$|^(createdAt|updatedAt)$/.test(name))
+              .map(([name, entry]) => [name, clean(entry, name)]),
+          );
+        }
+        return value;
+      };
+      return clean(workout?.steps);
+    };
+    const before = await rowsOf();
+
+    const { workoutSteps } = data<{ workoutSteps: unknown[] }>(
+      await call('get_session', { eventId }),
+    );
+    expect(workoutSteps.map((item) => (item as { kind: string }).kind)).toEqual(
+      ['exercise', 'group', 'exercise', 'group'],
+    );
+    data(await call('update_session', { eventId, workoutSteps }));
+
+    expect(await rowsOf()).toEqual(before);
+  });
+
+  /** Custom exercises of the athlete, their coach and a stranger */
+  async function customExercises() {
+    const make = async (userId: number, name: string) =>
+      `u:${
+        (
+          await prisma.customExercise.create({
+            data: { name, userId, bodyPart: 'chest', instructions: 'Press' },
+          })
+        ).customExerciseId
+      }`;
+    return {
+      own: await make(DELETED_USER_ID, 'Own press'),
+      coachs: await make(COACH_USER_ID, 'Coach press'),
+      strangers: await make(STRANGER_USER_ID, 'Stranger press'),
+    };
+  }
+
+  /** What a session stores for its exercises: ref and name of each step */
+  async function storedExercises(eventId: number) {
+    const { workout } = await prisma.eventTraining.findUniqueOrThrow({
+      where: { eventId },
+      select: { workout: { include: WORKOUT_STEPS_INCLUDE } },
+    });
+    return (workout?.steps ?? []).map((step) => [step.exerciseRef, step.name]);
+  }
+
+  const set = { work: { type: 'REPS', value: 5 } };
+  const strength = (...refs: string[]) =>
+    refs.map((exerciseRef) => ({
+      kind: 'exercise',
+      exercise: { exerciseRef, sets: [set] },
+    }));
+
+  it('lists the exercise library to read-only agents, with the custom exercises they may read', async () => {
+    const mine = await customExercises();
+    const reader = await connect(athlete, ['read']);
+    const tools = (await reader.client.listTools()).tools;
+    for (const name of ['list_exercises', 'get_exercise']) {
+      expect(
+        tools.find((tool) => tool.name === name)?.annotations,
+      ).toMatchObject({ readOnlyHint: true, destructiveHint: false });
+    }
+
+    const listed = data<{
+      count: number;
+      exercises: { exerciseRef: string; name: string; custom?: boolean }[];
+    }>(await reader.call('list_exercises', { query: 'press', limit: 100 }));
+    const custom = listed.exercises.filter((exercise) => exercise.custom);
+    expect(custom.map((exercise) => exercise.exerciseRef).sort()).toEqual(
+      [mine.own, mine.coachs].sort(),
+    );
+    // Custom exercises come first, then the catalog
+    expect(listed.exercises.slice(0, 2).every((entry) => entry.custom)).toBe(
+      true,
+    );
+    expect(listed.exercises.map((entry) => entry.exerciseRef)).not.toContain(
+      mine.strangers,
+    );
+    expect(listed.count).toBeGreaterThan(2);
+
+    const coach = await connect(
+      {
+        userId: COACH_USER_ID,
+        email: 'coach@example.com',
+        athlete: { athleteId: COACH_ATHLETE_ID },
+        coachAthletes: [{ athleteId: DELETED_ATHLETE_ID }],
+      } as AuthUser,
+      ['read'],
+    );
+    const coachList = data<{ exercises: { exerciseRef: string }[] }>(
+      await coach.call('list_exercises', { query: 'press', limit: 100 }),
+    );
+    const seen = coachList.exercises.map((entry) => entry.exerciseRef);
+    expect(seen).toEqual(expect.arrayContaining([mine.own, mine.coachs]));
+    expect(seen).not.toContain(mine.strangers);
+
+    const detail = data<Record<string, unknown>>(
+      await reader.call('get_exercise', { exerciseRef: mine.coachs }),
+    );
+    expect(detail).toMatchObject({
+      name: 'Coach press',
+      instructions: 'Press',
+      custom: true,
+    });
+    expect(
+      errorOf(
+        await reader.call('get_exercise', { exerciseRef: mine.strangers }),
+      ),
+    ).toBe(
+      `unknown exerciseRef "${mine.strangers}": use list_exercises for valid refs`,
+    );
+    expect(
+      data(await reader.call('get_exercise', { exerciseRef: 'c:burpee' })),
+    ).toMatchObject({ name: 'Burpee' });
+  });
+
+  it('does not share custom exercises between two athletes of one coach', async () => {
+    const SIBLING_USER_ID = 1004;
+    const SIBLING_ATHLETE_ID = 2004;
+    // The fixture links both ways (the athlete also "coaches" their coach):
+    // keep one row, coach -> athlete, so that each half of the lookup is
+    // needed to see the other's exercises
+    await prisma.coachAthlete.deleteMany({
+      where: { userId: DELETED_USER_ID },
+    });
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO "user" (user_id, email, password, first_name, last_name, updated_at) VALUES (${SIBLING_USER_ID}, 'sibling@example.com', 'x', 'Sib', 'Ling', now())`,
+    );
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO athlete (athlete_id, user_id, updated_at) VALUES (${SIBLING_ATHLETE_ID}, ${SIBLING_USER_ID}, now())`,
+    );
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO coach_athlete (user_id, athlete_id, updated_at) VALUES (${COACH_USER_ID}, ${SIBLING_ATHLETE_ID}, now())`,
+    );
+    const mine = await customExercises();
+    const siblings = `u:${
+      (
+        await prisma.customExercise.create({
+          data: {
+            name: 'Sibling press',
+            userId: SIBLING_USER_ID,
+            bodyPart: 'chest',
+            instructions: 'Press',
+          },
+        })
+      ).customExerciseId
+    }`;
+
+    const refsOf = async (user: AuthUser) => {
+      const { call } = await connect(user, ['read']);
+      return data<{ exercises: { exerciseRef: string }[] }>(
+        await call('list_exercises', { query: 'press', limit: 100 }),
+      ).exercises.map((entry) => entry.exerciseRef);
+    };
+
+    // The athlete reads their coach's, not their coach's other athlete's
+    const asAthlete = await refsOf(athlete);
+    expect(asAthlete).toEqual(expect.arrayContaining([mine.own, mine.coachs]));
+    expect(asAthlete).not.toContain(siblings);
+    expect(asAthlete).not.toContain(mine.strangers);
+
+    const reader = await connect(athlete, ['read']);
+    expect(
+      errorOf(await reader.call('get_exercise', { exerciseRef: siblings })),
+    ).toBe(
+      `unknown exerciseRef "${siblings}": use list_exercises for valid refs`,
+    );
+
+    const writer = await connect(athlete);
+    const before = await prisma.event.count();
+    expect(
+      errorOf(
+        await writer.call('plan_sessions', {
+          sessions: [
+            {
+              date: '2026-10-27',
+              name: 'Press',
+              sport: 'STRENGTH',
+              workoutSteps: strength(siblings),
+            },
+          ],
+        }),
+      ),
+    ).toContain(`unknown exerciseRef "${siblings}"`);
+    expect(await prisma.event.count()).toBe(before);
+
+    // The coach reads their own athletes': both
+    const asCoach = await refsOf({
+      userId: COACH_USER_ID,
+      email: 'coach@example.com',
+      athlete: { athleteId: COACH_ATHLETE_ID },
+      coachAthletes: [
+        { athleteId: DELETED_ATHLETE_ID },
+        { athleteId: SIBLING_ATHLETE_ID },
+      ],
+    } as AuthUser);
+    expect(asCoach).toEqual(
+      expect.arrayContaining([mine.own, mine.coachs, siblings]),
+    );
+    expect(asCoach).not.toContain(mine.strangers);
+  });
+
+  it('refuses an empty exerciseRef, saving and changing nothing', async () => {
+    const { call } = await connect(athlete);
+    const refused = async (promise: Promise<ToolResult>) => {
+      // Refused by the input schema: an error result, or a protocol error
+      const result = await promise.catch(() => undefined);
+      if (result) expect(result.isError).toBe(true);
+    };
+
+    const before = await prisma.event.count();
+    await refused(
+      call('plan_sessions', {
+        sessions: [
+          {
+            date: '2026-10-27',
+            name: 'Empty',
+            sport: 'STRENGTH',
+            workoutSteps: strength(''),
+          },
+        ],
+      }),
+    );
+    expect(await prisma.event.count()).toBe(before);
+
+    const planned = data<{ items: { eventId: number }[] }>(
+      await call('plan_sessions', {
+        sessions: [
+          {
+            date: '2026-10-27',
+            name: 'Strength',
+            sport: 'STRENGTH',
+            workoutSteps: strength('c:burpee'),
+          },
+        ],
+      }),
+    );
+    const { eventId } = planned.items[0];
+    const stored = await storedExercises(eventId);
+    await refused(
+      call('update_session', { eventId, workoutSteps: strength('') }),
+    );
+    await refused(
+      call('update_session', {
+        eventId,
+        workoutSteps: [{ kind: 'work', reps: 5, exerciseRef: '' }],
+      }),
+    );
+    expect(await storedExercises(eventId)).toEqual(stored);
+    expect(await prisma.event.count()).toBe(before + 1);
+  });
+
+  it('reports a bad zone and a bad exercise together, and loads custom exercises once', async () => {
+    const { own } = await customExercises();
+    const list = jest.spyOn(CustomExerciseService.prototype, 'list');
+    try {
+      const { call } = await connect(athlete);
+      const before = await prisma.event.count();
+      const message = errorOf(
+        await call('plan_sessions', {
+          sessions: [
+            {
+              date: '2026-10-27',
+              name: 'Both wrong',
+              sport: 'STRENGTH',
+              workoutSteps: [
+                {
+                  kind: 'work',
+                  durationSeconds: 60,
+                  targets: [{ type: 'zone', zoneId: 999999 }],
+                },
+                ...strength('c:back-squatt'),
+              ],
+            },
+            {
+              date: '2026-10-28',
+              name: 'Fine',
+              sport: 'STRENGTH',
+              workoutSteps: strength(own),
+            },
+            {
+              date: '2026-10-29',
+              name: 'Fine too',
+              sport: 'STRENGTH',
+              workoutSteps: strength(own, 'u:98765'),
+            },
+          ],
+        }),
+      );
+      expect(message).toContain(
+        'sessions[0]: zone 999999 is not one of the athlete',
+      );
+      expect(message).toContain(
+        'sessions[0]: unknown exerciseRef "c:back-squatt"',
+      );
+      expect(message).toContain('sessions[2]: unknown exerciseRef "u:98765"');
+      expect(message).not.toContain('sessions[1]');
+      expect(await prisma.event.count()).toBe(before);
+      expect(list).toHaveBeenCalledTimes(1);
+    } finally {
+      list.mockRestore();
+    }
+  });
+
+  it('names flat steps that have a ref', async () => {
+    const { call } = await connect(athlete);
+    const planned = data<{ items: { eventId: number }[] }>(
+      await call('plan_sessions', {
+        sessions: [
+          {
+            date: '2026-10-27',
+            name: 'Flat',
+            sport: 'STRENGTH',
+            workoutSteps: [{ kind: 'work', reps: 5, exerciseRef: 'c:burpee' }],
+          },
+        ],
+      }),
+    );
+    expect(await storedExercises(planned.items[0].eventId)).toEqual([
+      ['c:burpee', 'Burpee'],
+    ]);
+  });
+
+  it('refuses unknown exercises when planning, saving nothing', async () => {
+    const { strangers } = await customExercises();
+    const { call } = await connect(athlete);
+    const before = await prisma.event.count();
+    const message = errorOf(
+      await call('plan_sessions', {
+        sessions: [
+          { date: '2026-10-27', name: 'Fine', sport: 'STRENGTH' },
+          {
+            date: '2026-10-28',
+            name: 'Typo',
+            sport: 'STRENGTH',
+            workoutSteps: strength('c:burpee', 'c:back-squatt', strangers),
+          },
+        ],
+      }),
+    );
+    expect(message).toContain(
+      `sessions[1]: unknown exerciseRef "c:back-squatt", "${strangers}": use list_exercises for valid refs`,
+    );
+    expect(message).toContain('Nothing was saved');
+    expect(await prisma.event.count()).toBe(before);
+  });
+
+  it('fills exercise names from the catalog and custom exercises, and keeps a given one', async () => {
+    const { own } = await customExercises();
+    const { call } = await connect(athlete);
+    const planned = data<{ items: { eventId: number }[] }>(
+      await call('plan_sessions', {
+        sessions: [
+          {
+            date: '2026-10-27',
+            name: 'Strength',
+            sport: 'STRENGTH',
+            workoutSteps: [
+              ...strength('c:burpee', own),
+              {
+                kind: 'exercise',
+                exercise: {
+                  exerciseRef: 'c:pull-up',
+                  name: 'Strict pull-up',
+                  sets: [set],
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    expect(await storedExercises(planned.items[0].eventId)).toEqual([
+      ['c:burpee', 'Burpee'],
+      [own, 'Own press'],
+      ['c:pull-up', 'Strict pull-up'],
+    ]);
+  });
+
+  it('keeps exercises a session already stores when it is changed, but no new unknown ones', async () => {
+    const { strangers } = await customExercises();
+    // Planned when this exercise still existed, or written by another coach
+    const gone = 'u:98765';
+    const steps = strengthSteps(
+      [gone, strangers].map((exerciseRef) => ({
+        kind: 'exercise' as const,
+        exercise: {
+          exerciseRef,
+          name: 'Kept name',
+          sets: [
+            {
+              work: { type: WORKOUT_DURATION_TYPE.REPS as const, value: 5 },
+              load: null,
+              rpe: null,
+              rest: null,
+            },
+          ],
+          tempo: null,
+          side: null,
+          notes: null,
+        },
+      })),
+    );
+    const { eventId } = await prisma.event.create({
+      data: {
+        name: 'Strength',
+        type: 'TRAINING',
+        startDate: new Date('2026-10-12T16:00:00Z'),
+        endDate: new Date('2026-10-12T17:00:00Z'),
+        athleteId: DELETED_ATHLETE_ID,
+        training: {
+          create: {
+            sport: 'STRENGTH',
+            workout: { create: mapWorkoutDtoToPrisma({ steps }) },
+          },
+        },
+      },
+    });
+    const { call } = await connect(athlete);
+    const { workoutSteps } = data<{ workoutSteps: unknown[] }>(
+      await call('get_session', { eventId }),
+    );
+    data(await call('update_session', { eventId, workoutSteps }));
+    expect(await storedExercises(eventId)).toEqual([
+      [gone, 'Kept name'],
+      [strangers, 'Kept name'],
+    ]);
+
+    expect(
+      errorOf(
+        await call('update_session', {
+          eventId,
+          workoutSteps: strength(gone, 'u:98766'),
+        }),
+      ),
+    ).toBe('unknown exerciseRef "u:98766": use list_exercises for valid refs');
+    expect(await storedExercises(eventId)).toHaveLength(2);
+
+    // A kept ref sent without a name keeps the name stored, not "u:98765"
+    data(
+      await call('update_session', { eventId, workoutSteps: strength(gone) }),
+    );
+    expect(await storedExercises(eventId)).toEqual([[gone, 'Kept name']]);
+
+    // The same on a flat step and on the child of a repeat, which have no
+    // name to fall back on but the one stored
+    data(
+      await call('update_session', {
+        eventId,
+        workoutSteps: [
+          { kind: 'work', reps: 5, exerciseRef: gone },
+          {
+            kind: 'repeat',
+            times: 2,
+            steps: [{ kind: 'work', reps: 5, exerciseRef: gone }],
+          },
+        ],
+      }),
+    );
+    const { workout } = await prisma.eventTraining.findUniqueOrThrow({
+      where: { eventId },
+      select: { workout: { include: WORKOUT_STEPS_INCLUDE } },
+    });
+    const [flat, repeat] = workout?.steps ?? [];
+    expect([flat.exerciseRef, flat.name]).toEqual([gone, 'Kept name']);
+    expect(
+      repeat.repeatBlock?.childSteps.map((child) => [
+        child.exerciseRef,
+        child.name,
+      ]),
+    ).toEqual([[gone, 'Kept name']]);
+  });
+
+  it('still lets the app and REST store a well-formed ref the catalog lacks', async () => {
+    const created = await events.createEvent(athlete, {
+      type: 'TRAINING',
+      name: 'Strength',
+      sport: 'STRENGTH',
+      description: '',
+      startDate: new Date('2026-10-12T16:00:00Z'),
+      endDate: new Date('2026-10-12T17:00:00Z'),
+      athleteId: DELETED_ATHLETE_ID,
+      workout: {
+        steps: [
+          {
+            stepType: 'INTERVAL_ACTIVE',
+            name: 'Mystery',
+            exerciseRef: 'c:no-such-exercise',
+            durationType: 'REPS',
+            durationValue: 5,
+            targets: [],
+          },
+        ],
+      },
+    } as never);
+    expect(await storedExercises(created.eventId)).toEqual([
+      ['c:no-such-exercise', 'Mystery'],
+    ]);
   });
 
   it('records an illness and lists the sessions to adapt', async () => {
