@@ -1,6 +1,8 @@
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 
+import { isProviderOAuthNonce } from './provider-oauth-storage';
+
 /**
  * Provider OAuth from the native apps.
  *
@@ -15,11 +17,29 @@ export const NATIVE_OAUTH_STATE = 'openathlete-native';
 /** Registered in Info.plist and AndroidManifest.xml */
 export const APP_URL_SCHEME = 'org.openathlete';
 
-/** Asks the provider to bring the state back on the redirect. */
-export function withNativeOAuthState(uri: string): string {
+export function withOAuthState(uri: string, state: string): string {
   const url = new URL(uri);
-  url.searchParams.set('state', NATIVE_OAUTH_STATE);
+  url.searchParams.set('state', state);
   return url.toString();
+}
+
+/** Keep the PKCE nonce on the native browser's round trip. */
+export function withNativeOAuthState(uri: string, nonce?: string): string {
+  return withOAuthState(
+    uri,
+    nonce ? `${NATIVE_OAUTH_STATE}.${nonce}` : NATIVE_OAUTH_STATE,
+  );
+}
+
+export function providerOAuthNonce(
+  state: string | null,
+  native: boolean,
+): string | null {
+  if (!state) return null;
+  const prefix = `${NATIVE_OAUTH_STATE}.`;
+  if (native && !state.startsWith(prefix)) return null;
+  const nonce = native ? state.slice(prefix.length) : state;
+  return isProviderOAuthNonce(nonce) ? nonce : null;
 }
 
 /**
@@ -31,7 +51,9 @@ export function nativeReturnUrl(
   search: string,
 ): string | null {
   const params = new URLSearchParams(search);
-  if (params.get('state') !== NATIVE_OAUTH_STATE) return null;
+  const state = params.get('state');
+  if (state !== NATIVE_OAUTH_STATE && !providerOAuthNonce(state, true))
+    return null;
   if (!provider || !/^[a-z]+$/i.test(provider)) return null;
   return `${APP_URL_SCHEME}://auth/callback/${provider}?${params.toString()}`;
 }

@@ -10,6 +10,7 @@ import { ConsentSync } from './components/consent/consent-sync';
 import { ServerSelection } from './components/mobile/server-selection';
 import { StatusBarThemeSync } from './components/status-bar-theme-sync';
 import { Toaster } from './components/ui/sonner';
+import { WatchScheduleSync } from './components/watch-schedule-sync';
 import { AuthConsumer, AuthProvider } from './contexts/auth';
 import { ChatbotProvider } from './contexts/chatbot';
 import router from './routes/sections';
@@ -29,6 +30,7 @@ function AppContent() {
       <QueryClientProvider client={queryClient}>
         <ChatbotProvider>
           <AuthConsumer>
+            <WatchScheduleSync />
             <RouterProvider router={router} />
             <Toaster />
             <ConsentBanner />

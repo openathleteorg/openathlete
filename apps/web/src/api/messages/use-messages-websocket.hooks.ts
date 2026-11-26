@@ -1,5 +1,5 @@
 import { m } from '@/paraglide/messages';
-import { ACCESS_TOKEN, getItem } from '@/utils/local-storage';
+import { captureAuthSession } from '@/utils/auth-attempt';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
@@ -294,7 +294,7 @@ export function useMessagesWebSocket({
       socket.emit('subscribe_inbox');
       setIsConnected(true);
     }
-    const token = getItem(ACCESS_TOKEN);
+    const token = captureAuthSession().accessToken;
     if (token && !socket.connected && !connectingRef.current) {
       connectingRef.current = true;
       MessagesAPI.connectSocket()

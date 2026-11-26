@@ -31,6 +31,10 @@ import { RATE_LIMITS } from 'src/common/security/rate-limits';
 import { OIDC_STATE_COOKIE, OidcService } from '../services/oidc.service';
 
 const startQuerySchema = z.object({
+  attempt: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{8,64}$/)
+    .optional(),
   invitation: z.string().max(200).optional(),
   coachInvitation: z.string().max(200).optional(),
   clubJoin: z.string().max(200).optional(),
@@ -84,6 +88,7 @@ export class OidcController {
     @Res() res: Response,
   ) {
     const { url, cookie } = await this.oidc.start({
+      attempt: query.attempt,
       invitationToken: query.invitation,
       coachInvitationToken: query.coachInvitation,
       clubJoinToken: query.clubJoin,

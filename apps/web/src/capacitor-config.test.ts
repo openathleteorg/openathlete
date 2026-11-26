@@ -13,6 +13,10 @@ const NOT_PLUGINS = new Set([
 const IOS_ONLY = new Set(['@capgo/native-purchases']);
 
 describe('capacitor.config', () => {
+  it('keeps native bridge logging off for credential-carrying calls', () => {
+    expect(config.ios?.loggingBehavior).toBe('none');
+  });
+
   it('builds every plugin into the Android app but the App Store one', () => {
     const plugins = Object.keys(packageJson.dependencies).filter(
       (name) =>

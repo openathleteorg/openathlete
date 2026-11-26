@@ -153,8 +153,23 @@ async function newContext(browser: Browser, tokens: Tokens, shot: Shot): Promise
   await context.addCookies([{ name: 'OA_LOCALE', value: 'en', url: WEB }]);
   await context.addInitScript(
     ({ tokens, space, theme }) => {
-      localStorage.setItem('access_token', tokens.accessToken);
-      localStorage.setItem('refresh_token', tokens.refreshToken);
+      // Same authoritative layout as apps/web/src/utils/auth-attempt.ts: the
+      // shared key names the owner, and its record holds the credentials.
+      // The app no longer reads the legacy access_token/refresh_token keys,
+      // so seeding those alone would land every screenshot on the login page.
+      const owner = 'screenshots-owner';
+      localStorage.setItem(
+        `auth_record:${owner}`,
+        JSON.stringify({
+          owner,
+          generation: 'screenshots-generation',
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        }),
+      );
+      localStorage.setItem('auth_session', owner);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       localStorage.setItem('current_space', space);
       localStorage.setItem('theme', theme);
       localStorage.setItem('openathlete-tracking-consent-v2', 'denied');

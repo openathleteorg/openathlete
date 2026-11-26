@@ -25,6 +25,6 @@ export type AuthContextType = {
   authenticated: boolean;
   unauthenticated: boolean;
   offline: boolean;
-  initialize: () => Promise<void>;
+  initialize: (options?: { authenticated?: boolean }) => Promise<void>;
   logout: (navigate?: (path: string) => void) => void;
 };

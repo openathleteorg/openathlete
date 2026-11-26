@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { AuthConsumer, AuthProvider, useAuthContext } from '@/contexts/auth';
-import { ACCESS_TOKEN } from '@/utils/local-storage';
+import { installAuthTokens, storedAccessToken } from '@/utils/auth-attempt';
 import { queryClient } from '@/utils/query-client';
 import { waitUntil } from '@/utils/test/wait-until';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -57,8 +57,8 @@ function SignIn() {
   return (
     <button
       onClick={async () => {
-        localStorage.setItem(ACCESS_TOKEN, tokenOf(2));
-        await initialize();
+        installAuthTokens(tokenOf(2), 'refresh-2');
+        await initialize({ authenticated: true });
         navigate('/dashboard/calendar');
       }}
     >
@@ -82,7 +82,7 @@ describe('AuthGuard', () => {
     localStorage.clear();
     api.getMe.mockReset();
     api.getMe.mockImplementation(async () => {
-      const account = accounts[localStorage.getItem(ACCESS_TOKEN) ?? ''];
+      const account = accounts[storedAccessToken() ?? ''];
       if (!account) throw new Error('401');
       return account;
     });
@@ -111,7 +111,7 @@ describe('AuthGuard', () => {
   };
 
   it('sends a new account to the onboarding after another one logged out in the same tab', async () => {
-    localStorage.setItem(ACCESS_TOKEN, tokenOf(1));
+    installAuthTokens(tokenOf(1), 'refresh-1');
     const router = createMemoryRouter(
       [
         { path: '/auth/login', element: <SignIn /> },

@@ -1,8 +1,16 @@
 import axios from 'axios';
 
+import {
+  type AuthSessionSnapshot,
+  authTokenGeneration,
+  captureAuthSession,
+  isAuthSessionCurrent,
+  rotateAuthTokens,
+  storedAccessToken,
+  storedRefreshToken,
+} from './auth-attempt';
 import { routes } from './axios';
 import { getApiBaseUrl } from './capacitor';
-import { ACCESS_TOKEN, REFRESH_TOKEN, getItem } from './local-storage';
 
 function decodeJWT(token: string): { exp?: number } | null {
   try {
@@ -33,9 +41,18 @@ type TokenInfo = {
     }
 );
 
-export async function refreshToken(): Promise<TokenInfo | null> {
-  const token = getItem(REFRESH_TOKEN);
+/**
+ * Refresh the stored session. A response is installed only if no newer token
+ * was installed and the same refresh token is still stored; otherwise a slow
+ * refresh for account A could overwrite account B's freshly installed bearer.
+ */
+export async function refreshToken(
+  expected: AuthSessionSnapshot = captureAuthSession(),
+): Promise<TokenInfo | null> {
+  if (!isAuthSessionCurrent(expected)) return null;
+  const token = storedRefreshToken();
   if (!token) return null;
+  const startGeneration = authTokenGeneration();
 
   try {
     const tokenData = await axios.post(
@@ -47,7 +64,16 @@ export async function refreshToken(): Promise<TokenInfo | null> {
 
     if (!tokenData.data) return null;
     const { accessToken, refreshToken } = tokenData.data;
-
+    if (
+      !isAuthSessionCurrent(expected) ||
+      authTokenGeneration() !== startGeneration ||
+      storedRefreshToken() !== token
+    ) {
+      // A newer session won, or the same owner already rotated this
+      // credential. Never install its predecessor over it.
+      return null;
+    }
+    if (!rotateAuthTokens(expected, accessToken, refreshToken)) return null;
     return {
       accessToken,
       refreshToken,
@@ -90,9 +116,14 @@ export function isTokenExpiringSoon(
   }
 }
 
-export async function getAccessToken(): Promise<TokenInfo | null> {
-  const token = getItem(ACCESS_TOKEN);
-  if (!token) return refreshToken();
-  if (!isValidToken(token)) return refreshToken();
+export async function getAccessToken(
+  expected: AuthSessionSnapshot = captureAuthSession(),
+): Promise<TokenInfo | null> {
+  if (!isAuthSessionCurrent(expected)) return null;
+  const token = storedAccessToken();
+  if (!token || !isValidToken(token)) return refreshToken(expected);
+  // A login or logout may have replaced the session while the JWT was being
+  // inspected. A same-owner rotation is fine: that token still names this user.
+  if (!isAuthSessionCurrent(expected)) return null;
   return { accessToken: token, refreshed: false };
 }

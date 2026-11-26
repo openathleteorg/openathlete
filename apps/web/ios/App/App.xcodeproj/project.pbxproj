@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 48;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -17,6 +17,11 @@
 		9582B6852FE996820072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6842FE996800072D4E8 /* SceneDelegate.swift */; };
 		96AEA3A92EF5841200B62DD6 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 96AEA3A82EF5841200B62DD6 /* GoogleService-Info.plist */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
+		5A0000000000000000000002 /* WatchScheduleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000001 /* WatchScheduleClient.swift */; };
+		5A0000000000000000000004 /* AppleWorkoutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000003 /* AppleWorkoutStore.swift */; };
+		5A0000000000000000000006 /* WatchSchedulePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000005 /* WatchSchedulePlugin.swift */; };
+		5A0000000000000000000008 /* AppBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000007 /* AppBridgeViewController.swift */; };
+		5A000000000000000000000B /* WatchScheduleCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5A000000000000000000000A /* WatchScheduleCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +40,10 @@
 		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
+		5A0000000000000000000001 /* WatchScheduleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchScheduleClient.swift; sourceTree = "<group>"; };
+		5A0000000000000000000003 /* AppleWorkoutStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleWorkoutStore.swift; sourceTree = "<group>"; };
+		5A0000000000000000000005 /* WatchSchedulePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSchedulePlugin.swift; sourceTree = "<group>"; };
+		5A0000000000000000000007 /* AppBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBridgeViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +52,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */,
+				5A000000000000000000000B /* WatchScheduleCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,6 +92,10 @@
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				9582B6842FE996800072D4E8 /* SceneDelegate.swift */,
+				5A0000000000000000000007 /* AppBridgeViewController.swift */,
+				5A0000000000000000000001 /* WatchScheduleClient.swift */,
+				5A0000000000000000000003 /* AppleWorkoutStore.swift */,
+				5A0000000000000000000005 /* WatchSchedulePlugin.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -121,6 +135,9 @@
 			);
 			name = App;
 			productName = App;
+			packageProductDependencies = (
+				5A000000000000000000000A /* WatchScheduleCore */,
+			);
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -141,7 +158,7 @@
 				};
 			};
 			buildConfigurationList = 504EC2FF1FED79650016851F /* Build configuration list for PBXProject "App" */;
-			compatibilityVersion = "Xcode 8.0";
+			compatibilityVersion = "Xcode 12.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -150,6 +167,7 @@
 			);
 			mainGroup = 504EC2FB1FED79650016851F;
 			packageReferences = (
+				5A0000000000000000000009 /* XCLocalSwiftPackageReference "WatchScheduleCore" */,
 			);
 			productRefGroup = 504EC3051FED79650016851F /* Products */;
 			projectDirPath = "";
@@ -220,6 +238,10 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6852FE996820072D4E8 /* SceneDelegate.swift in Sources */,
+				5A0000000000000000000008 /* AppBridgeViewController.swift in Sources */,
+				5A0000000000000000000002 /* WatchScheduleClient.swift in Sources */,
+				5A0000000000000000000004 /* AppleWorkoutStore.swift in Sources */,
+				5A0000000000000000000006 /* WatchSchedulePlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,6 +265,20 @@
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		5A0000000000000000000009 /* XCLocalSwiftPackageReference "WatchScheduleCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../WatchScheduleCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5A000000000000000000000A /* WatchScheduleCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WatchScheduleCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		504EC3141FED79650016851F /* Debug */ = {

@@ -74,6 +74,19 @@ describe('OidcService', () => {
     });
   });
 
+  it('returns the attempt that started the verified provider response', async () => {
+    const { service } = setup();
+    const attempt = '551694c1-9c83-4c1e-bbf9-9a191f33b2fb';
+    const { cookie } = await service.start({ attempt });
+    const callback = new URL(service.redirectUri);
+    callback.search = 'code=abc&state=state';
+
+    await expect(service.callback(callback, cookie)).resolves.toEqual({
+      code: 'one-time',
+      attempt,
+    });
+  });
+
   it('sends the user to the provider with PKCE', async () => {
     const { service } = setup();
     const { url } = await signIn(service);

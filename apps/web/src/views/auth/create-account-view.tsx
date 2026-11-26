@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
+import { beginAuthLogin, isAuthLoginCurrent } from '@/utils/auth-attempt';
 import { readPendingClubJoinToken } from '@/utils/club-join';
 import { currentLanguage } from '@/utils/language-choice';
 import { localizedNewPasswordSchema } from '@/utils/password';
@@ -95,25 +96,14 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
   }, [invitationToken, coachInvitationToken, methods]);
 
   const loginMutation = useLoginMutation({
-    onSuccess: async () => {
-      await initialize();
+    onSuccess: async (_, __, isCurrent) => {
+      await initialize({ authenticated: true });
+      if (!isCurrent()) return;
       navigate(getPath(['dashboard', 'onboarding']));
     },
     onError: () => toast.error(m.signup_login_failed()),
   });
-  const createAccountMutation = useCreateAccountMutation({
-    onSuccess: async (_, variables) => {
-      posthog?.capture('user_signed_up');
-      loginMutation.mutate(variables);
-    },
-    onError: (error) =>
-      toast.error(
-        signupRefusal(error) ??
-          (isAxiosError(error) && error.response?.status === 409
-            ? m.signup_email_exists()
-            : m.signup_failed()),
-      ),
-  });
+  const createAccountMutation = useCreateAccountMutation();
   const { data: instance } = useInstanceInfoQuery();
   const signup = instance?.signup ?? 'open';
   // In invite mode, the link of an invitation still opens the form
@@ -126,18 +116,45 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
 
   const { handleSubmit } = methods;
 
-  const onSubmit = handleSubmit(async (data) => {
-    const submitData = {
-      ...data,
-      invitationToken: invitationToken || undefined,
-      coachInvitationToken: coachInvitationToken || undefined,
-      clubJoinToken: clubJoinToken ?? undefined,
-      // Emails, starting with the welcome one, follow the app's language
-      language: currentLanguage(),
-      unitSystem: getDefaultUnitSystem(navigator.language),
-    };
-    createAccountMutation.mutate(submitData);
-  });
+  const onSubmit = (event?: React.BaseSyntheticEvent) => {
+    const starting = beginAuthLogin();
+    return handleSubmit(async (data) => {
+      const attempt = await starting.catch(() => null);
+      if (!attempt) {
+        toast.error(m.signup_failed());
+        return;
+      }
+      if (!isAuthLoginCurrent(attempt)) return;
+      const submitData = {
+        ...data,
+        invitationToken: invitationToken || undefined,
+        coachInvitationToken: coachInvitationToken || undefined,
+        clubJoinToken: clubJoinToken ?? undefined,
+        // Emails, starting with the welcome one, follow the app's language
+        language: currentLanguage(),
+        unitSystem: getDefaultUnitSystem(navigator.language),
+      };
+      try {
+        await createAccountMutation.mutateAsync(submitData);
+      } catch (error) {
+        if (isAuthLoginCurrent(attempt)) {
+          toast.error(
+            signupRefusal(error) ??
+              (isAxiosError(error) && error.response?.status === 409
+                ? m.signup_email_exists()
+                : m.signup_failed()),
+          );
+        }
+        return;
+      }
+      if (!isAuthLoginCurrent(attempt)) return;
+      posthog?.capture('user_signed_up');
+      loginMutation.mutate(
+        { email: data.email, password: data.password },
+        attempt,
+      );
+    })(event);
+  };
 
   if (signupBlocked) {
     return (

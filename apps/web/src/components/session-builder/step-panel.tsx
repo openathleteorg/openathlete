@@ -34,6 +34,11 @@ import { describeTarget } from './step-format';
 import { TargetChip } from './step-row';
 import { STEP_TONE } from './step-summary';
 import { stepTypeLabel } from './step-type-label';
+import {
+  type SwimDistanceUnit,
+  displayDistance,
+  toMetres,
+} from './swim-distance';
 import type { BuilderEnv } from './use-builder-env';
 
 const TYPES = [
@@ -50,7 +55,7 @@ const RUN_DISTANCES = [200, 400, 800, 1000, 2000, 5000];
 const SWIM_DISTANCES = [25, 50, 100, 200, 400];
 // Tracks are metric everywhere; longer reps in miles, pools in yards
 const RUN_DISTANCES_IMPERIAL = [200, 400, 800, ...[1, 2, 5].map(miles)];
-const SWIM_DISTANCES_IMPERIAL = [25, 50, 100, 200, 500].map(yards);
+const SWIM_DISTANCES_IMPERIAL = [25, 50, 100, 200, 500];
 
 function miles(value: number) {
   return toCentimeters(value * METERS_PER_MILE);
@@ -71,10 +76,10 @@ const METERS_IN: Record<DistanceFieldUnit, number> = {
   yd: METERS_PER_YARD,
 };
 
-/** The units the field toggles between: none in a metric pool */
+/** The units the field toggles between. */
 function distanceUnits(imperial: boolean, swim: boolean): DistanceFieldUnit[] {
   if (imperial) return swim ? ['yd', 'm'] : ['m', 'mi'];
-  return swim ? ['m'] : ['m', 'km'];
+  return swim ? ['m', 'yd'] : ['m', 'km'];
 }
 
 /** The unit a distance reads best in: the one it was planned in */
@@ -291,7 +296,7 @@ function LengthSection({
     if (meters > 0)
       update({
         durationType: WORKOUT_DURATION_TYPE.DISTANCE,
-        durationValue: toCentimeters(meters),
+        durationValue: swim ? meters : toCentimeters(meters),
       });
   };
 
@@ -365,15 +370,23 @@ function LengthSection({
           <div className="flex items-center gap-2">
             <NumberField
               value={
-                long
-                  ? Number((value / METERS_IN[unit]).toFixed(3))
-                  : Math.round(value / METERS_IN[unit])
+                swim
+                  ? displayDistance(value, unit as SwimDistanceUnit)
+                  : long
+                    ? Number((value / METERS_IN[unit]).toFixed(3))
+                    : Math.round(value / METERS_IN[unit])
               }
               label={m.builder_panel_distance()}
               suffix={unit}
-              step={long ? 0.1 : 1}
+              step={swim ? 0.01 : long ? 0.1 : 1}
               className="w-32"
-              onValue={(next) => setMeters((next ?? 0) * METERS_IN[unit])}
+              onValue={(next) =>
+                setMeters(
+                  swim
+                    ? toMetres(next ?? 0, unit as SwimDistanceUnit)
+                    : (next ?? 0) * METERS_IN[unit],
+                )
+              }
               data-panel-distance
             />
             {fieldUnits.length > 1 && (
@@ -389,6 +402,7 @@ function LengthSection({
                       unit === option &&
                         'bg-background text-foreground shadow-sm',
                     )}
+                    {...(swim ? { 'data-panel-pool-unit': option } : {})}
                   >
                     {option}
                   </button>
@@ -398,7 +412,7 @@ function LengthSection({
           </div>
           <div className="flex flex-wrap gap-1">
             {(swim
-              ? imperial
+              ? unit === 'yd'
                 ? SWIM_DISTANCES_IMPERIAL
                 : SWIM_DISTANCES
               : imperial
@@ -407,14 +421,27 @@ function LengthSection({
             ).map((preset) => (
               <Chip
                 key={preset}
-                active={Math.abs(value - preset) < 0.01}
+                active={
+                  swim
+                    ? Math.abs(
+                        value - toMetres(preset, unit as SwimDistanceUnit),
+                      ) < 1e-6
+                    : Math.abs(value - preset) < 0.01
+                }
                 onClick={() => {
-                  setUnit(distanceUnitOf(preset, imperial, swim));
-                  setMeters(preset);
+                  if (swim) {
+                    setMeters(toMetres(preset, unit as SwimDistanceUnit));
+                  } else {
+                    setUnit(distanceUnitOf(preset, imperial, swim));
+                    setMeters(preset);
+                  }
                 }}
                 className="h-8 px-2.5 text-xs"
+                data-panel-distance-preset={String(preset)}
               >
-                {distanceLabel(preset, imperial, swim)}
+                {swim
+                  ? `${preset} ${unit === 'yd' ? m.yards() : m.meters()}`
+                  : distanceLabel(preset, imperial, swim)}
               </Chip>
             ))}
           </div>

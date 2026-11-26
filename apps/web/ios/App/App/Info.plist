@@ -80,12 +80,21 @@
     </dict>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>NSHealthShareUsageDescription</key>
+    <string>OpenAthlete adds your planned workouts to Apple's Workout app.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>OpenAthlete adds your planned workouts to Apple's Workout app.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>OpenAthlete needs access to your microphone to record audio feedback for your
       activities.</string>
     <key>UIBackgroundModes</key>
     <array>
+      <string>fetch</string>
       <string>remote-notification</string>
+    </array>
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+      <string>org.openathlete.watch-schedule.refresh</string>
     </array>
     <key>UIApplicationSceneManifest</key>
     <dict>

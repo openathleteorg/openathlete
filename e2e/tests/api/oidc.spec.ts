@@ -12,7 +12,12 @@ async function signInThroughProvider(
   request: APIRequestContext,
   email: string,
 ) {
-  const start = await request.get(OIDC_URL, { maxRedirects: 0 });
+  const start = await request.get(
+    `${OIDC_URL}?attempt=551694c1-9c83-4c1e-bbf9-9a191f33b2fb`,
+    {
+      maxRedirects: 0,
+    },
+  );
   expect(start.status()).toBe(302);
   const authorize = new URL(start.headers().location);
   expect(authorize.origin).toBe('http://localhost:19000');
@@ -32,6 +37,9 @@ async function signInThroughProvider(
   expect(back.status()).toBe(302);
   const target = new URL(back.headers().location);
   expect(`${target.origin}${target.pathname}`).toBe(`${WEB_URL}/auth/sso`);
+  expect(new URLSearchParams(target.hash.slice(1)).get('attempt')).toBe(
+    '551694c1-9c83-4c1e-bbf9-9a191f33b2fb',
+  );
   return new URLSearchParams(target.hash.slice(1));
 }
 

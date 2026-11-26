@@ -1,4 +1,10 @@
 // @vitest-environment jsdom
+import {
+  beginAuthLogin,
+  commitAuthLogin,
+  storedAccessToken,
+} from '@/utils/auth-attempt';
+import { deferred } from '@/utils/test/deferred';
 import { waitUntil } from '@/utils/test/wait-until';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act } from 'react';
@@ -13,6 +19,11 @@ const api = vi.hoisted(() => ({
   login: vi.fn(),
   toastError: vi.fn(),
 }));
+
+vi.mock(
+  '@/utils/auth-login-lock',
+  () => import('@/utils/test/auth-login-lock'),
+);
 
 vi.mock('@/api/user/user.api', () => ({
   UserAPI: { createAccount: api.createAccount },
@@ -48,7 +59,8 @@ describe('CreateAccountView', () => {
   let root: Root;
 
   beforeEach(async () => {
-    vi.clearAllMocks();
+    localStorage.clear();
+    vi.resetAllMocks();
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -68,7 +80,7 @@ describe('CreateAccountView', () => {
     container.remove();
   });
 
-  const signUp = async () => {
+  const submitAccount = async () => {
     await act(async () => {
       for (const [name, value] of Object.entries({
         firstName: 'Ana',
@@ -93,9 +105,33 @@ describe('CreateAccountView', () => {
           new Event('submit', { bubbles: true, cancelable: true }),
         );
     });
-    // Validation and the requests resolve asynchronously.
+  };
+
+  const signUp = async () => {
+    await submitAccount();
     await waitUntil(() => api.toastError.mock.calls.length > 0);
   };
+
+  it('does not sign in after a newer login supersedes account creation', async () => {
+    const creation = deferred<{ userId: number }>();
+    api.createAccount.mockReturnValueOnce(creation.promise);
+    api.login.mockResolvedValueOnce({
+      accessToken: 'signup-token',
+      refreshToken: 'signup-refresh',
+    });
+
+    await submitAccount();
+    await waitUntil(() => api.createAccount.mock.calls.length === 1);
+    await commitAuthLogin(
+      await beginAuthLogin(),
+      'successor-token',
+      'successor-refresh',
+    );
+    await act(async () => creation.resolve({ userId: 1 }));
+
+    expect(storedAccessToken()).toBe('successor-token');
+    expect(api.login).not.toHaveBeenCalled();
+  });
 
   it('says when the email already has an account', async () => {
     api.createAccount.mockRejectedValue(httpError(409));
