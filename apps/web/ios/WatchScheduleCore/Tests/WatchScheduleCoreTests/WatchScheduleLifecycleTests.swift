@@ -4227,6 +4227,62 @@ final class WatchScheduleBackgroundPolicyTests: XCTestCase {
     }
 }
 
+final class WatchScheduleScopeValidationTests: XCTestCase {
+    func testAcceptsOnlyPositiveJSSafeAthleteIds() {
+        XCTAssertEqual(
+            WatchScheduleScopeValidation.athleteId(from: 1),
+            1
+        )
+        XCTAssertEqual(
+            WatchScheduleScopeValidation.athleteId(
+                from: WatchScheduleScopeValidation.maximumSafeInteger
+            ),
+            Int(WatchScheduleScopeValidation.maximumSafeInteger)
+        )
+
+        for invalid in [
+            0.0,
+            -1.0,
+            1.5,
+            Double.infinity,
+            Double.nan,
+            WatchScheduleScopeValidation.maximumSafeInteger + 2,
+        ] {
+            XCTAssertNil(
+                WatchScheduleScopeValidation.athleteId(from: invalid),
+                "\(invalid) must not identify an athlete"
+            )
+        }
+    }
+
+    func testAcceptsOnlyPlainHTTPInstanceURLs() {
+        XCTAssertNotNil(
+            WatchScheduleScopeValidation.instanceURL(
+                from: "https://train.example.org/api"
+            )
+        )
+        XCTAssertNotNil(
+            WatchScheduleScopeValidation.instanceURL(
+                from: "http://localhost:3000/api"
+            )
+        )
+        for invalid in [
+            "not a url",
+            "javascript:alert(1)",
+            "ftp://train.example.org/api",
+            "https://user:pass@train.example.org/api",
+            "https://train.example.org/api?x=1",
+            "https://train.example.org/api#x",
+            "https:///api",
+        ] {
+            XCTAssertNil(
+                WatchScheduleScopeValidation.instanceURL(from: invalid),
+                "\(invalid) must not name an instance"
+            )
+        }
+    }
+}
+
 final class FileWatchScheduleTeardownStoreTests: XCTestCase {
     func testPersistsAuthorizationAcrossInstances() async throws {
         let url = FileManager.default.temporaryDirectory

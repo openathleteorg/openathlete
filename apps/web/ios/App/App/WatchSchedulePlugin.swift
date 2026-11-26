@@ -497,14 +497,19 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
         // malformed scope must be rejected: treating it as omitted would run a
         // global teardown for a request that named an account.
         let requested: AccountScope?
-        if let scopeValue = call.options["scope"],
-           !(scopeValue is NSNull) {
-            guard let scope = Self.scope(from: call) else {
+        if let scopeValue = call.options["scope"] {
+            // The key exists, including an explicit `null`. Only a valid object
+            // may name a scope; everything else is a rejected request rather
+            // than the intentional unscoped logout.
+            guard !(scopeValue is NSNull),
+                  let scope = Self.scope(from: call)
+            else {
                 call.reject("invalid scope", "INVALID_SCOPE")
                 return
             }
             requested = scope
         } else {
+            // Key truly absent: the caller asked for the unscoped logout.
             requested = nil
         }
         #if canImport(HealthKit) && canImport(WorkoutKit)
@@ -612,33 +617,13 @@ public class WatchSchedulePlugin: CAPPlugin, CAPBridgedPlugin {
         else {
             return nil
         }
-        let double = number.doubleValue
-        guard double.isFinite,
-              double > 0,
-              let athleteId = Int(exactly: double),
-              athleteId > 0
-        else {
-            return nil
-        }
-        return athleteId
+        return WatchScheduleScopeValidation.athleteId(
+            from: number.doubleValue
+        )
     }
 
-    /// The instance must be a plain HTTP(S) base: no userinfo, query or
-    /// fragment, and a host that can own the bearer.
     private static func instanceURL(from value: String) -> URL? {
-        guard let url = URL(string: value),
-              let scheme = url.scheme?.lowercased(),
-              scheme == "https" || scheme == "http",
-              let host = url.host,
-              !host.isEmpty,
-              url.user == nil,
-              url.password == nil,
-              url.query == nil,
-              url.fragment == nil
-        else {
-            return nil
-        }
-        return url
+        WatchScheduleScopeValidation.instanceURL(from: value)
     }
 
     private static func credential(

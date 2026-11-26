@@ -243,6 +243,22 @@ describe('watch schedule bridge', () => {
     expect(readFenceUnconfirmed()).toEqual(newerMarker);
   });
 
+  it('does not recreate an older same-scope marker after a successor sign-in', () => {
+    const a = { instanceURL: 'https://train.example.org/api', athleteId: 7 };
+    // A's disconnect is deferred while a same-scope successor exit starts,
+    // records/clears its marker, and signs in.
+    const older = latchWatchScheduleExit();
+    latchWatchScheduleExit();
+    const successorMarker = markFenceUnconfirmed(a, 'disconnect')!;
+    expect(clearFenceUnconfirmed(successorMarker)).toBe(true);
+    establishWatchScheduleSession();
+    expect(hasFenceUnconfirmed()).toBe(false);
+
+    // Completing A's deferred disconnect must not resurrect its marker.
+    expect(markFenceUnconfirmed(a, 'disconnect', older)).toBeNull();
+    expect(hasFenceUnconfirmed()).toBe(false);
+  });
+
   it('recovers durable teardown instead of sending an unscoped disconnect', async () => {
     state.disconnect.mockResolvedValue({ athleteId: 7 });
     state.recover.mockResolvedValue({ recovered: true });

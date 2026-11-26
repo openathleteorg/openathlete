@@ -209,6 +209,12 @@ export type WatchScheduleUnconfirmedExit = {
 
 const EXIT_ATTEMPT_NONCE = Math.random().toString(36).slice(2, 10);
 let exitAttemptSerial = 0;
+/**
+ * The newest exit attempt this tab started. It intentionally outlives the
+ * latch and the stored marker: after a successor signs in and clears storage,
+ * a late callback from an older exit still must not recreate its marker.
+ */
+let latestExitAttemptId: string | null = null;
 
 function nextExitAttemptId(boundary: number | null): string {
   if (boundary !== null) return `${EXIT_ATTEMPT_NONCE}:b${boundary}`;
@@ -309,6 +315,7 @@ export function watchScheduleExitBoundary(): number | null {
 export function latchWatchScheduleExit(): number {
   sessionEpoch += 1;
   exitLatchedAt = sessionEpoch;
+  latestExitAttemptId = nextExitAttemptId(exitLatchedAt);
   return sessionEpoch;
 }
 
@@ -374,15 +381,17 @@ export function markFenceUnconfirmed(
   operation: WatchScheduleFenceOperation = 'fence',
   boundary: number | null = exitLatchedAt,
 ): WatchScheduleUnconfirmedExit | null {
-  // An explicit boundary only belongs to that exit. A late callback from an
-  // older logout/disconnect must never replace a newer exit's marker, whether
-  // that newer exit is still latched or already recorded.
+  // An explicit boundary only belongs to that exit. The latest attempt is
+  // tracked independently of the latch and of session storage, so a successor
+  // that already signed in and cleared the marker still fences off a late
+  // callback from the older exit.
   if (boundary !== null) {
+    const attemptId = nextExitAttemptId(boundary);
+    if (latestExitAttemptId !== attemptId) return null;
     // A still-latched newer exit owns the marker. A finished exit (no latch)
     // may only rewrite its own marker, never one recorded by another attempt.
     if (exitLatchedAt !== null && boundary !== exitLatchedAt) return null;
     const current = readFenceUnconfirmed();
-    const attemptId = nextExitAttemptId(boundary);
     if (exitLatchedAt === null && current && current.attemptId !== attemptId) {
       return null;
     }
@@ -394,6 +403,7 @@ export function markFenceUnconfirmed(
   };
   try {
     sessionStorage.setItem(FENCE_UNCONFIRMED_KEY, JSON.stringify(marker));
+    if (boundary === null) latestExitAttemptId = marker.attemptId;
     return marker;
   } catch {
     // Storage disabled: the settings warning degrades, sign-out still works.

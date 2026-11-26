@@ -1,5 +1,43 @@
 import Foundation
 
+/// Portable validation for a native scope argument. The plugin receives
+/// `NSNumber`/`String` from JavaScript, so it must reject booleans, fractions
+/// and unsafe integers before constructing an `AccountScope`.
+public enum WatchScheduleScopeValidation {
+    /// ECMAScript's `Number.MAX_SAFE_INTEGER`.
+    public static let maximumSafeInteger: Double = 9_007_199_254_740_991
+
+    public static func athleteId(from value: Double) -> Int? {
+        guard value.isFinite,
+              value > 0,
+              value <= maximumSafeInteger,
+              let athleteId = Int(exactly: value),
+              athleteId > 0
+        else {
+            return nil
+        }
+        return athleteId
+    }
+
+    /// A plain HTTP(S) instance base: no userinfo, query or fragment, and a
+    /// host that can own the bearer.
+    public static func instanceURL(from value: String) -> URL? {
+        guard let url = URL(string: value),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "https" || scheme == "http",
+              let host = url.host,
+              !host.isEmpty,
+              url.user == nil,
+              url.password == nil,
+              url.query == nil,
+              url.fragment == nil
+        else {
+            return nil
+        }
+        return url
+    }
+}
+
 /// The instance and athlete a schedule belongs to. The instance is part of the
 /// identity so two self-hosted instances, or an instance and the hosted one,
 /// can never share scheduled entries or credentials.
