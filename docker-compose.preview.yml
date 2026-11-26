@@ -54,6 +54,7 @@ x-api-environment: &api-environment
   # Empty: no lifecycle emails (onboarding, recaps)
   EMAIL_SIGNATURE: ""
   SIGNUP_NOTIFICATION_EMAIL: ""
+  RESEND_API_KEY: ""
   BREVO_API_KEY: ""
 
   # Off, as on a self-hosted instance without keys

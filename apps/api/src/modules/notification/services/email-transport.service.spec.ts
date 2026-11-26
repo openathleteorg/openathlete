@@ -5,7 +5,10 @@ import { ConfigService } from '@nestjs/config';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
-import { EmailTransportService } from './email-transport.service';
+import {
+  EmailTransportService,
+  emailTransportKind,
+} from './email-transport.service';
 
 // The parsed configuration: SMTP_PORT is a number, SMTP_SECURE a boolean
 function createService(env: Partial<ApiEnvSchemaType>) {
@@ -114,6 +117,89 @@ describe('EmailTransportService', () => {
       (fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string,
     );
     expect(body.sender.email).toBe('team@example.com');
+  });
+});
+
+describe('EmailTransportService through Resend', () => {
+  it('wins over Brevo and SMTP', () => {
+    expect(
+      emailTransportKind(
+        (key) =>
+          ({ RESEND_API_KEY: 'r', BREVO_API_KEY: 'b', SMTP_HOST: 's' })[
+            key as string
+          ] as never,
+      ),
+    ).toBe('resend');
+  });
+
+  it('posts the email with its tag, headers and idempotency key', async () => {
+    fetchMock.mockResolvedValue(new Response('{}', { status: 200 }));
+    const service = createService({
+      RESEND_API_KEY: 're_key',
+      EMAIL_FROM: 'team@example.com',
+      EMAIL_FROM_NAME: 'OpenAthlete',
+      EMAIL_REPLY_TO: 'hello@example.com',
+    });
+
+    await expect(
+      service.send({
+        ...email,
+        text: 'Hi',
+        headers: { 'List-Unsubscribe': '<https://x.org/u>' },
+        kind: 'weekly recap',
+        idempotencyKey: 'lifecycle-12',
+      }),
+    ).resolves.toBe(true);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://api.resend.com/emails');
+    expect(init.headers).toMatchObject({
+      authorization: 'Bearer re_key',
+      'idempotency-key': 'lifecycle-12',
+    });
+    expect(JSON.parse(init.body as string)).toEqual({
+      from: 'OpenAthlete <team@example.com>',
+      to: ['athlete@example.com'],
+      reply_to: 'hello@example.com',
+      subject: 'Hi',
+      html: '<p>Hi</p>',
+      text: 'Hi',
+      headers: { 'List-Unsubscribe': '<https://x.org/u>' },
+      tags: [{ name: 'kind', value: 'weekly_recap' }],
+    });
+  });
+
+  it('retries after a 429, as told by retry-after', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response('{}', { status: 429, headers: { 'retry-after': '1' } }),
+      )
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }));
+    const started = Date.now();
+
+    await createService({ RESEND_API_KEY: 'k' }).send(email);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(Date.now() - started).toBeGreaterThanOrEqual(950);
+  });
+
+  it('spaces the requests out', async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response('{}', { status: 200 })),
+    );
+    const service = createService({ RESEND_API_KEY: 'k' });
+    const started = Date.now();
+
+    await Promise.all([1, 2, 3].map(() => service.send(email)));
+
+    expect(Date.now() - started).toBeGreaterThanOrEqual(450);
+  });
+
+  it('throws when Resend rejects the email', async () => {
+    fetchMock.mockResolvedValue(new Response('{"name":"x"}', { status: 422 }));
+    await expect(
+      createService({ RESEND_API_KEY: 'k' }).send(email),
+    ).rejects.toThrow('HTTP 422');
   });
 });
 

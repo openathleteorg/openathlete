@@ -312,6 +312,8 @@ export class WeeklyEmailService {
         subject: email.subject,
         html: email.html,
         text: email.text,
+        kind: 'weekly_recap',
+        idempotencyKey: `openathlete-lifecycle-${claim.lifecycleEmailId}`,
         senderName: signedSenderName(
           signature,
           this.config.get('EMAIL_FROM_NAME'),
@@ -437,6 +439,8 @@ export class WeeklyEmailService {
         subject: email.subject,
         html: email.html,
         text: email.text,
+        kind: 'coach_weekly',
+        idempotencyKey: `openathlete-lifecycle-${claim.lifecycleEmailId}`,
         senderName: signedSenderName(
           signature,
           this.config.get('EMAIL_FROM_NAME'),

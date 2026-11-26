@@ -9,6 +9,7 @@ import {
   handOverClubLibrary,
   releaseOwnedClubs,
 } from 'src/modules/club/club-ownership';
+import { ResendContactsService } from 'src/modules/notification/services/resend-contacts.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { StorageService } from 'src/modules/stored-files/storage.service';
 import { StripeService } from 'src/modules/subscription/services/stripe.service';
@@ -38,12 +39,14 @@ export class AccountDeletionService {
     // Absent from the CLI too: the daily cleanup then deletes the objects
     // left without a row
     @Optional() private readonly storage?: StorageService,
+    @Optional() private readonly resendContacts?: ResendContactsService,
   ) {}
 
   async deleteAccount(userId: number): Promise<void> {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { userId },
       select: {
+        email: true,
         analyticsConsentAt: true,
         athlete: { select: { athleteId: true } },
         subscription: {
@@ -136,6 +139,10 @@ export class AccountDeletionService {
       },
       { timeout: 60_000 },
     );
+
+    // After the rows are gone, and not awaited: a failed or slow removal
+    // never keeps the account (remove never throws)
+    void this.resendContacts?.remove(user.email);
 
     this.logger.log(`Account deleted for user ${userId}`);
     // After the fact, and read before: the consent went with the row

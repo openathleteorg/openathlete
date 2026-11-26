@@ -48,7 +48,13 @@ export class NotificationService {
       ) => RenderedEmail;
       const { html, text } = build({ ...payload.params, language });
 
-      await this.emailTransport.send({ to: payload.to, subject, html, text });
+      await this.emailTransport.send({
+        to: payload.to,
+        subject,
+        html,
+        text,
+        kind: payload.type,
+      });
     } catch (error) {
       this.logger.error(
         `Error sending email: ${error instanceof Error ? error.message : String(error)}`,

@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiEnvSchemaType, EmailId } from '@openathlete/shared';
 
 import { SendEmailEvent } from 'src/events';
+import { ResendContactsService } from 'src/modules/notification/services/resend-contacts.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { AccountDeletionService } from './account-deletion.service';
@@ -14,6 +15,7 @@ import { UserService } from './user.service';
 
 function setup(env: Record<string, string> = {}) {
   const emitter = { emit: jest.fn() };
+  const resendContacts = { sync: jest.fn().mockResolvedValue(true) };
   const prisma = {
     user: {
       findFirst: jest.fn().mockResolvedValue(null),
@@ -60,6 +62,8 @@ function setup(env: Record<string, string> = {}) {
       consumeInvitation: jest.fn(),
     } as unknown as CoachInvitationService,
     {} as AccountDeletionService,
+    undefined,
+    resendContacts as unknown as ResendContactsService,
   );
   const signUp = (
     extra: object = {},
@@ -80,7 +84,7 @@ function setup(env: Record<string, string> = {}) {
       .filter(([slug]) => slug === SendEmailEvent.SLUG)
       .map(([, event]) => (event as SendEmailEvent<EmailId>).payload);
   const emailsTo = () => emails().map((email) => email.to);
-  return { prisma, signUp, emails, emailsTo };
+  return { prisma, signUp, emails, emailsTo, resendContacts };
 }
 
 describe('sign-up notification', () => {
@@ -97,6 +101,20 @@ describe('sign-up notification', () => {
     });
     await signUp();
     expect(emailsTo()).toEqual(['ana@example.com', 'team@example.org']);
+  });
+});
+
+describe('sign-up news contact', () => {
+  it('syncs the Resend contact of someone who ticked the news box', async () => {
+    const { signUp, resendContacts } = setup();
+    await signUp({ emailNews: true });
+    expect(resendContacts.sync).toHaveBeenCalledWith(42);
+  });
+
+  it('syncs nothing without the consent', async () => {
+    const { signUp, resendContacts } = setup();
+    await signUp();
+    expect(resendContacts.sync).not.toHaveBeenCalled();
   });
 });
 

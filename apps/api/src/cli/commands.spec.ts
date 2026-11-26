@@ -28,6 +28,7 @@ function setup(users = [{ userId: 7, email: 'ana@example.com' }]) {
       createToken: jest.fn().mockResolvedValue({ token: 'tok-123' }),
     },
     accountDeletion: { deleteAccount: jest.fn() },
+    resendContacts: { isEnabled: jest.fn(), syncAll: jest.fn() },
     appUrl: 'https://train.example.org/',
     queueFullImports: jest.fn(),
     readInput: jest.fn().mockResolvedValue(''),
@@ -159,5 +160,37 @@ describe('admin commands', () => {
     );
     expect(deps.queueFullImports).toHaveBeenCalledWith([3, 5]);
     expect(lines).toEqual(['Backfill queued for 2 Garmin accounts']);
+  });
+
+  it('refuses to sync Resend contacts without configuration', async () => {
+    const { deps, lines, run } = setup();
+    jest.mocked(deps.resendContacts.isEnabled).mockReturnValue(false);
+    expect(await run('sync-resend-contacts')).toBe(1);
+    expect(deps.resendContacts.syncAll).not.toHaveBeenCalled();
+    expect(lines).toEqual([
+      'Set RESEND_API_KEY and RESEND_NEWS_SEGMENT_ID first',
+    ]);
+  });
+
+  it('syncs Resend contacts and prints the summary', async () => {
+    const { deps, lines, run } = setup();
+    jest.mocked(deps.resendContacts.isEnabled).mockReturnValue(true);
+    jest
+      .mocked(deps.resendContacts.syncAll)
+      .mockResolvedValue({ total: 46, synced: 46, failed: 0 });
+    expect(await run('sync-resend-contacts')).toBe(0);
+    expect(lines).toEqual(['46 of 46 contacts synced']);
+  });
+
+  it('exits with 1 when some contacts fail to sync', async () => {
+    const { deps, lines, run } = setup();
+    jest.mocked(deps.resendContacts.isEnabled).mockReturnValue(true);
+    jest
+      .mocked(deps.resendContacts.syncAll)
+      .mockResolvedValue({ total: 46, synced: 44, failed: 2 });
+    expect(await run('sync-resend-contacts')).toBe(1);
+    expect(lines).toEqual([
+      '44 of 46 contacts synced, 2 failed (see the logs)',
+    ]);
   });
 });

@@ -43,6 +43,7 @@ describe('password reset request', () => {
   afterEach(() => warn.mockClear());
 
   it.each([
+    ['Resend', { RESEND_API_KEY: 'key' }],
     ['Brevo', { BREVO_API_KEY: 'key' }],
     ['SMTP', { SMTP_HOST: 'smtp.example.org' }],
   ])('emails the link when the instance sends through %s', async (_, env) => {

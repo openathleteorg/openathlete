@@ -3,6 +3,7 @@ import { ConnectorProvider, TokenType } from '@openathlete/database';
 import { passwordResetUrl } from 'src/modules/auth/helpers/password-reset-url';
 import { AccountDeletionService } from 'src/modules/auth/services/account-deletion.service';
 import { TokenService } from 'src/modules/auth/services/token.service';
+import { ResendContactsService } from 'src/modules/notification/services/resend-contacts.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 export const USAGE = `Usage: openathlete <command>
@@ -12,6 +13,8 @@ export const USAGE = `Usage: openathlete <command>
   delete-user <email> --yes   Delete an account and all its data, for good
   delete-users --yes          Same for every email read from the standard input,
                               one per line (for waves of fake sign-ups)
+  sync-resend-contacts        Add the people who agreed to receive news to the
+                              Resend segment (safe to run again)
   garmin-backfill             Ask Garmin to resend the last 30 days of activities
                               of every connected account (the worker imports them)`;
 
@@ -19,6 +22,7 @@ export interface CliDeps {
   prisma: PrismaService;
   tokens: TokenService;
   accountDeletion: AccountDeletionService;
+  resendContacts: ResendContactsService;
   appUrl: string;
   /** Queues the historical import of these provider accounts */
   queueFullImports: (providerAccountIds: number[]) => Promise<void>;
@@ -94,6 +98,18 @@ export async function runCommand(
       out(`Send this link to ${user.email}, it is valid 15 minutes:`);
       out(passwordResetUrl(deps.appUrl, token.token));
       return 0;
+    }
+
+    case 'sync-resend-contacts': {
+      if (!deps.resendContacts.isEnabled()) {
+        out('Set RESEND_API_KEY and RESEND_NEWS_SEGMENT_ID first');
+        return 1;
+      }
+      const summary = await deps.resendContacts.syncAll();
+      out(
+        `${summary.synced} of ${summary.total} contacts synced${summary.failed ? `, ${summary.failed} failed (see the logs)` : ''}`,
+      );
+      return summary.failed > 0 ? 1 : 0;
     }
 
     case 'delete-user': {

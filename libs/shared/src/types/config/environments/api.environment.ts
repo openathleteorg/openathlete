@@ -223,12 +223,34 @@ export const ApiEnvSchema = z
       .optional()
       .describe('Secret key for verifying Polar webhook requests (optional)'),
 
-    // Email service (Brevo, optional)
+    // Email through Resend (optional), the first transport tried
+    RESEND_API_KEY: z
+      .string()
+      .optional()
+      .describe(
+        'Resend API key, which turns email on through Resend (optional)',
+      ),
+
+    RESEND_WEBHOOK_SECRET: z
+      .string()
+      .optional()
+      .describe(
+        'Signing secret of the Resend webhook (whsec_...); POST /api/webhooks/resend answers 503 without it (optional)',
+      ),
+
+    RESEND_NEWS_SEGMENT_ID: z
+      .string()
+      .optional()
+      .describe(
+        'Resend segment that holds the people who agreed to receive news; without it contacts are not synced (optional)',
+      ),
+
+    // Deprecated: replaced by RESEND_API_KEY, to be removed
     BREVO_API_KEY: z
       .string()
       .optional()
       .describe(
-        'Brevo (formerly Sendinblue) API key for email service (optional)',
+        'Deprecated, use RESEND_API_KEY. Brevo (formerly Sendinblue) API key for email service (optional)',
       ),
 
     BREVO_FROM_EMAIL: z
@@ -237,7 +259,7 @@ export const ApiEnvSchema = z
       .optional()
       .describe('Default sender email address for Brevo emails (optional)'),
 
-    // Email through any SMTP server, used when BREVO_API_KEY is not set
+    // Email through any SMTP server, used when neither RESEND_API_KEY nor BREVO_API_KEY is set
     SMTP_HOST: z
       .string()
       .optional()
@@ -273,7 +295,7 @@ export const ApiEnvSchema = z
       .email('EMAIL_FROM must be a valid email address')
       .optional()
       .describe(
-        'Sender address of every email, for Brevo and SMTP. Default: BREVO_FROM_EMAIL, else noreply@openathlete.org',
+        'Sender address of every email, for Resend, Brevo and SMTP. Default: BREVO_FROM_EMAIL, else noreply@openathlete.org',
       ),
 
     EMAIL_FROM_NAME: z
@@ -339,7 +361,7 @@ export const ApiEnvSchema = z
       .email('SIGNUP_NOTIFICATION_EMAIL must be a valid email address')
       .optional()
       .describe(
-        'Receives an email for each new account (optional, needs Brevo)',
+        'Receives an email for each new account (optional, needs email)',
       ),
 
     // AI Services (optional)

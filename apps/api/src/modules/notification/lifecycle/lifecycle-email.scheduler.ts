@@ -287,6 +287,8 @@ export class LifecycleEmailScheduler {
         subject: email.subject,
         html: email.html,
         text: email.text,
+        kind: `lifecycle_${next.kind}`,
+        idempotencyKey: `openathlete-lifecycle-${claim.lifecycleEmailId}`,
         senderName: this.senderName(signature),
         headers: token
           ? {
