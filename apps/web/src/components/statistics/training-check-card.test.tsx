@@ -54,6 +54,13 @@ const check = (parts: Partial<TrainingCheckDto>): TrainingCheckDto => ({
   ...parts,
 });
 
+const faster = {
+  status: 'BETTER' as const,
+  kind: 'speed' as const,
+  current: 3.4,
+  previous: 3.3,
+};
+
 describe('TrainingCheckCard', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -67,6 +74,7 @@ describe('TrainingCheckCard', () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    window.localStorage.clear();
   });
 
   const render = (data: TrainingCheckDto) => {
@@ -143,9 +151,9 @@ describe('TrainingCheckCard', () => {
     render(check({ fitness: better }));
     expect(summary().dataset.checkSummary).toBe('WORKING');
     expect(summary().textContent).toContain('check_summary_working');
-    expect(container.querySelector('a')?.getAttribute('href')).toBe(
-      '/dashboard/statistics/1?view=check',
-    );
+    expect(
+      container.querySelector('[data-check-history]')?.getAttribute('href'),
+    ).toBe('/dashboard/statistics/1?view=check');
 
     // Fitter, but the week of variability sits below the usual range
     render(
@@ -159,6 +167,39 @@ describe('TrainingCheckCard', () => {
       }),
     );
     expect(summary().dataset.checkSummary).toBe('WORKING_COSTLY');
+  });
+
+  it('links each question to the page that charts it', () => {
+    render(check({ speed: { ...faster } }));
+    const charts = (id: string) =>
+      container
+        .querySelector(`[data-check-charts="${id}"]`)
+        ?.getAttribute('href');
+    expect(charts('fitness')).toBe('/dashboard/statistics/1?view=load');
+    expect(charts('speed')).toBe('/dashboard/records/1');
+    expect(charts('durability')).toBe('/dashboard/statistics/1?view=load');
+    expect(charts('recovery')).toBe('/dashboard/metrics/1');
+    expect(charts('design')).toBe('/dashboard/statistics/1');
+  });
+
+  it('folds to its summary and its link, and stays folded', () => {
+    render(check({ speed: { ...faster } }));
+    const trigger = () =>
+      container.querySelector<HTMLButtonElement>('[data-fold]')!;
+    expect(row('fitness')).not.toBeNull();
+    act(() => trigger().click());
+    expect(row('fitness')).toBeNull();
+    expect(container.querySelector('[data-check-summary]')).not.toBeNull();
+    expect(container.querySelector('[data-check-history]')).not.toBeNull();
+    expect(trigger().getAttribute('aria-label')).toBe('card_details_show');
+
+    // A new visit on this device finds it folded
+    act(() => root.unmount());
+    root = createRoot(container);
+    render(check({ speed: { ...faster } }));
+    expect(row('fitness')).toBeNull();
+    act(() => trigger().click());
+    expect(row('fitness')).not.toBeNull();
   });
 
   it('says what is missing while a question is open', () => {

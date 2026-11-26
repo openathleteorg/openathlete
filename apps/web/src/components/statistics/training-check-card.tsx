@@ -1,9 +1,11 @@
 import { useTrainingCheckQuery } from '@/api/statistics';
+import { useFolded } from '@/hooks/use-folded';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { getDateLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
+import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -17,6 +19,11 @@ import {
 } from '@openathlete/shared';
 
 import { GarminAttribution } from '../garmin-attribution/garmin-attribution';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../ui/collapsible';
 import { SectionLabel } from '../ui/section-label';
 import { Skeleton } from '../ui/skeleton';
 import { MetricInfo } from './metric-info';
@@ -174,11 +181,16 @@ function Row({
   status,
   text,
   id,
+  to,
+  page,
 }: {
   question: string;
   status: CheckLook;
   text: string;
   id: string;
+  /** The page that charts this question, and its name */
+  to: string;
+  page: string;
 }) {
   const { icon: Icon, label, tint, text: tone } = CHECK_STATUS[status];
   return (
@@ -199,9 +211,17 @@ function Row({
         <div className="text-sm font-medium">{question}</div>
         <p className="text-sm text-muted-foreground">{text}</p>
       </div>
-      <span className={cn('shrink-0 text-xs font-semibold', tone)}>
-        {label()}
-      </span>
+      <div className="flex shrink-0 flex-col items-end gap-0.5">
+        <span className={cn('text-xs font-semibold', tone)}>{label()}</span>
+        <Link
+          to={to}
+          aria-label={m.card_charts_link({ page })}
+          className="text-xs text-muted-foreground underline"
+          data-check-charts={id}
+        >
+          {page}
+        </Link>
+      </div>
     </div>
   );
 }
@@ -228,10 +248,11 @@ export function TrainingCheckCard({
   link = true,
 }: {
   athleteId?: number;
-  /** Off on the page the link leads to */
+  /** Off on the page the link leads to, where the card also stays open */
   link?: boolean;
 }) {
   const { data, isLoading } = useTrainingCheckQuery(athleteId);
+  const { folded, setFolded } = useFolded('training-check');
   if (isLoading) return <Skeleton className="h-40 rounded-md" />;
   if (!data) return null;
   const { fitness, speed, durability, recovery, design } = data;
@@ -244,17 +265,50 @@ export function TrainingCheckCard({
     [fitness.status, speed.status, durability.status],
     recovery.status,
   );
-  const historyPath = `${getPath(['dashboard', 'statistics'])}${athleteId ? `/${athleteId}` : ''}?view=check`;
+  const of = athleteId ? `/${athleteId}` : '';
+  const statistics = `${getPath(['dashboard', 'statistics'])}${of}`;
+  // Where each question has its charts
+  const load = {
+    to: `${statistics}?view=load`,
+    page: m.statistics_view_load(),
+  };
+  const records = {
+    to: `${getPath(['dashboard', 'records'])}${of}`,
+    page: m.records(),
+  };
+  const metrics = {
+    to: `${getPath(['dashboard', 'metrics'])}${of}`,
+    page: m.metrics(),
+  };
+  const overview = { to: statistics, page: m.statistics_view_overview() };
+  const open = !link || !folded;
 
   return (
-    <div className="space-y-2 rounded-md border p-3" data-training-check>
+    <Collapsible
+      open={open}
+      onOpenChange={(next) => setFolded(!next)}
+      className="space-y-2 rounded-md border p-3"
+      data-training-check
+    >
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <span className="flex items-center gap-1">
           <SectionLabel>{m.check_title()}</SectionLabel>
           <MetricInfo metric="trainingCheck" />
         </span>
-        <span className="text-xs text-muted-foreground">
+        <span className="flex items-center gap-1 text-xs text-muted-foreground">
           {m.check_period()}
+          {link && (
+            <CollapsibleTrigger
+              data-fold
+              aria-label={open ? m.card_details_hide() : m.card_details_show()}
+              className="group flex size-9 cursor-pointer items-center justify-center rounded-md hover:bg-muted"
+            >
+              <ChevronDown
+                className="size-4 transition-transform group-data-[state=open]:rotate-180"
+                aria-hidden="true"
+              />
+            </CollapsibleTrigger>
+          )}
         </span>
       </div>
       <div className="rounded-md bg-muted p-3" data-check-summary={summary}>
@@ -263,48 +317,59 @@ export function TrainingCheckCard({
           {m.check_summary_note()}
         </p>
       </div>
-      <div className="border-t">
-        <Row
-          id="fitness"
-          question={m.check_fitness_question()}
-          status={fitness.status}
-          text={fitnessText(fitness)}
-        />
-        <Row
-          id="speed"
-          question={m.check_speed_question()}
-          status={speed.status}
-          text={speedText(speed)}
-        />
-        <Row
-          id="durability"
-          question={m.check_durability_question()}
-          status={durability.status}
-          text={durabilityText(durability)}
-        />
-        <Row
-          id="recovery"
-          question={m.check_recovery_question()}
-          status={recovery.status}
-          text={recoveryText(recovery)}
-        />
-        <Row
-          id="design"
-          question={m.check_design_question()}
-          status={design.status}
-          text={designText(design)}
-        />
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <span>{m.check_flat_note()}</span>
-        {link && (
-          <Link to={historyPath} className="font-medium underline">
+      <CollapsibleContent className="space-y-2">
+        <div className="border-t">
+          <Row
+            id="fitness"
+            question={m.check_fitness_question()}
+            status={fitness.status}
+            text={fitnessText(fitness)}
+            {...load}
+          />
+          <Row
+            id="speed"
+            question={m.check_speed_question()}
+            status={speed.status}
+            text={speedText(speed)}
+            {...records}
+          />
+          <Row
+            id="durability"
+            question={m.check_durability_question()}
+            status={durability.status}
+            text={durabilityText(durability)}
+            {...load}
+          />
+          <Row
+            id="recovery"
+            question={m.check_recovery_question()}
+            status={recovery.status}
+            text={recoveryText(recovery)}
+            {...metrics}
+          />
+          <Row
+            id="design"
+            question={m.check_design_question()}
+            status={design.status}
+            text={designText(design)}
+            {...overview}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">{m.check_flat_note()}</p>
+      </CollapsibleContent>
+      {link && (
+        <div className="flex justify-end text-xs text-muted-foreground">
+          <Link
+            to={`${statistics}?view=check`}
+            className="font-medium underline"
+            data-check-history
+          >
             {m.check_history_link()}
           </Link>
-        )}
-      </div>
+        </div>
+      )}
       {/* Derived from activities, which Garmin devices may record */}
       <GarminAttribution athleteId={athleteId} />
-    </div>
+    </Collapsible>
   );
 }
