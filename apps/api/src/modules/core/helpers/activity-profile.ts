@@ -71,12 +71,39 @@ function gradeBins(stream: ActivityStream): ProfileBin[] {
   }));
 }
 
+/** A stretch is about flat within this slope, up or down */
+const FLAT_GRADE = 0.04;
+
+/**
+ * Which samples lie on about flat ground: the run is cut into stretches of
+ * about 50 m, their slope read on smoothed altitude, as for the slopes.
+ * Null without altitude: a treadmill run is flat all along.
+ */
+function flatStretches(stream: ActivityStream): boolean[] | null {
+  const { time, distance, altitude } = stream;
+  if (!time?.length || !distance?.length || !altitude?.length) return null;
+  const n = Math.min(time.length, distance.length, altitude.length);
+  const smooth = smoothAltitude(altitude.slice(0, n), distance.slice(0, n));
+  const flat = new Array<boolean>(time.length).fill(false);
+  let start = 0;
+  for (let i = 1; i < n; i++) {
+    const metres = distance[i] - distance[start];
+    if (metres < GRADE_SEGMENT_M && i < n - 1) continue;
+    const grade = metres > 0 ? (smooth[i] - smooth[start]) / metres : 0;
+    if (Math.abs(grade) <= FLAT_GRADE) flat.fill(true, start, i);
+    start = i;
+  }
+  return flat;
+}
+
 /** Mean heart rate at each output: speed adjusted for slope, or power */
 function outputBins(
   stream: ActivityStream,
-  kind: 'SPEED' | 'POWER',
+  kind: 'SPEED' | 'POWER' | 'FLAT_SPEED' | 'FLAT_POWER',
   output: number[],
   band: (value: number) => number,
+  /** Samples to keep; all of them when null */
+  keep: boolean[] | null = null,
 ): ProfileBin[] {
   const { time, heartrate } = stream;
   if (!time?.length || !heartrate?.length) return [];
@@ -88,7 +115,8 @@ function outputBins(
       time[i] - time[0] < HEART_RATE_WARMUP_S ||
       !(seconds > 0) ||
       !(heartrate[i] > 0) ||
-      !(output[i] > 0)
+      !(output[i] > 0) ||
+      (keep && !keep[i])
     ) {
       continue;
     }
@@ -155,11 +183,34 @@ export function activityProfile(
   const cycling = CYCLING.has(sport);
   if (!running && !cycling && !CLIMBING.has(sport)) return [];
   const riding = cycling && !!watts?.some((value) => value > 0);
+  // Heart rate against output only holds on about flat ground: on a slope
+  // it follows the climb before, the descent, the walking. The training
+  // check compares runs on these stretches alone.
+  const flat = running ? flatStretches(stream) : null;
+  const powered = running && !!watts?.some((value) => value > 0);
   return [
     ...gradeBins(stream),
     ...(running && gap
       ? outputBins(stream, 'SPEED', gap, (speed) =>
           Math.floor(speed * 3.6 * SPEED_BANDS_PER_KMH),
+        )
+      : []),
+    ...(running && gap
+      ? outputBins(
+          stream,
+          'FLAT_SPEED',
+          gap,
+          (speed) => Math.floor(speed * 3.6 * SPEED_BANDS_PER_KMH),
+          flat,
+        )
+      : []),
+    ...(powered
+      ? outputBins(
+          stream,
+          'FLAT_POWER',
+          watts!,
+          (power) => Math.floor(power / POWER_BAND_W),
+          flat,
         )
       : []),
     ...(riding

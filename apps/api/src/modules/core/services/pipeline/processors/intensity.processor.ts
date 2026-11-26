@@ -14,7 +14,9 @@ import { ActivityPipelineContext, ActivityProcessor } from '../types';
  * Bump when the figures below change: activities computed with an older
  * version are recomputed in the background (IntensityBackfillService).
  */
-export const INTENSITY_VERSION = 5;
+// 6: heart rate by speed and power on the flat stretches of a run, for the
+// training check
+export const INTENSITY_VERSION = 6;
 
 /** Reads the recording once, so statistics never have to. */
 @Injectable()

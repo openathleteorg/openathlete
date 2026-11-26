@@ -216,6 +216,8 @@ export const routes = {
     terrain: '/statistics/terrain',
     cardiacCost: '/statistics/cardiac-cost',
     efficiency: '/statistics/efficiency',
+    check: '/statistics/check',
+    checkHistory: '/statistics/check/history',
     durability: '/statistics/durability',
     longRuns: '/statistics/long-runs',
     intensity: '/statistics/intensity',
