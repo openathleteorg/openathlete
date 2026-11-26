@@ -19,7 +19,11 @@ test('creates the account on a first sign-in', async ({ page }) => {
   // A new account starts with the onboarding
   await page.waitForURL(/\/dashboard|\/onboarding/);
   expect(
-    await page.evaluate(() => localStorage.getItem('access_token')),
+    await page.evaluate(() => {
+      const owner = localStorage.getItem('auth_session');
+      const record = owner && localStorage.getItem(`auth_record:${owner}`);
+      return record ? JSON.parse(record).accessToken : null;
+    }),
   ).toBeTruthy();
   // The one-time code does not stay in the address bar
   expect(page.url()).not.toContain('code=');
@@ -37,6 +41,9 @@ test('refuses an address the provider did not verify', async ({ page }) => {
   await expect(
     page.locator('[data-sso-error="email_unverified"]'),
   ).toBeVisible();
+  expect(
+    await page.evaluate(() => localStorage.getItem('auth_session')),
+  ).toBeNull();
   expect(
     await page.evaluate(() => localStorage.getItem('access_token')),
   ).toBeNull();

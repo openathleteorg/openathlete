@@ -42,8 +42,9 @@ describe('authoritative auth boundary', () => {
     const sent = adapter.mock.calls[0][0];
     expect(sent.headers.Authorization).toBe(`Bearer ${tokenA}`);
     expect(sent.headers.Authorization).not.toContain(tokenB);
-    // The authority read also removes the legacy bypass.
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+    // A read never writes storage: the dead key is removed only when an
+    // authoritative login or sign-out replaces the record.
+    expect(localStorage.getItem(ACCESS_TOKEN)).toBe(tokenB);
   });
 
   it('does not revive legacy credentials after a signed-out record', async () => {
@@ -62,6 +63,7 @@ describe('authoritative auth boundary', () => {
     await client.get('/event', { adapter });
 
     expect(adapter.mock.calls[0][0].headers.Authorization).toBeUndefined();
-    expect(localStorage.getItem(ACCESS_TOKEN)).toBeNull();
+    // A stale legacy key cannot revive the signed-out session.
+    expect(captureAuthSession().accessToken).toBeNull();
   });
 });

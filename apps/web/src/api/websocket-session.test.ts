@@ -14,10 +14,16 @@ vi.mock('@/utils/auth', () => ({
 }));
 vi.mock('socket.io-client', () => ({ io: ioMock }));
 
+type ManagerHandler = (error: unknown) => void;
+
 type FakeSocket = {
   connected: boolean;
   auth: unknown;
-  io: { on: ReturnType<typeof vi.fn> };
+  io: {
+    on: ReturnType<typeof vi.fn>;
+    off: ReturnType<typeof vi.fn>;
+    handlers: Map<string, ManagerHandler>;
+  };
   on: ReturnType<typeof vi.fn>;
   off: ReturnType<typeof vi.fn>;
   disconnect: ReturnType<typeof vi.fn>;
@@ -25,16 +31,27 @@ type FakeSocket = {
   connect: ReturnType<typeof vi.fn>;
 };
 
-const fakeSocket = (): FakeSocket => ({
-  connected: false,
-  auth: {},
-  io: { on: vi.fn() },
-  on: vi.fn(),
-  off: vi.fn(),
-  disconnect: vi.fn(),
-  removeAllListeners: vi.fn(),
-  connect: vi.fn(),
-});
+const fakeSocket = (): FakeSocket => {
+  const handlers = new Map<string, ManagerHandler>();
+  return {
+    connected: false,
+    auth: {},
+    io: {
+      on: vi.fn((event: string, handler: ManagerHandler) => {
+        handlers.set(event, handler);
+      }),
+      off: vi.fn((event: string, handler: ManagerHandler) => {
+        if (handlers.get(event) === handler) handlers.delete(event);
+      }),
+      handlers,
+    },
+    on: vi.fn(),
+    off: vi.fn(),
+    disconnect: vi.fn(),
+    removeAllListeners: vi.fn(),
+    connect: vi.fn(),
+  };
+};
 
 const handshakeToken = (socket: FakeSocket) =>
   new Promise<string>((resolve) => {
@@ -85,6 +102,8 @@ describe('cached API sockets', () => {
   afterEach(() => {
     CalendarAPI.disconnectSocket();
     MessagesAPI.disconnectSocket();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it.each(cases)(
@@ -92,6 +111,7 @@ describe('cached API sockets', () => {
     async ({ getSocket, disconnect }) => {
       installAuthTokens('token-a', 'refresh-a');
       const first = getSocket();
+      const firstErrorHandler = first.io.handlers.get('error');
       await expect(handshakeToken(first)).resolves.toBe('token-a');
 
       // The module stays loaded; only the login changes.
@@ -101,6 +121,9 @@ describe('cached API sockets', () => {
       expect(second).not.toBe(first);
       expect(first.disconnect).toHaveBeenCalled();
       expect(first.removeAllListeners).toHaveBeenCalled();
+      // The replaced manager no longer reports into the module at all.
+      expect(first.io.off).toHaveBeenCalledWith('error', firstErrorHandler);
+      expect(first.io.handlers.has('error')).toBe(false);
       await expect(handshakeToken(second)).resolves.toBe('token-b');
       expect(ioMock).toHaveBeenCalledTimes(2);
 
@@ -136,6 +159,75 @@ describe('cached API sockets', () => {
         expect(created[1].connect).toHaveBeenCalledTimes(1);
         disconnect();
       } finally {
+        vi.useRealTimers();
+      }
+    },
+  );
+
+  it.each(cases)(
+    'detaches the $name manager error listener on dispose',
+    async ({ getSocket, disconnect }) => {
+      installAuthTokens('token-a', 'refresh-a');
+      const first = getSocket();
+      const staleHandler = first.io.handlers.get('error')!;
+
+      disconnect();
+      expect(first.io.off).toHaveBeenCalledWith('error', staleHandler);
+      // A detached listener that still fires late must not touch the module.
+      installAuthTokens('token-b', 'refresh-b');
+      const second = getSocket();
+      staleHandler({ message: 'Session ID unknown', data: { code: 1 } });
+
+      expect(getSocket()).toBe(second);
+      expect(ioMock).toHaveBeenCalledTimes(2);
+      await expect(handshakeToken(second)).resolves.toBe('token-b');
+    },
+  );
+
+  it.each(cases)(
+    'keeps a $name retry on the same socket after the failed attempt timer',
+    async ({ connectSocket, disconnect, cleanupDelay }) => {
+      vi.useFakeTimers();
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+      try {
+        installAuthTokens('token-a', 'refresh-a');
+        auth.getAccessToken.mockRejectedValueOnce(new Error('boom'));
+        await expect(connectSocket()).rejects.toThrow('boom');
+        expect(auth.getAccessToken).toHaveBeenCalledTimes(1);
+        // Let the failed attempt's timer get its own deadline before the retry
+        // registers its cleanup.
+        vi.advanceTimersByTime(1);
+        let resolveToken!: (value: {
+          accessToken: string;
+          refreshed: boolean;
+        }) => void;
+        auth.getAccessToken.mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveToken = resolve;
+          }),
+        );
+
+        // Retry on the same socket before the failed attempt's timer fires.
+        const retry = connectSocket();
+        expect(auth.getAccessToken).toHaveBeenCalledTimes(2);
+        vi.advanceTimersByTime(cleanupDelay - 1);
+        const third = connectSocket();
+
+        // The failed attempt's timer must not cancel the retry's ownership.
+        expect(auth.getAccessToken).toHaveBeenCalledTimes(2);
+
+        resolveToken({
+          accessToken: storedAccessToken()!,
+          refreshed: false,
+        });
+        await retry;
+        await third;
+        expect(created[0].connect).toHaveBeenCalledTimes(1);
+        disconnect();
+      } finally {
+        consoleError.mockRestore();
         vi.useRealTimers();
       }
     },

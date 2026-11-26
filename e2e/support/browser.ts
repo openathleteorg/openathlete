@@ -10,9 +10,23 @@ import type { TestAthlete } from './api';
 export async function signIn(page: Page, athlete: TestAthlete) {
   await page.addInitScript(
     ({ accessToken, refreshToken }) => {
-      if (!localStorage.getItem('access_token')) {
-        localStorage.setItem('access_token', accessToken);
-        localStorage.setItem('refresh_token', refreshToken);
+      // Same layout as utils/auth-attempt: the shared key names the owner and
+      // the credentials live in that owner's record. The legacy keys are no
+      // longer read, so a legacy-only seed would land on the login page.
+      const owner = 'e2e-owner';
+      if (!localStorage.getItem('auth_session')) {
+        localStorage.setItem(
+          `auth_record:${owner}`,
+          JSON.stringify({
+            owner,
+            generation: 'e2e-generation',
+            accessToken,
+            refreshToken,
+          }),
+        );
+        localStorage.setItem('auth_session', owner);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
       }
     },
     { accessToken: athlete.accessToken, refreshToken: athlete.refreshToken },

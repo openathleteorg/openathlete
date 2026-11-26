@@ -26,8 +26,10 @@ import {
 export class MessagesAPI {
   private static socket: Socket | null = null;
   private static socketAuth: SocketAuthentication | null = null;
+  private static socketErrorHandler: ((error: unknown) => void) | null = null;
   private static connectingPromise: Promise<void> | null = null;
   private static connectingSocket: Socket | null = null;
+  private static connectingAttempt: object | null = null;
   private static socketSessionKey: string | null = null;
 
   // ==================== REST API Methods ====================
@@ -119,7 +121,7 @@ export class MessagesAPI {
       this.disconnectSocket();
     }
     if (!this.socket) {
-      this.socket = io(socketUrl('messages'), {
+      const socket = io(socketUrl('messages'), {
         transports: ['polling', 'websocket'], // Allow polling first, then upgrade to websocket
         withCredentials: true,
         autoConnect: false,
@@ -130,34 +132,55 @@ export class MessagesAPI {
         upgrade: true, // Allow upgrade from polling to websocket
         rememberUpgrade: true, // Remember transport preference
       });
+      this.socket = socket;
       this.socketSessionKey = sessionKey;
-      this.socketAuth = keepSocketAuthenticated(this.socket, session);
+      this.socketAuth = keepSocketAuthenticated(socket, session);
 
-      this.socket.io.on(
-        'error',
-        (error: Error & { data?: { code: number } }) => {
-          if (
-            error?.message?.includes('Session ID unknown') ||
-            (error?.data &&
-              typeof error.data === 'object' &&
-              error.data.code === 1)
-          ) {
-            const oldSocket = this.socket;
-            this.socket = null;
-            this.socketSessionKey = null;
-            this.connectingPromise = null;
-            this.connectingSocket = null;
-            this.socketAuth?.stop();
-            this.socketAuth = null;
-            if (oldSocket) {
-              oldSocket.disconnect();
-              oldSocket.removeAllListeners();
-            }
-          }
-        },
-      );
+      // Bound to this exact socket and detached when it is disposed, so a
+      // late manager error from a replaced socket cannot clear the successor.
+      const onManagerError = (error: unknown) => {
+        if (this.socket !== socket) return;
+        const errorMessage =
+          error && typeof error === 'object' && 'message' in error
+            ? String(error.message)
+            : '';
+        const errorData =
+          error && typeof error === 'object' && 'data' in error
+            ? error.data
+            : null;
+        if (
+          errorMessage.includes('Session ID unknown') ||
+          (errorData &&
+            typeof errorData === 'object' &&
+            'code' in errorData &&
+            errorData.code === 1)
+        ) {
+          this.disposeSocket(socket);
+        }
+      };
+      this.socketErrorHandler = onManagerError;
+      socket.io.on('error', onManagerError);
     }
     return this.socket;
+  }
+
+  /** Detach everything that belongs to one socket, and only that socket. */
+  private static disposeSocket(socket: Socket): void {
+    if (this.socket === socket) {
+      if (this.socketErrorHandler) {
+        socket.io.off('error', this.socketErrorHandler);
+        this.socketErrorHandler = null;
+      }
+      this.socketAuth?.stop();
+      this.socketAuth = null;
+      this.socketSessionKey = null;
+      this.connectingPromise = null;
+      this.connectingSocket = null;
+      this.connectingAttempt = null;
+      this.socket = null;
+    }
+    socket.disconnect();
+    socket.removeAllListeners();
   }
 
   static async connectSocket(): Promise<void> {
@@ -171,11 +194,16 @@ export class MessagesAPI {
       return this.connectingPromise;
     }
 
+    // Each call is its own attempt. Timers and continuations compare this
+    // identity, not only the socket: a retry on the same socket must survive
+    // the failed attempt's cleanup.
+    const attempt = {};
     const connection = (async () => {
       try {
         // Ensure we have a valid token before connecting
         const tokenInfo = await getAccessToken();
-        if (this.socket !== socket || this.connectingSocket !== socket) return;
+        if (this.socket !== socket || this.connectingAttempt !== attempt)
+          return;
         if (!tokenInfo) {
           console.error(
             '[MessagesAPI] No valid token available for connection',
@@ -184,34 +212,35 @@ export class MessagesAPI {
         }
 
         socket.connect();
+      } catch (error) {
+        // Let the next connect attempt start immediately instead of returning
+        // this failed promise until the cleanup timer fires.
+        if (this.connectingAttempt === attempt) {
+          this.connectingPromise = null;
+          this.connectingSocket = null;
+          this.connectingAttempt = null;
+        }
+        throw error;
       } finally {
-        // Clear only this socket's attempt after a short delay to allow the
-        // connection to establish; stale cleanup must not erase newer work.
+        // Clear only this attempt after a short delay to allow the connection
+        // to establish; stale cleanup must not erase newer work.
         setTimeout(() => {
-          if (this.connectingSocket === socket) {
-            this.connectingPromise = null;
-            this.connectingSocket = null;
-          }
+          if (this.connectingAttempt !== attempt) return;
+          this.connectingPromise = null;
+          this.connectingSocket = null;
+          this.connectingAttempt = null;
         }, 1000);
       }
     })();
 
     this.connectingPromise = connection;
     this.connectingSocket = socket;
+    this.connectingAttempt = attempt;
     return connection;
   }
 
   static disconnectSocket(): void {
-    this.socketAuth?.stop();
-    this.socketAuth = null;
-    this.socketSessionKey = null;
-    this.connectingPromise = null;
-    this.connectingSocket = null;
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket.removeAllListeners();
-      this.socket = null;
-    }
+    if (this.socket) this.disposeSocket(this.socket);
   }
 
   // Reconnects first when the token expired: the server would refuse the

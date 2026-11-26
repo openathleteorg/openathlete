@@ -6,7 +6,6 @@ import {
   storedRefreshToken,
 } from '@/utils/auth-attempt';
 import client from '@/utils/axios';
-import { ACCESS_TOKEN } from '@/utils/local-storage';
 import { AxiosError } from 'axios';
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
@@ -102,7 +101,7 @@ describe('auth start without a connection', () => {
     api.getMe.mockReset();
     auth.getAccessToken.mockReset();
     localStorage.clear();
-    localStorage.setItem(ACCESS_TOKEN, 'token-a');
+    installAuthTokens('token-a', 'refresh-a');
     auth.getAccessToken.mockResolvedValue({
       accessToken: 'token-a',
       refreshed: false,
