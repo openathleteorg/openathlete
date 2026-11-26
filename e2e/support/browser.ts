@@ -14,9 +14,39 @@ export async function signIn(page: Page, athlete: TestAthlete) {
       // the credentials live in that owner's record. The legacy keys are no
       // longer read, so a legacy-only seed would land on the login page.
       const owner = 'e2e-owner';
-      if (!localStorage.getItem('auth_session')) {
+      const recordKey = `auth_record:${owner}`;
+      const existingOwner = localStorage.getItem('auth_session');
+      const existingRecord = existingOwner
+        ? localStorage.getItem(`auth_record:${existingOwner}`)
+        : null;
+      let sameLogin = false;
+      if (existingRecord) {
+        try {
+          const record = JSON.parse(existingRecord) as {
+            accessToken?: unknown;
+            refreshToken?: unknown;
+          };
+          // Calling signIn again for the same login must not churn its
+          // generation; a different requested account replaces the shared
+          // AUTH_FILE session explicitly.
+          sameLogin =
+            record.accessToken === accessToken &&
+            record.refreshToken === refreshToken;
+        } catch {
+          sameLogin = false;
+        }
+      }
+      if (!sameLogin) {
+        // The storage state a project starts from may belong to another
+        // account. Remove its credentials instead of leaving them behind
+        // unreferenced when the test asks for this one.
+        if (existingOwner && existingOwner !== owner) {
+          localStorage.removeItem(`auth_record:${existingOwner}`);
+          localStorage.removeItem(`auth_revoked:${existingOwner}`);
+        }
+        localStorage.removeItem(`auth_revoked:${owner}`);
         localStorage.setItem(
-          `auth_record:${owner}`,
+          recordKey,
           JSON.stringify({
             owner,
             generation: 'e2e-generation',
@@ -35,8 +65,8 @@ export async function signIn(page: Page, athlete: TestAthlete) {
 
 /**
  * A second person in the same test: a page of its own browser context,
- * signed in as them. signIn only fills an empty session, so it cannot
- * switch the first page to another account.
+ * signed in as them. Each page has its own storage, so this never switches
+ * the first page's account.
  */
 export async function pageAs(browser: Browser, user: TestAthlete) {
   const page = await browser.newPage({

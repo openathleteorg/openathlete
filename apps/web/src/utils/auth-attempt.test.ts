@@ -25,6 +25,7 @@ const authRecords = () =>
       JSON.parse(localStorage.getItem(key)!) as {
         owner: string;
         accessToken: string | null;
+        refreshToken: string | null;
       },
   );
 
@@ -184,6 +185,132 @@ describe('auth session storage ownership', () => {
           record.owner === session.owner && record.accessToken === 'token-a2',
       ),
     ).toBe(false);
+  });
+
+  it('scrubs a rotation whose owner signed out before its write landed', async () => {
+    const context = await import('./auth-attempt');
+    context.installAuthTokens('token-a', 'refresh-a');
+    const started = context.captureAuthSession();
+    const originalSetItem = Storage.prototype.setItem;
+    let injected = false;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string,
+    ) {
+      // The refresh already passed its checks; the owner signs out while the
+      // rotated credential write is paused, then the write lands anyway.
+      if (
+        !injected &&
+        key === `${RECORD_PREFIX}${started.owner}` &&
+        value.includes('"accessToken":"token-a2"')
+      ) {
+        injected = true;
+        context.clearAuthTokens(started);
+      }
+      originalSetItem.call(this, key, value);
+    });
+
+    expect(
+      context.rotateAuthTokens(started, 'token-a2', 'refresh-a2'),
+    ).toBeNull();
+
+    // The tombstone keeps the owner signed out, and no unreachable record
+    // retains the valid credential pair that its write recreated.
+    expect(context.storedAccessToken()).toBeNull();
+    expect(context.storedRefreshToken()).toBeNull();
+    expect(localStorage.getItem(`${REVOKED_PREFIX}${started.owner}`)).not.toBe(
+      null,
+    );
+    expect(
+      authRecords().some(
+        (record) =>
+          record.accessToken === 'token-a2' ||
+          record.refreshToken === 'refresh-a2',
+      ),
+    ).toBe(false);
+  });
+
+  it('scrubs its own rotation when a successor installs during the write', async () => {
+    const context = await import('./auth-attempt');
+    context.installAuthTokens('token-a', 'refresh-a');
+    const started = context.captureAuthSession();
+    const originalSetItem = Storage.prototype.setItem;
+    let injected = false;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string,
+    ) {
+      // B commits at the exact write of A's rotated credential.
+      if (
+        !injected &&
+        key === `${RECORD_PREFIX}${started.owner}` &&
+        value.includes('"accessToken":"token-a2"')
+      ) {
+        injected = true;
+        context.installAuthTokens('token-b', 'refresh-b');
+      }
+      originalSetItem.call(this, key, value);
+    });
+
+    expect(
+      context.rotateAuthTokens(started, 'token-a2', 'refresh-a2'),
+    ).toBeNull();
+
+    // B's login and credentials survive, and A's late record is gone rather
+    // than left unreachable with a valid token pair.
+    expect(context.storedAccessToken()).toBe('token-b');
+    expect(context.storedRefreshToken()).toBe('refresh-b');
+    expect(localStorage.getItem(`${RECORD_PREFIX}${started.owner}`)).toBeNull();
+    expect(
+      authRecords().some((record) => record.accessToken === 'token-a2'),
+    ).toBe(false);
+  });
+
+  it('leaves a later same-owner generation written during the rotation', async () => {
+    const context = await import('./auth-attempt');
+    context.installAuthTokens('token-a', 'refresh-a');
+    const started = context.captureAuthSession();
+    const originalGetItem = Storage.prototype.getItem;
+    const originalSetItem = Storage.prototype.setItem;
+    let recordReads = 0;
+    let injected = false;
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+    ) {
+      if (key === `${RECORD_PREFIX}${started.owner}`) {
+        recordReads += 1;
+        // The refresh starts from generation 1, writes generation 2, then a
+        // newer rotation of the same owner writes generation 3 before the
+        // first one checks its own late write.
+        if (!injected && recordReads === 2) {
+          injected = true;
+          originalSetItem.call(
+            this,
+            key,
+            JSON.stringify({
+              owner: started.owner,
+              generation: 'later-generation',
+              accessToken: 'token-a3',
+              refreshToken: 'refresh-a3',
+            }),
+          );
+        }
+      }
+      return originalGetItem.call(this, key);
+    });
+
+    expect(
+      context.rotateAuthTokens(started, 'token-a2', 'refresh-a2'),
+    ).toBeNull();
+
+    // The newer generation stays authoritative: the stale rotation neither
+    // reports success nor removes the newer record.
+    expect(context.storedAccessToken()).toBe('token-a3');
+    expect(context.storedRefreshToken()).toBe('refresh-a3');
+    expect(context.captureAuthSession().generation).toBe('later-generation');
   });
 
   it('cannot revive an owner that signed out while its refresh was pending', async () => {

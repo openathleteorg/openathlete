@@ -4,9 +4,7 @@ import {
   type AuthSessionSnapshot,
   captureAuthSession,
   invalidateAuthTokens,
-  isAuthAttemptCurrent,
   isAuthSessionCurrent,
-  storedAccessToken,
 } from '@/utils/auth-attempt';
 import { QueryClient } from '@tanstack/react-query';
 import axios, { getAdapter, isAxiosError } from 'axios';
@@ -553,16 +551,12 @@ client.interceptors.request.use(async (config) => {
 client.interceptors.response.use(undefined, async (error) => {
   if (isAxiosError(error) && error.response?.status === 401) {
     const attempt = error.config?.authAttempt;
-    const requestToken = bearerToken(error.config?.headers?.Authorization);
-    const currentToken = storedAccessToken();
-    // A delayed 401 for an attempt (or a token) that is no longer current
-    // must not erase the session that won meanwhile.
-    const attemptIsStale = attempt ? !isAuthAttemptCurrent(attempt) : false;
-    const tokenIsStale = currentToken !== null && requestToken !== currentToken;
-    if (!attemptIsStale && !tokenIsStale) {
+    // Address the invalidation to the exact credential the rejected request
+    // used. A successor may have committed since; it is never the target, and
+    // an answer without a pinned attempt cannot name an owner at all.
+    if (attempt && invalidateAuthTokens(attempt)) {
       // Invalidates this credential without replacing the login, so a logout
       // already waiting for native cleanup can still finish its own teardown.
-      invalidateAuthTokens();
       const queryClient = new QueryClient();
       queryClient.clear();
     }
@@ -571,11 +565,5 @@ client.interceptors.response.use(undefined, async (error) => {
   // like a broken response, and an unauthorized change like a success.
   throw error;
 });
-
-function bearerToken(header: unknown): string | null {
-  if (typeof header !== 'string') return null;
-  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
-  return match ? match[1] : null;
-}
 
 export default callableClient;

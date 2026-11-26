@@ -1,11 +1,7 @@
 import type { Socket } from 'socket.io-client';
 
 import { getAccessToken, isValidToken, refreshToken } from './auth';
-import {
-  type AuthSessionSnapshot,
-  captureAuthSession,
-  isAuthSessionCurrent,
-} from './auth-attempt';
+import { type AuthSessionSnapshot, captureAuthSession } from './auth-attempt';
 
 const EXPIRY_CHECK_INTERVAL = 60 * 1000;
 
@@ -36,19 +32,30 @@ export function keepSocketAuthenticated(
   let handshakeToken: string | null = null;
   let refreshing = false;
   let stopped = false;
-  const belongsToConnection = () => !stopped && isAuthSessionCurrent(session);
+  // The connection keeps its owner and instance, but every handshake and
+  // refresh must use the exact credential generation installed now: a socket
+  // that saw generation 1 rotate 2 must be able to rotate 3 later.
+  const connectionSession = (): AuthSessionSnapshot | null => {
+    const current = captureAuthSession();
+    return current.owner === session.owner &&
+      current.instanceURL === session.instanceURL
+      ? current
+      : null;
+  };
+  const belongsToConnection = () => !stopped && connectionSession() !== null;
 
   socket.auth = (send) => {
-    if (!belongsToConnection()) return;
-    void getAccessToken(session)
+    const active = stopped ? null : connectionSession();
+    if (!active) return;
+    void getAccessToken(active)
       .catch(() => null)
       .then((info) => {
         // Auth owns credential writes. A late answer for a previous owner
         // must neither install its refresh nor hand this socket its token;
         // an empty token would still make the stale socket look connected.
-        if (!belongsToConnection()) return;
-        handshakeToken = info?.accessToken ?? null;
-        send({ token: handshakeToken ?? '' });
+        if (!info?.accessToken || !belongsToConnection()) return;
+        handshakeToken = info.accessToken;
+        send({ token: handshakeToken });
       });
   };
 
@@ -63,16 +70,17 @@ export function keepSocketAuthenticated(
   // device's clock says. Reconnecting only with a new token avoids a loop
   // once the refresh token is no longer valid.
   const onException = (error: { message?: unknown }) => {
+    const active = stopped ? null : connectionSession();
     if (
       refreshing ||
-      !belongsToConnection() ||
+      !active ||
       typeof error?.message !== 'string' ||
       !error.message.includes('jwt expired')
     ) {
       return;
     }
     refreshing = true;
-    void refreshToken(session)
+    void refreshToken(active)
       .catch(() => null)
       .then((info) => {
         refreshing = false;

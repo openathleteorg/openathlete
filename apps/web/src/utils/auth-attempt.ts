@@ -128,6 +128,23 @@ function writeAuthRecord(record: AuthSessionRecord): void {
   setItem(recordKey(record.owner), JSON.stringify(record));
 }
 
+/** Read one owner's record directly, without following the shared pointer. */
+function readAuthRecord(owner: string): AuthSessionRecord | null {
+  return parseAuthRecord(getItem(recordKey(owner)), owner);
+}
+
+/**
+ * Remove exactly the record this caller wrote. A later generation of the same
+ * owner (another rotation) or a successor's record must survive; only the
+ * generation that lost ownership is removed.
+ */
+function scrubAuthRecord(record: AuthSessionRecord): void {
+  const persisted = readAuthRecord(record.owner);
+  if (persisted?.generation === record.generation) {
+    removeItem(recordKey(record.owner));
+  }
+}
+
 /**
  * Read the pointer and the record it names, without ever adopting a record
  * that belongs to another owner. Revocation is per owner, so a stale refresh
@@ -233,23 +250,45 @@ export function rotateAuthTokens(
   accessToken: string,
   refreshToken?: string,
 ): AuthSessionSnapshot | null {
-  const authority = readAuthority();
-  if (!authority || authority.revoked || !authority.record) return null;
-  if (authority.owner !== expected.owner) return null;
-  // Bind the exact credential, not only the owner: another rotation or a
-  // sign-out that finished while the network call ran wins over this result.
-  if (authority.record.generation !== expected.generation) return null;
+  if (getApiBaseUrl() !== expected.instanceURL) return null;
+  // Read the initiating owner's record directly. Following the pointer here
+  // would let a successor's owner name this bearer.
+  const record = readAuthRecord(expected.owner);
+  if (!record || record.generation !== expected.generation) return null;
+  if (getItem(revokedKey(expected.owner)) !== null) return null;
+  if (readOwner() !== expected.owner) return null;
 
-  writeAuthRecord({
+  const rotated: AuthSessionRecord = {
     owner: expected.owner,
     generation: createAuthId(),
     accessToken,
-    refreshToken: refreshToken ?? authority.record.refreshToken,
-  });
-  if (!isAuthSessionCurrent(expected)) return null;
-  // A successor may have committed between that check and this read.
-  const snapshot = captureAuthSession();
-  return snapshot.owner === expected.owner ? snapshot : null;
+    refreshToken: refreshToken ?? record.refreshToken,
+  };
+  writeAuthRecord(rotated);
+
+  // The checks and the write are not atomic across tabs. If A signed out or B
+  // committed while the write was paused, the record now holds a valid pair
+  // that no reader may use. Remove exactly this generation; a later rotation
+  // of the same owner or B's record is untouched.
+  const persisted = readAuthRecord(expected.owner);
+  const lostOwnership =
+    getItem(revokedKey(expected.owner)) !== null ||
+    readOwner() !== expected.owner ||
+    getApiBaseUrl() !== expected.instanceURL;
+  if (lostOwnership) {
+    scrubAuthRecord(rotated);
+    return null;
+  }
+  // Another rotation of the same owner wrote after ours while the write was
+  // paused: its generation is newer, so this result is obsolete.
+  if (persisted?.generation !== rotated.generation) return null;
+
+  return {
+    owner: rotated.owner,
+    generation: rotated.generation,
+    accessToken: rotated.accessToken,
+    instanceURL: expected.instanceURL,
+  };
 }
 
 /**
@@ -278,22 +317,34 @@ export function clearAuthTokens(expected?: AuthSessionSnapshot): boolean {
 }
 
 /**
- * A 401 ends this login's credentials without replacing the login itself. The
- * owner stays current, so a sign-out already waiting for native cleanup can
- * still finish; the new generation invalidates every exact credential attempt.
+ * A 401 ends the exact credentials that the rejected request used, without
+ * replacing the login itself. The owner stays current, so a sign-out already
+ * waiting for native cleanup can still finish. A successor (or a newer
+ * generation of the same owner) that committed meanwhile is never selected as
+ * the target, because the request names the owner, generation and instance it
+ * was sent with.
  */
-export function invalidateAuthTokens(): void {
-  const authority = readAuthority();
+export function invalidateAuthTokens(attempt: AuthAttempt): boolean {
+  if (getApiBaseUrl() !== attempt.instanceURL) return false;
+  const record = readAuthRecord(attempt.owner);
+  if (
+    !record ||
+    record.generation !== attempt.generation ||
+    record.accessToken !== attempt.accessToken
+  ) {
+    return false;
+  }
+  if (getItem(revokedKey(attempt.owner)) !== null) return false;
+  if (readOwner() !== attempt.owner) return false;
+
   clearLegacyTokens();
-  if (!authority || authority.revoked || !authority.record) return;
-  // Addressed to the owner we read. A successor that commits meanwhile owns
-  // the pointer and another record, so this write cannot reach it.
   writeAuthRecord({
-    owner: authority.owner,
+    owner: attempt.owner,
     generation: createAuthId(),
     accessToken: null,
     refreshToken: null,
   });
+  return true;
 }
 
 /** Begin a login request and publish it as the newest attempt. */

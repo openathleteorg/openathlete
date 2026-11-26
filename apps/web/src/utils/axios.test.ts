@@ -10,6 +10,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   captureAuthSession,
   installAuthTokens,
+  invalidateAuthTokens,
+  rotateAuthTokens,
   storedAccessToken,
   storedRefreshToken,
 } from './auth-attempt';
@@ -95,6 +97,58 @@ describe('API client errors', () => {
     });
     expect(storedAccessToken()).toBe('token-b');
     expect(storedRefreshToken()).toBe('refresh-b');
+  });
+
+  it('invalidates only the rejected attempt, never the owner that replaces it', async () => {
+    const rejected = captureAuthSession();
+    const originalGetItem = Storage.prototype.getItem;
+    let injected = false;
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+    ) {
+      // Account B commits after A's 401 passed its checks, before the
+      // invalidation reads any owner.
+      if (!injected && key === 'auth_session') {
+        injected = true;
+        installAuthTokens('token-b', 'refresh-b');
+      }
+      return originalGetItem.call(this, key);
+    });
+
+    expect(invalidateAuthTokens(rejected)).toBe(false);
+    expect(storedAccessToken()).toBe('token-b');
+    expect(storedRefreshToken()).toBe('refresh-b');
+  });
+
+  it('does not invalidate a newer generation of the rejected owner', async () => {
+    const rejected = captureAuthSession();
+    expect(rotateAuthTokens(rejected, 'token-a2', 'refresh-a2')).not.toBeNull();
+
+    expect(invalidateAuthTokens(rejected)).toBe(false);
+    expect(storedAccessToken()).toBe('token-a2');
+    expect(storedRefreshToken()).toBe('refresh-a2');
+  });
+
+  it('does not guess an owner for a 401 without a pinned attempt', async () => {
+    const request = client.get('/user/me', {
+      adapter: async (config) => {
+        delete config.authAttempt;
+        throw new AxiosError(
+          'HTTP 401',
+          AxiosError.ERR_BAD_REQUEST,
+          config,
+          null,
+          { status: 401, statusText: '', data: {}, headers: {}, config },
+        );
+      },
+    });
+
+    await expect(request).rejects.toMatchObject({
+      response: { status: 401 },
+    });
+    expect(storedAccessToken()).toBe(ACCESS);
+    expect(storedRefreshToken()).toBe('refresh');
   });
 
   it('never sends a request with a successor token after a refresh', async () => {
