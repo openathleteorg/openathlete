@@ -109,8 +109,14 @@ export function TrainingProfileSection() {
       <SettingsPanel>
         {isAthlete && (
           <>
-            <SettingsRow title={m.settings_training_profile_sports()} stacked>
-              <div className="flex flex-wrap gap-2 sm:justify-end">
+            {/* The sports take the whole width under their title: beside
+                it, they never wrap and crush it to a letter per line */}
+            <SettingsRow
+              title={m.settings_training_profile_sports()}
+              stacked
+              className="sm:flex-col sm:items-stretch"
+            >
+              <div className="flex flex-wrap gap-2">
                 {sportChoices.map((sport) => {
                   const selected = practiced.includes(sport);
                   return (
