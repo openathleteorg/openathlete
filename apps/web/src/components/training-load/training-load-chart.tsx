@@ -30,6 +30,7 @@ import { SPORT_TYPE, SportGroup } from '@openathlete/shared';
 import { ExportButton } from '../statistics/export-button';
 import { MetricInfo } from '../statistics/metric-info';
 import { Period } from '../statistics/statistics-period';
+import { WeeklyLoadCard } from './weekly-load-card';
 
 interface TrainingLoadChartProps {
   athleteId: number;
@@ -201,7 +202,7 @@ export function TrainingLoadChart({
     Math.ceil(Math.max(TSB_DETRAINING + 10, ...tsbValues) / 10) * 10,
   ];
 
-  return (
+  const chart = (
     <Card
       className={`gap-0 py-0 transition-opacity ${isFetching ? 'opacity-70' : ''}`}
     >
@@ -418,18 +419,6 @@ export function TrainingLoadChart({
                 }
               />
             </div>
-            {data.monotony !== null && (
-              <p
-                className="flex items-center gap-1 text-sm text-muted-foreground"
-                data-monotony
-              >
-                {m.statistics_monotony()}
-                <span className="font-medium text-foreground tabular-nums">
-                  {data.monotony.toFixed(2)}
-                </span>
-                <MetricInfo metric="monotony" />
-              </p>
-            )}
             {chartData.some((point) => point.sessionRpe > 0) && (
               <div className="space-y-2" data-session-rpe>
                 <p className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -475,5 +464,12 @@ export function TrainingLoadChart({
         )}
       </CardContent>
     </Card>
+  );
+
+  return (
+    <>
+      {chart}
+      {data?.weeklyLoad && <WeeklyLoadCard weeks={data.weeklyLoad} />}
+    </>
   );
 }

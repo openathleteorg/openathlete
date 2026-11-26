@@ -368,6 +368,21 @@ export const statisticsLoadSchema = z.object({
   ),
   /** Foster's monotony of the last 7 days: null on an empty or even week */
   monotony: z.number().nullable(),
+  /** Complete 7-day UTC windows, newest first, using recorded TRIMP. */
+  weeklyLoad: z
+    .array(
+      z.object({
+        date: z.string(),
+        days: z.array(
+          z.object({ date: z.string(), load: z.number().finite() }),
+        ),
+        monotony: z.number().finite().optional(),
+        strain: z.number().finite().optional(),
+        highMonotony: z.boolean().optional(),
+        highStrain: z.boolean().optional(),
+      }),
+    )
+    .optional(),
   /** Days of a race, within the period */
   races: z.array(z.string()),
   /** Days of load behind the last point: below 126, fitness is still rising */

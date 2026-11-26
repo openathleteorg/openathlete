@@ -440,3 +440,64 @@ export function advanceFitness(
     atl: EWMA_ALPHA_ATL * load + (1 - EWMA_ALPHA_ATL) * atl,
   };
 }
+
+const LOAD_WINDOW_DAYS = 7;
+const LOAD_HISTORY_WEEKS = 12;
+
+export function calculateWeeklyLoad(
+  dailyLoads: ReadonlyMap<string, number>,
+  end: Date,
+) {
+  const days = Array.from({ length: LOAD_WINDOW_DAYS }, (_, index) => {
+    const date = toUtcDateKey(addUtcDays(end, index - LOAD_WINDOW_DAYS + 1));
+    return { date, load: dailyLoads.get(date) ?? 0 };
+  });
+  const total = days.reduce((sum, day) => sum + day.load, 0);
+  if (days.every(({ load }) => load === days[0].load)) return { days };
+
+  const mean = total / LOAD_WINDOW_DAYS;
+  // Population SD: the seven days are the entire window being described.
+  const deviation = Math.sqrt(
+    days.reduce((sum, day) => sum + (day.load - mean) ** 2, 0) /
+      LOAD_WINDOW_DAYS,
+  );
+  if (deviation === 0) return { days };
+  const monotony = mean / deviation;
+  return { days, monotony, strain: total * monotony };
+}
+
+export function describeWeeklyLoad(
+  dailyLoads: ReadonlyMap<string, number>,
+  end: Date,
+  firstDay: string,
+) {
+  const { days, monotony, strain } = calculateWeeklyLoad(dailyLoads, end);
+  const date = toUtcDateKey(end);
+  if (monotony === undefined || strain === undefined) return { date, days };
+
+  const history: { monotony: number; strain: number }[] = [];
+  for (let week = 1; week <= LOAD_HISTORY_WEEKS; week++) {
+    const previousEnd = addUtcDays(end, -week * LOAD_WINDOW_DAYS);
+    if (
+      toUtcDateKey(addUtcDays(previousEnd, 1 - LOAD_WINDOW_DAYS)) < firstDay
+    ) {
+      break;
+    }
+    const previous = calculateWeeklyLoad(dailyLoads, previousEnd);
+    if (previous.monotony !== undefined && previous.strain !== undefined) {
+      history.push({ monotony: previous.monotony, strain: previous.strain });
+    }
+  }
+
+  return {
+    date,
+    days,
+    monotony,
+    strain,
+    // Require several observations before comparing with the past range.
+    highMonotony:
+      history.length >= 4 && history.every((week) => monotony > week.monotony),
+    highStrain:
+      history.length >= 4 && history.every((week) => strain > week.strain),
+  };
+}

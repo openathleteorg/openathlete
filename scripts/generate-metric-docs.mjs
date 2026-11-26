@@ -20,7 +20,7 @@ const COPY = {
   efficiency: ["statistics_efficiency", "efficiency"],
   runEfficiency: ["statistics_run_efficiency", "run_efficiency"],
   decoupling: ["statistics_decoupling", "decoupling"],
-  monotony: ["statistics_monotony", "monotony"],
+  monotony: ["statistics_weekly_load_title", "monotony"],
   longRun: ["statistics_long_runs", "long_run"],
   cardiacCost: ["statistics_cost_title", "cost"],
   drift: ["statistics_durability_title", "drift"],
@@ -39,6 +39,16 @@ const VERDICTS = {
   estimate: "Estimate",
 };
 
+const monotonyDetails = [
+  "Each window covers seven completed UTC days. OpenAthlete sums recorded TRIMP by day and counts rest days as zero. It uses population standard deviation because all seven days in the window are included.",
+  "",
+  "```text",
+  "strain = total weekly load × monotony",
+  "```",
+  "",
+  "When all seven loads are equal, both values are undefined and the card leaves them blank. The history shows seven-day windows ending one week apart. A value is flagged if it exceeds the athlete's corresponding values in the preceding 12 non-overlapping weeks, with at least four defined results required. The comparison describes the athlete's training pattern for the selected sport filter.",
+];
+
 const sections = Object.entries(METRIC_REGISTRY).map(([key, metric]) => {
   const [name, stem] = COPY[key];
   const sources = metric.sources
@@ -53,6 +63,7 @@ const sections = Object.entries(METRIC_REGISTRY).map(([key, metric]) => {
     metric.formula,
     "```",
     "",
+    ...(key === "monotony" ? [...monotonyDetails, ""] : []),
     `**Limits:** ${messages[`metric_${stem}_limits`]}`,
     "",
     `**Sources:** ${sources}`,
