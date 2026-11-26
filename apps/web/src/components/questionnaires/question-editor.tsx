@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getMetricUnit } from '@/utils/metric-unit';
@@ -123,6 +124,7 @@ interface P {
 /** One question of the editor, with the settings of its type */
 export function QuestionEditor({ index, count, onMove, onRemove }: P) {
   const id = useId();
+  const { unitSystem } = useUnits();
   const path: Path = `questions.${index}`;
   const {
     control,
@@ -293,7 +295,8 @@ export function QuestionEditor({ index, count, onMove, onRemove }: P) {
                   </SelectItem>
                   {QUESTIONNAIRE_METRIC_TYPES.map((metric) => (
                     <SelectItem key={metric} value={metric}>
-                      {metricTypeLabelMap[metric]} ({getMetricUnit(metric)})
+                      {metricTypeLabelMap[metric]} (
+                      {getMetricUnit(metric, unitSystem)})
                     </SelectItem>
                   ))}
                 </SelectContent>

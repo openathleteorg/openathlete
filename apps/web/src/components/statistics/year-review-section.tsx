@@ -4,6 +4,7 @@ import {
   useStatisticsDaysQuery,
   useStatisticsOverviewQuery,
 } from '@/api/statistics';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
@@ -12,7 +13,7 @@ import { format, parseISO } from 'date-fns';
 import { Share2 } from 'lucide-react';
 import { useState } from 'react';
 
-import { formatDistance, formatDuration } from '@openathlete/shared';
+import { formatDuration } from '@openathlete/shared';
 
 import { useHasGarminData } from '../garmin-attribution/garmin-source';
 import { SupporterNudge } from '../supporter/supporter-nudge';
@@ -43,6 +44,7 @@ function Review({
   year: number;
   visible: boolean;
 }) {
+  const units = useUnits();
   const locale = getDateFnsLocale(getLocale());
   const from = new Date(year, 0, 1);
   const to = new Date(year, 11, 31, 23, 59, 59);
@@ -91,13 +93,13 @@ function Review({
     },
     {
       label: m.distance(),
-      value: Math.round(review.distance / 1000).toLocaleString(),
-      unit: m.kilometers(),
+      value: Math.round(units.distanceValue(review.distance)).toLocaleString(),
+      unit: units.distanceLabel,
     },
     {
       label: m.elevation_gain(),
-      value: Math.round(review.elevationGain).toLocaleString(),
-      unit: m.meters(),
+      value: units.elevation(review.elevationGain).toLocaleString(),
+      unit: units.elevationLabel,
     },
     { label: m.statistics_activities(), value: `${review.activities}` },
     { label: m.statistics_review_active_days(), value: `${review.activeDays}` },
@@ -138,7 +140,7 @@ function Review({
         <p className="text-sm text-muted-foreground">
           {m.statistics_review_main_sport({
             sport: sportTypeLabelMap[mainSport.sport],
-            distance: formatDistance(mainSport.distance),
+            distance: `${units.formatDist(mainSport.distance)} ${units.distanceLabel}`,
             count: records?.length ?? 0,
           })}
         </p>

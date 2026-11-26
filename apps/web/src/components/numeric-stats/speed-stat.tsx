@@ -1,4 +1,5 @@
 import { useGetLatestMetricsQuery } from '@/api/metric';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 
 import {
@@ -18,7 +19,9 @@ interface P {
 }
 
 export function SpeedStat({ label, speed, unit, athleteId }: P) {
+  const units = useUnits();
   const { data: latestMetrics = {} } = useGetLatestMetricsQuery(athleteId);
+  const displayUnit = units.speedUnit(unit ?? 'min/km');
 
   // Convert speed to km/h for VMA comparison (VMA is stored in km/h)
   // speed is in m/s, so multiply by 3.6 to get km/h
@@ -32,9 +35,9 @@ export function SpeedStat({ label, speed, unit, athleteId }: P) {
       <PopoverTrigger className="text-left">
         <div className="text-sm font-semibold">{label}</div>
         <div>
-          {formatSpeed(speed, unit)}{' '}
+          {formatSpeed(speed, displayUnit)}{' '}
           <span className="text-muted-foreground text-sm">
-            {unit ? formatSpeedUnit(unit) : '/ km'}
+            {unit ? formatSpeedUnit(displayUnit) : units.perDistanceLabel}
           </span>
         </div>
       </PopoverTrigger>

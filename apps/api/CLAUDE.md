@@ -33,8 +33,8 @@ The same image runs as the HTTP API and as the background worker. Which BullMQ p
   - a processor must be idempotent;
   - throw `UnrecoverableError` for failures a retry cannot fix;
   - clear any "in progress" state once the last attempt fails.
-- **Optional third parties** (Stripe, OpenAI, Brevo, Firebase): create the client on first use and throw `ServiceUnavailableException` when it is not configured. The API must boot with only `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET_KEY` and `HASH_PEPPER`.
-- **Emails**: templates in `modules/notification/emails/templates/` hold one translation block per language (`FR`, `EN`, `IT`, `ES`, `PT_BR`, `DE`, `PL`, `NL`). Send through the `SendEmailEvent`; `EmailTransportService` (Brevo) is a no-op without a key.
+- **Optional third parties** (Stripe, OpenAI, Resend, Firebase): create the client on first use and throw `ServiceUnavailableException` when it is not configured. The API must boot with only `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET_KEY` and `HASH_PEPPER`.
+- **Emails**: templates in `modules/notification/emails/templates/` hold one translation block per language (`FR`, `EN`, `IT`, `ES`, `PT_BR`, `DE`, `PL`, `NL`). Send through the `SendEmailEvent`; `EmailTransportService` (Resend, else Brevo (deprecated), else SMTP) is a no-op without a key. Pass `kind` (tag in Resend) and, for a send with a stable id, `idempotencyKey`. `ResendContactsService` keeps the news contacts in step with `emailNewsConsentAt`; it never blocks the user's action. The Resend webhook is `POST /api/webhooks/resend` (Svix signature).
 
 ## Data and deletion
 

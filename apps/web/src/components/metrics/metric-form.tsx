@@ -1,4 +1,5 @@
 import { AthleteMetric, MetricAPI } from '@/api/metric';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getMetricUnit } from '@/utils/metric-unit';
@@ -12,6 +13,8 @@ import {
   METRIC_TYPE,
   createMetricDtoSchema,
   metricCalculationMap,
+  metricFromDisplay,
+  metricToDisplay,
 } from '@openathlete/shared';
 
 import {
@@ -43,12 +46,23 @@ export function MetricForm({
   lockDate = false,
   isLoading,
 }: MetricFormProps) {
+  const units = useUnits();
+  const initialType = defaultValues?.type || METRIC_TYPE.WEIGHT;
+  // A converted value shows two decimals; a stored one shows as it is
+  const toDisplay = (type: METRIC_TYPE, value: number) => {
+    const shown = metricToDisplay(type, value, units.unitSystem);
+    return shown === value ? value : Number(shown.toFixed(2));
+  };
+  const initialDisplay =
+    defaultValues?.value !== undefined
+      ? toDisplay(initialType, defaultValues.value)
+      : undefined;
   const methods = useForm<CreateMetricDto>({
     resolver: zodResolver(createMetricDtoSchema),
     defaultValues: {
-      type: defaultValues?.type || METRIC_TYPE.WEIGHT,
+      type: initialType,
       date: defaultValues?.date ? new Date(defaultValues.date) : new Date(),
-      value: defaultValues?.value ?? undefined,
+      value: initialDisplay,
       notes: defaultValues?.notes || '',
     },
   });
@@ -67,7 +81,9 @@ export function MetricForm({
     try {
       const calculatedValue = await MetricAPI.calculateMetric(selectedType);
       if (calculatedValue !== null && calculatedValue !== undefined) {
-        setValue('value', calculatedValue);
+        setValue('value', toDisplay(selectedType, calculatedValue), {
+          shouldDirty: true,
+        });
       }
     } catch (error) {
       console.error('Failed to calculate metric:', error);
@@ -82,7 +98,19 @@ export function MetricForm({
   }, [selectedType]);
 
   const onFormSubmit = handleSubmit(async (data) => {
-    onSubmit(data);
+    // The value shown unchanged saves as stored: 80 kg shown as 176.37 lb
+    // would otherwise come back as 79.99998 kg
+    const original = defaultValues?.value;
+    const unchanged =
+      original !== undefined &&
+      data.type === initialType &&
+      data.value === initialDisplay;
+    onSubmit({
+      ...data,
+      value: unchanged
+        ? original
+        : metricFromDisplay(data.type, data.value, units.unitSystem),
+    });
   });
 
   return (
@@ -127,7 +155,7 @@ export function MetricForm({
           <RHFTextField
             name="value"
             type="number"
-            label={`${m.value()} (${getMetricUnit(selectedType)})`}
+            label={`${m.value()} (${getMetricUnit(selectedType, units.unitSystem)})`}
             required
             step="0.01"
           />

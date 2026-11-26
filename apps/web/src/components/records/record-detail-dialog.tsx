@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { useState } from 'react';
@@ -52,6 +53,7 @@ function ProgressChart({
   sport,
   efforts,
 }: Pick<P, 'metric' | 'sport'> & { efforts: RecordEffortDto[] }) {
+  const units = useUnits();
   const data = recordProgress(metric, efforts, sport);
   if (data.length < 2) return null;
   const years = [
@@ -77,7 +79,9 @@ function ProgressChart({
           width={48}
           domain={['auto', 'auto']}
           tick={{ fontSize: 11 }}
-          tickFormatter={(value: number) => metric.format(value, sport)}
+          tickFormatter={(value: number) =>
+            metric.format(value, sport, units.unitSystem)
+          }
         />
         <Scatter dataKey="value" fill="var(--muted-foreground)" r={2} />
         <Line
@@ -105,6 +109,7 @@ export function RecordDetailDialog({
   onRestore,
   onOpenActivity,
 }: P) {
+  const units = useUnits();
   const axis =
     metric.axis === 'distance'
       ? { distance: position }
@@ -116,7 +121,7 @@ export function RecordDetailDialog({
     ...axis,
   });
   const [picked, setPicked] = useState<number | null>(null);
-  const title = `${metric.title(sport)} · ${formatRecordPosition(metric, position)}`;
+  const title = `${metric.title(sport)} · ${formatRecordPosition(metric, position, units.unitSystem)}`;
 
   const eligible = efforts?.filter((effort) => effort.exclusionId === null);
   const record = eligible?.[0];
@@ -151,6 +156,7 @@ export function RecordDetailDialog({
                   metric,
                   effort,
                   sport,
+                  units.unitSystem,
                 );
                 return (
                   <li

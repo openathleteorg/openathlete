@@ -11,6 +11,7 @@ import { CliDeps, runCommand } from './cli/commands';
 import { validateEnv } from './common/config/validate-env';
 import { AccountDeletionService } from './modules/auth/services/account-deletion.service';
 import { TokenService } from './modules/auth/services/token.service';
+import { ResendContactsService } from './modules/notification/services/resend-contacts.service';
 import { PrismaService } from './modules/prisma/services/prisma.service';
 import { StripeService } from './modules/subscription/services/stripe.service';
 
@@ -28,6 +29,7 @@ import { StripeService } from './modules/subscription/services/stripe.service';
     TokenService,
     StripeService,
     AccountDeletionService,
+    ResendContactsService,
   ],
 })
 class CliModule {}
@@ -42,6 +44,7 @@ async function main() {
     prisma: app.get(PrismaService),
     tokens: app.get(TokenService),
     accountDeletion: app.get(AccountDeletionService),
+    resendContacts: app.get(ResendContactsService),
     appUrl: config.get('APP_URL'),
     queueFullImports: (ids) => queueFullImports(config.get('REDIS_URL'), ids),
     readInput,

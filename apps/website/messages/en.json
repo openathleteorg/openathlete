@@ -48,7 +48,7 @@
   "privacy_policy_processors_list_2": "Vercel (United States): delivery of the website and web application (technical logs such as IP addresses).",
   "privacy_policy_processors_list_3": "PostHog (European Union data region): error reports and server logs, which name no user.",
   "privacy_policy_processors_list_4": "PostHog and Contentsquare: product analytics and masked session recordings, only if you accept them.",
-  "privacy_policy_processors_list_5": "Brevo (France): transactional emails such as password resets and invitations.",
+  "privacy_policy_processors_list_5": "Resend (Resend, Inc., United States; emails are sent from the EU): transactional emails such as password resets and invitations, and news emails.",
   "privacy_policy_processors_list_6": "Stripe: payment of subscriptions.",
   "privacy_policy_processors_list_7": "Google Firebase: sign-in with Google and push notifications on mobile.",
   "privacy_policy_processors_list_8": "AI providers: nothing is sent to them until you allow it, in the app (Settings > AI shows what is sent and to whom, and lets you withdraw it). With your own API key, the provider you choose processes the data each AI feature needs, under your agreement with it. With AI included in your plan, OpenAI and Google process it on our behalf, and OpenAI transcribes the voice notes you record.",

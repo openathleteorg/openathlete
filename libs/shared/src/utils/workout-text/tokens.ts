@@ -6,6 +6,12 @@ import {
 } from '../../types/misc';
 import type { SPORT_TYPE } from '../../types/misc/core/sport-type.enum';
 import {
+  KG_TO_LB,
+  METERS_PER_MILE,
+  METERS_PER_YARD,
+  MS_TO_MPH,
+} from '../units';
+import {
   LAP_WORDS,
   OPEN_WORDS,
   PERCENT_BASE_WORDS,
@@ -97,7 +103,7 @@ export function parseDuration(
     return distance(num(match[1]) * 1000);
   }
   if ((match = word.match(new RegExp(`^${NUM}mi$`)))) {
-    return distance(num(match[1]) * 1609.344);
+    return distance(num(match[1]) * METERS_PER_MILE);
   }
   if (
     (match = word.match(
@@ -107,7 +113,7 @@ export function parseDuration(
     return distance(num(match[1]));
   }
   if ((match = word.match(new RegExp(`^${NUM}(?:yd|yds|y)$`)))) {
-    return distance(num(match[1]) * 0.9144);
+    return distance(num(match[1]) * METERS_PER_YARD);
   }
   if ((match = word.match(new RegExp(`^${NUM}m$`)))) {
     const value = num(match[1]);
@@ -183,9 +189,9 @@ export type ParsedTarget =
 /** Metres a pace is given per */
 const PACE_UNITS: Record<string, number> = {
   km: 1000,
-  mi: 1609.344,
+  mi: METERS_PER_MILE,
   '100m': 100,
-  '100y': 91.44,
+  '100y': 100 * METERS_PER_YARD,
   '500m': 500,
   '400m': 400,
 };
@@ -309,6 +315,18 @@ export function parseTarget(
       consumed: false,
     };
   }
+  if ((match = word.match(new RegExp(`^${NUM}(?:-${NUM})?mph$`)))) {
+    const speed = (mph: string) =>
+      Math.round((num(mph) / MS_TO_MPH) * 10000) / 10000;
+    return {
+      parsed: range(
+        WORKOUT_TARGET_TYPE.PACE,
+        speed(match[1]),
+        match[2] ? speed(match[2]) : null,
+      ),
+      consumed: false,
+    };
+  }
   if ((match = word.match(/^(\d+)(?:-(\d+))?(?:rpm|spm|ppm)$/))) {
     return {
       parsed: range(
@@ -346,6 +364,17 @@ export function parseTarget(
         WORKOUT_TARGET_TYPE.WEIGHT,
         num(match[1]),
         match[2] ? num(match[2]) : null,
+      ),
+      consumed: false,
+    };
+  }
+  if ((match = word.match(new RegExp(`^${NUM}(?:-${NUM})?lbs?$`)))) {
+    const kg = (lb: string) => Math.round((num(lb) / KG_TO_LB) * 100) / 100;
+    return {
+      parsed: range(
+        WORKOUT_TARGET_TYPE.WEIGHT,
+        kg(match[1]),
+        match[2] ? kg(match[2]) : null,
       ),
       consumed: false,
     };
@@ -407,7 +436,7 @@ export function tokenize(text: string, offset = 0): Token[] {
     if (
       prev &&
       /\d$/.test(prev.word) &&
-      /^(\/(km|mi|100m|100y|500m|400m)|%|km\/h|kmh|w|bpm|rpm|spm|kg)$/.test(
+      /^(\/(km|mi|100m|100y|500m|400m)|%|km\/h|kmh|mph|w|bpm|rpm|spm|kg|lbs?)$/.test(
         token.word,
       )
     ) {

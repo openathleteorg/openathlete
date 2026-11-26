@@ -83,9 +83,14 @@ function lengthPresets(env: BuilderEnv): string[] {
     '1h',
   ];
   const distance =
-    env.sport === 'SWIMMING'
-      ? ['25m', '50m', '100m', '200m', '400m']
-      : ['200m', '400m', '1km', '2km', '5km'];
+    // Tracks are metric everywhere: imperial runners still run 400 m reps
+    env.unitSystem === 'IMPERIAL'
+      ? env.sport === 'SWIMMING'
+        ? ['25yd', '50yd', '100yd', '200yd', '500yd']
+        : ['200m', '400m', '800m', '1mi', '2mi', '5mi']
+      : env.sport === 'SWIMMING'
+        ? ['25m', '50m', '100m', '200m', '400m']
+        : ['200m', '400m', '1km', '2km', '5km'];
   return [...time, ...distance, 'lap'];
 }
 
@@ -136,7 +141,8 @@ function LengthEditor({
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const parsed = text.trim() ? parseLength(text, env) : null;
-  const label = formatStepLength(step) ?? m.builder_length_open();
+  const label =
+    formatStepLength(step, env.unitSystem) ?? m.builder_length_open();
 
   const apply = (value: string) => {
     const length = parseLength(value, env);
@@ -175,9 +181,11 @@ function LengthEditor({
         <p className="mt-1.5 h-4 text-xs text-muted-foreground">
           {text.trim()
             ? parsed
-              ? `→ ${formatStepLength(parsed) ?? ''}`
+              ? `→ ${formatStepLength(parsed, env.unitSystem) ?? ''}`
               : m.builder_not_understood()
-            : m.builder_length_hint()}
+            : m.builder_length_hint({
+                distance: env.unitSystem === 'IMPERIAL' ? '1mi' : '2km',
+              })}
         </p>
         <div className="mt-2 flex flex-wrap gap-1">
           {lengthPresets(env).map((preset) => (
@@ -293,6 +301,7 @@ function TargetEditor({
                       env.sport,
                       env.zonesByType,
                       env.metrics,
+                      env.unitSystem,
                     ),
                   )
                   .filter(Boolean)
@@ -303,7 +312,9 @@ function TargetEditor({
                   )
                   .join(' + ') || m.builder_target_none()
               : m.builder_not_understood()
-            : m.builder_target_hint()}
+            : m.builder_target_hint({
+                pace: env.unitSystem === 'IMPERIAL' ? '7:15/mi' : '4:30/km',
+              })}
         </p>
         {(step.targets?.length ?? 0) > 0 && (
           <Button
@@ -418,7 +429,13 @@ export function StepRow({
 }: StepRowProps) {
   const labels = (step.targets ?? [])
     .map((target) =>
-      describeTarget(target, env.sport, env.zonesByType, env.metrics),
+      describeTarget(
+        target,
+        env.sport,
+        env.zonesByType,
+        env.metrics,
+        env.unitSystem,
+      ),
     )
     .filter((label): label is TargetLabel => label !== null);
   const zoneColor = labels.find((label) => label.color)?.color;

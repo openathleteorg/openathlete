@@ -1,4 +1,5 @@
 import { useGetEventNormalizationQuery } from '@/api/event';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 
 import {
@@ -32,8 +33,10 @@ const factorLabel = (factor: NORMALIZATION_FACTOR) => {
 
 /** The speed the conditions allowed, and the time each condition cost */
 export function ActivityNormalizationCard({ event }: { event: ActivityEvent }) {
+  const units = useUnits();
   const { data: normalization } = useGetEventNormalizationQuery(event.eventId);
   const config = getSportConfig(event.sport);
+  const speedUnit = units.speedUnit(config.speedUnit);
 
   const costs = (normalization?.factors ?? [])
     .filter((factor) => (factor.timeSeconds ?? 0) > 0)
@@ -49,11 +52,8 @@ export function ActivityNormalizationCard({ event }: { event: ActivityEvent }) {
         {typeof normalization.averageNormalizedSpeed === 'number' && (
           <div className="text-sm">
             <span className="font-medium">{m.normalized_speed()}:</span>{' '}
-            {formatSpeed(
-              normalization.averageNormalizedSpeed,
-              config.speedUnit,
-            )}{' '}
-            {formatSpeedUnit(config.speedUnit)}
+            {formatSpeed(normalization.averageNormalizedSpeed, speedUnit)}{' '}
+            {formatSpeedUnit(speedUnit)}
           </div>
         )}
         <div className="overflow-x-auto">

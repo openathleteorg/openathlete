@@ -577,12 +577,13 @@ export function SessionBuilder({
           </span>
           {totals.distance ? (
             <span className="text-sm tabular-nums text-muted-foreground">
-              ≈ {formatKm(totals.distance)}
+              ≈ {formatKm(totals.distance, env.unitSystem)}
             </span>
           ) : null}
           <span className="text-sm text-muted-foreground">
             {describeSteps(
               withoutUids(state.steps).filter((step) => isRepeat(step)),
+              env.unitSystem,
             )}
           </span>
         </div>

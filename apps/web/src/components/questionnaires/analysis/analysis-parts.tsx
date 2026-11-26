@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 
@@ -91,6 +92,7 @@ export function AnswersMatrix({
   occurrences: QuestionnaireOccurrence[];
   order?: 'newest' | 'oldest';
 }) {
+  const { unitSystem } = useUnits();
   const due = occurrences
     .filter(
       (occurrence) =>
@@ -166,10 +168,14 @@ export function AnswersMatrix({
                           !answer && 'text-muted-foreground',
                         )}
                         title={
-                          answer ? formatAnswer(question, answer) : undefined
+                          answer
+                            ? formatAnswer(question, answer, unitSystem)
+                            : undefined
                         }
                       >
-                        {answer ? formatAnswer(question, answer) : '–'}
+                        {answer
+                          ? formatAnswer(question, answer, unitSystem)
+                          : '–'}
                       </TableCell>
                     );
                   })}

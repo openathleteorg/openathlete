@@ -1,11 +1,15 @@
-import type { CreateWorkoutStepTarget } from '@openathlete/shared';
+import type { CreateWorkoutStepTarget, UnitSystem } from '@openathlete/shared';
 import {
+  KG_TO_LB,
+  KM_TO_MI,
+  MS_TO_MPH,
   SPORT_TYPE,
   TRAINING_ZONE_TYPE,
   WORKOUT_TARGET_TYPE,
   formatSpeed,
   getSportConfig,
   getTargetIntensity,
+  localSpeedUnit,
 } from '@openathlete/shared';
 
 import type { ZoneInfo, ZonesByType } from '../workout/workout-profile';
@@ -35,11 +39,25 @@ const PERCENT_LABEL: Record<string, string> = {
 };
 
 /** "4:30/km" in running, "1:45/100m" in the pool, "32 km/h" on the bike */
-export function formatSportSpeed(speed: number, sport: SPORT_TYPE): string {
-  const unit = getSportConfig(sport)?.speedUnit ?? 'km/h';
+export function formatSportSpeed(
+  speed: number,
+  sport: SPORT_TYPE,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
+  const unit = localSpeedUnit(
+    getSportConfig(sport)?.speedUnit ?? 'km/h',
+    unitSystem,
+  );
   if (unit === 'km/h') return `${(speed * 3.6).toFixed(1)} km/h`;
+  if (unit === 'mph') return `${(speed * MS_TO_MPH).toFixed(1)} mph`;
   const per =
-    unit === 'min/100m' ? '/100m' : unit === 'min/500m' ? '/500m' : '/km';
+    unit === 'min/100m'
+      ? '/100m'
+      : unit === 'min/500m'
+        ? '/500m'
+        : unit === 'min/mi'
+          ? '/mi'
+          : '/km';
   return `${formatSpeed(speed, unit)}${per}`;
 }
 
@@ -48,7 +66,11 @@ function paceMinutes(minutes: number): string {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
 
-function zoneBounds(zone: ZoneInfo, type: TRAINING_ZONE_TYPE): string {
+function zoneBounds(
+  zone: ZoneInfo,
+  type: TRAINING_ZONE_TYPE,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
   const top = zone.max >= 250 && type === TRAINING_ZONE_TYPE.HEARTRATE;
   switch (type) {
     case TRAINING_ZONE_TYPE.HEARTRATE:
@@ -57,9 +79,12 @@ function zoneBounds(zone: ZoneInfo, type: TRAINING_ZONE_TYPE): string {
         : `${Math.round(zone.min)}–${Math.round(zone.max)} bpm`;
     case TRAINING_ZONE_TYPE.POWER:
       return `${Math.round(zone.min)}–${Math.round(zone.max)} W`;
-    case TRAINING_ZONE_TYPE.PACE:
-      // Decimal minutes per km; the faster bound first, as paces are read
-      return `${paceMinutes(Math.min(zone.min, zone.max))}–${paceMinutes(Math.max(zone.min, zone.max))}/km`;
+    case TRAINING_ZONE_TYPE.PACE: {
+      // Stored in decimal minutes per km; the faster bound first
+      const factor = unitSystem === 'IMPERIAL' ? 1 / KM_TO_MI : 1;
+      const suffix = unitSystem === 'IMPERIAL' ? '/mi' : '/km';
+      return `${paceMinutes(Math.min(zone.min, zone.max) * factor)}–${paceMinutes(Math.max(zone.min, zone.max) * factor)}${suffix}`;
+    }
   }
 }
 
@@ -119,14 +144,23 @@ function range(
     : `${format(low)}–${format(high)}${unit}`;
 }
 
-function speedRange([low, high]: [number, number], sport: SPORT_TYPE): string {
-  if (low === high) return formatSportSpeed(low, sport);
-  const unit = getSportConfig(sport)?.speedUnit ?? 'km/h';
+function speedRange(
+  [low, high]: [number, number],
+  sport: SPORT_TYPE,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
+  if (low === high) return formatSportSpeed(low, sport, unitSystem);
+  const unit = localSpeedUnit(
+    getSportConfig(sport)?.speedUnit ?? 'km/h',
+    unitSystem,
+  );
   if (unit === 'km/h')
     return `${(low * 3.6).toFixed(1)}–${(high * 3.6).toFixed(1)} km/h`;
+  if (unit === 'mph')
+    return `${(low * MS_TO_MPH).toFixed(1)}–${(high * MS_TO_MPH).toFixed(1)} mph`;
   // Faster first: 3:50–4:00/km
-  const faster = formatSportSpeed(Math.max(low, high), sport);
-  const slower = formatSportSpeed(Math.min(low, high), sport);
+  const faster = formatSportSpeed(Math.max(low, high), sport, unitSystem);
+  const slower = formatSportSpeed(Math.min(low, high), sport, unitSystem);
   return `${faster.replace(/\/.*$/, '')}–${slower}`;
 }
 
@@ -135,6 +169,7 @@ export function describeTarget(
   sport: SPORT_TYPE,
   zonesByType: ZonesByType,
   metrics?: Record<string, { value: number }>,
+  unitSystem: UnitSystem = 'METRIC',
 ): TargetLabel | null {
   const values = bounds(target);
   if (target.targetType === WORKOUT_TARGET_TYPE.ZONE) {
@@ -143,7 +178,7 @@ export function describeTarget(
     const suffix = found.type === TRAINING_ZONE_TYPE.HEARTRATE ? ' FC' : '';
     return {
       primary: `Z${found.zone.index + 1}${suffix}`,
-      secondary: zoneBounds(found.zone, found.type),
+      secondary: zoneBounds(found.zone, found.type, unitSystem),
       kind: KIND_OF_ZONE[found.type],
       color: found.zone.color,
       zoneIndex: found.zone.index,
@@ -164,7 +199,7 @@ export function describeTarget(
     let secondary: string | null = null;
     if (abs) {
       if (target.targetType === WORKOUT_TARGET_TYPE.PACE) {
-        secondary = speedRange(abs, sport);
+        secondary = speedRange(abs, sport, unitSystem);
       } else if (target.targetType === WORKOUT_TARGET_TYPE.HEARTRATE) {
         secondary = range(abs, (v) => String(Math.round(v)), ' bpm');
       } else if (target.targetType === WORKOUT_TARGET_TYPE.POWER) {
@@ -183,7 +218,7 @@ export function describeTarget(
   const primary = (() => {
     switch (target.targetType) {
       case WORKOUT_TARGET_TYPE.PACE:
-        return speedRange(values, sport);
+        return speedRange(values, sport, unitSystem);
       case WORKOUT_TARGET_TYPE.HEARTRATE:
         return range(values, (v) => String(Math.round(v)), ' bpm');
       case WORKOUT_TARGET_TYPE.POWER:
@@ -197,7 +232,9 @@ export function describeTarget(
       case WORKOUT_TARGET_TYPE.RPE:
         return `RPE ${range(values, (v) => String(v), '')}`;
       case WORKOUT_TARGET_TYPE.WEIGHT:
-        return range(values, (v) => String(v), ' kg');
+        return unitSystem === 'IMPERIAL'
+          ? range(values, (v) => (v * KG_TO_LB).toFixed(1), ' lb')
+          : range(values, (v) => String(v), ' kg');
       default:
         return null;
     }

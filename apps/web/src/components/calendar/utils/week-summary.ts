@@ -1,4 +1,9 @@
-import { EVENT_TYPE, Event } from '@openathlete/shared';
+import {
+  EVENT_TYPE,
+  Event,
+  METERS_PER_MILE,
+  UnitSystem,
+} from '@openathlete/shared';
 
 import { getCompliance, isPlannedEvent } from './compliance';
 
@@ -66,10 +71,15 @@ export function formatCompactDuration(seconds: number): string {
     : `${hours}h${String(minutes).padStart(2, '0')}`;
 }
 
-/** Kilometres without trailing zeros, in the reader's locale: "93", "9,5" */
-export function formatCompactKilometers(meters: number, locale?: string) {
-  const kilometers = meters / 1000;
+/** Kilometres or miles without trailing zeros, in the reader's locale: "93", "9,5" */
+export function formatCompactKilometers(
+  meters: number,
+  locale?: string,
+  unitSystem: UnitSystem = 'METRIC',
+) {
+  const distance =
+    meters / (unitSystem === 'IMPERIAL' ? METERS_PER_MILE : 1000);
   return new Intl.NumberFormat(locale, {
-    maximumFractionDigits: kilometers >= 10 ? 0 : 1,
-  }).format(kilometers);
+    maximumFractionDigits: distance >= 10 ? 0 : 1,
+  }).format(distance);
 }

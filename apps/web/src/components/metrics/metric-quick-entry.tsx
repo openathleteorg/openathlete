@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getMetricUnit } from '@/utils/metric-unit';
@@ -23,7 +24,11 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { METRIC_TYPE, createMetricDtoSchema } from '@openathlete/shared';
+import {
+  METRIC_TYPE,
+  createMetricDtoSchema,
+  metricFromDisplay,
+} from '@openathlete/shared';
 
 import { FormProvider, RHFDatePicker, RHFTextField } from '../hook-form';
 import { formatMetricValue, toMetricDay } from './metric-stats';
@@ -62,6 +67,7 @@ interface P {
 }
 
 export function MetricQuickEntry({ open, onOpenChange, latest, athleteId }: P) {
+  const units = useUnits();
   const dateLabel = useMetricDateLabel();
   const [types, setTypes] = useState(MANUAL_METRICS);
   const createMetric = useCreateMetricMutation();
@@ -81,7 +87,15 @@ export function MetricQuickEntry({ open, onOpenChange, latest, athleteId }: P) {
   const onSubmit = handleSubmit(async ({ date, values }) => {
     const entries = types.flatMap((type) => {
       const value = values[type]?.trim().replace(',', '.');
-      return value ? [{ type, value: Number(value), date }] : [];
+      return value
+        ? [
+            {
+              type,
+              value: metricFromDisplay(type, Number(value), units.unitSystem),
+              date,
+            },
+          ]
+        : [];
     });
     if (!entries.length) {
       toast.error(m.metrics_quick_nothing());
@@ -102,7 +116,7 @@ export function MetricQuickEntry({ open, onOpenChange, latest, athleteId }: P) {
     const metric = latest[type];
     if (!metric) return m.metrics_no_value_yet();
     return m.metrics_quick_last_value({
-      value: formatMetricValue(type, metric.value),
+      value: formatMetricValue(type, metric.value, units.unitSystem),
       date: dateLabel(toMetricDay(metric.date)),
     });
   };
@@ -126,7 +140,7 @@ export function MetricQuickEntry({ open, onOpenChange, latest, athleteId }: P) {
               <div key={type} className="flex flex-col gap-1">
                 <RHFTextField
                   name={`values.${type}`}
-                  label={`${metricTypeLabelMap[type]} (${getMetricUnit(type)})`}
+                  label={`${metricTypeLabelMap[type]} (${getMetricUnit(type, units.unitSystem)})`}
                   inputMode="decimal"
                 />
                 <span className="text-xs text-muted-foreground">

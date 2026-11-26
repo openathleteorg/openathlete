@@ -29,6 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { YearReviewButton } from '@/components/year-review/entry/year-review-button';
 import { useAppBar } from '@/hooks/use-app-bar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { activityPath, getPath } from '@/routes/paths';
@@ -73,6 +74,7 @@ function eventHref(event: Event) {
 }
 
 function EventRow({ event, showDay }: { event: Event; showDay?: boolean }) {
+  const units = useUnits();
   const duration = eventDuration(event);
   const distance = eventDistance(event);
   const compliance = isPlannedEvent(event) ? getCompliance(event) : undefined;
@@ -82,7 +84,8 @@ function EventRow({ event, showDay }: { event: Event; showDay?: boolean }) {
         locale: getDateFnsLocale(getLocale()),
       }),
     !!duration && formatCompactDuration(duration),
-    !!distance && `${formatCompactKilometers(distance, getLocale())} km`,
+    !!distance &&
+      `${formatCompactKilometers(distance, getLocale(), units.unitSystem)} ${units.distanceUnit}`,
   ].filter(Boolean);
   // Garmin requires "Garmin [device model]" beside its activities: a line of
   // its own, which the facts never truncate

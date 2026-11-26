@@ -1,5 +1,6 @@
 import { useGetLatestMetricsQuery } from '@/api/metric';
 import { useTrainingZones } from '@/hooks/use-training-zones';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { useMemo } from 'react';
 
@@ -34,6 +35,7 @@ export function useLapOptions(
   event: ActivityEvent,
   stream: ActivityStream | undefined,
 ): LapOptions {
+  const units = useUnits();
   const athleteId = event.athleteId ?? undefined;
   const { data: latest } = useGetLatestMetricsQuery(athleteId);
   const heartrate = useTrainingZones(
@@ -73,11 +75,11 @@ export function useLapOptions(
       ),
       workout: event.plannedSession?.workout,
       splitMeters: config.showSplits
-        ? paceDistanceMeters(config.speedUnit)
+        ? paceDistanceMeters(units.speedUnit(config.speedUnit))
         : undefined,
       metrics,
       zones,
       cadenceFactor: cadenceFactor(event.sport),
     };
-  }, [event, stream, latest, heartrate, power, pace]);
+  }, [event, stream, latest, heartrate, power, pace, units]);
 }

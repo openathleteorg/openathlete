@@ -18,6 +18,7 @@ import {
   EmailList,
   readUnsubscribeToken,
 } from '../lifecycle/unsubscribe-token';
+import { ResendContactsService } from '../services/resend-contacts.service';
 
 /** The account setting each list of emails turns on */
 function preference(list: EmailList, subscribed: boolean) {
@@ -48,6 +49,7 @@ export class EmailPreferencesController {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService<ApiEnvSchemaType, true>,
     @Optional() private readonly analytics?: AnalyticsService,
+    @Optional() private readonly resendContacts?: ResendContactsService,
   ) {}
 
   @Post('unsubscribe')
@@ -94,6 +96,9 @@ export class EmailPreferencesController {
       await this.analytics?.capture(read.userId, 'weekly_email_unsubscribed', {
         from: 'email',
       });
+    }
+    if (count > 0 && read.list === 'news') {
+      void this.resendContacts?.sync(read.userId);
     }
     return { list: read.list, subscribed };
   }

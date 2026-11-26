@@ -1,15 +1,10 @@
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
+import { Units, unitsFor } from '@/utils/units';
 
 import { YearReviewDto } from '@openathlete/shared';
 
-import {
-  formatClock,
-  formatNumber,
-  formatPercent,
-  hours,
-  kilometers,
-} from '../format';
+import { formatClock, formatNumber, formatPercent, hours } from '../format';
 import { PERSONA_NAMES } from '../persona';
 
 /** Sports shown by name in the mix; the others go together */
@@ -30,7 +25,10 @@ export interface Recap {
 }
 
 /** What the recap card and the shared image both show, in the same words */
-export function recap(review: YearReviewDto): Recap {
+export function recap(
+  review: YearReviewDto,
+  units: Units = unitsFor('METRIC'),
+): Recap {
   const { totals, highlight, records, longestStreak } = review;
   const busiest = Math.max(...review.months.map((month) => month.movingTime));
   const top = review.sports.slice(0, MIX_SPORTS);
@@ -45,8 +43,11 @@ export function recap(review: YearReviewDto): Recap {
     accent: review.firstName ?? String(review.year),
     figures: [
       {
-        value: formatNumber(kilometers(totals.distance)),
-        label: m.year_review_recap_kilometers(),
+        value: formatNumber(Math.round(units.distanceValue(totals.distance))),
+        label:
+          units.unitSystem === 'IMPERIAL'
+            ? m.year_review_recap_miles()
+            : m.year_review_recap_kilometers(),
       },
       {
         value: `${formatNumber(hours(totals.movingTime))} h`,

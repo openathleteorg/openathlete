@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { formatDuration } from '@/utils/workout';
 import { useMemo } from 'react';
 
@@ -28,7 +29,12 @@ export function DurationDisplay({
   trainingZones,
   className,
 }: DurationDisplayProps) {
-  const formatted = formatDuration(durationType, durationValue);
+  const units = useUnits();
+  const formatted = formatDuration(
+    durationType,
+    durationValue,
+    units.unitSystem,
+  );
 
   const estimatedDistance = useMemo(
     () =>
@@ -42,10 +48,14 @@ export function DurationDisplay({
   );
 
   if (estimatedDistance !== null && estimatedDistance > 0) {
-    const formattedDistance = formatDuration(
-      WORKOUT_DURATION_TYPE.DISTANCE,
-      Math.round(estimatedDistance),
-    );
+    // An estimate, not a planned length: converted like any distance read
+    const formattedDistance =
+      units.unitSystem === 'IMPERIAL'
+        ? `${units.formatDist(estimatedDistance)} ${units.distanceLabel}`
+        : formatDuration(
+            WORKOUT_DURATION_TYPE.DISTANCE,
+            Math.round(estimatedDistance),
+          );
     return (
       <span className={className}>
         {formatted} (~{formattedDistance})

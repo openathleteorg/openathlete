@@ -121,7 +121,10 @@ services:
       S3_REGION: ${S3_REGION:-}
       S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-}
 
-      # Email (Brevo or SMTP, optional)
+      # Email (Resend, Brevo or SMTP, optional)
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
+      RESEND_NEWS_SEGMENT_ID: ${RESEND_NEWS_SEGMENT_ID:-}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-}
       SMTP_HOST: ${SMTP_HOST:-}

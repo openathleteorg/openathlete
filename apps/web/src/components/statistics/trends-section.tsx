@@ -1,11 +1,12 @@
 import { useStatisticsTrendsQuery } from '@/api/statistics';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
+import { Units } from '@/utils/units';
 import { ReactNode } from 'react';
 
 import {
   SPORT_TYPE,
   StatisticsTrendsDto,
-  formatDistance,
   formatSpeed,
   formatSpeedUnit,
   getSportConfig,
@@ -40,10 +41,11 @@ interface Trend {
 }
 
 /** The figures that mean something for a sport, in the order it reads them */
-function sportTrends(sport: SPORT_TYPE): Trend[] {
+function sportTrends(sport: SPORT_TYPE, units: Units): Trend[] {
   const config = getSportConfig(sport);
-  const speedUnit = formatSpeedUnit(config.speedUnit);
-  const speed = (value: number) => formatSpeed(value, config.speedUnit);
+  const localSpeed = units.speedUnit(config.speedUnit);
+  const speedUnit = formatSpeedUnit(localSpeed);
+  const speed = (value: number) => formatSpeed(value, localSpeed);
   const trends: (Trend | false)[] = [
     config.showSpeed && {
       key: 'speed',
@@ -101,24 +103,27 @@ function sportTrends(sport: SPORT_TYPE): Trend[] {
       key: 'verticalSpeed',
       title: m.statistics_vertical_speed(),
       value: (bucket) => bucket.verticalSpeed,
-      format: (value) => `${Math.round(value)}`,
-      unit: m.statistics_metres_per_hour(),
+      format: (value) => `${units.elevation(value)}`,
+      unit: units.verticalSpeedLabel,
       color: 'var(--chart-3)',
     },
     config.showDistance && {
       key: 'distance',
       title: m.average_distance_per_activity(),
       value: (bucket) => bucket.distancePerActivity,
-      format: (value) => formatDistance(value),
-      unit: m.kilometers(),
+      format: (value) => units.formatDist(value),
+      unit: units.distanceLabel,
       color: 'var(--chart-1)',
     },
     config.showElevation && {
       key: 'elevation',
       title: m.average_elevation_gain_per_activity(),
       value: (bucket) => bucket.elevationPerActivity,
-      format: (value) => `${Math.round(value)}`,
-      unit: m.short_elevation_gain(),
+      format: (value) => `${units.elevation(value)}`,
+      unit:
+        units.unitSystem === 'IMPERIAL'
+          ? units.elevationLabel
+          : m.short_elevation_gain(),
       color: 'var(--chart-2)',
     },
   ];
@@ -149,6 +154,7 @@ function Trends({
   sport,
   visible,
 }: Omit<P, 'sport'> & { sport: SPORT_TYPE; visible: boolean }) {
+  const units = useUnits();
   const { data, isFetching } = useStatisticsTrendsQuery(
     {
       athleteId,
@@ -170,7 +176,7 @@ function Trends({
   if (!data) return <TrendsSkeleton />;
 
   // Up always means more, or faster: paces are drawn as speeds
-  const trends = sportTrends(sport).filter((trend) =>
+  const trends = sportTrends(sport, units).filter((trend) =>
     // Null or zero everywhere: flat ground, no sensor, nothing to read
     data.buckets.some((bucket) => !!trend.value(bucket)),
   );

@@ -48,7 +48,7 @@
   "privacy_policy_processors_list_2": "Vercel (Stany Zjednoczone): dostarczanie strony internetowej i aplikacji webowej (logi techniczne, takie jak adresy IP).",
   "privacy_policy_processors_list_3": "PostHog (region danych w Unii Europejskiej): raporty błędów i logi serwera, które nie identyfikują żadnego użytkownika.",
   "privacy_policy_processors_list_4": "PostHog i Contentsquare: analityka produktowa i zamaskowane nagrania sesji, wyłącznie jeśli wyrazisz na nie zgodę.",
-  "privacy_policy_processors_list_5": "Brevo (Francja): e-maile transakcyjne, takie jak resetowanie hasła i zaproszenia.",
+  "privacy_policy_processors_list_5": "Resend (Resend, Inc., Stany Zjednoczone; wysyłka z UE): e-maile transakcyjne, takie jak resetowanie hasła i zaproszenia, oraz e-maile z nowościami.",
   "privacy_policy_processors_list_6": "Stripe: płatności za subskrypcje.",
   "privacy_policy_processors_list_7": "Google Firebase: logowanie przez Google i powiadomienia push na urządzeniach mobilnych.",
   "privacy_policy_processors_list_8": "Dostawcy AI: nic nie jest do nich wysyłane, dopóki nie wyrazisz na to zgody w aplikacji (Ustawienia > AI pokazuje, co jest wysyłane i do kogo, oraz pozwala wycofać zgodę). Przy użyciu własnego klucza API wybrany przez Ciebie dostawca przetwarza dane potrzebne do działania każdej funkcji AI, na podstawie Twojej umowy z nim. Gdy AI jest zawarte w Twoim planie, OpenAI i Google przetwarzają je w naszym imieniu, a OpenAI transkrybuje nagrywane przez Ciebie notatki głosowe.",

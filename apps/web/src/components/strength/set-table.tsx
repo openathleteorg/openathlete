@@ -1,11 +1,12 @@
 import { Button } from '@/components/ui/button';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { Plus, X } from 'lucide-react';
 import { type KeyboardEvent, useEffect, useState } from 'react';
 
 import type { StrengthSet } from '@openathlete/shared';
-import { WORKOUT_DURATION_TYPE } from '@openathlete/shared';
+import { M_TO_YD, WORKOUT_DURATION_TYPE } from '@openathlete/shared';
 
 import { type SetColumns, gridColumns } from './set-columns';
 import {
@@ -66,13 +67,16 @@ export function CellInput({
   );
 }
 
-const loadOf = (text: string): number | null | undefined => {
-  const value = text.replace(',', '.').replace(/kg/i, '').trim();
+const loadOf = (text: string, factor = 1): number | null | undefined => {
+  const value = text
+    .replace(',', '.')
+    .replace(/kg|lbs?/i, '')
+    .trim();
   if (!value) return null;
   const number = Number(value);
-  return Number.isFinite(number) && number >= 0 && number <= 1000
-    ? number
-    : undefined;
+  if (!Number.isFinite(number) || number < 0) return undefined;
+  const kg = number / factor;
+  return kg <= 1000 ? Number(kg.toFixed(2)) : undefined;
 };
 const rpeOf = (text: string): number | null | undefined => {
   const value = text.replace(',', '.').trim();
@@ -95,20 +99,31 @@ export function SetCells({
   onChange: (set: StrengthSet) => void;
   restLabel?: string;
 }) {
+  const units = useUnits();
   const unit =
     set.work.type === WORKOUT_DURATION_TYPE.REPS
       ? m.strength_reps_short()
       : set.work.type === WORKOUT_DURATION_TYPE.TIME
         ? ''
-        : 'm';
+        : units.unitSystem === 'IMPERIAL'
+          ? 'yd'
+          : 'm';
+  const workValue =
+    set.work.type === WORKOUT_DURATION_TYPE.DISTANCE
+      ? String(
+          units.unitSystem === 'IMPERIAL'
+            ? Math.round(set.work.value * M_TO_YD)
+            : set.work.value,
+        )
+      : formatWork(set.work, units.unitSystem);
   return (
     <>
       <div className="relative">
         <CellInput
-          value={formatWork(set.work)}
-          parse={(text) => !!parseWork(text, set.work.type)}
+          value={workValue}
+          parse={(text) => !!parseWork(text, set.work.type, units.unitSystem)}
           onCommit={(text) => {
-            const work = parseWork(text, set.work.type);
+            const work = parseWork(text, set.work.type, units.unitSystem);
             if (work) onChange({ ...set, work });
           }}
           label={m.strength_work()}
@@ -123,10 +138,13 @@ export function SetCells({
       {columns.load && (
         <div className="relative">
           <CellInput
-            value={set.load === null ? '' : String(set.load)}
-            parse={(text) => loadOf(text) !== undefined}
+            value={set.load === null ? '' : String(units.weight(set.load))}
+            parse={(text) => loadOf(text, units.weightFactor) !== undefined}
             onCommit={(text) =>
-              onChange({ ...set, load: loadOf(text) ?? null })
+              onChange({
+                ...set,
+                load: loadOf(text, units.weightFactor) ?? null,
+              })
             }
             label={m.strength_load()}
             placeholder="—"
@@ -134,7 +152,7 @@ export function SetCells({
             className="pr-6"
           />
           <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
-            kg
+            {units.weightLabel}
           </span>
         </div>
       )}

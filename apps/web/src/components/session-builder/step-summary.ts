@@ -1,5 +1,10 @@
-import type { CreateWorkoutStepDto } from '@openathlete/shared';
-import { WORKOUT_DURATION_TYPE, WORKOUT_STEP_TYPE } from '@openathlete/shared';
+import type { CreateWorkoutStepDto, UnitSystem } from '@openathlete/shared';
+import {
+  METERS_PER_MILE,
+  WORKOUT_DURATION_TYPE,
+  WORKOUT_STEP_TYPE,
+  roundImperialDistance,
+} from '@openathlete/shared';
 
 /** 0:45, 12:30, 1:05:00 — a running clock */
 export function formatClock(seconds: number): string {
@@ -20,7 +25,15 @@ export function formatTotal(seconds: number): string {
   return rest ? `${h} h ${String(rest).padStart(2, '0')}` : `${h} h`;
 }
 
-export function formatKm(meters: number): string {
+/** A total distance: 850 m, 12.4 km, or 0.53 mi, 7.7 mi */
+export function formatKm(
+  meters: number,
+  unitSystem: UnitSystem = 'METRIC',
+): string {
+  if (unitSystem === 'IMPERIAL') {
+    const mi = meters / METERS_PER_MILE;
+    return `${Number(mi.toFixed(mi >= 10 ? 1 : 2))} mi`;
+  }
   if (meters < 1000) return `${Math.round(meters)} m`;
   const km = meters / 1000;
   return `${Number(km.toFixed(km >= 10 ? 1 : 2))} km`;
@@ -29,6 +42,7 @@ export function formatKm(meters: number): string {
 /** The step length as written on its row: 10', 1'30, 400 m, 12 reps */
 export function formatStepLength(
   step: Pick<CreateWorkoutStepDto, 'durationType' | 'durationValue'>,
+  unitSystem: UnitSystem = 'METRIC',
 ): string | null {
   const value = step.durationValue ?? 0;
   switch (step.durationType) {
@@ -41,8 +55,13 @@ export function formatStepLength(
       if (min === 0) return `${s}"`;
       return s ? `${min}'${String(s).padStart(2, '0')}` : `${min}'`;
     }
-    case WORKOUT_DURATION_TYPE.DISTANCE:
+    case WORKOUT_DURATION_TYPE.DISTANCE: {
+      // In the unit it was planned in, as the text writes it: 400 m, 1 mi
+      const imperial =
+        unitSystem === 'IMPERIAL' ? roundImperialDistance(value) : null;
+      if (imperial) return `${imperial.value} ${imperial.unit}`;
       return value >= 1000 ? formatKm(value) : `${Math.round(value)} m`;
+    }
     case WORKOUT_DURATION_TYPE.REPS:
       return `×${Math.round(value)}`;
     case WORKOUT_DURATION_TYPE.CALORIES:

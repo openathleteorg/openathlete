@@ -1,4 +1,5 @@
 import { useStatisticsDaysQuery } from '@/api/statistics';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
@@ -77,9 +78,10 @@ function Regularity({
   year: number;
   sport: SPORT_TYPE | null;
 }) {
+  const units = useUnits();
   const locale = getDateFnsLocale(getLocale());
   const useDistance = !sport || getSportConfig(sport).showDistance;
-  const unit = useDistance ? m.kilometers() : 'h';
+  const unit = useDistance ? units.distanceLabel : 'h';
   const { weeks, activeWeeks } = calendarWeeks(days, year);
   const activeDays = days.filter(({ date }) =>
     date.startsWith(`${year}-`),
@@ -87,7 +89,8 @@ function Regularity({
   const rows = cumulativeRows(
     days,
     year,
-    (day) => (useDistance ? day.distance / 1000 : day.movingTime / 3600),
+    (day) =>
+      useDistance ? units.distanceValue(day.distance) : day.movingTime / 3600,
     format(new Date(), 'yyyy-MM-dd'),
   );
   const labels = {

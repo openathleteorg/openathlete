@@ -48,7 +48,7 @@
   "privacy_policy_processors_list_2": "Vercel (Verenigde Staten): levering van de website en de webapplicatie (technische logs zoals IP-adressen).",
   "privacy_policy_processors_list_3": "PostHog (dataregio Europese Unie): foutrapporten en serverlogs, die geen gebruiker bij naam noemen.",
   "privacy_policy_processors_list_4": "PostHog en Contentsquare: productanalyse en gemaskeerde sessie-opnames, alleen als je die accepteert.",
-  "privacy_policy_processors_list_5": "Brevo (Frankrijk): transactionele e-mails zoals het opnieuw instellen van je wachtwoord en uitnodigingen.",
+  "privacy_policy_processors_list_5": "Resend (Resend, Inc., Verenigde Staten; verzending vanuit de EU): transactionele e-mails zoals het opnieuw instellen van je wachtwoord en uitnodigingen, en nieuwsmails.",
   "privacy_policy_processors_list_6": "Stripe: betaling van abonnementen.",
   "privacy_policy_processors_list_7": "Google Firebase: inloggen met Google en pushmeldingen op mobiel.",
   "privacy_policy_processors_list_8": "AI-aanbieders: er wordt niets naar hen verstuurd totdat je dat toestaat, in de app (Instellingen > AI toont wat er naar wie wordt verstuurd en laat je je toestemming intrekken). Met je eigen API-sleutel verwerkt de aanbieder die jij kiest de gegevens die elke AI-functie nodig heeft, op basis van jouw overeenkomst met die aanbieder. Met AI inbegrepen in je abonnement verwerken OpenAI en Google ze namens ons, en zet OpenAI de spraaknotities die je opneemt om in tekst.",

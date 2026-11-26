@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
@@ -5,7 +6,6 @@ import { useMemo } from 'react';
 import {
   ActivityStream,
   SPORT_TYPE,
-  formatDistance,
   formatDuration,
   formatSpeed,
   formatSpeedUnit,
@@ -41,7 +41,9 @@ function Figure({ label, value }: { label: string; value: string }) {
 
 /** The figures of the part selected on the charts, a lap or a drag */
 export function SelectionStats({ stream, sport, domain, xAxis, onClear }: P) {
+  const units = useUnits();
   const config = getSportConfig(sport);
+  const speedUnit = units.speedUnit(config.speedUnit);
   const stats = useMemo(() => {
     const series = xSeries(stream, xAxis);
     const range = series && indexRange(series, domain);
@@ -50,7 +52,7 @@ export function SelectionStats({ stream, sport, domain, xAxis, onClear }: P) {
 
   if (!stats) return null;
   const speed = (value: number) =>
-    `${formatSpeed(value, config.speedUnit)} ${formatSpeedUnit(config.speedUnit)}`;
+    `${formatSpeed(value, speedUnit)} ${formatSpeedUnit(speedUnit)}`;
 
   return (
     <section
@@ -62,8 +64,8 @@ export function SelectionStats({ stream, sport, domain, xAxis, onClear }: P) {
         <p className="text-sm font-semibold">
           {m.activity_selection_title()}{' '}
           <span className="font-normal text-muted-foreground tabular-nums">
-            {formatAxisValue(domain[0], xAxis)} –{' '}
-            {formatAxisValue(domain[1], xAxis)}
+            {formatAxisValue(domain[0], xAxis, units)} –{' '}
+            {formatAxisValue(domain[1], xAxis, units)}
           </span>
         </p>
         <Button
@@ -85,7 +87,7 @@ export function SelectionStats({ stream, sport, domain, xAxis, onClear }: P) {
         {stats.distanceM !== undefined && (
           <Figure
             label={m.distance()}
-            value={`${formatDistance(stats.distanceM)} ${m.kilometers()}`}
+            value={`${units.formatDist(stats.distanceM)} ${units.distanceLabel}`}
           />
         )}
         {config.showSpeed && stats.averageSpeed !== undefined && (
@@ -123,13 +125,13 @@ export function SelectionStats({ stream, sport, domain, xAxis, onClear }: P) {
         {config.showElevation && stats.elevationGainM !== undefined && (
           <Figure
             label={m.elevation_gain()}
-            value={`${Math.round(stats.elevationGainM)} ${m.meters()}`}
+            value={`${units.elevation(stats.elevationGainM)} ${units.elevationLabel}`}
           />
         )}
         {config.showElevation && stats.elevationLossM !== undefined && (
           <Figure
             label={m.elevation_loss()}
-            value={`${Math.round(stats.elevationLossM)} ${m.meters()}`}
+            value={`${units.elevation(stats.elevationLossM)} ${units.elevationLabel}`}
           />
         )}
       </dl>

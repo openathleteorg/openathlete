@@ -127,7 +127,10 @@ export default async function OpenSourcePage({ params }: Props) {
   ];
 
   const offSettings = [
-    { label: m.opensource_host_off_email(), vars: 'SMTP_HOST · BREVO_API_KEY' },
+    {
+      label: m.opensource_host_off_email(),
+      vars: 'SMTP_HOST · RESEND_API_KEY',
+    },
     {
       label: m.opensource_host_off_devices(),
       vars: 'STRAVA_* · GARMIN_* · POLAR_* · SUUNTO_*',

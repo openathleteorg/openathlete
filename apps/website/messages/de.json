@@ -48,7 +48,7 @@
   "privacy_policy_processors_list_2": "Vercel (USA): Auslieferung der Website und der Web-App (technische Logs wie IP-Adressen).",
   "privacy_policy_processors_list_3": "PostHog (Datenregion Europäische Union): Fehlerberichte und Server-Logs, die keine Nutzer namentlich nennen.",
   "privacy_policy_processors_list_4": "PostHog und Contentsquare: Produktanalysen und maskierte Sitzungsaufzeichnungen, nur wenn du zustimmst.",
-  "privacy_policy_processors_list_5": "Brevo (Frankreich): transaktionale E-Mails wie Passwort-Zurücksetzungen und Einladungen.",
+  "privacy_policy_processors_list_5": "Resend (Resend, Inc., USA; Versand aus der EU): transaktionale E-Mails wie Passwort-Zurücksetzungen und Einladungen sowie Neuigkeiten-E-Mails.",
   "privacy_policy_processors_list_6": "Stripe: Zahlung von Abonnements.",
   "privacy_policy_processors_list_7": "Google Firebase: Anmeldung mit Google und Push-Benachrichtigungen auf Mobilgeräten.",
   "privacy_policy_processors_list_8": "KI-Anbieter: An sie wird nichts übermittelt, bevor du es in der App erlaubst (Einstellungen > KI zeigt, was an wen gesendet wird, und ermöglicht den Widerruf). Mit deinem eigenen API-Schlüssel verarbeitet der von dir gewählte Anbieter die Daten, die jede KI-Funktion benötigt, im Rahmen deiner Vereinbarung mit ihm. Ist KI in deinem Plan enthalten, verarbeiten OpenAI und Google sie in unserem Auftrag, und OpenAI transkribiert die Sprachnotizen, die du aufnimmst.",

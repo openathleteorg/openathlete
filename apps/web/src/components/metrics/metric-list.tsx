@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { SectionLabel } from '@/components/ui/section-label';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getMetricUnit } from '@/utils/metric-unit';
@@ -77,6 +78,7 @@ interface RowProps {
 }
 
 function MetricRow({ type, history, selected, onSelect }: RowProps) {
+  const units = useUnits();
   const dateLabel = useMetricDateLabel();
   const analysis = useMemo(
     () =>
@@ -128,10 +130,10 @@ function MetricRow({ type, history, selected, onSelect }: RowProps) {
       <span className="flex flex-col items-end tabular-nums">
         {last ? (
           <span className="whitespace-nowrap text-[15px] font-semibold">
-            {formatMetricValue(type, last.value)}
+            {formatMetricValue(type, last.value, units.unitSystem)}
             {!hasOwnUnit(type) && (
               <span className="ml-1 text-[11px] font-normal text-muted-foreground">
-                {getMetricUnit(type)}
+                {getMetricUnit(type, units.unitSystem)}
               </span>
             )}
           </span>

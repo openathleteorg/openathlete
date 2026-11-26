@@ -164,6 +164,7 @@ export class MessageNotificationScheduler {
           subject: messageThreadNotificationSubject(language),
           html,
           text,
+          kind: 'message_thread',
         });
         await (
           this.prisma as unknown as {

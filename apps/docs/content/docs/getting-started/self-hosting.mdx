@@ -58,7 +58,7 @@ Leave a variable empty to disable the feature:
 
 | Feature                                           | Variables                                                  |
 | ------------------------------------------------- | ---------------------------------------------------------- |
-| Transactional email (password reset, invitations) | `SMTP_*` and `EMAIL_FROM`, or `BREVO_API_KEY` (see below)  |
+| Transactional email (password reset, invitations) | `SMTP_*` and `EMAIL_FROM`, or `RESEND_API_KEY` (see below)  |
 | An email to you for each new account              | `SIGNUP_NOTIFICATION_EMAIL` (needs email)                  |
 | Device sync                                       | `STRAVA_*`, `GARMIN_*`, `POLAR_*`, `SUUNTO_*`              |
 | Single sign-on (OpenID Connect)                   | `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_NAME` (see below) |
@@ -69,7 +69,7 @@ Leave a variable empty to disable the feature:
 
 #### Email
 
-Any SMTP server works: your mail provider's, a relay such as Postmark or Amazon SES, or your own.
+Any SMTP server works: your mail provider's, a relay such as Postmark or Amazon SES, or your own. Resend works too, through its API (see below).
 
 | Variable        | Value                                                                                       |
 | --------------- | ------------------------------------------------------------------------------------------- |
@@ -83,7 +83,14 @@ Any SMTP server works: your mail provider's, a relay such as Postmark or Amazon 
 | `EMAIL_REPLY_TO` | Where replies go, when nobody reads the sender address                                     |
 | `EMAIL_SIGNATURE` | Your name, to sign onboarding tips, the monthly recap and news. Setting it turns those emails on; each user can turn them off. |
 
-Brevo works too, through its API: set `BREVO_API_KEY` instead (it wins when both are set) and `EMAIL_FROM` or `BREVO_FROM_EMAIL`.
+[Resend](https://resend.com) works too, through its API: set `RESEND_API_KEY` and `EMAIL_FROM` (an address of a domain verified in Resend). It wins over SMTP when both are set. Optional, for the hosted instance's news emails:
+
+| Variable | Value |
+| --- | --- |
+| `RESEND_WEBHOOK_SECRET` | Signing secret (`whsec_...`) of a Resend webhook pointing at `<API URL>/api/webhooks/resend`, with the events `email.complained`, `email.bounced` and `contact.updated`. Without it the endpoint answers 503. |
+| `RESEND_NEWS_SEGMENT_ID` | Resend segment that holds the people who agreed to receive news. Without it, no contact is synced. Run `docker compose exec api openathlete sync-resend-contacts` once to add the existing ones (safe to run again). |
+
+Brevo (`BREVO_API_KEY`, with `EMAIL_FROM` or `BREVO_FROM_EMAIL`) is deprecated and will be removed: it logs a warning at startup. Order when several are set: Resend, Brevo, SMTP. Brevo's SMTP relay keeps working through `SMTP_*`.
 
 #### Images
 
@@ -235,7 +242,7 @@ docker compose exec api openathlete garmin-backfill
 - `delete-users` does the same for every email of the file, one per line, after a wave of fake sign-ups for instance. Without `--yes` it only counts the accounts it would delete.
 - `garmin-backfill` asks Garmin to send the last 30 days of activities of every connected Garmin account again, after notifications were lost (the API was down for long, or failed to read them). Activities already imported are skipped.
 
-Without email (`SMTP_HOST` and `BREVO_API_KEY` empty), "Forgot your password?" still works: the reset link is written to the API logs instead of being sent, and the app tells the user to ask you for it. Find it with `docker compose logs api | grep "reset link"`.
+Without email (`SMTP_HOST`, `RESEND_API_KEY` and `BREVO_API_KEY` empty), "Forgot your password?" still works: the reset link is written to the API logs instead of being sent, and the app tells the user to ask you for it. Find it with `docker compose logs api | grep "reset link"`.
 
 ### Updating
 

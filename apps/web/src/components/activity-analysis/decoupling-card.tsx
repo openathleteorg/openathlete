@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { useMemo, useState } from 'react';
@@ -44,7 +45,9 @@ interface P {
  * effort to the second, warm-up left out, and the efficiency factor.
  */
 export function DecouplingCard({ stream, sport }: P) {
+  const units = useUnits();
   const config = getSportConfig(sport);
+  const speedUnit = units.speedUnit(config.speedUnit);
   const { domain, xAxis } = useActivityDetailsSelection();
   const [warmupMinutes, setWarmupMinutes] = useState(0);
 
@@ -99,7 +102,7 @@ export function DecouplingCard({ stream, sport }: P) {
   const formatOutput = (value: number) =>
     usesPower
       ? `${Math.round(value)} ${m.watts()}`
-      : `${formatSpeed(value, config.speedUnit)} ${formatSpeedUnit(config.speedUnit)}`;
+      : `${formatSpeed(value, speedUnit)} ${formatSpeedUnit(speedUnit)}`;
   const efficiency = usesPower
     ? `${result.efficiencyFactor.toFixed(2)} ${m.activity_ef_unit_power()}`
     : `${(result.efficiencyFactor * 60).toFixed(2)} ${m.activity_ef_unit_speed()}`;

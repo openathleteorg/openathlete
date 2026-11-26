@@ -1,4 +1,5 @@
 import { useGetRecordsQuery } from '@/api/record';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { Trophy } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -36,6 +37,7 @@ export function ActivityRecordsCharts({
   athleteId,
   startDate,
 }: P) {
+  const units = useUnits();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(42);
   const to = useMemo(() => new Date(startDate), [startDate]);
   const from = useMemo(
@@ -77,7 +79,9 @@ export function ActivityRecordsCharts({
     const metric = RECORD_METRICS.find((item) => item.type === record.type);
     const at = record.distance ?? record.duration;
     return metric && at !== null
-      ? [`${metric.title(sport)} ${formatRecordPosition(metric, at)}`]
+      ? [
+          `${metric.title(sport)} ${formatRecordPosition(metric, at, units.unitSystem)}`,
+        ]
       : [];
   });
 
@@ -121,7 +125,7 @@ export function ActivityRecordsCharts({
           {metrics.map((metric) => (
             <div key={metric.type} className="space-y-2">
               <p className="text-sm font-medium">
-                {metric.title(sport)} · {metric.unit(sport)}
+                {metric.title(sport)} · {metric.unit(sport, units.unitSystem)}
               </p>
               <RecordsCurveChart
                 metric={metric}

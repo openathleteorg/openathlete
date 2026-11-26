@@ -46,6 +46,7 @@ const env: BuilderEnv = {
   zoneType: TRAINING_ZONE_TYPE.HEARTRATE,
   metrics: undefined,
   locale: 'en',
+  unitSystem: 'METRIC',
 };
 
 const step = (durationValue: number): BuilderStep => ({

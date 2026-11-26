@@ -26,7 +26,8 @@ export const MONTHLY_COSTS: readonly MonthlyCost[] = [
   { name: 'OVHcloud', category: 'servers', eur: 38 },
   { name: 'Cloudflare R2', category: 'servers', eur: 5 },
   { name: 'Vercel', category: 'servers', eur: 20 },
-  { name: 'Brevo', category: 'tools', eur: 9 },
+  // Amount to be confirmed against the Resend invoice
+  { name: 'Resend', category: 'tools', eur: 18 },
   { name: 'Apple Developer Program', category: 'tools', eur: 8.5 },
   {
     name: {

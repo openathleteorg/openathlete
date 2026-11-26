@@ -30,6 +30,7 @@ export function TextEditor({ steps, env, onChange }: TextEditorProps) {
       sport: env.sport,
       zones: env.zones,
       locale: env.locale,
+      unitSystem: env.unitSystem,
     }),
   );
   const area = useRef<HTMLTextAreaElement>(null);
@@ -124,7 +125,9 @@ export function TextEditor({ steps, env, onChange }: TextEditorProps) {
           className="block w-full resize-y whitespace-pre bg-transparent px-3 py-2 font-mono text-sm outline-none"
           style={{ lineHeight: `${LINE_HEIGHT}px` }}
           aria-label={m.builder_text_label()}
-          placeholder={m.builder_text_placeholder()}
+          placeholder={m.builder_text_placeholder({
+            distance: env.unitSystem === 'IMPERIAL' ? '1mi' : '1km',
+          })}
         />
       </div>
       {result.issues.length > 0 ? (

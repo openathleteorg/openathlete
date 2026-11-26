@@ -1,9 +1,10 @@
 import { sportIconSrc } from '@/components/sport-icon/sport-icon-src';
+import { useUnits } from '@/hooks/use-units';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { CSSProperties } from 'react';
 
-import { formatNumber, formatPercent, hours, kilometers } from '../format';
+import { formatNumber, formatPercent, hours } from '../format';
 import { after } from '../story/after';
 import { Eyebrow, Slide, Title } from '../story/slide';
 import { SERIES_COLORS, SlideProps } from './types';
@@ -11,6 +12,7 @@ import { SERIES_COLORS, SlideProps } from './types';
 const SHOWN = 4;
 
 export function SportsSlide({ review }: SlideProps) {
+  const units = useUnits();
   const shown = review.sports.slice(0, SHOWN);
   const [main] = shown;
   const longest = main.movingTime;
@@ -62,8 +64,9 @@ export function SportsSlide({ review }: SlideProps) {
               </span>
               <span className="yr-sport-meta">
                 {[
-                  sport.distance >= 1000 &&
-                    `${formatNumber(kilometers(sport.distance))} km`,
+                  // At least one whole kilometre or mile to show
+                  units.distanceValue(sport.distance) >= 1 &&
+                    `${formatNumber(Math.round(units.distanceValue(sport.distance)))} ${units.distanceLabel}`,
                   sport.count === 1
                     ? m.year_review_one_session()
                     : m.year_review_sessions_count({ count: sport.count }),
