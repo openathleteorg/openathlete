@@ -343,6 +343,18 @@ export class StatisticsController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get('check/athletes')
+  @ApiOperation({
+    summary: 'Training check of the athletes of a coach',
+    description:
+      'The answers of the training check for each athlete the coach follows (at most 100), without their figures: fitter, faster, lasting longer, recovery, and whether a run went far beyond the longest of the month before. Empty for a user who coaches nobody.',
+  })
+  getCheckAthletes(@JwtUser() user: AuthUser) {
+    return this.trainingCheck.getForAthletes(user);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('efficiency')
   @ApiOperation({
     summary: 'Efficiency of each run',

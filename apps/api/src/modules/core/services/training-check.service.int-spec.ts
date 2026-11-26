@@ -412,6 +412,36 @@ describe('TrainingCheckService (PostgreSQL)', () => {
     expect(history.design[24]).toMatchObject({ hours: 0, easyShare: null });
   });
 
+  it('lists the answers of the athletes a coach follows', async () => {
+    const coach = {
+      userId: 999_002,
+      email: 'coach@example.com',
+      athlete: null,
+      coachAthletes: [
+        { athleteId: DELETED_ATHLETE_ID },
+        { athleteId: 424_242 },
+      ],
+    } as unknown as AuthUser;
+    await run(lately(20), { distance: 10000 });
+    await run(lately(28), { distance: 16000 });
+    // The athlete that no longer exists is left out, the other answered
+    expect(await service.getForAthletes(coach, NOW)).toEqual({
+      athletes: [
+        {
+          athleteId: DELETED_ATHLETE_ID,
+          fitness: 'OPEN',
+          speed: 'OPEN',
+          durability: 'OPEN',
+          recovery: 'OPEN',
+          design: 'NOTE',
+        },
+      ],
+    });
+    expect(await service.getForAthletes(athlete, NOW)).toEqual({
+      athletes: [],
+    });
+  });
+
   it('refuses an athlete the user cannot read', async () => {
     await expect(
       service.getCheck(stranger, DELETED_ATHLETE_ID, NOW),

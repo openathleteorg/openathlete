@@ -10,6 +10,7 @@ export const statisticsKeys = {
   efficiency: 'StatisticsAPI.efficiency',
   check: 'StatisticsAPI.check',
   checkHistory: 'StatisticsAPI.checkHistory',
+  checkAthletes: 'StatisticsAPI.checkAthletes',
   durability: 'StatisticsAPI.durability',
   longRuns: 'StatisticsAPI.longRuns',
   intensity: 'StatisticsAPI.intensity',

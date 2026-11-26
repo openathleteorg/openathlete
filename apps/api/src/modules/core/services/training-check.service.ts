@@ -16,6 +16,7 @@ import {
   CHECK_WEEK_DAYS,
   CHECK_WINDOW_DAYS,
   FTP_MODEL_SPORTS,
+  TrainingCheckAthletesDto,
   TrainingCheckDto,
   TrainingCheckHistoryDto,
   cardiacScores,
@@ -43,6 +44,8 @@ const POWER_BAND_W = 10;
 const SPEED_BAND_MS = 0.5 / 3.6;
 /** The course of the figures: half a year, week by week */
 const HISTORY_WEEKS = 26;
+/** Athletes a coach's overview reads at most */
+const MAX_ATHLETES = 100;
 
 interface BandRow {
   activityId: number;
@@ -144,6 +147,43 @@ export class TrainingCheckService {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
     return athlete.athleteId;
+  }
+
+  /**
+   * The answers of every athlete the coach follows, without the figures:
+   * who to look at first. One athlete after the other, as each check is a
+   * handful of queries.
+   */
+  async getForAthletes(
+    user: AuthUser,
+    now = new Date(),
+  ): Promise<TrainingCheckAthletesDto> {
+    const ids = (user.coachAthletes ?? [])
+      .map(({ athleteId }) => athleteId)
+      .slice(0, MAX_ATHLETES);
+    const athletes: TrainingCheckAthletesDto['athletes'] = [];
+    for (const athleteId of ids) {
+      try {
+        const check = await this.getCheck(user, athleteId, now);
+        athletes.push({
+          athleteId,
+          fitness: check.fitness.status,
+          speed: check.speed.status,
+          durability: check.durability.status,
+          recovery: check.recovery.status,
+          design: check.design.status,
+        });
+      } catch (error) {
+        // An athlete who left since the session started: the others stay
+        if (
+          !(error instanceof ForbiddenException) &&
+          !(error instanceof NotFoundException)
+        ) {
+          throw error;
+        }
+      }
+    }
+    return { athletes };
   }
 
   /**

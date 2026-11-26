@@ -425,6 +425,23 @@ export type TrainingCheckHistoryDto = z.infer<
   typeof trainingCheckHistorySchema
 >;
 
+/** The answers of each athlete a coach follows, to see who needs a look */
+export const trainingCheckAthletesSchema = z.object({
+  athletes: z.array(
+    z.object({
+      athleteId: z.number(),
+      fitness: checkStatusSchema,
+      speed: checkStatusSchema,
+      durability: checkStatusSchema,
+      recovery: checkStatusSchema,
+      design: z.enum(['FINE', 'NOTE', 'OPEN']),
+    }),
+  ),
+});
+export type TrainingCheckAthletesDto = z.infer<
+  typeof trainingCheckAthletesSchema
+>;
+
 /**
  * The one figure of the Lab a non-Supporter sees: the capacity of the
  * profile that progressed the most over the last twelve months against the
