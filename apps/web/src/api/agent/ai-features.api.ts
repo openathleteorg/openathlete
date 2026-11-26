@@ -1,4 +1,5 @@
 import client, { routes } from '@/utils/axios';
+import { deviceTimeZone, localDateKey } from '@/utils/time-zone';
 
 import {
   CreateEventDto,
@@ -16,14 +17,16 @@ export class AIFeaturesAPI {
     /** The session's athlete: the workout uses their zones */
     athleteId?: number | null,
   ): Promise<GenerateEventResponseDto> {
-    const normalizedDate = new Date(date);
-    normalizedDate.setHours(0, 0, 0, 0);
+    // A calendar day is not an instant: send the local day, plus the zone
+    // that makes noon on that day unambiguous for the API
+    const timeZone = deviceTimeZone();
 
     const res = await client.post<GenerateEventResponseDto>(
       routes.aiFeatures.generateEvent,
       {
         prompt,
-        date: normalizedDate.toISOString(),
+        date: localDateKey(date),
+        ...(timeZone ? { timeZone } : {}),
         ...(athleteId ? { athleteId } : {}),
       } satisfies GenerateEventDto,
     );

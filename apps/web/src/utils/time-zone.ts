@@ -12,6 +12,15 @@ export function deviceTimeZone(): string | undefined {
   }
 }
 
+/** The local calendar day (YYYY-MM-DD) of a date, never through UTC. */
+export function localDateKey(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
 /**
  * Saves the device's time zone to the profile when it changed (first use,
  * travel), so reminders go out in the user's evening.

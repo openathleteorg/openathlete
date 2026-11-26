@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { saveTimeZone } from './time-zone';
+import { localDateKey, saveTimeZone } from './time-zone';
 
 const api = vi.hoisted(() => ({ updateAccount: vi.fn() }));
 vi.mock('@/api/user/user.api', () => ({ UserAPI: api }));
@@ -42,5 +42,12 @@ describe('saveTimeZone', () => {
     deviceZone('Mars/Olympus_Mons');
     await saveTimeZone('Europe/Paris');
     expect(api.updateAccount).not.toHaveBeenCalled();
+  });
+});
+
+describe('localDateKey', () => {
+  it('keeps the local day the calendar picked', () => {
+    expect(localDateKey(new Date(2026, 10, 26, 0, 30))).toBe('2026-11-26');
+    expect(localDateKey(new Date(2026, 11, 1, 23, 30))).toBe('2026-12-01');
   });
 });
