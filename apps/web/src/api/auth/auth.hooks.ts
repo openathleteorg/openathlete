@@ -3,16 +3,32 @@ import {
   type AuthSessionSnapshot,
   beginAuthLogin,
   commitAuthLogin,
+  isAuthLoginCurrent,
+  storedAccessToken,
 } from '@/utils/auth-attempt';
+import { AuthSessionChangedError } from '@/utils/axios';
 import { type MutationOptions, useMutation } from '@tanstack/react-query';
 
 import { AuthResponseDto } from '@openathlete/shared';
 
 import { AuthAPI } from './auth.api';
 
+type LoginAttempt = AuthLoginAttempt | Promise<AuthLoginAttempt>;
+
 type LoginRun<TVariables> = {
   variables: TVariables;
-  attempt: AuthLoginAttempt;
+  attempt: LoginAttempt;
+};
+
+type LoginOptions<TVariables> = Omit<
+  MutationOptions<AuthResponseDto, Error, TVariables>,
+  'onSuccess'
+> & {
+  onSuccess?: (
+    data: AuthResponseDto,
+    variables: TVariables,
+    isCurrent: () => boolean,
+  ) => void | Promise<void>;
 };
 
 type LoginContext = {
@@ -25,15 +41,15 @@ type LoginContext = {
  * login started on this storage. Two submissions, or a reload in another tab,
  * must never make the older answer overwrite the session that won.
  *
- * The attempt is captured when `mutate`/`mutateAsync` is called, not when the
- * async mutation runner starts: another login may commit in between.
+ * Direct logins capture the attempt when submitted. Multi-step flows pass the
+ * attempt captured before their first asynchronous step.
  */
 function useAuthLoginMutation<TVariables>(
   mutationFn: (
     variables: TVariables,
     session: AuthSessionSnapshot,
   ) => Promise<AuthResponseDto>,
-  opt?: MutationOptions<AuthResponseDto, Error, TVariables>,
+  opt?: LoginOptions<TVariables>,
 ) {
   const mutation = useMutation<
     AuthResponseDto,
@@ -42,27 +58,32 @@ function useAuthLoginMutation<TVariables>(
     LoginContext
   >({
     ...opt,
-    mutationFn: (run) => mutationFn(run.variables, run.attempt),
+    mutationFn: async ({ variables, attempt }) => {
+      const started = await attempt;
+      if (!isAuthLoginCurrent(started)) throw new AuthSessionChangedError();
+      return mutationFn(variables, started);
+    },
     onMutate: async (run, context) => {
       const result = opt?.onMutate
         ? await opt.onMutate(run.variables, context)
         : undefined;
       return { result };
     },
-    onSuccess: (data, run, context, mutationContext) => {
-      if (!commitAuthLogin(run.attempt, data.accessToken, data.refreshToken)) {
-        return;
-      }
-      if (opt?.onSuccess)
-        return opt.onSuccess(
-          data,
-          run.variables,
-          context.result,
-          mutationContext,
-        );
+    onSuccess: async (data, { attempt, variables }) => {
+      const started = await attempt;
+      const session = await commitAuthLogin(
+        started,
+        data.accessToken,
+        data.refreshToken,
+      );
+      if (!session) return;
+      const isCurrent = () =>
+        isAuthLoginCurrent(started, session) && storedAccessToken() !== null;
+      if (isCurrent()) return opt?.onSuccess?.(data, variables, isCurrent);
     },
-    onError: (error, run, context, mutationContext) => {
-      if (opt?.onError)
+    onError: async (error, run, context, mutationContext) => {
+      const started = await Promise.resolve(run.attempt).catch(() => null);
+      if ((!started || isAuthLoginCurrent(started)) && opt?.onError)
         return opt.onError(
           error,
           run.variables,
@@ -82,44 +103,25 @@ function useAuthLoginMutation<TVariables>(
     },
   });
 
-  const run = (variables: TVariables): LoginRun<TVariables> => ({
-    variables,
-    attempt: beginAuthLogin(),
-  });
-
   return {
     ...mutation,
-    mutate: (
-      variables: TVariables,
-      options?: Parameters<typeof mutation.mutate>[1],
-    ) => mutation.mutate(run(variables), options),
+    mutate: (variables: TVariables, attempt: LoginAttempt = beginAuthLogin()) =>
+      mutation.mutate({ variables, attempt }),
     mutateAsync: (
       variables: TVariables,
-      options?: Parameters<typeof mutation.mutateAsync>[1],
-    ) => mutation.mutateAsync(run(variables), options),
+      attempt: LoginAttempt = beginAuthLogin(),
+    ) => mutation.mutateAsync({ variables, attempt }),
   };
 }
 
 export const useLoginMutation = (
-  opt?: MutationOptions<
-    Awaited<ReturnType<typeof AuthAPI.login>>,
-    Error,
-    Parameters<typeof AuthAPI.login>[0]
-  >,
+  opt?: LoginOptions<Parameters<typeof AuthAPI.login>[0]>,
 ) => useAuthLoginMutation(AuthAPI.login, opt);
 
 export const useLoginWithFirebaseMutation = (
-  opt?: MutationOptions<
-    Awaited<ReturnType<typeof AuthAPI.loginWithFirebase>>,
-    Error,
-    Parameters<typeof AuthAPI.loginWithFirebase>[0]
-  >,
+  opt?: LoginOptions<Parameters<typeof AuthAPI.loginWithFirebase>[0]>,
 ) => useAuthLoginMutation(AuthAPI.loginWithFirebase, opt);
 
 export const useExchangeOidcCodeMutation = (
-  opt?: MutationOptions<
-    Awaited<ReturnType<typeof AuthAPI.exchangeOidcCode>>,
-    Error,
-    Parameters<typeof AuthAPI.exchangeOidcCode>[0]
-  >,
+  opt?: LoginOptions<Parameters<typeof AuthAPI.exchangeOidcCode>[0]>,
 ) => useAuthLoginMutation(AuthAPI.exchangeOidcCode, opt);

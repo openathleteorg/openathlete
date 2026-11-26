@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('./capacitor', () => ({
-  getApiBaseUrl: () => 'https://train.example.org/api',
-}));
+const server = vi.hoisted(() => ({ url: 'https://train.example.org/api' }));
+vi.mock(
+  '@/utils/auth-login-lock',
+  () => import('@/utils/test/auth-login-lock'),
+);
+
+vi.mock('./capacitor', () => ({ getApiBaseUrl: () => server.url }));
 
 const SESSION_KEY = 'auth_session';
 const RECORD_PREFIX = 'auth_record:';
@@ -32,6 +36,7 @@ const authRecords = () =>
 describe('auth session storage ownership', () => {
   beforeEach(() => {
     localStorage.clear();
+    server.url = 'https://train.example.org/api';
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -91,25 +96,57 @@ describe('auth session storage ownership', () => {
 
   it('publishes one attempt pointer and lets only it commit', async () => {
     const firstContext = await import('./auth-attempt');
-    const first = firstContext.beginAuthLogin();
+    const first = await firstContext.beginAuthLogin();
     vi.resetModules();
     const secondContext = await import('./auth-attempt');
-    const second = secondContext.beginAuthLogin();
+    const second = await secondContext.beginAuthLogin();
 
     expect(second.ticket).not.toBe(first.ticket);
     expect(String(first.ticket)).not.toMatch(/^\d+$/);
     expect(localStorage.getItem(ATTEMPT_KEY)).toBe(second.ticket);
     expect(
-      firstContext.commitAuthLogin(first, 'token-a', 'refresh-a'),
+      await firstContext.commitAuthLogin(first, 'token-a', 'refresh-a'),
     ).toBeNull();
 
-    const committed = secondContext.commitAuthLogin(
+    const committed = await secondContext.commitAuthLogin(
       second,
       'token-b',
       'refresh-b',
     );
     expect(committed).not.toBeNull();
     expect(firstContext.captureAuthSession().owner).toBe(committed?.owner);
+  });
+
+  it('keeps a newer login requested during the previous credential write', async () => {
+    const context = await import('./auth-attempt');
+    const first = await context.beginAuthLogin();
+    const originalSetItem = Storage.prototype.setItem;
+    let successor: ReturnType<typeof context.commitAuthLogin> | undefined;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string,
+    ) {
+      originalSetItem.call(this, key, value);
+      if (key.startsWith(RECORD_PREFIX) && value.includes('token-a')) {
+        successor = context
+          .beginAuthLogin()
+          .then((attempt) =>
+            context.commitAuthLogin(attempt, 'token-b', 'refresh-b'),
+          );
+      }
+    });
+
+    await context.commitAuthLogin(first, 'token-a', 'refresh-a');
+
+    expect(successor).toBeDefined();
+    const committed = await successor;
+    expect(context.captureAuthSession()).toEqual(committed);
+    expect(context.storedAccessToken()).toBe('token-b');
+    expect(context.storedRefreshToken()).toBe('refresh-b');
+    expect(authRecords()).toEqual([
+      expect.objectContaining({ accessToken: 'token-b' }),
+    ]);
   });
 
   it('binds a refresh to the exact credential that started it', async () => {
@@ -370,7 +407,35 @@ describe('auth session storage ownership', () => {
     expect(context.captureAuthSession().owner).not.toBe(started.owner);
   });
 
-  it('fails closed on legacy tokens without writing a session', async () => {
+  it.each([
+    ['legacy-access', 'legacy-refresh'],
+    ['legacy-access', null],
+    [null, 'legacy-refresh'],
+  ])(
+    'upgrades stored credentials (%s, %s) and rehydrates the session',
+    async (access, refresh) => {
+      if (access) localStorage.setItem(LEGACY_ACCESS_KEY, access);
+      if (refresh) localStorage.setItem(LEGACY_REFRESH_KEY, refresh);
+      const first = await import('./auth-attempt');
+
+      first.migrateLegacyAuthSession();
+
+      const migrated = first.captureAuthSession();
+      expect(migrated.owner).not.toBe('none');
+      expect(migrated.accessToken).toBe(access);
+      expect(first.storedRefreshToken()).toBe(refresh);
+      expect(localStorage.getItem(LEGACY_ACCESS_KEY)).toBeNull();
+      expect(localStorage.getItem(LEGACY_REFRESH_KEY)).toBeNull();
+
+      vi.resetModules();
+      const reloaded = await import('./auth-attempt');
+      reloaded.migrateLegacyAuthSession();
+      expect(reloaded.captureAuthSession()).toEqual(migrated);
+      expect(reloaded.storedRefreshToken()).toBe(refresh);
+    },
+  );
+
+  it('keeps ordinary auth reads free of legacy lookups or writes', async () => {
     localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
     localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
 
@@ -394,8 +459,6 @@ describe('auth session storage ownership', () => {
     expect(storedAccessToken()).toBeNull();
     expect(storedRefreshToken()).toBeNull();
 
-    // A legacy install must not be adopted, and a read must never publish a
-    // record: that write is what a concurrent sign-out could race.
     expect(reads).not.toContain(LEGACY_ACCESS_KEY);
     expect(reads).not.toContain(LEGACY_REFRESH_KEY);
     expect(localStorage.getItem(SESSION_KEY)).toBeNull();
@@ -404,11 +467,184 @@ describe('auth session storage ownership', () => {
     expect(localStorage.getItem(LEGACY_REFRESH_KEY)).toBe('legacy-refresh');
   });
 
+  it('keeps a successor login that commits during the migration write', async () => {
+    localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
+    localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
+    const context = await import('./auth-attempt');
+    const originalSetItem = Storage.prototype.setItem;
+    let successor: ReturnType<typeof context.installAuthTokens> | undefined;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string,
+    ) {
+      if (value.includes('legacy-access')) {
+        successor = context.installAuthTokens('new-access', 'new-refresh');
+      }
+      originalSetItem.call(this, key, value);
+    });
+
+    context.migrateLegacyAuthSession();
+
+    expect(successor).toBeDefined();
+    expect(context.captureAuthSession()).toEqual(successor);
+    expect(context.storedRefreshToken()).toBe('new-refresh');
+    expect(Object.values(localStorage).join()).not.toContain('legacy-access');
+  });
+
+  it('keeps the initial boundary signed out when migration writes late', async () => {
+    localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
+    localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
+    const context = await import('./auth-attempt');
+    const initial = context.captureAuthSession();
+    const originalSetItem = Storage.prototype.setItem;
+    let signedOut = false;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string,
+    ) {
+      if (value.includes('legacy-access')) {
+        signedOut = true;
+        context.clearAuthTokens(initial);
+      }
+      originalSetItem.call(this, key, value);
+    });
+
+    context.migrateLegacyAuthSession();
+
+    expect(signedOut).toBe(true);
+    expect(context.storedAccessToken()).toBeNull();
+    expect(context.storedRefreshToken()).toBeNull();
+    expect(Object.values(localStorage).join()).not.toContain('legacy-access');
+  });
+
+  it('keeps credentials rotated by another upgrader during the migration write', async () => {
+    localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
+    localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
+    const context = await import('./auth-attempt');
+    const originalSetItem = Storage.prototype.setItem;
+    let rotating = false;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string,
+    ) {
+      if (!rotating && value.includes('legacy-access')) {
+        rotating = true;
+        context.migrateLegacyAuthSession();
+        context.rotateAuthTokens(
+          context.captureAuthSession(),
+          'rotated-access',
+          'rotated-refresh',
+        );
+      }
+      originalSetItem.call(this, key, value);
+    });
+
+    context.migrateLegacyAuthSession();
+
+    expect(context.storedAccessToken()).toBe('rotated-access');
+    expect(context.storedRefreshToken()).toBe('rotated-refresh');
+    expect(Object.values(localStorage).join()).not.toContain('legacy-access');
+  });
+
+  it('keeps the full pair when another tab migrates between the split reads', async () => {
+    localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
+    localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
+    const context = await import('./auth-attempt');
+    const originalGetItem = Storage.prototype.getItem;
+    let migrated = false;
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+    ) {
+      if (!migrated && key === LEGACY_REFRESH_KEY) {
+        migrated = true;
+        context.migrateLegacyAuthSession();
+      }
+      return originalGetItem.call(this, key);
+    });
+
+    context.migrateLegacyAuthSession();
+
+    expect(context.storedAccessToken()).toBe('legacy-access');
+    expect(context.storedRefreshToken()).toBe('legacy-refresh');
+  });
+
+  it('finishes clearing the split keys on the next startup', async () => {
+    localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
+    localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
+    const context = await import('./auth-attempt');
+    const originalRemoveItem = Storage.prototype.removeItem;
+    const interruptedCleanup = vi
+      .spyOn(Storage.prototype, 'removeItem')
+      .mockImplementation(function (this: Storage, key: string) {
+        if (key !== LEGACY_REFRESH_KEY) originalRemoveItem.call(this, key);
+      });
+    context.migrateLegacyAuthSession();
+    const migrated = context.captureAuthSession();
+    expect(localStorage.getItem(LEGACY_REFRESH_KEY)).toBe('legacy-refresh');
+    interruptedCleanup.mockRestore();
+
+    context.migrateLegacyAuthSession();
+
+    expect(context.captureAuthSession()).toEqual(migrated);
+    expect(context.storedRefreshToken()).toBe('legacy-refresh');
+    expect(localStorage.getItem(LEGACY_REFRESH_KEY)).toBeNull();
+  });
+
+  it.each([false, true])(
+    'keeps split tokens when the seed cannot persist (throws: %s)',
+    async (throws) => {
+      localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
+      localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
+      const context = await import('./auth-attempt');
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        if (throws) throw new DOMException('', 'QuotaExceededError');
+      });
+
+      context.migrateLegacyAuthSession();
+
+      expect(localStorage.getItem(LEGACY_ACCESS_KEY)).toBe('legacy-access');
+      expect(localStorage.getItem(LEGACY_REFRESH_KEY)).toBe('legacy-refresh');
+    },
+  );
+
+  it('never exposes migration credentials to a server that replaced the initial instance', async () => {
+    localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
+    localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
+    const context = await import('./auth-attempt');
+    const originalSetItem = Storage.prototype.setItem;
+    let switched = false;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string,
+    ) {
+      if (value.includes('legacy-access')) {
+        localStorage.clear();
+        server.url = 'https://other.example.org/api';
+        switched = true;
+      }
+      originalSetItem.call(this, key, value);
+      if (switched) expect(context.captureAuthSession().accessToken).toBeNull();
+    });
+
+    context.migrateLegacyAuthSession();
+
+    expect(switched).toBe(true);
+    expect(context.storedAccessToken()).toBeNull();
+    expect(context.storedRefreshToken()).toBeNull();
+    expect(Object.values(localStorage).join()).not.toContain('legacy-access');
+  });
+
   it('does not revive legacy tokens after a signed-out record', async () => {
     const {
       installAuthTokens,
       captureAuthSession,
       clearAuthTokens,
+      migrateLegacyAuthSession,
       storedAccessToken,
     } = await import('./auth-attempt');
     installAuthTokens('token-a', 'refresh-a');
@@ -417,6 +653,7 @@ describe('auth session storage ownership', () => {
 
     localStorage.setItem(LEGACY_ACCESS_KEY, 'legacy-access');
     localStorage.setItem(LEGACY_REFRESH_KEY, 'legacy-refresh');
+    migrateLegacyAuthSession();
 
     const signedOut = captureAuthSession();
     expect(signedOut).toMatchObject({

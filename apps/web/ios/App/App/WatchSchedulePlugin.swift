@@ -124,57 +124,6 @@ enum WatchScheduleVaultError: Error {
     case unwritable(OSStatus)
 }
 
-enum WatchScheduleOptInError: Error {
-    /// A value exists but cannot be trusted. Treating it as absent would let a
-    /// malformed opt-in look like "no account", which is not the same state.
-    case corrupt
-}
-
-/// The opt-in is not a credential: it only lets a background wake-up know that
-/// this account asked for scheduling.
-final class UserDefaultsWatchScheduleOptIn: WatchScheduleOptInStore {
-    static let shared = UserDefaultsWatchScheduleOptIn()
-
-    private let key = "org.openathlete.watch-schedule.opt-in"
-    private let defaults: UserDefaults
-
-    init(defaults: UserDefaults = .standard) {
-        self.defaults = defaults
-    }
-
-    func load() async throws -> AccountScope? {
-        // `object(forKey:)` distinguishes absent from a present value of the
-        // wrong type. `data(forKey:)` returns nil for both, which would let a
-        // corrupt opt-in be erased or acknowledged as "nothing to retire".
-        do {
-            return try WatchScheduleOptInDocument.decode(
-                object: defaults.object(forKey: key)
-            )
-        } catch {
-            throw WatchScheduleOptInError.corrupt
-        }
-    }
-
-    func save(_ scope: AccountScope) async throws {
-        guard let data = WatchScheduleOptInDocument.encode(scope) else {
-            throw WatchScheduleOptInError.corrupt
-        }
-        defaults.set(data, forKey: key)
-    }
-
-    func clear() async throws {
-        defaults.removeObject(forKey: key)
-    }
-
-    /// Background task scheduling is synchronous. A corrupt value yields nil so
-    /// no background request is submitted; it is never erased or acknowledged.
-    func loadSync() -> AccountScope? {
-        try? WatchScheduleOptInDocument.decode(
-            object: defaults.object(forKey: key)
-        )
-    }
-}
-
 // MARK: - WorkoutKit authorization
 
 #if canImport(HealthKit) && canImport(WorkoutKit)

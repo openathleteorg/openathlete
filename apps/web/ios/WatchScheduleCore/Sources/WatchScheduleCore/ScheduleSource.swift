@@ -282,7 +282,7 @@ public struct ScheduleCandidate: Equatable, Sendable {
 
 /// Why one owned session has no candidate. Retryable reasons must keep the
 /// previous Apple entry: they are a read failure, not a cancellation.
-public enum ScheduleSkipReason: Equatable, Sendable {
+public enum ScheduleSkipReason: Codable, Equatable, Sendable {
     case detailUnavailable
     case zonesUnavailable
     /// The instant has no unambiguous local representation (DST gap or
@@ -319,7 +319,7 @@ public enum ScheduleSkipReason: Equatable, Sendable {
     }
 }
 
-public struct SkippedScheduleEvent: Equatable, Sendable {
+public struct SkippedScheduleEvent: Codable, Equatable, Sendable {
     public let eventId: Int
     public let startDate: Date
     public let reason: ScheduleSkipReason

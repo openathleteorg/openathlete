@@ -92,7 +92,7 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         store: LifecycleFakeStore,
         journal: any ScheduleJournal,
         vault: LifecycleFakeVault = LifecycleFakeVault(),
-        optIn: LifecycleFakeOptIn = LifecycleFakeOptIn(),
+        optIn: any WatchScheduleOptInStore = LifecycleFakeOptIn(),
         authorization: LifecycleFakeAuthorization = LifecycleFakeAuthorization(),
         teardown: LifecycleFakeTeardown = LifecycleFakeTeardown(),
         loader: LifecycleSnapshotLoader,
@@ -536,6 +536,101 @@ final class WatchScheduleLifecycleTests: XCTestCase {
         XCTAssertEqual(status.skipped.first?.reason.code, "poolSwimmingUnverified")
         XCTAssertEqual(status.counts.overflow, 1)
         XCTAssertEqual(status.counts.confirmed, 0)
+    }
+
+    func testColdLaunchKeepsTheLastSuccessfulRefreshWhenWorkoutKitIsUnavailable() async throws {
+        let store = LifecycleFakeStore(capacity: 0)
+        let (journal, _) = temporaryJournal()
+        let suite = "watch-lifecycle-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        let authorization = LifecycleFakeAuthorization(permission: .authorized)
+        let skipped = SkippedScheduleEvent(
+            eventId: 201,
+            startDate: readAt,
+            reason: .unsupported(.poolSwimmingUnverified)
+        )
+        let loader = LifecycleSnapshotLoader { _ in
+            self.snapshot(candidates: [self.candidate(203)], skipped: [skipped])
+        }
+        let (original, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: UserDefaultsWatchScheduleOptIn(defaults: defaults),
+            authorization: authorization,
+            loader: loader
+        )
+        let connected = await original.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: true
+        )
+        guard case .synced = connected.outcome else {
+            return XCTFail("Expected a successful first refresh, got \(connected.outcome)")
+        }
+
+        await authorization.setPermission(.denied)
+        let relaunchedDefaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        let (relaunched, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: UserDefaultsWatchScheduleOptIn(defaults: relaunchedDefaults),
+            authorization: authorization,
+            loader: loader
+        )
+        let denied = await relaunched.status(scope: scope)
+        XCTAssertTrue(denied.enabled)
+        XCTAssertEqual(denied.permission, .denied)
+        XCTAssertEqual(denied.lastSuccessAt, now)
+        XCTAssertEqual(denied.skipped, [skipped])
+        XCTAssertEqual(denied.counts.overflow, 1)
+
+        await authorization.setPermission(.authorized)
+        await store.setReadFailure(LifecycleFakeStoreError.unavailable)
+        let unreadable = await relaunched.refresh(
+            trigger: .resume,
+            scope: scope,
+            credential: credential()
+        )
+        XCTAssertEqual(unreadable.outcome, .failed("storeUnavailable"))
+        XCTAssertEqual(unreadable.status.lastSuccessAt, now)
+        XCTAssertEqual(unreadable.status.skipped, [skipped])
+        XCTAssertEqual(unreadable.status.counts.overflow, 1)
+
+        for other in [
+            AccountScope(instanceURL: scope.instanceURL, athleteId: otherScope.athleteId),
+            AccountScope(instanceURL: otherScope.instanceURL, athleteId: scope.athleteId),
+        ] {
+            let otherStatus = await relaunched.status(scope: other)
+            XCTAssertFalse(otherStatus.enabled)
+            XCTAssertNil(otherStatus.lastSuccessAt)
+            XCTAssertTrue(otherStatus.skipped.isEmpty)
+            XCTAssertEqual(otherStatus.counts.overflow, 0)
+        }
+
+        await store.setReadFailure(nil)
+        let disconnected = await relaunched.disconnect(scope: scope)
+        XCTAssertNotNil(disconnected)
+        await authorization.setPermission(.denied)
+        let (reconnected, _, _) = makeLifecycle(
+            store: store,
+            journal: journal,
+            optIn: UserDefaultsWatchScheduleOptIn(
+                defaults: try XCTUnwrap(UserDefaults(suiteName: suite))
+            ),
+            authorization: authorization,
+            loader: loader
+        )
+        let deniedReconnect = await reconnected.connect(
+            scope: scope,
+            credential: credential(),
+            requestPermission: false
+        )
+        XCTAssertEqual(deniedReconnect.outcome, .deferred(.permissionDenied))
+        XCTAssertTrue(deniedReconnect.status.enabled)
+        XCTAssertNil(deniedReconnect.status.lastSuccessAt)
+        XCTAssertTrue(deniedReconnect.status.skipped.isEmpty)
+        XCTAssertEqual(deniedReconnect.status.counts.overflow, 0)
     }
 
     func testStatusForAnotherAccountShowsDisabledWithoutWriting() async throws {

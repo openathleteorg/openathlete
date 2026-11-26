@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
+import { beginAuthLogin } from '@/utils/auth-attempt';
 import {
   RETURN_TO_PARAM,
   rememberReturnTo,
@@ -57,9 +58,10 @@ export function LoginView({ className }: React.ComponentProps<'form'>) {
   useEffect(() => rememberReturnTo(returnTo), [returnTo]);
 
   const loginMutation = useLoginMutation({
-    onSuccess: async () => {
+    onSuccess: async (_, __, isCurrent) => {
       posthog?.capture('user_logged_in');
       await initialize({ authenticated: true });
+      if (!isCurrent()) return;
       navigate(takeReturnTo(getPath(['dashboard'])));
     },
     onError: (error) => toast.error(loginErrorMessage(error)),
@@ -71,7 +73,10 @@ export function LoginView({ className }: React.ComponentProps<'form'>) {
 
   const { handleSubmit } = methods;
 
-  const onSubmit = handleSubmit(async (data) => loginMutation.mutate(data));
+  const onSubmit = (event?: React.BaseSyntheticEvent) => {
+    const attempt = beginAuthLogin();
+    return handleSubmit((data) => loginMutation.mutate(data, attempt))(event);
+  };
 
   return (
     <FormProvider

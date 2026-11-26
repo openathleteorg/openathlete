@@ -35,6 +35,18 @@ final class WatchScheduleOptInDocumentTests: XCTestCase {
         )
     }
 
+    func testMalformedRefreshHistoryDoesNotInvalidateTheOptIn() throws {
+        let data = Data("""
+        {
+            "instanceURL": "https://train.example.org/api",
+            "athleteId": 7,
+            "lastRefresh": {"date": "invalid"}
+        }
+        """.utf8)
+
+        XCTAssertEqual(try WatchScheduleOptInDocument.decode(data: data), scope)
+    }
+
     func testEmptyOrMalformedDataIsCorrupt() {
         for data in [Data(), Data("{}".utf8), Data("not-json".utf8)] {
             XCTAssertThrowsError(

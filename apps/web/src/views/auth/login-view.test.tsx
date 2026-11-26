@@ -13,6 +13,11 @@ const api = vi.hoisted(() => ({
   toastError: vi.fn(),
 }));
 
+vi.mock(
+  '@/utils/auth-login-lock',
+  () => import('@/utils/test/auth-login-lock'),
+);
+
 vi.mock('@/api/auth/auth.api', () => ({
   AuthAPI: { login: api.login },
 }));
@@ -87,6 +92,7 @@ describe('LoginView', () => {
     });
     // Validation and the request resolve asynchronously.
     await waitUntil(() => api.toastError.mock.calls.length > 0);
+    expect(api.login).toHaveBeenCalledOnce();
   };
 
   it('says when the email or password is wrong', async () => {

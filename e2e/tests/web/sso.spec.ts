@@ -6,8 +6,12 @@ import { createAthlete } from '../../support/api';
 // The E2E stack signs in through fake-oidc (see fake-oidc/server.mjs)
 test.use({ storageState: { cookies: [], origins: [] } });
 
-async function signInWithSso(page: Page, email: string) {
-  await page.goto('/auth/login');
+async function signInWithSso(
+  page: Page,
+  email: string,
+  path: '/auth/login' | '/auth/create-account' = '/auth/login',
+) {
+  await page.goto(path);
   await page.locator('[data-oidc-sign-in]').click();
   await page.waitForURL(/localhost:19000\/authorize/);
   await page.getByLabel('Email').fill(email);
@@ -15,7 +19,11 @@ async function signInWithSso(page: Page, email: string) {
 }
 
 test('creates the account on a first sign-in', async ({ page }) => {
-  await signInWithSso(page, `sso-${randomUUID()}@example.com`);
+  await signInWithSso(
+    page,
+    `sso-${randomUUID()}@example.com`,
+    '/auth/create-account',
+  );
   // A new account starts with the onboarding
   await page.waitForURL(/\/dashboard|\/onboarding/);
   expect(

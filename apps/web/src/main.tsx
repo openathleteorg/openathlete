@@ -9,6 +9,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './theme/index.css';
 import { initAnalytics } from './utils/analytics';
+import { migrateLegacyAuthSession } from './utils/auth-attempt';
 import { isCapacitor } from './utils/capacitor';
 import { initChunkLoadRecovery } from './utils/chunk-recovery';
 import { initErrorMonitoring } from './utils/error-monitoring';
@@ -27,6 +28,8 @@ if (isCapacitor()) {
 }
 
 document.documentElement.lang = getLocale();
+
+migrateLegacyAuthSession();
 
 // Before a redirect drops the query of the first page
 captureSignupAttribution();

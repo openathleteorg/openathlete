@@ -44,6 +44,21 @@ public protocol WatchScheduleOptInStore: Sendable {
     func load() async throws -> AccountScope?
     func save(_ scope: AccountScope) async throws
     func clear() async throws
+    func loadStatus() async throws -> (
+        scope: AccountScope, lastRefresh: WatchScheduleLastRefresh?
+    )?
+    /// Updates the existing opt-in only if it still belongs to `scope`.
+    func saveLastRefresh(_ refresh: WatchScheduleLastRefresh, for scope: AccountScope) async throws
+}
+
+public extension WatchScheduleOptInStore {
+    func loadStatus() async throws -> (
+        scope: AccountScope, lastRefresh: WatchScheduleLastRefresh?
+    )? {
+        try await load().map { ($0, nil) }
+    }
+
+    func saveLastRefresh(_ refresh: WatchScheduleLastRefresh, for scope: AccountScope) async throws {}
 }
 
 /// Authorization to remove an account's upcoming entries even after its opt-in
@@ -221,17 +236,21 @@ public struct WatchScheduleCounts: Equatable, Sendable {
         self.failed = failed
     }
 
-    public static let none = WatchScheduleCounts(
-        scheduled: 0,
-        confirmed: 0,
-        unchanged: 0,
-        replaced: 0,
-        removed: 0,
-        completed: 0,
-        retained: 0,
-        overflow: 0,
-        failed: 0
-    )
+    public static let none = WatchScheduleCounts(overflow: 0)
+
+    fileprivate init(overflow: Int) {
+        self.init(
+            scheduled: 0,
+            confirmed: 0,
+            unchanged: 0,
+            replaced: 0,
+            removed: 0,
+            completed: 0,
+            retained: 0,
+            overflow: overflow,
+            failed: 0
+        )
+    }
 
     init(_ summary: SyncSummary) {
         scheduled = summary.scheduledEventIDs.count
@@ -464,11 +483,10 @@ public actor WatchScheduleCredentialStore: WatchScheduleCredentialProviding {
 }
 
 private struct SyncState {
-    var lastSuccessAt: Date?
+    var lastRefresh: WatchScheduleLastRefresh?
     var lastAttemptAt: Date?
     var lastErrorCode: String?
     var counts = WatchScheduleCounts.none
-    var skipped: [SkippedScheduleEvent] = []
 }
 
 private struct TeardownOutcome {
@@ -1263,10 +1281,17 @@ public actor WatchScheduleLifecycle {
                 generation: generation,
                 calendar: passCalendar
             )
-            state.lastSuccessAt = now()
+            let refresh = WatchScheduleLastRefresh(
+                date: now(),
+                skipped: summary.skipped,
+                overflow: summary.overflowEventIDs.count
+            )
+            guard await saveLastRefreshIfCurrent(refresh, scope: scope, epoch: entryEpoch) else {
+                return await report(.deferred(.inactive), scope: scope)
+            }
+            state.lastRefresh = refresh
             state.lastErrorCode = nil
             state.counts = WatchScheduleCounts(summary)
-            state.skipped = summary.skipped
             syncStates[scope] = state
             return await report(.synced(summary), scope: scope)
         } catch is CancellationError {
@@ -1559,15 +1584,17 @@ public actor WatchScheduleLifecycle {
         scope: AccountScope?,
         permission: WatchSchedulePermission
     ) async -> WatchScheduleStatus {
-        let storedScope: AccountScope?
+        let statusEpoch = epoch
+        let stored: (scope: AccountScope, lastRefresh: WatchScheduleLastRefresh?)?
         var optInKnown = true
         do {
-            storedScope = try await optIn.load()
+            stored = try await optIn.loadStatus()
         } catch {
             // A malformed or unreadable opt-in is unknown, not absent.
-            storedScope = nil
+            stored = nil
             optInKnown = false
         }
+        let storedScope = stored?.scope
         let journalResult = try? await journal.allReceipts()
         let receipts = journalResult ?? []
         let teardownResult: [AccountScope]?
@@ -1586,10 +1613,20 @@ public actor WatchScheduleLifecycle {
         let unresolved = scoped.filter(isSubmitted).map(\.eventID)
         let localPending = scoped.filter(isLocalPending).map(\.eventID)
         let pendingCleanup = scoped.filter(isPendingCleanup).map(\.eventID)
-        // Sync state belongs to one account only; another scope gets a blank
-        // state instead of this account's last refresh, counts or skipped IDs.
         let syncState = scope.flatMap { syncStates[$0] } ?? SyncState()
         let sameScopeTeardown = scope.map(teardownScopes.contains) ?? false
+        // Status reads can suspend across a fence. Persisted history can only
+        // be shown for the current opt-in. In-memory history is already scoped
+        // to the requested account and is discarded when that account retires.
+        let canShowRefresh = !sameScopeTeardown && statusEpoch == epoch && fenceTokens.isEmpty
+        let localRefresh = canShowRefresh ? syncState.lastRefresh : nil
+        let storedRefresh = canShowRefresh && scope != nil && storedScope == scope
+            ? stored?.lastRefresh
+            : nil
+        let lastRefresh = localRefresh ?? storedRefresh
+        let counts = localRefresh != nil
+            ? syncState.counts
+            : WatchScheduleCounts(overflow: lastRefresh?.overflow ?? 0)
         let otherTeardown = teardownScopes.contains { $0 != scope }
         let otherPending = otherTeardown
             || receipts.contains { receipt in
@@ -1611,11 +1648,11 @@ public actor WatchScheduleLifecycle {
                 && scope != nil
                 && storedScope != scope,
             permission: permission,
-            lastSuccessAt: syncState.lastSuccessAt,
+            lastSuccessAt: lastRefresh?.date,
             lastAttemptAt: syncState.lastAttemptAt,
             lastErrorCode: syncState.lastErrorCode,
-            counts: syncState.counts,
-            skipped: syncState.skipped,
+            counts: counts,
+            skipped: lastRefresh?.skipped ?? [],
             pendingCleanupEventIDs: Array(Set(pendingCleanup)).sorted(),
             unresolvedEventIDs: Array(Set(unresolved)).sorted(),
             localPendingEventIDs: Array(Set(localPending)).sorted(),
@@ -1724,6 +1761,22 @@ public actor WatchScheduleLifecycle {
         } catch {
             return .failed
         }
+    }
+
+    private func saveLastRefreshIfCurrent(
+        _ refresh: WatchScheduleLastRefresh,
+        scope: AccountScope,
+        epoch expected: UInt64
+    ) async -> Bool {
+        await acquireOptInLock()
+        defer { releaseOptInLock() }
+        guard !isFenceActive, epoch == expected else {
+            return false
+        }
+        // The scheduler already completed the pass. Preserve the in-memory
+        // result if writing the optional history fails.
+        try? await optIn.saveLastRefresh(refresh, for: scope)
+        return !isFenceActive && epoch == expected
     }
 
     /// Undoes only this session's save. A fence or a newer session already owns

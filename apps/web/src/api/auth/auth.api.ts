@@ -50,6 +50,7 @@ export class AuthAPI {
 
   /** Where the browser goes to sign in with the instance's provider */
   static oidcSignInUrl(params: {
+    attempt?: string;
     invitation?: string;
     coachInvitation?: string;
     clubJoin?: string;

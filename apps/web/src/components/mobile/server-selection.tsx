@@ -3,6 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { m } from '@/paraglide/messages';
+import {
+  type AuthSessionSnapshot,
+  captureAuthSession,
+  isAuthSessionCurrent,
+} from '@/utils/auth-attempt';
 import { getDefaultApiBaseUrl } from '@/utils/capacitor';
 import { signOutFirebase } from '@/utils/firebase-auth';
 import {
@@ -13,15 +18,23 @@ import {
   serverUrlCandidates,
 } from '@/utils/mobile-server';
 import {
-  disconnectWatchSchedule,
+  disconnectWatchScheduleOnExit,
   fenceWatchScheduleOnExit,
   latchWatchScheduleExit,
+  recoverWatchScheduleCleanup,
   releaseWatchScheduleExit,
+  watchScheduleActiveScope,
+  watchScheduleExitBoundary,
 } from '@/utils/watch-schedule';
 import posthog from 'posthog-js';
-import { useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 type Props = { onCancel?: () => void };
+
+type ServerSave = {
+  session: AuthSessionSnapshot;
+  boundary: number | null;
+};
 
 export function ServerSelection({ onCancel }: Props) {
   const defaultUrl = getDefaultApiBaseUrl();
@@ -33,11 +46,43 @@ export function ServerSelection({ onCancel }: Props) {
     current !== defaultUrl ? current : '',
   );
   const [error, setError] = useState('');
-  const [pending, setPending] = useState(false);
+  const [phase, setPhase] = useState<'resolving' | 'committing' | null>(null);
+  const pendingSave = useRef<ServerSave | null>(null);
+
+  const invalidateSave = useCallback(() => {
+    const save = pendingSave.current;
+    pendingSave.current = null;
+    // A successor that started initializing during the fence needs its
+    // observed boundary to stay in place until it establishes its session.
+    if (save && save.boundary !== null && isAuthSessionCurrent(save.session)) {
+      releaseWatchScheduleExit(save.boundary);
+    }
+  }, []);
+  useLayoutEffect(() => invalidateSave, [invalidateSave]);
+
+  const cancel = () => {
+    const save = pendingSave.current;
+    if (save && save.boundary !== null) return;
+    invalidateSave();
+    setPhase(null);
+    onCancel?.();
+  };
 
   const save = async () => {
+    if (pendingSave.current) return;
+    const session = captureAuthSession();
+    const operation: ServerSave = { session, boundary: null };
+    pendingSave.current = operation;
+    const previousBoundary = watchScheduleExitBoundary();
+    const activeScope = watchScheduleActiveScope();
+    const scope =
+      activeScope?.instanceURL === session.instanceURL ? activeScope : null;
+    const isCurrent = () =>
+      pendingSave.current === operation &&
+      isAuthSessionCurrent(session) &&
+      watchScheduleExitBoundary() === (operation.boundary ?? previousBoundary);
     setError('');
-    setPending(true);
+    setPhase('resolving');
     try {
       let url = defaultUrl;
       if (choice === 'custom') {
@@ -49,40 +94,43 @@ export function ServerSelection({ onCancel }: Props) {
         }
         url = await resolveServerUrl(serverInput);
       }
-      if (url !== current) {
+      if (!isCurrent()) return;
+      if (isServerChange(url, defaultUrl)) {
+        // The old token remains installed until the native fence acknowledges.
+        operation.boundary = latchWatchScheduleExit();
+        setPhase('committing');
         await signOutFirebase().catch((reason: unknown) =>
           console.error('Failed to sign out Firebase:', reason),
         );
-        posthog.reset();
-      }
-      // A no-op canonical save (same instance) must keep scheduling enabled.
-      const changing = isServerChange(url, defaultUrl);
-      // Latch before the first await of a real switch: the old token is still
-      // in storage while the native fence runs, so an epoch bump alone would
-      // let newly started scheduling pass.
-      const boundary = changing ? latchWatchScheduleExit() : null;
-      if (changing) {
-        // Another instance must never inherit this account's scheduled
-        // workouts or its stored access credential. Do not switch without an
-        // acknowledged fence; Apple cleanup can finish afterwards.
+        if (!isCurrent()) return;
         const acknowledged = await fenceWatchScheduleOnExit();
+        if (!isCurrent()) return;
         if (!acknowledged) {
-          if (boundary !== null) releaseWatchScheduleExit(boundary);
           setError(m.apple_watch_server_switch_blocked());
           return;
         }
-        void disconnectWatchSchedule().catch(() => undefined);
+        if (scope) {
+          void disconnectWatchScheduleOnExit(scope);
+        } else {
+          // The fence already recorded any authorized native teardown.
+          void recoverWatchScheduleCleanup().catch(() => undefined);
+        }
+        posthog.reset();
       }
       if (saveSelectedServerUrl(url, defaultUrl)) {
+        // Keep the old session latched until this document is replaced.
+        pendingSave.current = null;
         window.location.reload();
       } else {
-        if (boundary !== null) releaseWatchScheduleExit(boundary);
         onCancel?.();
       }
     } catch {
-      setError(m.mobile_server_unreachable());
+      if (isCurrent()) setError(m.mobile_server_unreachable());
     } finally {
-      setPending(false);
+      if (pendingSave.current === operation) {
+        invalidateSave();
+        setPhase(null);
+      }
     }
   };
 
@@ -165,11 +213,16 @@ export function ServerSelection({ onCancel }: Props) {
         )}
         <div className="flex gap-3">
           {onCancel && (
-            <Button variant="outline" className="flex-1" onClick={onCancel}>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={cancel}
+              disabled={phase === 'committing'}
+            >
               {m.cancel()}
             </Button>
           )}
-          <Button className="flex-1" onClick={save} isLoading={pending}>
+          <Button className="flex-1" onClick={save} isLoading={phase !== null}>
             {m.mobile_server_continue()}
           </Button>
         </div>

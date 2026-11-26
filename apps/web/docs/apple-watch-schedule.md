@@ -184,7 +184,7 @@ bundle exec fastlane ios check          # simulator build, no signing
 ```
 
 1. **Opt-in and permission** — Settings → Connectors → Apple Watch workouts →
-   Enable. Accept WorkoutKit/Health permission on the iPhone. Expect
+   Enable. Allow OpenAthlete to schedule workouts in Apple's prompt. Expect
    "Scheduling is on" and a last-updated time.
 2. **Guided run** — plan today's structured run, enable, refresh. On the watch:
    the workout appears on the planned day in Apple's Workout app with warmup,
@@ -207,10 +207,12 @@ bundle exec fastlane ios check          # simulator build, no signing
    rescheduled.
 7. **Repeated refresh** — refresh several times, including app relaunch and
    resume. Confirm Apple's list still contains one entry per session.
-8. **Revoked authorization** — revoke Health/WorkoutKit permission in iPhone
-   Settings, return to the app, refresh. Expect writes to stop, the permission
-   explanation, and the previous upcoming entries to remain until cleanup can
-   run.
+8. **Revoked authorization** — turn off OpenAthlete's scheduling permission
+   under Workout in the iPhone Watch app or in Settings → Workout on Apple
+   Watch. Reopen Apple Watch workouts in OpenAthlete. Expect writes to stop, the
+   permission explanation, and the previous upcoming entries to remain until
+   cleanup can run. Restore permission in the same place, reopen Apple Watch
+   workouts in OpenAthlete, and refresh to check recovery. [Apple's WorkoutKit authorization walkthrough](https://developer.apple.com/videos/play/wwdc2023/10016/?time=1128)
 9. **Logout / instance switch** — with entries scheduled, log out (or switch
    server). Confirm only the previous account's upcoming entries are removed,
    completed history stays, and the new account starts with scheduling off.
@@ -232,12 +234,18 @@ length to match the prescription exactly. Until then, keep
 
 | Check | Result |
 | --- | --- |
-| Portable core tests (Linux Swift 6.1.2) | 220 passed, debug and release |
+| Portable core tests (Linux Swift 6.4.3) | 272 of 272 passed in both debug and release |
 | Web unit tests (`pnpm web test`) | passed, including settings, lifecycle hook, bridge logging/storage audit and server no-op |
-| `scripts/verify.sh` | see the task report; lint/types/translations/unit run |
-| `scripts/verify.sh --e2e` | blocked on this host: Docker is unavailable, no stack was started |
-| `fastlane ios check` (real Xcode build) | **not run**, this host is Linux (no Xcode/xcodebuild) |
+| `scripts/verify.sh` | Passed with Node 22.23.3 and pnpm 9.15.9, including lint, type checks, translations and unit tests. |
+| Cross-tab sign-in (headless Chromium) | Passed on HTTP and HTTPS. A second login survived while the first tab was paused between its credential and owner writes. |
+| `scripts/verify.sh --e2e` | blocked on this host because the Docker socket is inaccessible |
+| Unsigned iOS build (macOS) | Pending. This Linux host has no Xcode. |
 | `fastlane android check` | **not run**, this host has no Android/JDK build lane |
 | Paired iPhone + Apple Watch, all steps above | **not run**, no Apple hardware |
-| WorkoutKit/HealthKit type-check against the iOS SDK | **not run**; the app-target Swift is parse-checked only |
+| WorkoutKit/HealthKit type-check against the iOS SDK | Pending the macOS build. The app-target Swift was parse-checked locally. |
 | Pool scheduling | **disabled** until the paired-device gate passes |
+
+Deploy the API before the updated web app so the OIDC callback can return
+the login attempt identifier. Restart sign-ins already in progress during the
+rollout. Fully reload older OpenAthlete tabs so every open tab coordinates
+login writes using the updated code.

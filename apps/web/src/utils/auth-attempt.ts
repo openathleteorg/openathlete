@@ -1,3 +1,4 @@
+import { withAuthLoginLock } from './auth-login-lock';
 import { getApiBaseUrl } from './capacitor';
 import {
   ACCESS_TOKEN,
@@ -35,7 +36,7 @@ export type AuthSessionSnapshot = {
 export type AuthAttempt = AuthSessionSnapshot;
 
 /**
- * A login request started by one of the auth hooks. The ID last published in
+ * A login started by a user action. The ID last published in
  * storage is the only attempt allowed to commit; no counter is read+written.
  */
 export type AuthLoginAttempt = AuthSessionSnapshot & {
@@ -47,6 +48,7 @@ type AuthSessionRecord = {
   generation: string;
   accessToken: string | null;
   refreshToken: string | null;
+  instanceURL?: string;
 };
 
 type AuthAuthority = {
@@ -65,6 +67,12 @@ const NO_SESSION: AuthSessionRecord = {
   accessToken: null,
   refreshToken: null,
 };
+
+// The split-token release had no owner pointer. Its initial owner is implicit
+// until an explicit login installs a pointer. It has a separate seed key so a
+// second startup cannot overwrite credentials already rotated for this owner.
+const LEGACY_OWNER = 'legacy';
+const LEGACY_SEED_KEY = 'auth_legacy_seed';
 
 // Opaque IDs only. The old single-record format stored JSON here, which this
 // pattern rejects, so a mixed-version tab reads it as signed out rather than
@@ -92,10 +100,11 @@ function revokedKey(owner: string): string {
   return `${AUTH_REVOKED_PREFIX}${owner}`;
 }
 
-/** Read the shared pointer once. It names an owner, never a credential. */
+/** An absent pointer leaves room for the initial, pre-upgrade login. */
 function readOwner(): string | null {
   const value = getItem(AUTH_SESSION);
-  return value !== null && AUTH_ID.test(value) ? value : null;
+  if (value === null) return LEGACY_OWNER;
+  return AUTH_ID.test(value) ? value : null;
 }
 
 function parseAuthRecord(
@@ -118,6 +127,7 @@ function parseAuthRecord(
       generation: parsed.generation,
       accessToken: parsed.accessToken ?? null,
       refreshToken: parsed.refreshToken ?? null,
+      instanceURL: owner === LEGACY_OWNER ? parsed.instanceURL : undefined,
     };
   } catch {
     return null;
@@ -130,7 +140,15 @@ function writeAuthRecord(record: AuthSessionRecord): void {
 
 /** Read one owner's record directly, without following the shared pointer. */
 function readAuthRecord(owner: string): AuthSessionRecord | null {
-  return parseAuthRecord(getItem(recordKey(owner)), owner);
+  const raw = getItem(recordKey(owner));
+  const record = parseAuthRecord(
+    raw ?? (owner === LEGACY_OWNER ? getItem(LEGACY_SEED_KEY) : null),
+    owner,
+  );
+  if (owner === LEGACY_OWNER && record?.instanceURL !== getApiBaseUrl()) {
+    return null;
+  }
+  return record;
 }
 
 /**
@@ -139,7 +157,10 @@ function readAuthRecord(owner: string): AuthSessionRecord | null {
  * generation that lost ownership is removed.
  */
 function scrubAuthRecord(record: AuthSessionRecord): void {
-  const persisted = readAuthRecord(record.owner);
+  const persisted = parseAuthRecord(
+    getItem(recordKey(record.owner)),
+    record.owner,
+  );
   if (persisted?.generation === record.generation) {
     removeItem(recordKey(record.owner));
   }
@@ -158,7 +179,7 @@ function readAuthority(): AuthAuthority | null {
   }
   return {
     owner,
-    record: parseAuthRecord(getItem(recordKey(owner)), owner),
+    record: readAuthRecord(owner),
     revoked: false,
   };
 }
@@ -168,11 +189,70 @@ function clearLegacyTokens(): void {
   removeItem(REFRESH_TOKEN);
 }
 
+function canAdoptLegacySession(instanceURL: string): boolean {
+  return (
+    getItem(AUTH_SESSION) === null &&
+    getItem(revokedKey(LEGACY_OWNER)) === null &&
+    getItem(recordKey(LEGACY_OWNER)) === null &&
+    getApiBaseUrl() === instanceURL
+  );
+}
+
+/** Adopt a split-token session at startup, before authenticated work begins. */
+export function migrateLegacyAuthSession(): void {
+  const instanceURL = getApiBaseUrl();
+  if (!canAdoptLegacySession(instanceURL)) return;
+  const existingSeed = getItem(LEGACY_SEED_KEY);
+  if (existingSeed !== null) {
+    // Retry cleanup if the previous startup stopped after persisting the seed.
+    if (
+      parseAuthRecord(existingSeed, LEGACY_OWNER)?.instanceURL === instanceURL
+    ) {
+      clearLegacyTokens();
+    }
+    return;
+  }
+  const accessToken = getItem(ACCESS_TOKEN) || null;
+  const refreshToken = getItem(REFRESH_TOKEN) || null;
+  if (!accessToken && !refreshToken) return;
+  // A tab can split our two reads as it removes the old keys. It must have
+  // published its seed first, so check the seed after reading both keys.
+  if (
+    (getItem(ACCESS_TOKEN) || null) !== accessToken ||
+    (getItem(REFRESH_TOKEN) || null) !== refreshToken ||
+    !canAdoptLegacySession(instanceURL) ||
+    getItem(LEGACY_SEED_KEY) !== null
+  ) {
+    return;
+  }
+
+  const seed: AuthSessionRecord = {
+    owner: LEGACY_OWNER,
+    generation: LEGACY_OWNER,
+    accessToken,
+    refreshToken,
+    instanceURL,
+  };
+  const serialized = JSON.stringify(seed);
+  try {
+    setItem(LEGACY_SEED_KEY, serialized);
+  } catch {
+    // Quota can prevent a write while both copies are present. Leave the split
+    // pair available for a later startup.
+    return;
+  }
+  // Login, revocation and refresh each take precedence over this seed, even
+  // if they happened between the eligibility check and the write above.
+  if (!canAdoptLegacySession(instanceURL)) {
+    if (getItem(LEGACY_SEED_KEY) === serialized) removeItem(LEGACY_SEED_KEY);
+    return;
+  }
+  if (getItem(LEGACY_SEED_KEY) === serialized) clearLegacyTokens();
+}
+
 /**
- * The record is the only authority. A pointer without a readable record, a
- * revoked owner and any unknown format are all signed out. Legacy
- * `access_token`/`refresh_token` keys are never read: adopting them would
- * require a write during a read, which can land after another tab signs out.
+ * Auth readers only consult the owner's record. Startup is the only code
+ * allowed to adopt the old `access_token`/`refresh_token` keys.
  */
 function currentRecord(): AuthSessionRecord {
   const authority = readAuthority();
@@ -201,7 +281,7 @@ export function captureAuthSession(): AuthSessionSnapshot {
     owner: record.owner,
     generation: record.generation,
     accessToken: record.accessToken,
-    instanceURL: getApiBaseUrl(),
+    instanceURL: record.instanceURL ?? getApiBaseUrl(),
   };
 }
 
@@ -227,6 +307,7 @@ export function installAuthTokens(
   });
   const previousOwner = readOwner();
   setItem(AUTH_SESSION, owner);
+  removeItem(LEGACY_SEED_KEY);
   clearLegacyTokens();
   // The pointer no longer names the previous owner. Its record can go, along
   // with its sign-out tombstone; a stale refresh may recreate the record, but
@@ -259,12 +340,13 @@ export function rotateAuthTokens(
   if (readOwner() !== expected.owner) return null;
 
   const rotated: AuthSessionRecord = {
-    owner: expected.owner,
+    ...record,
     generation: createAuthId(),
     accessToken,
     refreshToken: refreshToken ?? record.refreshToken,
   };
   writeAuthRecord(rotated);
+  if (expected.owner === LEGACY_OWNER) removeItem(LEGACY_SEED_KEY);
 
   // The checks and the write are not atomic across tabs. If A signed out or B
   // committed while the write was paused, the record now holds a valid pair
@@ -300,18 +382,32 @@ export function rotateAuthTokens(
  */
 export function clearAuthTokens(expected?: AuthSessionSnapshot): boolean {
   const owner = readOwner();
-  clearLegacyTokens();
   if (!owner) return false;
-  if (expected && owner !== expected.owner) return false;
+  const initialOwner = owner === LEGACY_OWNER;
+  // A sign-out at the empty boundary must also fence a migration that had
+  // already started but had yet to write its seed.
+  if (
+    expected &&
+    owner !== expected.owner &&
+    !(initialOwner && expected.owner === NO_SESSION_ID)
+  ) {
+    return false;
+  }
   if (getItem(revokedKey(owner)) !== null) return false;
 
-  const generation = createAuthId();
+  const initialRecord = initialOwner ? readAuthRecord(owner) : null;
   setItem(revokedKey(owner), '1');
+  clearLegacyTokens();
+  if (initialOwner) {
+    removeItem(LEGACY_SEED_KEY);
+    if (!initialRecord) return false;
+  }
   writeAuthRecord({
     owner,
-    generation,
+    generation: createAuthId(),
     accessToken: null,
     refreshToken: null,
+    instanceURL: initialRecord?.instanceURL,
   });
   return true;
 }
@@ -339,19 +435,33 @@ export function invalidateAuthTokens(attempt: AuthAttempt): boolean {
 
   clearLegacyTokens();
   writeAuthRecord({
-    owner: attempt.owner,
+    ...record,
     generation: createAuthId(),
     accessToken: null,
     refreshToken: null,
   });
+  if (attempt.owner === LEGACY_OWNER) removeItem(LEGACY_SEED_KEY);
   return true;
 }
 
 /** Begin a login request and publish it as the newest attempt. */
-export function beginAuthLogin(): AuthLoginAttempt {
-  const ticket = createAuthId();
-  setItem(AUTH_LOGIN_ATTEMPT, ticket);
-  return { ...captureAuthSession(), ticket };
+export function beginAuthLogin(): Promise<AuthLoginAttempt> {
+  const starting = (async () => {
+    const instanceURL = getApiBaseUrl();
+    return withAuthLoginLock(() => {
+      const session = captureAuthSession();
+      if (instanceURL !== session.instanceURL) {
+        throw new Error('The API instance changed before login started.');
+      }
+      const ticket = createAuthId();
+      setItem(AUTH_LOGIN_ATTEMPT, ticket);
+      return { ...session, ticket };
+    });
+  })();
+  // Form validation can still be running when browser storage rejects. The
+  // caller receives the original rejection when it is ready to await it.
+  void starting.catch(() => undefined);
+  return starting;
 }
 
 /**
@@ -362,11 +472,24 @@ export function commitAuthLogin(
   attempt: AuthLoginAttempt,
   accessToken: string,
   refreshToken?: string,
-): AuthSessionSnapshot | null {
-  if (attempt.ticket !== readAuthAttemptId()) return null;
-  if (attempt.owner !== currentRecord().owner) return null;
-  if (attempt.instanceURL !== getApiBaseUrl()) return null;
-  return installAuthTokens(accessToken, refreshToken);
+): Promise<AuthSessionSnapshot | null> {
+  return withAuthLoginLock(() => {
+    if (!isAuthLoginCurrent(attempt)) return null;
+    return installAuthTokens(accessToken, refreshToken);
+  });
+}
+
+/**
+ * Before commit, compare the initiating session. After commit, compare the
+ * session that login installed while still requiring the same login ticket.
+ */
+export function isAuthLoginCurrent(
+  attempt: Pick<AuthLoginAttempt, 'ticket' | 'owner' | 'instanceURL'>,
+  session: Pick<AuthSessionSnapshot, 'owner' | 'instanceURL'> = attempt,
+): boolean {
+  return (
+    attempt.ticket === readAuthAttemptId() && isAuthSessionCurrent(session)
+  );
 }
 
 function readAuthAttemptId(): string {
@@ -375,7 +498,9 @@ function readAuthAttemptId(): string {
 }
 
 /** True while a continuation still belongs to the same owner and instance. */
-export function isAuthSessionCurrent(snapshot: AuthSessionSnapshot): boolean {
+export function isAuthSessionCurrent(
+  snapshot: Pick<AuthSessionSnapshot, 'owner' | 'instanceURL'>,
+): boolean {
   return (
     currentRecord().owner === snapshot.owner &&
     getApiBaseUrl() === snapshot.instanceURL

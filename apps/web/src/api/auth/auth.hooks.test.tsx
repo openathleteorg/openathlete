@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 import {
+  beginAuthLogin,
+  commitAuthLogin,
   installAuthTokens,
   storedAccessToken,
   storedRefreshToken,
 } from '@/utils/auth-attempt';
 import client from '@/utils/axios';
+import { deferred } from '@/utils/test/deferred';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   AxiosError,
@@ -24,6 +27,11 @@ import {
 const capacitor = vi.hoisted(() => ({
   apiBaseUrl: 'https://api-a.example.org',
 }));
+vi.mock(
+  '@/utils/auth-login-lock',
+  () => import('@/utils/test/auth-login-lock'),
+);
+
 vi.mock('@/utils/capacitor', () => ({
   getApiBaseUrl: () => capacitor.apiBaseUrl,
 }));
@@ -39,8 +47,17 @@ type Pending = {
 };
 const pending: Pending[] = [];
 
-function LoginProbe({ onSuccess }: { onSuccess: (name: string) => void }) {
-  const email = useLoginMutation({ onSuccess: () => onSuccess('email') });
+function LoginProbe({
+  onSuccess,
+  beforeEmailDispatch,
+}: {
+  onSuccess: (name: string) => void;
+  beforeEmailDispatch?: () => Promise<void>;
+}) {
+  const email = useLoginMutation({
+    onMutate: beforeEmailDispatch,
+    onSuccess: () => onSuccess('email'),
+  });
   const firebase = useLoginWithFirebaseMutation({
     onSuccess: () => onSuccess('firebase'),
   });
@@ -132,11 +149,17 @@ describe('auth login hooks', () => {
     queryClient.clear();
   });
 
-  const render = async (onSuccess: (name: string) => void) => {
+  const render = async (
+    onSuccess: (name: string) => void,
+    beforeEmailDispatch?: () => Promise<void>,
+  ) => {
     await act(async () =>
       root.render(
         <QueryClientProvider client={queryClient}>
-          <LoginProbe onSuccess={onSuccess} />
+          <LoginProbe
+            onSuccess={onSuccess}
+            beforeEmailDispatch={beforeEmailDispatch}
+          />
         </QueryClientProvider>,
       ),
     );
@@ -179,21 +202,19 @@ describe('auth login hooks', () => {
 
   it('pins login dispatch to the owner captured at invocation', async () => {
     const successes: string[] = [];
-    await render((name) => successes.push(name));
+    const dispatch = deferred<void>();
+    await render(
+      (name) => successes.push(name),
+      () => dispatch.promise,
+    );
     // A real access token, so the login request does not try to refresh it.
     const successor = `header.${btoa(JSON.stringify({ exp: 4102444800 }))}.sig`;
 
+    await click('email');
     await act(async () => {
-      [...container.querySelectorAll('button')]
-        .find((button) => button.textContent === 'email')!
-        .click();
       // A newer session wins before React Query runs the mutation function.
-      installAuthTokens(successor, 'refresh-b');
-    });
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
+      await commitAuthLogin(await beginAuthLogin(), successor, 'refresh-b');
+      dispatch.resolve();
     });
 
     // The old login must not dispatch at all, let alone with B's bearer.
