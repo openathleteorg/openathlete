@@ -119,8 +119,8 @@ const unknownRefs = (refs: string[]) =>
  * Checks that every exercise of a workout exists: in the catalog, or among
  * the custom exercises the user reads. `allowed` are the refs the session
  * already stores, with their stored name: they are kept even if the exercise
- * is gone since (the name falls back to the stored one, and a step stored
- * without a name stays so). Returns the workout with the names filled, and
+ * is gone since (the name falls back to the stored one, and a ref stored
+ * without a name stays unnamed). Returns the workout with the names filled, and
  * the problem to report, if any.
  */
 export async function checkExercises(
@@ -144,7 +144,13 @@ export async function checkExercises(
   }
   if (unknown.length) return { workout, problems: [unknownRefs(unknown)] };
   return {
-    workout: withExerciseNames(workout, names, new Set(allowed.keys())),
+    workout: withExerciseNames(
+      workout,
+      names,
+      // Only the refs the session stores without a name stay unnamed; a
+      // stored name fills a step that has none, like a catalog name does
+      new Set([...allowed].filter(([, name]) => !name).map(([ref]) => ref)),
+    ),
     problems: [],
   };
 }

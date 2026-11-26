@@ -1167,6 +1167,34 @@ describe('MCP tools (PostgreSQL)', () => {
       await call('update_session', { eventId, workoutSteps: strength(gone) }),
     );
     expect(await storedExercises(eventId)).toEqual([[gone, 'Kept name']]);
+
+    // The same on a flat step and on the child of a repeat, which have no
+    // name to fall back on but the one stored
+    data(
+      await call('update_session', {
+        eventId,
+        workoutSteps: [
+          { kind: 'work', reps: 5, exerciseRef: gone },
+          {
+            kind: 'repeat',
+            times: 2,
+            steps: [{ kind: 'work', reps: 5, exerciseRef: gone }],
+          },
+        ],
+      }),
+    );
+    const { workout } = await prisma.eventTraining.findUniqueOrThrow({
+      where: { eventId },
+      select: { workout: { include: WORKOUT_STEPS_INCLUDE } },
+    });
+    const [flat, repeat] = workout?.steps ?? [];
+    expect([flat.exerciseRef, flat.name]).toEqual([gone, 'Kept name']);
+    expect(
+      repeat.repeatBlock?.childSteps.map((child) => [
+        child.exerciseRef,
+        child.name,
+      ]),
+    ).toEqual([[gone, 'Kept name']]);
   });
 
   it('still lets the app and REST store a well-formed ref the catalog lacks', async () => {

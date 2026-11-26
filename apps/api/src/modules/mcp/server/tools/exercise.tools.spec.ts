@@ -406,6 +406,39 @@ describe('checkExercises', () => {
     expect(repeat.steps[0].name).toBeUndefined();
   });
 
+  it('fills the stored name on flat steps and repeat children whose ref is stored with one', async () => {
+    const checked = await checkExercises(
+      loader(),
+      workoutSchema.parse([
+        { kind: 'work', reps: 5, exerciseRef: 'u:99' },
+        {
+          kind: 'repeat',
+          times: 3,
+          steps: [
+            { kind: 'work', reps: 5, exerciseRef: 'u:99' },
+            { kind: 'work', reps: 5, exerciseRef: 'u:99', name: 'Mine' },
+            { kind: 'work', reps: 5, exerciseRef: 'u:98' },
+          ],
+        },
+      ]),
+      new Map<string, string | null>([
+        ['u:99', 'Kept name'],
+        ['u:98', null],
+      ]),
+    );
+    expect(checked.problems).toEqual([]);
+    const [flat, repeat] = checked.workout as unknown as {
+      name?: string;
+      steps: { name?: string }[];
+    }[];
+    expect(flat.name).toBe('Kept name');
+    expect(repeat.steps.map((step) => step.name)).toEqual([
+      'Kept name',
+      'Mine',
+      undefined,
+    ]);
+  });
+
   it('fills the names, and asks for the custom exercises only for u: refs', async () => {
     const custom = loader([own]);
     const catalogOnly = await checkExercises(custom, workout('c:band-squat'));

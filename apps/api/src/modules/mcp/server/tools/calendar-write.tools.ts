@@ -327,7 +327,10 @@ export const registerCalendarWriteTools: ToolRegistrar = (
     );
   };
 
-  /** Exercise refs the session already stores, with the name stored for each */
+  /**
+   * Exercise refs the session already stores, with the name stored for each
+   * (the first one, if the ref is stored both with and without a name)
+   */
   const storedExercises = (
     training: StoredTraining,
   ): Map<string, string | null> => {
@@ -337,7 +340,7 @@ export const registerCalendarWriteTools: ToolRegistrar = (
       ...steps,
       ...steps.flatMap((step) => step.repeatBlock?.childSteps ?? []),
     ]) {
-      if (step.exerciseRef && !stored.has(step.exerciseRef)) {
+      if (step.exerciseRef && !stored.get(step.exerciseRef)) {
         stored.set(step.exerciseRef, step.name || null);
       }
     }
