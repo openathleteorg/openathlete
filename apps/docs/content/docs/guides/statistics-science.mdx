@@ -253,3 +253,27 @@ v × Cr(i) / Cr(0); Cr = 155.4i⁵ - 30.4i⁴ - 43.3i³ + 46.3i² + 19.5i + 3.6
 **Limits:** Measured on a treadmill: it knows nothing of technical terrain, and is less reliable on trails.
 
 **Sources:** [Minetti et al. 2002](https://doi.org/10.1152/japplphysiol.01177.2001)
+
+## Training diversity (4/8/12 weeks)
+TID (Training Intensity Distribution) describes how training time is distributed across three intensity zones (**Z1**: low intensity, **Z2**: moderate intensity, **Z3**: high intensity). The zones are defined by two physiological thresholds, usually VT1/LT1 and VT2/LT2.
+```text
+TID(Zi) = (Time spent in Zi / Total training time) × 100
+
+Z1 (%) = (Time in Z1 / Total time) × 100
+Z2 (%) = (Time in Z2 / Total time) × 100
+Z3 (%) = (Time in Z3 / Total time) × 100
+
+Z1 + Z2 + Z3 = 100%
+```
+**Sources:** Seiler & Kjerland (2006); Stöggl & Sperlich (2015); Casado et al. (2022).
+
+### Polarization Index (PI)
+The Polarization Index is a mathematical measure used to identify polarized training distributions. 
+```text
+PI = log10((Z1 / Z2) × Z3 × 100)
+```
+PI > 2.00: Polarized distribution and PI ≤ 2.00: Non-polarized distribution
+
+**Limits:** The PI is not applicable to every distribution. It is intended for structurally polarized training models (Z1 > Z3 > Z2).
+
+**Source:** Treff et al. (2019).
