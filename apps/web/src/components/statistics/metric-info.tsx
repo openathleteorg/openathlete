@@ -106,6 +106,11 @@ const COPY: Record<
     limits: m.metric_monotony_limits,
   },
   gap: { name: m.gap, what: m.metric_gap_what, limits: m.metric_gap_limits },
+  trainingCheck: {
+    name: m.check_title,
+    what: m.metric_training_check_what,
+    limits: m.metric_training_check_limits,
+  },
 };
 
 interface P {

@@ -527,6 +527,9 @@ enum ActivityProfileKind {
   DRIFT_PACE
   DRIFT_HEARTRATE
   DRIFT_POWER
+  /// SPEED and POWER of a run, on its about flat stretches only
+  FLAT_SPEED
+  FLAT_POWER
 
   @@map("activity_profile_kind")
 }

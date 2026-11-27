@@ -431,11 +431,11 @@ model Cycle {
 /// stream: one row per slope, speed or power band of an activity, and one per
 /// drift. Recomputed from the stream, it holds nothing of its own.
 model ActivityProfileBin {
-  /// GRADE: percent; SPEED: half km/h; POWER: 10 W; DRIFT_*: always 0
+  /// GRADE: percent; SPEED, FLAT_SPEED: half km/h; POWER, FLAT_POWER: 10 W; DRIFT_*: always 0
   bin     Int
   /// Time the row stands for
   seconds Float
-  /// GRADE: vertical m/h; SPEED and POWER: mean heart rate; DRIFT_*: percent
+  /// GRADE: vertical m/h; SPEED and POWER, FLAT_*: mean heart rate; DRIFT_*: percent
   value   Float
   kind    ActivityProfileKind
 
