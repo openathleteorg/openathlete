@@ -26,6 +26,7 @@ import {
   modifyEventDtoSchema,
 } from '@openathlete/shared';
 
+import { validTimeZone } from 'src/common/utils/time-zone';
 import { CaslAbilityFactory, JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -33,6 +34,7 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { resolveSessionAthleteId } from '../services/event-ai-helpers';
 import { EventGenerationService } from '../services/event-generation.service';
 import { EventModificationService } from '../services/event-modification.service';
+import { generatedEventWindow } from '../services/event-schedule';
 
 @ApiTags('Agent')
 @Controller('agent/ai')
@@ -50,7 +52,7 @@ export class AIFeaturesController {
   @ApiOperation({
     summary: 'Generate a training event using AI',
     description:
-      "Generates a complete training event using AI based on a natural language prompt. The AI considers the athlete's training zones, latest metrics, and training load to create a personalized workout. The generated event includes a structured workout with steps (warmup, intervals, cooldown, etc.), targets (heart rate zones, pace, power), and goals (duration, distance, elevation, RPE). The event is scheduled for the specified date with a default start time of 8:00 AM. Runs on the user's own AI key and model (Settings > AI), or on the instance keys when their plan includes AI.",
+      "Generates a complete training event using AI based on a natural language prompt. The AI considers the athlete's training zones, latest metrics, and training load to create a personalized workout. The generated event includes a structured workout with steps (warmup, intervals, cooldown, etc.), targets (heart rate zones, pace, power), and goals (duration, distance, elevation, RPE). The event is scheduled at 12:00 on the specified local day, in the client's time zone. Runs on the user's own AI key and model (Settings > AI), or on the instance keys when their plan includes AI.",
   })
   @ApiBody({
     description: 'Event generation request',
@@ -69,8 +71,15 @@ export class AIFeaturesController {
         date: {
           type: 'string',
           format: 'date',
-          description: 'ISO date string for the event date',
+          description:
+            'Calendar day of the event (YYYY-MM-DD); older clients may send an ISO instant, read in timeZone',
           example: '2024-01-15',
+        },
+        timeZone: {
+          type: 'string',
+          description:
+            "The browser's IANA time zone, so the session starts at noon on that local day; defaults to the user's saved time zone",
+          example: 'Europe/Paris',
         },
         athleteId: {
           type: 'number',
@@ -106,16 +115,14 @@ export class AIFeaturesController {
         startDate: {
           type: 'string',
           format: 'date-time',
-          description:
-            'Event start date and time (defaults to 8:00 AM on specified date)',
-          example: '2024-01-15T08:00:00.000Z',
+          description: 'Event start: 12:00 noon on the requested local day',
+          example: '2024-01-15T11:00:00.000Z',
         },
         endDate: {
           type: 'string',
           format: 'date-time',
-          description:
-            'Event end date and time (calculated from goalDuration or defaults to 1 hour)',
-          example: '2024-01-15T08:45:00.000Z',
+          description: 'Event end (start plus goalDuration, or one hour)',
+          example: '2024-01-15T12:00:00.000Z',
         },
         sport: {
           type: 'string',
@@ -248,10 +255,7 @@ export class AIFeaturesController {
       dto.athleteId,
     );
 
-    const parsedDate = new Date(dto.date);
-    const year = parsedDate.getFullYear();
-    const month = parsedDate.getMonth();
-    const day = parsedDate.getDate();
+    const timeZone = await this.resolveTimeZone(user.userId, dto.timeZone);
 
     const generatedEvent =
       await this.eventGenerationService.generateTrainingEvent(
@@ -260,14 +264,11 @@ export class AIFeaturesController {
         user.userId,
       );
 
-    const startDate = new Date(year, month, day, 8, 0, 0, 0);
-
-    const endDate = new Date(startDate);
-    if (generatedEvent.goalDuration) {
-      endDate.setSeconds(endDate.getSeconds() + generatedEvent.goalDuration);
-    } else {
-      endDate.setHours(9, 0, 0, 0); // Default 1 hour
-    }
+    const { startDate, endDate } = generatedEventWindow(
+      dto.date,
+      timeZone,
+      generatedEvent.goalDuration,
+    );
 
     const transformedWorkout = generatedEvent.workout
       ? {
@@ -664,5 +665,19 @@ export class AIFeaturesController {
     } as UpdateEventDto;
 
     return result;
+  }
+
+  /** The browser's zone when it sent one, else the user's saved zone */
+  private async resolveTimeZone(
+    userId: number,
+    requested?: string,
+  ): Promise<string> {
+    if (requested) return validTimeZone(requested);
+
+    const user = await this.prismaService.user.findUnique({
+      where: { userId },
+      select: { timeZone: true },
+    });
+    return validTimeZone(user?.timeZone);
   }
 }
