@@ -234,6 +234,55 @@ describe('mapSuuntoSleep', () => {
     });
   });
 
+  it('counts once a night that Suunto sends several times', () => {
+    // A 6:47 night, sent again at each sync of the watch
+    const night = {
+      timestamp: '2026-11-25T23:10:00.000+01:00',
+      entryData: {
+        DeepSleepDuration: 5400,
+        LightSleepDuration: 14400,
+        REMSleepDuration: 4620,
+        Duration: 25200,
+        WakeAfterSleepOnsetDuration: 780,
+        SleepQualityScore: 78,
+        SleepId: 1795644600,
+        IsNap: false,
+        BedtimeStart: '2026-11-25T23:10:00.000+01:00',
+        BedtimeEnd: '2026-11-26T06:10:00.000+01:00',
+      },
+    };
+    const metrics = mapSuuntoSleep([
+      night,
+      { ...night },
+      // Without an id: the same time in bed
+      { ...night, entryData: { ...night.entryData, SleepId: undefined } },
+      // An earlier, shorter version of the same night
+      {
+        timestamp: night.timestamp,
+        entryData: {
+          ...night.entryData,
+          SleepId: 1795644601,
+          LightSleepDuration: 7200,
+          Duration: 14400,
+          BedtimeEnd: '2026-11-26T03:10:00.000+01:00',
+        },
+      },
+    ]);
+
+    expect(valuesOf(metrics, MetricType.SLEEP_DURATION)).toEqual({
+      '2026-11-26': 6.78,
+    });
+    expect(valuesOf(metrics, MetricType.SLEEP_DEEP_DURATION)).toEqual({
+      '2026-11-26': 1.5,
+    });
+    expect(valuesOf(metrics, MetricType.SLEEP_LIGHT_DURATION)).toEqual({
+      '2026-11-26': 4,
+    });
+    expect(valuesOf(metrics, MetricType.SLEEP_REM_DURATION)).toEqual({
+      '2026-11-26': 1.28,
+    });
+  });
+
   it('counts the whole night when the watch sends only deep sleep', () => {
     // A Suunto 9 Baro night: 7:24 asleep, of which 2:26 deep, no other stage
     const metrics = mapSuuntoSleep([
