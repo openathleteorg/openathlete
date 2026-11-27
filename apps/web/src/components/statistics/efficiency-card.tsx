@@ -12,7 +12,11 @@ import {
   YAxis,
 } from 'recharts';
 
-import { SPORT_TYPE, StatisticsEfficiencyDto } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  SportGroup,
+  StatisticsEfficiencyDto,
+} from '@openathlete/shared';
 
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
@@ -238,18 +242,22 @@ export function EfficiencyCard({
   athleteId,
   period,
   sport,
+  group,
   visible,
 }: {
   athleteId: number;
   period: Period | null;
-  sport: SPORT_TYPE;
+  /** Without a sport, the runs of every running sport, or of the group */
+  sport?: SPORT_TYPE | null;
+  group?: SportGroup | null;
   visible: boolean;
 }) {
   const [chosen, setChosen] = useState<EfficiencyKind>('factor');
   const { data } = useStatisticsEfficiencyQuery(
     {
       athleteId,
-      sport,
+      sport: sport ?? undefined,
+      group: group ?? undefined,
       from: period?.start ?? new Date(0),
       to: period?.end ?? new Date(0),
     },

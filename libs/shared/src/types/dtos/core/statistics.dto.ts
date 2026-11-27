@@ -35,6 +35,32 @@ export const SPORT_GROUPS = {
 export type SportGroup = keyof typeof SPORT_GROUPS;
 const sportGroupSchema = z.enum(['RUNNING', 'CYCLING', 'SKIING']);
 
+/** Efficiency figures are a runner's: grade-adjusted pace, running power */
+export const RUN_EFFICIENCY_SPORTS: readonly SPORT_TYPE[] = [
+  SPORT_TYPE.RUNNING,
+  SPORT_TYPE.TRAIL_RUNNING,
+  SPORT_TYPE.VIRTUAL_RUN,
+];
+
+/**
+ * The runs a sport filter leaves for the efficiency figures. They are grade
+ * adjusted, so road and trail runs read on one scale: without a sport, all
+ * the runs count, not only those of the most practised running sport.
+ */
+export function runEfficiencySports(
+  sport?: SPORT_TYPE,
+  group?: SportGroup,
+): SPORT_TYPE[] {
+  const chosen: readonly SPORT_TYPE[] | null = sport
+    ? [sport]
+    : group
+      ? SPORT_GROUPS[group]
+      : null;
+  return RUN_EFFICIENCY_SPORTS.filter(
+    (value) => !chosen || chosen.includes(value),
+  );
+}
+
 const statisticsPeriodSchema = z.object({
   athleteId: z.coerce.number().int().positive(),
   from: z.coerce.date(),

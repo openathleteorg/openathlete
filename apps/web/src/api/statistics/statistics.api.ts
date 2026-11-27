@@ -94,7 +94,7 @@ export class StatisticsAPI {
   }
 
   static async getEfficiency(
-    params: StatisticsSectionParams & { sport: SPORT_TYPE },
+    params: StatisticsSectionParams,
   ): Promise<StatisticsEfficiencyDto> {
     const res = await client.get(routes.statistics.efficiency, { params });
     return res.data;
