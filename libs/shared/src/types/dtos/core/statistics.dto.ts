@@ -277,6 +277,63 @@ export type StatisticsEfficiencyDto = z.infer<
   typeof statisticsEfficiencySchema
 >;
 
+export const getTrainingCheckQuerySchema = z.object({
+  /** Absent: the athlete asking */
+  athleteId: z.coerce.number().int().positive().optional(),
+});
+export type GetTrainingCheckQueryDto = z.infer<
+  typeof getTrainingCheckQuerySchema
+>;
+
+const checkStatusSchema = z.enum(['BETTER', 'SAME', 'WORSE', 'OPEN']);
+const checkComparisonSchema = z.object({
+  status: checkStatusSchema,
+  /** Median of the last window; null without a value */
+  current: z.number().nullable(),
+  previous: z.number().nullable(),
+  /** Spread between single runs, null while open */
+  noise: z.number().nullable(),
+  /** Runs counted in the last window, and in the one before */
+  counts: z.tuple([z.number(), z.number()]),
+});
+
+/**
+ * The training check of a runner: the last six weeks against the six before
+ * (see training-check.ts for the method and its sources)
+ */
+export const trainingCheckSchema = z.object({
+  from: z.coerce.date(),
+  /** Where the last window starts */
+  split: z.coerce.date(),
+  to: z.coerce.date(),
+  /**
+   * Fitter: heart rate against the usual one at the same output on flat
+   * stretches, in beats a minute, lower being better
+   */
+  fitness: checkComparisonSchema.extend({
+    /** What output is: running power, or grade-adjusted speed */
+    basis: z.enum(['POWER', 'SPEED']),
+    /** The output most of the time was spent at: watts, or m/s */
+    reference: z.number().nullable(),
+  }),
+  /**
+   * Faster: critical speed (m/s) or power (W) from the bests of the 16 weeks
+   * to now, against those of the 16 weeks to six weeks ago
+   */
+  speed: z.object({
+    status: checkStatusSchema,
+    kind: z.enum(['speed', 'power']).nullable(),
+    current: z.number().nullable(),
+    previous: z.number().nullable(),
+  }),
+  /**
+   * Lasting longer: decoupling of heart rate from output on long, steady
+   * runs on the flat, in percent
+   */
+  durability: checkComparisonSchema,
+});
+export type TrainingCheckDto = z.infer<typeof trainingCheckSchema>;
+
 /**
  * The one figure of the Lab a non-Supporter sees: the capacity of the
  * profile that progressed the most over the last twelve months against the

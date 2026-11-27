@@ -5,6 +5,7 @@ import { FeatureAccessService } from 'src/modules/subscription/services/feature-
 
 import { LabTeaserService } from '../services/lab-teaser.service';
 import { StatisticsService } from '../services/statistics.service';
+import { TrainingCheckService } from '../services/training-check.service';
 import { StatisticsController } from './statistics.controller';
 
 const user = { userId: 7 } as AuthUser;
@@ -34,12 +35,14 @@ function build(lab: boolean) {
   };
   const features = { can: jest.fn().mockResolvedValue(lab) };
   const labTeaser = { teaser: jest.fn().mockResolvedValue(TEASER) };
+  const trainingCheck = { getCheck: jest.fn().mockResolvedValue({}) };
   const controller = new StatisticsController(
     statistics as unknown as StatisticsService,
     features as unknown as FeatureAccessService,
     labTeaser as unknown as LabTeaserService,
+    trainingCheck as unknown as TrainingCheckService,
   );
-  return { controller, statistics, features, labTeaser };
+  return { controller, statistics, features, labTeaser, trainingCheck };
 }
 
 const LAB = [
@@ -68,6 +71,13 @@ describe('StatisticsController and the Lab', () => {
     expect(result).not.toHaveProperty('locked');
     expect(statistics[method]).toHaveBeenCalledWith(user, query);
     expect(labTeaser.teaser).not.toHaveBeenCalled();
+  });
+
+  it('gives the training check without asking for a plan', async () => {
+    const { controller, trainingCheck, features } = build(false);
+    await controller.getCheck(user, { athleteId: 3 });
+    expect(trainingCheck.getCheck).toHaveBeenCalledWith(user, 3);
+    expect(features.can).not.toHaveBeenCalled();
   });
 
   it('keeps the efficiency of runs free: it moved to the Load view', async () => {
