@@ -1,0 +1,35 @@
+---
+title: Upload activities by webhook
+description: Send FIT activities to your OpenAthlete calendar from RunGap or another webhook client.
+---
+
+In OpenAthlete, open **Settings → Connectors**. Each webhook has its own credentials. You can use both at once.
+
+## RunGap
+
+1. Open **Webhook – RunGap** and select **Generate upload token**. Copy the webhook URL and passkey while they are visible.
+2. Open the Webhook destination in RunGap and paste the URL and passkey into their respective fields.
+3. Share a completed activity to Webhook. Its FIT file is queued for import and appears in your OpenAthlete calendar after processing.
+
+## Other webhook clients
+
+Open **Webhook – Generic** and select **Generate upload token**. Copy the webhook URL and the separate upload token. POST a raw FIT file to that URL with the token in the `Authorization: Bearer` header.
+
+```bash
+curl -X POST 'https://api.openathlete.org/activity-import/webhook/upload' \
+  -H "Authorization: Bearer $UPLOAD_TOKEN" \
+  -H 'Content-Type: application/octet-stream' \
+  --data-binary @morning-run.fit
+```
+
+On a typical self-hosted instance the base URL is
+`https://<your domain>/api/activity-import/webhook/upload`. If you run your own
+reverse proxy, exclude token-bearing RunGap URLs from request logs.
+
+Each file can be up to 20 MB. A `200` with `{"queued":true}` confirms
+acceptance for background import. A workout already saved by a connected
+provider or an earlier delivery is skipped.
+
+**Replace upload token** issues new credentials and invalidates the old
+ones for that connector only. Update your sender with the new values. **Revoke upload token** stops
+future uploads using that token.

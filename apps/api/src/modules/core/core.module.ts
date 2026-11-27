@@ -10,6 +10,7 @@ import { SubscriptionModule } from '../subscription/subscription.module';
 import { EventController } from './controllers';
 import { ActivityDuplicatesController } from './controllers/activity-duplicates.controller';
 import { ActivityFeedbackController } from './controllers/activity-feedback.controller';
+import { ActivityUploadWebhookController } from './controllers/activity-upload-webhook.controller';
 import { AthleteController } from './controllers/athlete.controller';
 import { CoachNoteController } from './controllers/coach-note.controller';
 import { CoachController } from './controllers/coach.controller';
@@ -38,6 +39,7 @@ import { ActivityDetailService } from './services/activity-detail.service';
 import { ActivityDuplicateService } from './services/activity-duplicate.service';
 import { ActivityFeedbackService } from './services/activity-feedback.service';
 import { ActivityRecordsService } from './services/activity-records.service';
+import { ActivityUploadWebhookService } from './services/activity-upload-webhook.service';
 import { AthleteCalendarExportService } from './services/athlete-calendar-export.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
 import { AthleteService } from './services/athlete.service';
@@ -106,6 +108,7 @@ import { YearReviewService } from './services/year-review.service';
     TrainingLoadController,
     CycleController,
     ManualFitImportController,
+    ActivityUploadWebhookController,
   ],
   providers: [
     LabTeaserService,
@@ -114,6 +117,7 @@ import { YearReviewService } from './services/year-review.service';
     EventService,
     ActivityDuplicateService,
     ManualFitImportService,
+    ActivityUploadWebhookService,
     WorkoutService,
     EventTemplateService,
     EventTemplateFolderService,
@@ -185,6 +189,7 @@ import { YearReviewService } from './services/year-review.service';
     },
   ],
   exports: [
+    ManualFitImportService,
     EventService,
     ActivityDuplicateService,
     ActivityRecordsService,

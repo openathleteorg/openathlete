@@ -2,7 +2,11 @@ import { getAccessToken } from '@/utils/auth';
 import { QueryClient } from '@tanstack/react-query';
 import axios, { isAxiosError } from 'axios';
 
-import { ConnectorProvider, Event } from '@openathlete/shared';
+import {
+  ConnectorProvider,
+  Event,
+  WebhookConnector,
+} from '@openathlete/shared';
 
 import { getApiBaseUrl } from './capacitor';
 import { ACCESS_TOKEN, REFRESH_TOKEN, setItem } from './local-storage';
@@ -38,6 +42,8 @@ export const routes = {
     fit: '/activity-import/fit',
     gpx: '/activity-import/gpx',
     tcx: '/activity-import/tcx',
+    webhookConnection: (connector: WebhookConnector) =>
+      `/activity-import/webhook/connection/${connector}`,
     removeDuplicates: '/activity-duplicates/removal',
   },
   event: {

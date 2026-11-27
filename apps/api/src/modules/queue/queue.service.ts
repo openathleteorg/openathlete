@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
@@ -12,6 +12,14 @@ export interface ActivityImportJobData {
   providerAccountId: number;
   activity: ImportedActivity;
   bulkImport?: boolean;
+}
+
+export const WEBHOOK_FIT_IMPORT_QUEUE = 'webhook-fit-import';
+const WEBHOOK_FIT_UPLOAD_TTL = 24 * 60 * 60;
+
+export interface WebhookFitImportJobData {
+  uploadId: string;
+  userId: number;
 }
 
 export interface ProviderFullImportJobData {
@@ -89,6 +97,8 @@ export class QueueService {
   constructor(
     @InjectQueue('activity-import')
     private readonly activityImportQueue: Queue<ActivityImportJobData>,
+    @InjectQueue(WEBHOOK_FIT_IMPORT_QUEUE)
+    private readonly webhookFitImportQueue: Queue<WebhookFitImportJobData>,
     @InjectQueue('activity-processing')
     private readonly activityProcessingQueue: Queue<ActivityProcessingJobData>,
     @InjectQueue('provider-full-import')
@@ -108,6 +118,34 @@ export class QueueService {
     @InjectQueue('training-load-recalc')
     private readonly trainingLoadRecalcQueue: Queue<TrainingLoadRecalcJobData>,
   ) {}
+
+  async addWebhookFitImportJob(userId: number, file: Buffer, name: string) {
+    const uploadId = randomUUID();
+    const redis = await this.webhookFitImportQueue.client;
+    // Keep the upload outside the job, with an expiry even if enqueue fails.
+    const upload = JSON.stringify({ name, file: file.toString('base64') });
+    await redis.set(this.webhookFitUploadKey(uploadId), upload, {
+      EX: WEBHOOK_FIT_UPLOAD_TTL,
+    });
+    await this.webhookFitImportQueue.add('import', { uploadId, userId });
+  }
+
+  async getWebhookFitUpload(uploadId: string) {
+    const redis = await this.webhookFitImportQueue.client;
+    const upload = await redis.get(this.webhookFitUploadKey(uploadId));
+    if (!upload) return null;
+    const { name, file }: { name: string; file: string } = JSON.parse(upload);
+    return { name, file: Buffer.from(file, 'base64') };
+  }
+
+  async deleteWebhookFitUpload(uploadId: string) {
+    const redis = await this.webhookFitImportQueue.client;
+    await redis.del(this.webhookFitUploadKey(uploadId));
+  }
+
+  private webhookFitUploadKey(uploadId: string) {
+    return `openathlete:webhook-fit-upload:${uploadId}`;
+  }
 
   /**
    * Waits a minute so that HR max and resting HR typed one after the other

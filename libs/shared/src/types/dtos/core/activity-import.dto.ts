@@ -28,6 +28,21 @@ export type ImportTcxActivityFileDto = z.infer<
   typeof importTcxActivityFileDtoSchema
 >;
 
+export const webhookConnectorSchema = z.enum(['generic', 'rungap']);
+export type WebhookConnector = z.infer<typeof webhookConnectorSchema>;
+
+export interface ActivityUploadWebhookStatusDto {
+  enabled: boolean;
+  /** ISO 8601 timestamp of the most recent upload accepted by the queue. */
+  lastUploadAt: string | null;
+}
+
+export interface ActivityUploadWebhookCredentialsDto {
+  url: string;
+  token: string;
+  passkey: string | null;
+}
+
 /** Data a file lacked, or that was left out to keep series aligned. */
 export const ACTIVITY_IMPORT_WARNINGS = [
   'FIT_INCOMPLETE_CHANNELS',

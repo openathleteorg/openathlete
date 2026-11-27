@@ -1,4 +1,12 @@
-import { ConnectorProvider } from '@openathlete/database';
+import { ConnectorProvider, Prisma } from '@openathlete/database';
+
+/** Serialize the duplicate check and final write for an athlete's imports. */
+export function lockActivityImport(
+  tx: Prisma.TransactionClient,
+  athleteId: number,
+) {
+  return tx.$executeRaw`SELECT pg_advisory_xact_lock(7139, ${athleteId}::int)`;
+}
 
 /**
  * The same workout synced from two sources (a watch brand and Strava, or a

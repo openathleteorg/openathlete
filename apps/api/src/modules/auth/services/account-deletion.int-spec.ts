@@ -36,6 +36,7 @@ type ForeignKey = {
 const HANDLED_RESTRICT_KEYS = [
   'activity_feedback_embedding.event_activity_id -> event_activity',
   'activity_feedback_question.event_activity_id -> event_activity',
+  'activity_upload_webhook.user_id -> user',
   'agent_thread.user_id -> user',
   'athlete.user_id -> user',
   'athlete_injury.athlete_id -> athlete',
@@ -131,14 +132,14 @@ describe('AccountDeletionService (PostgreSQL)', () => {
     await service.deleteAccount(DELETED_USER_ID);
 
     // Only the coach's own data is left: their user and athlete profile,
-    // their AI key, model choice and instructions, their agent's access, the
-    // direct conversation with the message they wrote, and the email they
-    // were sent
+    // their upload webhook, AI key, model choice and instructions, their
+    // agent's access, the direct conversation they wrote in, and their email
     expect(await rowCounts()).toEqual({
       user: 1,
       garmin_personal_connection: 1,
       garmin_personal_item: 1,
       athlete: 1,
+      activity_upload_webhook: 1,
       ai_credential: 1,
       ai_model_preference: 1,
       ai_custom_instruction: 1,

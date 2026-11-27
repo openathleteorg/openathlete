@@ -23,6 +23,7 @@ import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.
 import { AuthUser } from '../../auth/decorators/user.decorator';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
+import { lockActivityImport } from '../helpers/activity-duplicates';
 import { uncompressActivityStream } from '../helpers/activity-stream';
 import {
   MAX_MANUAL_FIT_BYTES,
@@ -55,7 +56,7 @@ export class ManualFitImportService {
   ) {}
 
   /** The activity always goes to the caller's own athlete profile. */
-  private async ownAthlete(user: AuthUser) {
+  private async ownAthlete(user: Pick<AuthUser, 'userId'>) {
     const athlete = await this.prisma.athlete.findUnique({
       where: { userId: user.userId },
     });
@@ -79,7 +80,11 @@ export class ManualFitImportService {
       throw new PayloadTooLargeException(`${format}_LIMIT`);
   }
 
-  async import(user: AuthUser, file: ManualFitFile | undefined, name: string) {
+  async import(
+    user: Pick<AuthUser, 'userId'>,
+    file: ManualFitFile | undefined,
+    name: string,
+  ) {
     const athlete = await this.ownAthlete(user);
     this.checkFile(file, 'FIT');
     let fit: ReturnType<typeof prepareManualFit>;
@@ -165,7 +170,7 @@ export class ManualFitImportService {
           // cannot both pass the checks below. Other athletes are not held
           // up: a serializable transaction made their imports of the same
           // moment fail with conflicts.
-          await tx.$executeRaw`SELECT pg_advisory_xact_lock(7139, ${athlete.athleteId}::int)`;
+          await lockActivityImport(tx, athlete.athleteId);
           const existing = await tx.eventActivity.findUnique({
             where: { externalId },
             include: { event: true },

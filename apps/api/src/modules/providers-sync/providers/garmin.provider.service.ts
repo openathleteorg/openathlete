@@ -69,7 +69,8 @@ import {
   isRefreshTokenRejected,
 } from '../base';
 import {
-  ImportResult,
+  CheckActivityCopy,
+  CheckedImportResult,
   ImportedActivity,
   ProviderImportCapability,
 } from '../base';
@@ -1036,7 +1037,8 @@ export class GarminProviderService
   async importActivity(
     account: ProviderAccount,
     activity: ImportedActivity,
-  ): Promise<ImportResult> {
+    checkCopy: CheckActivityCopy,
+  ): Promise<CheckedImportResult> {
     const existing = await this.prisma.eventActivity.findFirst({
       where: {
         provider: ConnectorProvider.GARMIN,
@@ -1050,7 +1052,9 @@ export class GarminProviderService
 
     const summary = activity.raw as GarminActivitySummary;
     const metrics = activityMetrics(summary);
-    const saved = await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
+      const duplicate = await checkCopy(tx);
+      if (duplicate) return { duplicate };
       const event = await tx.event.create({
         data: {
           athleteId: account.athleteId,
@@ -1060,7 +1064,7 @@ export class GarminProviderService
           endDate: new Date(activity.endDate),
         },
       });
-      return tx.eventActivity.create({
+      const saved = await tx.eventActivity.create({
         data: {
           provider: ConnectorProvider.GARMIN,
           ...metrics,
@@ -1070,9 +1074,8 @@ export class GarminProviderService
           event: { connect: { eventId: event.eventId } },
         },
       });
+      return { activity: saved, created: true };
     });
-
-    return { activity: saved, created: true };
   }
 
   /**

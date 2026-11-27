@@ -3,6 +3,7 @@ import { DelayedError, Job } from 'bullmq';
 import { ConnectorProvider } from '@openathlete/database';
 
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
+import { CheckActivityCopy } from '../../providers-sync/base/provider-import.interface';
 import { ProviderRateLimitError } from '../../providers-sync/errors/provider-rate-limit.error';
 import { ActivityImportJobData } from '../queue.service';
 import { ActivityImportProcessor } from './activity-import.processor';
@@ -144,15 +145,51 @@ describe('ActivityImportProcessor', () => {
       skipped: 'duplicate',
       eventId: 12,
     });
-    expect(duplicates.findDuplicate).toHaveBeenCalledWith(70, {
-      source: ConnectorProvider.STRAVA,
-      startDate: new Date('2026-01-06T07:00:00.000Z'),
-      endDate: new Date('2026-01-06T08:00:00.000Z'),
-      movingTime: 3600,
-    });
+    expect(duplicates.findDuplicate).toHaveBeenCalledWith(
+      70,
+      {
+        source: ConnectorProvider.STRAVA,
+        startDate: new Date('2026-01-06T07:00:00.000Z'),
+        endDate: new Date('2026-01-06T08:00:00.000Z'),
+        movingTime: 3600,
+      },
+      expect.anything(),
+    );
     expect(strava.importActivity).not.toHaveBeenCalled();
     expect(queue.addActivityProcessingJob).not.toHaveBeenCalled();
     expect(emitter.emit).not.toHaveBeenCalled();
+  });
+
+  it('checks again under the FIT import lock when a copy landed during the provider fetch', async () => {
+    const { processor, strava, duplicates, descriptions, queue } = setup(true);
+    const copy = { eventId: 12, eventActivityId: 13 };
+    const tx = {
+      $executeRaw: jest.fn(),
+      eventActivity: { findUnique: jest.fn().mockResolvedValue(null) },
+    };
+    duplicates.findDuplicate
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(copy);
+    strava.importActivity.mockImplementation(
+      async (_account, _activity, checkCopy: CheckActivityCopy) => ({
+        duplicate: await checkCopy(tx as never),
+      }),
+    );
+
+    await expect(processor.process(job())).resolves.toMatchObject({
+      skipped: 'duplicate',
+      eventId: 12,
+    });
+    expect(tx.$executeRaw).toHaveBeenCalledWith(expect.any(Array), 70);
+    expect(duplicates.findDuplicate).toHaveBeenLastCalledWith(
+      70,
+      expect.anything(),
+      tx,
+    );
+    expect(descriptions.schedule).toHaveBeenCalledWith(
+      expect.objectContaining({ eventActivityId: 13 }),
+    );
+    expect(queue.addActivityProcessingJob).not.toHaveBeenCalled();
   });
 
   it('describes a skipped Strava copy from the activity already saved', async () => {

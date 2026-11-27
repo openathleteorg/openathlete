@@ -4,16 +4,70 @@ import {
   MutationOptions,
   QueryClient,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 
 import {
+  ActivityUploadWebhookCredentialsDto,
+  ActivityUploadWebhookStatusDto,
   ImportedActivityDto,
   RemoveDuplicateActivitiesResponseDto,
   SPORT_TYPE,
+  WebhookConnector,
 } from '@openathlete/shared';
 
 import { ActivityImportAPI } from './activity-import.api';
+
+const webhookStatusKey = (connector: WebhookConnector) => [
+  'activity-import',
+  'webhook-connection',
+  connector,
+];
+
+export function useActivityUploadWebhookQuery(connector: WebhookConnector) {
+  return useQuery({
+    queryKey: webhookStatusKey(connector),
+    queryFn: () => ActivityImportAPI.getWebhookStatus(connector),
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useGenerateActivityUploadWebhookMutation(
+  connector: WebhookConnector,
+  showCredentials: (credentials: ActivityUploadWebhookCredentialsDto) => void,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const credentials = await ActivityImportAPI.generateWebhook(connector);
+      // Only component state gets the one-time credentials.
+      showCredentials(credentials);
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: webhookStatusKey(connector) }),
+  });
+}
+
+export function useRevokeActivityUploadWebhookMutation(
+  connector: WebhookConnector,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => ActivityImportAPI.revokeWebhook(connector),
+    onSuccess: () => {
+      queryClient.setQueryData<ActivityUploadWebhookStatusDto>(
+        webhookStatusKey(connector),
+        {
+          enabled: false,
+          lastUploadAt: null,
+        },
+      );
+    },
+  });
+}
 
 const refreshImported = (
   queryClient: QueryClient,

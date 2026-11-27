@@ -67,6 +67,7 @@ const NOT_EXPORTED_TABLES = {
     'technical source identity, local deletion and processing receipts; activity data is exported through events',
   activity_chat_notice:
     'automatic delivery/suppression receipts, not human-authored content',
+  activity_upload_webhook: 'upload token hashes and encrypted signing keys',
   athlete_invitation: 'pending invitations sent to other people',
   club_invitation: 'invitations to a club, sent to other people',
   club_session:
@@ -245,6 +246,8 @@ describe('AccountExportService (PostgreSQL)', () => {
       '"refreshToken"',
       '"encryptedApiKey"',
       'v1:a:b:c',
+      'webhook-hash',
+      'v1:webhook:tag:ciphertext',
     ]) {
       expect(text).not.toContain(secret);
     }
