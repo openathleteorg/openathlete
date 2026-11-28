@@ -245,21 +245,54 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
     return hourly;
   }
 
-  /** Busy (429) and unavailable (5xx) answers get one more try */
+  /**
+   * Busy (429) and unavailable (5xx) answers get one more try. A timeout, a
+   * network error or a body that is not JSON fail at once.
+   */
   private async request(url: URL): Promise<Hourly> {
     for (let attempt = 0; ; attempt++) {
-      const res = await fetch(url.toString());
-      if (res.ok) {
-        const data: unknown = await res.json();
-        return (data as { hourly?: Hourly })?.hourly || { time: [] };
-      }
+      const signal = AbortSignal.timeout(this.timeoutMs);
+      const res = await this.fetchWithin(url, signal);
+      if (res.ok) return this.readHourly(res, signal);
       if ((res.status !== 429 && res.status < 500) || attempt >= 1)
         throw new Error(`HTTP ${res.status}`);
       await new Promise((r) => setTimeout(r, this.retryDelayMs));
     }
   }
 
+  private async fetchWithin(url: URL, signal: AbortSignal): Promise<Response> {
+    try {
+      return await fetch(url.toString(), { signal });
+    } catch (err) {
+      throw this.failure(err, signal);
+    }
+  }
+
+  // The body is read under the same signal, so a stalled body also times out
+  private async readHourly(
+    res: Response,
+    signal: AbortSignal,
+  ): Promise<Hourly> {
+    let data: unknown;
+    try {
+      data = await res.json();
+    } catch (err) {
+      if (signal.aborted) throw this.failure(err, signal);
+      throw new Error('Open-Meteo returned a non-JSON body');
+    }
+    return (data as { hourly?: Hourly })?.hourly || { time: [] };
+  }
+
+  private failure(err: unknown, signal: AbortSignal): Error {
+    if (signal.aborted)
+      return new Error(`Open-Meteo timed out after ${this.timeoutMs}ms`);
+    return new Error(
+      `Open-Meteo request failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+
   protected retryDelayMs = 2000;
+  protected timeoutMs = 10_000;
 }
 
 /** About 2 km: as fine as the finest models Open-Meteo serves in Europe */

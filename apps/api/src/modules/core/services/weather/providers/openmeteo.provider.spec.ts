@@ -2,6 +2,7 @@ import { OpenMeteoWeatherProvider } from './openmeteo.provider';
 
 class InstantRetryProvider extends OpenMeteoWeatherProvider {
   protected retryDelayMs = 0;
+  protected timeoutMs = 50;
 }
 
 const answer = (status: number) =>
@@ -69,5 +70,43 @@ it('gives up on a request Open-Meteo refuses', async () => {
       points: [{ lat: 45, lon: 6, distM: 0, timeSec: 0 }],
     }),
   ).rejects.toThrow('HTTP 400');
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+const onePoint = {
+  startDate,
+  points: [{ lat: 45, lon: 6, distM: 0, timeSec: 0 }],
+};
+
+it('gives up without retrying when Open-Meteo does not answer in time', async () => {
+  fetchMock.mockImplementation(
+    (_url: string, init: RequestInit) =>
+      new Promise((_resolve, reject) =>
+        init.signal?.addEventListener('abort', () =>
+          reject(init.signal?.reason),
+        ),
+      ),
+  );
+  await expect(
+    new InstantRetryProvider().fetchSamples(onePoint),
+  ).rejects.toThrow('Open-Meteo timed out after 50ms');
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+it('treats an answer that is not JSON as a failure, without retrying', async () => {
+  fetchMock.mockResolvedValue(
+    new Response('Unexpected error', { status: 200 }),
+  );
+  await expect(
+    new InstantRetryProvider().fetchSamples(onePoint),
+  ).rejects.toThrow('Open-Meteo returned a non-JSON body');
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+it('gives up without retrying when Open-Meteo cannot be reached', async () => {
+  fetchMock.mockRejectedValue(new TypeError('fetch failed'));
+  await expect(
+    new InstantRetryProvider().fetchSamples(onePoint),
+  ).rejects.toThrow('Open-Meteo request failed: fetch failed');
   expect(fetchMock).toHaveBeenCalledTimes(1);
 });
