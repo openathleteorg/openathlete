@@ -39,7 +39,7 @@ Work from the contract outwards, in this order. Each step names the file to foll
 - UI:
   - forms use React Hook Form with the shared schema and the `RHF*` fields;
   - success and error feedback through `toast`;
-  - every string through Paraglide, in all four locales (`i18n` skill).
+  - every string through Paraglide, in all eight locales (`i18n` skill).
 
 ## 4. Verify
 

@@ -31,6 +31,8 @@ After changing API or web code, run `stack:up` again: it rebuilds the images. Th
 | `desktop` | `tests/web/*.spec.ts` | Desktop Chrome, logged in as the shared athlete |
 | `mobile` | `tests/mobile/*.spec.ts` | iPhone 13 viewport and touch input on Chromium, logged in |
 | `android` | `tests/mobile/*.spec.ts` | The same phone tests as a Pixel 8 (Chromium), logged in |
+| `billing` | `tests/billing/*.spec.ts` | Desktop Chrome against a second web app and API with billing (stripe-mock), same database: Supporter perks are locked for free accounts |
+| `billing-mobile` | `tests/billing/*.spec.ts` | The same billing tests on the iPhone 13 viewport (Chromium) |
 
 ## Writing tests
 

@@ -47,15 +47,7 @@ pnpm database exec prisma migrate dev --create-only --name <change>   # new migr
 
 ## Definition of done
 
-Run `scripts/verify.sh` for every change, then add the targeted checks:
-
-| Change touches | Also run |
-| --- | --- |
-| Prisma schema or anything that deletes data | `scripts/verify.sh --integration` |
-| AI agents, prompts, structured outputs | `scripts/verify.sh --build` (runs `test:agents`) |
-| Dockerfiles, nginx, env vars, auth, routing, a user flow | `scripts/verify.sh --e2e` |
-| `apps/docs` | `cd apps/docs && pnpm install --frozen-lockfile && pnpm types:check && pnpm build` |
-| Native projects, Capacitor plugins, `apps/web/fastlane` | `cd apps/web && bundle exec fastlane android check && bundle exec fastlane ios check` |
+Run `scripts/verify.sh` for every change, then the targeted checks the `verify` skill lists for what the change touches.
 
 Behaviour changes come with tests at the lowest level that can catch the regression:
 - unit tests for logic;
@@ -120,4 +112,4 @@ Project workflows live in `.claude/skills/`:
 - Paraglide output (`apps/web/src/paraglide`) is generated: recompile after editing `apps/web/messages/*.json`.
 - Login is limited to 10 requests per minute per IP. Tests set `X-Forwarded-For`, which the API trusts only from private networks.
 - Vercel builds web, website and docs only when the paths listed for them in `scripts/vercel-ignore-build.sh` changed since the last deployment. An app that starts depending on another folder needs it added there, or its deployments will skip that change.
-- `apps/docs` must be installed with pnpm 9.15.9 (`packageManager` field); pnpm 10 rewrites its lockfile.
+- `apps/docs` must be installed with pnpm 9.15.9 (the root `packageManager` field); pnpm 10 rewrites its lockfile.

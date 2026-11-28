@@ -18,7 +18,7 @@ Then add what the change touches:
 | Changed | Command | Why |
 | --- | --- | --- |
 | `libs/database` schema, SQL, transactions, anything deleting data | `scripts/verify.sh --integration` | Runs `*.int-spec.ts` on a throwaway PostgreSQL (Docker, port 15436) |
-| `apps/api/src/mastra`, prompts, structured outputs, AI SDK versions | `scripts/verify.sh --build` | Builds everything and runs `test:agents` against a fake OpenAI API |
+| `apps/api/src/mastra`, prompts, structured outputs, AI SDK versions | `scripts/verify.sh --build` | Builds everything and runs `test:agents` against fake OpenAI, Anthropic and OpenAI-compatible APIs |
 | Dockerfiles, nginx, env vars, auth, routing, a page or user flow | `scripts/verify.sh --e2e` | Builds the production images and runs Playwright (ports 13000 and 18080) |
 | Dependency upgrades, release preparation | `scripts/verify.sh --all` | Everything CI runs |
 | `apps/docs` | `cd apps/docs && pnpm install --frozen-lockfile && pnpm types:check && pnpm build` | Standalone project |

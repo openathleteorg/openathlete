@@ -39,12 +39,7 @@ The same image runs as the HTTP API and as the background worker. Which BullMQ p
 ## Data and deletion
 
 - Prisma comes from `PrismaService`. Use `$transaction` when several writes must succeed together.
-- `AccountDeletionService` erases a user and everything they own. When you add a table with a foreign key to `user`, `athlete`, `event`, `event_activity` or `workout`:
-  - handle it in the service;
-  - add the key to `HANDLED_RESTRICT_KEYS` in `account-deletion.int-spec.ts`;
-  - seed it in `account-deletion.fixture.ts`.
-
-  The integration test fails until you do.
+- `AccountDeletionService` erases a user and everything they own. A new table with a foreign key to `user`, `athlete`, `event`, `event_activity` or `workout` needs coverage there; the `prisma-migration` skill lists the steps, and the integration test fails until you do them.
 
 ## AI features
 
