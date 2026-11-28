@@ -127,13 +127,16 @@ test('reads an activity against its plan, step by step and part by part', async 
           `${API_URL}/event/${activityId}/normalization`,
           { headers },
         );
-        expect(response.ok(), await response.text()).toBe(true);
+        // A throw here would end the poll at once, so an error is returned
+        if (!response.ok()) {
+          return { status: response.status(), body: await response.text() };
+        }
         const { factors } = (await response.json()) as { factors: unknown[] };
-        return factors.length;
+        return { status: response.status(), hasFactors: factors.length > 0 };
       },
       { timeout: 20_000 },
     )
-    .toBeGreaterThan(0);
+    .toMatchObject({ status: 200, hasFactors: true });
 
   // Hidden tracks stay hidden the next time
   await chart.locator('[data-track-toggle="altitude"]').click();
