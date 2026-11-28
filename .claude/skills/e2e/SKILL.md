@@ -35,7 +35,7 @@ After changing API or web code, run `stack:up` again: it rebuilds the images. Th
 ## Writing tests
 
 - Create users through `createAthlete(request)` from `support/api.ts`. Every test gets its own account, and each test owns its data.
-- API calls go through `apiHeaders()`. It sets a random private `X-Forwarded-For`, so tests don't share the 10 logins per minute rate limit.
+- API calls go through `apiHeaders()`. It sets a random private `X-Forwarded-For`, so tests don't share the 10 logins per minute rate limit. Browser pages get one such address per worker from `playwright.config.ts`.
 - For pages, start with `const problems = trackPageProblems(page)` and end with `expect(problems).toEqual([])`. This catches uncaught errors, console errors and failed requests.
 - To test logged out, add `test.use({ storageState: { cookies: [], origins: [] } })`.
 - Prefer role and text locators, or `data-*` attributes already in the app. Never use timeouts as waits: use `expect(...).toBeVisible()` or `toHaveURL` instead.
