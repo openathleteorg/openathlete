@@ -4,9 +4,10 @@ import { importRecentRun } from '../../support/activities';
 import { apiHeaders, createAthlete } from '../../support/api';
 import { API_URL } from '../../support/env';
 
-// Yesterday asks the forecast API, ten days ago the archive: both come from
-// the fake-open-meteo service, which has 15 °C, 60 % and 10 km/h every hour
-for (const daysAgo of [1, 10]) {
+// Yesterday asks the forecast API, three days ago the archive: both come from
+// the fake-open-meteo service, which has 15 °C, 60 % and 10 km/h every hour.
+// Past a week the import counts as history and skips weather.
+for (const daysAgo of [1, 3]) {
   test(`the worker adds weather to a run from ${daysAgo} days ago`, async ({
     request,
   }) => {
