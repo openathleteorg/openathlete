@@ -120,6 +120,21 @@ test('reads an activity against its plan, step by step and part by part', async 
   // Hidden tracks stay hidden the next time
   await chart.locator('[data-track-toggle="altitude"]').click();
   await expect(chart.locator('[data-track="altitude"]')).toHaveCount(0);
+  // The Conditions tab shows only once the worker has normalised the run,
+  // which can lag behind a busy queue: the reload must come after it
+  await expect
+    .poll(
+      async () => {
+        const response = await request.get(
+          `${API_URL}/event/${activityId}/normalization`,
+          { headers },
+        );
+        const { factors } = (await response.json()) as { factors: unknown[] };
+        return factors.length;
+      },
+      { timeout: 20_000 },
+    )
+    .toBeGreaterThan(0);
   await page.reload();
   await expect(
     page.locator('[data-activity-streams-chart] [data-track="heartrate"]'),
