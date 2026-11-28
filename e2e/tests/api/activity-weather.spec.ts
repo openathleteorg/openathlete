@@ -22,12 +22,16 @@ for (const daysAgo of [1, 10]) {
 
     await expect
       .poll(
-        async () =>
-          (
-            await request.get(`${API_URL}/event/${eventId}/weather`, {
-              headers,
-            })
-          ).json(),
+        async () => {
+          const weather = await request.get(
+            `${API_URL}/event/${eventId}/weather`,
+            { headers },
+          );
+          // Until the worker stores weather the API answers 200 with an empty
+          // body, and a throwing callback would end the poll at once
+          const body = await weather.text();
+          return body ? (JSON.parse(body) as unknown) : null;
+        },
         { timeout: 30_000 },
       )
       .toMatchObject({
