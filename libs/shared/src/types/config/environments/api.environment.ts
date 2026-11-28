@@ -509,6 +509,14 @@ export const ApiEnvSchema = z
         'Testing only: the day the Supporter feature registry takes as today (early access). Without Stripe it changes nothing',
       ),
 
+    OPEN_METEO_BASE_URL: z
+      .string()
+      .url('OPEN_METEO_BASE_URL must be a URL')
+      .optional()
+      .describe(
+        'Open-Meteo to ask for activity weather instead of the public api.open-meteo.com and archive-api.open-meteo.com: a self-hosted Open-Meteo, a proxy, or the fake in the E2E stack. Serves both /v1/forecast and /v1/archive',
+      ),
+
     // Stripe (optional, required for subscription features)
     STRIPE_SECRET_KEY: z
       .string()

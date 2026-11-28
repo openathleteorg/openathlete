@@ -19,6 +19,8 @@ x-api-env: &api-env
   AI_ALLOW_CUSTOM_ENDPOINTS: 'true'
   # Default remains bare/off; opt in only for the targeted real-startup smoke.
   GARMIN_PERSONAL_API_ENABLED: '${E2E_GARMIN_PERSONAL_API_ENABLED:-false}'
+  # Activity weather comes from the fake-open-meteo service, never the internet
+  OPEN_METEO_BASE_URL: http://fake-open-meteo:8080
 
 services:
   postgres:
@@ -72,6 +74,7 @@ services:
       ENABLE_TRAINING_LOAD_ESTIMATION: 'false'
     depends_on:
       api: { condition: service_healthy }
+      fake-open-meteo: { condition: service_healthy }
 
   # Stripe's official mock of its API: an instance "with billing" for the
   # Supporter perks tests, without any request to Stripe
@@ -104,6 +107,21 @@ services:
     command: ['node', '/srv/server.mjs']
     volumes:
       - ./fake-llm/server.mjs:/srv/server.mjs:ro
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO /dev/null http://127.0.0.1:8080/health || exit 1',
+        ]
+      interval: 3s
+      retries: 20
+
+  # Open-Meteo stand-in for activity weather (see fake-open-meteo/server.mjs)
+  fake-open-meteo:
+    image: node:22-alpine
+    command: ['node', '/srv/server.mjs']
+    volumes:
+      - ./fake-open-meteo/server.mjs:/srv/server.mjs:ro
     healthcheck:
       test:
         [

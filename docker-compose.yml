@@ -158,6 +158,10 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       APPLE_IAP_APP_ID: ${APPLE_IAP_APP_ID:-}
 
+      # Activity weather: empty uses the public Open-Meteo; set it to your own
+      # Open-Meteo or a proxy serving /v1/forecast and /v1/archive
+      OPEN_METEO_BASE_URL: ${OPEN_METEO_BASE_URL:-}
+
       # Push notifications (optional)
       FIREBASE_FUNCTIONS_URL: ${FIREBASE_FUNCTIONS_URL:-}
 

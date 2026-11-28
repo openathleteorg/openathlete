@@ -1,4 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { WeatherProvider, WeatherQuery, WeatherSample } from './types';
 
@@ -22,6 +25,15 @@ type Hourly = {
 export class OpenMeteoWeatherProvider implements WeatherProvider {
   name = 'openmeteo';
   private readonly logger = new Logger(OpenMeteoWeatherProvider.name);
+  private readonly forecastUrl: string;
+  private readonly archiveUrl: string;
+
+  constructor(configService: ConfigService<ApiEnvSchemaType, true>) {
+    const base = configService.get('OPEN_METEO_BASE_URL', { infer: true });
+    const root = base?.replace(/\/+$/, '');
+    this.forecastUrl = `${root ?? 'https://api.open-meteo.com'}/v1/forecast`;
+    this.archiveUrl = `${root ?? 'https://archive-api.open-meteo.com'}/v1/archive`;
+  }
 
   async fetchSamples(q: WeatherQuery): Promise<WeatherSample[]> {
     if (!q.points.length) return [];
@@ -228,11 +240,7 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
     const key = `${archive}|${day}|${cellLat}|${cellLon}`;
     let hourly = cells.get(key);
     if (!hourly) {
-      const url = new URL(
-        archive
-          ? 'https://archive-api.open-meteo.com/v1/archive'
-          : 'https://api.open-meteo.com/v1/forecast',
-      );
+      const url = new URL(archive ? this.archiveUrl : this.forecastUrl);
       url.searchParams.set('latitude', cellLat);
       url.searchParams.set('longitude', cellLon);
       url.searchParams.set('hourly', HOURLY_VARIABLES.join(','));
@@ -245,21 +253,67 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
     return hourly;
   }
 
-  /** Busy (429) and unavailable (5xx) answers get one more try */
+  // Only busy (429) and unavailable (5xx) answers get a second try
   private async request(url: URL): Promise<Hourly> {
     for (let attempt = 0; ; attempt++) {
-      const res = await fetch(url.toString());
-      if (res.ok) {
-        const data: unknown = await res.json();
-        return (data as { hourly?: Hourly })?.hourly || { time: [] };
-      }
+      const signal = AbortSignal.timeout(this.timeoutMs);
+      const res = await this.fetchWithin(url, signal);
+      if (res.ok) return this.readHourly(res, signal);
+      // An unread body holds the socket until garbage collection
+      await res.body?.cancel().catch(() => undefined);
       if ((res.status !== 429 && res.status < 500) || attempt >= 1)
         throw new Error(`HTTP ${res.status}`);
       await new Promise((r) => setTimeout(r, this.retryDelayMs));
     }
   }
 
+  private async fetchWithin(url: URL, signal: AbortSignal): Promise<Response> {
+    try {
+      return await fetch(url.toString(), { signal });
+    } catch (err) {
+      throw this.failure(err, signal);
+    }
+  }
+
+  // The body is read under the same signal, so a stalled body also times out
+  private async readHourly(
+    res: Response,
+    signal: AbortSignal,
+  ): Promise<Hourly> {
+    let data: unknown;
+    try {
+      data = await res.json();
+    } catch (err) {
+      if (signal.aborted) throw this.failure(err, signal);
+      throw new Error('Open-Meteo returned a non-JSON body');
+    }
+    return (data as { hourly?: Hourly })?.hourly || { time: [] };
+  }
+
+  private failure(err: unknown, signal: AbortSignal): Error {
+    if (signal.aborted)
+      return new Error(`Open-Meteo timed out after ${this.timeoutMs}ms`);
+    const message = err instanceof Error ? err.message : String(err);
+    // fetch says only "fetch failed": the reason (ENOTFOUND, ECONNREFUSED) is in its cause
+    const reason = causeReason(err);
+    return Object.assign(
+      new Error(
+        `Open-Meteo request failed: ${message}${reason ? ` (${reason})` : ''}`,
+      ),
+      { cause: err },
+    );
+  }
+
   protected retryDelayMs = 2000;
+  protected timeoutMs = 10_000;
+}
+
+function causeReason(err: unknown): string | undefined {
+  const cause = (err as { cause?: unknown } | null)?.cause;
+  if (!cause || typeof cause !== 'object') return undefined;
+  const { code, message } = cause as { code?: unknown; message?: unknown };
+  if (typeof code === 'string') return code;
+  return typeof message === 'string' ? message : undefined;
 }
 
 /** About 2 km: as fine as the finest models Open-Meteo serves in Europe */
