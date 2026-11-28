@@ -1,9 +1,21 @@
+import { ConfigService } from '@nestjs/config';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
+
 import { OpenMeteoWeatherProvider } from './openmeteo.provider';
 
 class InstantRetryProvider extends OpenMeteoWeatherProvider {
   protected retryDelayMs = 0;
   protected timeoutMs = 50;
 }
+
+const configWith = (env: Partial<ApiEnvSchemaType> = {}) =>
+  ({
+    get: (key: keyof ApiEnvSchemaType) => env[key],
+  }) as unknown as ConfigService<ApiEnvSchemaType, true>;
+
+const provider = (env?: Partial<ApiEnvSchemaType>) =>
+  new InstantRetryProvider(configWith(env));
 
 const answer = (status: number) =>
   ({
@@ -37,7 +49,7 @@ it('asks once per grid cell and day, however many points fall in it', async () =
   }));
   const far = { lat: 45.2, lon: 6.0, distM: 20000, timeSec: 2400 };
 
-  const samples = await new InstantRetryProvider().fetchSamples({
+  const samples = await provider().fetchSamples({
     startDate,
     points: [...loop, far],
   });
@@ -54,7 +66,7 @@ it('tries again once when Open-Meteo is unavailable', async () => {
   fetchMock
     .mockResolvedValueOnce(answer(503))
     .mockResolvedValueOnce(answer(200));
-  const samples = await new InstantRetryProvider().fetchSamples({
+  const samples = await provider().fetchSamples({
     startDate,
     points: [{ lat: 45, lon: 6, distM: 0, timeSec: 0 }],
   });
@@ -65,7 +77,7 @@ it('tries again once when Open-Meteo is unavailable', async () => {
 it('gives up on a request Open-Meteo refuses', async () => {
   fetchMock.mockResolvedValue(answer(400));
   await expect(
-    new InstantRetryProvider().fetchSamples({
+    provider().fetchSamples({
       startDate,
       points: [{ lat: 45, lon: 6, distM: 0, timeSec: 0 }],
     }),
@@ -87,9 +99,9 @@ it('gives up without retrying when Open-Meteo does not answer in time', async ()
         ),
       ),
   );
-  await expect(
-    new InstantRetryProvider().fetchSamples(onePoint),
-  ).rejects.toThrow('Open-Meteo timed out after 50ms');
+  await expect(provider().fetchSamples(onePoint)).rejects.toThrow(
+    'Open-Meteo timed out after 50ms',
+  );
   expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
@@ -97,16 +109,42 @@ it('treats an answer that is not JSON as a failure, without retrying', async () 
   fetchMock.mockResolvedValue(
     new Response('Unexpected error', { status: 200 }),
   );
-  await expect(
-    new InstantRetryProvider().fetchSamples(onePoint),
-  ).rejects.toThrow('Open-Meteo returned a non-JSON body');
+  await expect(provider().fetchSamples(onePoint)).rejects.toThrow(
+    'Open-Meteo returned a non-JSON body',
+  );
   expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
 it('gives up without retrying when Open-Meteo cannot be reached', async () => {
   fetchMock.mockRejectedValue(new TypeError('fetch failed'));
-  await expect(
-    new InstantRetryProvider().fetchSamples(onePoint),
-  ).rejects.toThrow('Open-Meteo request failed: fetch failed');
+  await expect(provider().fetchSamples(onePoint)).rejects.toThrow(
+    'Open-Meteo request failed: fetch failed',
+  );
   expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+it('sends forecast and archive requests to OPEN_METEO_BASE_URL when set', async () => {
+  fetchMock.mockResolvedValue(answer(200));
+  const custom = provider({
+    OPEN_METEO_BASE_URL: 'http://weather.local:8080/',
+  });
+  await custom.fetchSamples({ ...onePoint, startDate: new Date() });
+  await custom.fetchSamples(onePoint);
+  const urls = fetchMock.mock.calls.map(([url]: [string]) => new URL(url));
+  expect(urls.map((u) => u.origin + u.pathname)).toEqual([
+    'http://weather.local:8080/v1/forecast',
+    'http://weather.local:8080/v1/archive',
+  ]);
+});
+
+it('uses the public Open-Meteo hosts by default', async () => {
+  fetchMock.mockResolvedValue(answer(200));
+  const standard = provider();
+  await standard.fetchSamples({ ...onePoint, startDate: new Date() });
+  await standard.fetchSamples(onePoint);
+  const urls = fetchMock.mock.calls.map(([url]: [string]) => new URL(url));
+  expect(urls.map((u) => u.origin + u.pathname)).toEqual([
+    'https://api.open-meteo.com/v1/forecast',
+    'https://archive-api.open-meteo.com/v1/archive',
+  ]);
 });

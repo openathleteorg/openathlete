@@ -1,4 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { WeatherProvider, WeatherQuery, WeatherSample } from './types';
 
@@ -22,6 +25,15 @@ type Hourly = {
 export class OpenMeteoWeatherProvider implements WeatherProvider {
   name = 'openmeteo';
   private readonly logger = new Logger(OpenMeteoWeatherProvider.name);
+  private readonly forecastUrl: string;
+  private readonly archiveUrl: string;
+
+  constructor(configService: ConfigService<ApiEnvSchemaType, true>) {
+    const base = configService.get('OPEN_METEO_BASE_URL', { infer: true });
+    const root = base?.replace(/\/+$/, '');
+    this.forecastUrl = `${root ?? 'https://api.open-meteo.com'}/v1/forecast`;
+    this.archiveUrl = `${root ?? 'https://archive-api.open-meteo.com'}/v1/archive`;
+  }
 
   async fetchSamples(q: WeatherQuery): Promise<WeatherSample[]> {
     if (!q.points.length) return [];
@@ -228,11 +240,7 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
     const key = `${archive}|${day}|${cellLat}|${cellLon}`;
     let hourly = cells.get(key);
     if (!hourly) {
-      const url = new URL(
-        archive
-          ? 'https://archive-api.open-meteo.com/v1/archive'
-          : 'https://api.open-meteo.com/v1/forecast',
-      );
+      const url = new URL(archive ? this.archiveUrl : this.forecastUrl);
       url.searchParams.set('latitude', cellLat);
       url.searchParams.set('longitude', cellLon);
       url.searchParams.set('hourly', HOURLY_VARIABLES.join(','));
