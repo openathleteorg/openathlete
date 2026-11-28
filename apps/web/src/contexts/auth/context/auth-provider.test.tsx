@@ -25,6 +25,20 @@ vi.mock('@/paraglide/messages', () => ({
 
 const offline = () =>
   new AxiosError('Network Error', AxiosError.ERR_NETWORK, undefined);
+const answered = (status: number) =>
+  new AxiosError(
+    'Request failed',
+    AxiosError.ERR_BAD_RESPONSE,
+    undefined,
+    null,
+    {
+      status,
+      statusText: '',
+      data: {},
+      headers: {},
+      config: {} as never,
+    },
+  );
 const user = { userId: 1, roles: ['ATHLETE'], language: 'EN' };
 
 describe('auth start without a connection', () => {
@@ -71,22 +85,20 @@ describe('auth start without a connection', () => {
     expect(text()).toBe('app');
   });
 
-  it('still treats an answered failure as signed out', async () => {
-    api.getMe.mockRejectedValue(
-      new AxiosError(
-        'Unauthorized',
-        AxiosError.ERR_BAD_REQUEST,
-        undefined,
-        null,
-        {
-          status: 401,
-          statusText: '',
-          data: {},
-          headers: {},
-          config: {} as never,
-        },
-      ),
-    );
+  it.each([429, 500, 503])(
+    'shows the offline screen when the API answers %i, and retries',
+    async (status) => {
+      api.getMe.mockRejectedValueOnce(answered(status)).mockResolvedValue(user);
+      await start();
+      expect(text()).toContain('offline_title');
+
+      await act(async () => container.querySelector('button')!.click());
+      expect(text()).toBe('app');
+    },
+  );
+
+  it('treats a 401 as signed out', async () => {
+    api.getMe.mockRejectedValue(answered(401));
     await start();
     expect(text()).toBe('app');
   });

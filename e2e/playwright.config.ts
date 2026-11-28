@@ -1,8 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import { randomClientIp } from './support/api';
 import { AUTH_FILE, BILLING_WEB_URL, WEB_URL } from './support/env';
 
 const isCI = Boolean(process.env.CI);
+
+// Each worker process loads this file, so each draws its own IP. nginx passes
+// it on and the API trusts it from the Docker network; without it every
+// browser shares one rate limit budget and the app gets 429s.
+const workerClient = {
+  extraHTTPHeaders: { 'X-Forwarded-For': randomClientIp() },
+};
 
 export default defineConfig({
   testDir: './tests',
@@ -23,12 +31,16 @@ export default defineConfig({
   // testMatch runs against absolute paths: anchor on tests/ so a checkout
   // in a folder named like a project ("…-mobile/") selects nothing extra
   projects: [
-    { name: 'setup', testMatch: /auth\.setup\.ts/ },
+    { name: 'setup', testMatch: /auth\.setup\.ts/, use: workerClient },
     { name: 'api', testMatch: /tests\/api\/.*\.spec\.ts$/ },
     {
       name: 'desktop',
       testMatch: /tests\/web\/.*\.spec\.ts$/,
-      use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
+      use: {
+        ...devices['Desktop Chrome'],
+        ...workerClient,
+        storageState: AUTH_FILE,
+      },
       dependencies: ['setup'],
     },
     {
@@ -38,6 +50,7 @@ export default defineConfig({
       use: {
         ...devices['iPhone 13'],
         browserName: 'chromium',
+        ...workerClient,
         storageState: AUTH_FILE,
       },
       dependencies: ['setup'],
@@ -63,7 +76,7 @@ export default defineConfig({
       // density and user agent
       name: 'android',
       testMatch: /tests\/mobile\/.*\.spec\.ts$/,
-      use: { ...devices['Pixel 8'], storageState: AUTH_FILE },
+      use: { ...devices['Pixel 8'], ...workerClient, storageState: AUTH_FILE },
       dependencies: ['setup'],
     },
   ],
