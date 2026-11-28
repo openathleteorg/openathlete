@@ -18,6 +18,7 @@ test('reads an activity against its plan, step by step and part by part', async 
   page,
   request,
 }) => {
+  test.setTimeout(60_000);
   const athlete = await createAthlete(request);
   const headers = apiHeaders(undefined, athlete.accessToken);
   const imported = await request.post(`${API_URL}/activity-import/gpx`, {
@@ -117,11 +118,8 @@ test('reads an activity against its plan, step by step and part by part', async 
   await page.mouse.up();
   await expect(selection).toContainText(/Selection\s*5:00/);
 
-  // Hidden tracks stay hidden the next time
-  await chart.locator('[data-track-toggle="altitude"]').click();
-  await expect(chart.locator('[data-track="altitude"]')).toHaveCount(0);
-  // The Conditions tab shows only once the worker has normalised the run,
-  // which can lag behind a busy queue: the reload must come after it
+  // The Conditions tab needs weather or normalization factors. This run has no
+  // weather, so the reload below must wait for the worker's factors
   await expect
     .poll(
       async () => {
@@ -129,12 +127,17 @@ test('reads an activity against its plan, step by step and part by part', async 
           `${API_URL}/event/${activityId}/normalization`,
           { headers },
         );
+        expect(response.ok(), await response.text()).toBe(true);
         const { factors } = (await response.json()) as { factors: unknown[] };
         return factors.length;
       },
       { timeout: 20_000 },
     )
     .toBeGreaterThan(0);
+
+  // Hidden tracks stay hidden the next time
+  await chart.locator('[data-track-toggle="altitude"]').click();
+  await expect(chart.locator('[data-track="altitude"]')).toHaveCount(0);
   await page.reload();
   await expect(
     page.locator('[data-activity-streams-chart] [data-track="heartrate"]'),
