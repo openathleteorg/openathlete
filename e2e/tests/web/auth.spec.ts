@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
 import { apiHeaders, createAthlete, login } from '../../support/api';
@@ -7,6 +7,30 @@ import { API_URL } from '../../support/env';
 
 // These tests start logged out
 test.use({ storageState: { cookies: [], origins: [] } });
+
+// Sign up hashes the password, then the app logs in, verifies it and loads the
+// user before it leaves the page. Under a loaded API that outlasts the 5s the
+// onboarding heading gets, so each step gets its own wait and failure
+async function submitSignUp(page: Page) {
+  const created = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/user') &&
+      response.request().method() === 'POST',
+    { timeout: 15_000 },
+  );
+  const loggedIn = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/auth/login') &&
+      response.request().method() === 'POST',
+    { timeout: 30_000 },
+  );
+  await page.click('button[type="submit"]');
+  const createResponse = await created;
+  expect(createResponse.ok(), await createResponse.text()).toBe(true);
+  const loginResponse = await loggedIn;
+  expect(loginResponse.ok(), await loginResponse.text()).toBe(true);
+  await expect(page).toHaveURL(/\/dashboard\/onboarding/, { timeout: 15_000 });
+}
 
 test('explains the password rule on sign up', async ({ page }) => {
   await page.goto('/auth/create-account');
@@ -77,6 +101,7 @@ test('takes a new account to the onboarding after another one logged out', async
   page,
   request,
 }) => {
+  test.setTimeout(60_000);
   const athlete = await createAthlete(request);
   await signIn(page, athlete);
   await page.goto('/dashboard/calendar');
@@ -95,7 +120,7 @@ test('takes a new account to the onboarding after another one logged out', async
   await page.fill('input[name="firstName"]', 'New');
   await page.fill('input[name="lastName"]', 'Account');
   await page.fill('input[name="password"]', athlete.password);
-  await page.click('button[type="submit"]');
+  await submitSignUp(page);
 
   await expect(
     page.getByRole('heading', { name: 'Welcome to OpenAthlete' }),
@@ -108,6 +133,7 @@ test('records where a new account came from, as the website link says', async ({
   page,
   request,
 }) => {
+  test.setTimeout(60_000);
   const email = `e2e-${randomUUID()}@example.com`;
   const password = 'E2e-Test-Passw0rd!';
   // A website link after a visit that started on a Reddit campaign
@@ -125,7 +151,7 @@ test('records where a new account came from, as the website link says', async ({
       response.url().endsWith('/user/me/signup-attribution') &&
       response.request().method() === 'PUT',
   );
-  await page.click('button[type="submit"]');
+  await submitSignUp(page);
   await expect(
     page.getByRole('heading', { name: 'Welcome to OpenAthlete' }),
   ).toBeVisible();

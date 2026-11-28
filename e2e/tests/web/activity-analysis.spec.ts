@@ -18,6 +18,7 @@ test('reads an activity against its plan, step by step and part by part', async 
   page,
   request,
 }) => {
+  test.setTimeout(60_000);
   const athlete = await createAthlete(request);
   const headers = apiHeaders(undefined, athlete.accessToken);
   const imported = await request.post(`${API_URL}/activity-import/gpx`, {
@@ -116,6 +117,26 @@ test('reads an activity against its plan, step by step and part by part', async 
   await page.mouse.move(box.x + box.width - 1, box.y + 30, { steps: 5 });
   await page.mouse.up();
   await expect(selection).toContainText(/Selection\s*5:00/);
+
+  // The Conditions tab needs weather or normalization factors. This run has no
+  // weather, so the reload below must wait for the worker's factors
+  await expect
+    .poll(
+      async () => {
+        const response = await request.get(
+          `${API_URL}/event/${activityId}/normalization`,
+          { headers },
+        );
+        // A throw here would end the poll at once, so an error is returned
+        if (!response.ok()) {
+          return { status: response.status(), body: await response.text() };
+        }
+        const { factors } = (await response.json()) as { factors: unknown[] };
+        return { status: response.status(), hasFactors: factors.length > 0 };
+      },
+      { timeout: 20_000 },
+    )
+    .toMatchObject({ status: 200, hasFactors: true });
 
   // Hidden tracks stay hidden the next time
   await chart.locator('[data-track-toggle="altitude"]').click();
