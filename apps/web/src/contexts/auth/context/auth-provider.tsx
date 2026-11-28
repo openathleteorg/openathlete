@@ -1,13 +1,13 @@
 import { UserAPI } from '@/api/user';
 import { getPath } from '@/routes/paths';
 import { isValidToken } from '@/utils/auth';
-import { isNetworkError } from '@/utils/axios';
 import { signOutFirebase } from '@/utils/firebase-auth';
 import { saveLanguageChoice } from '@/utils/language-choice';
 import { ACCESS_TOKEN, clear, getItem, setItem } from '@/utils/local-storage';
 import { initializePushNotifications } from '@/utils/push-notifications';
 import { queryClient } from '@/utils/query-client';
 import { saveTimeZone } from '@/utils/time-zone';
+import { isAxiosError } from 'axios';
 import posthog from 'posthog-js';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 
@@ -72,13 +72,13 @@ export function AuthProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const initialize = useCallback(async () => {
-    // Without an answer from the API the session is unknown, not signed out:
-    // treating it as signed out would send the user to the login page
+    // Only a 401 says the session is gone. No answer, a rate limit (429) or a
+    // server error leaves it unknown: signing out would send the user to login
     const signedOutOrOffline = (error: unknown) =>
       dispatch(
-        isNetworkError(error)
-          ? { type: Types.OFFLINE }
-          : { type: Types.INITIAL, payload: { user: null } },
+        isAxiosError(error) && error.response?.status === 401
+          ? { type: Types.INITIAL, payload: { user: null } }
+          : { type: Types.OFFLINE },
       );
 
     try {
