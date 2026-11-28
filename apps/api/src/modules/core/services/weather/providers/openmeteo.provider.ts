@@ -253,15 +253,14 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
     return hourly;
   }
 
-  /**
-   * Busy (429) and unavailable (5xx) answers get one more try. A timeout, a
-   * network error or a body that is not JSON fail at once.
-   */
+  // Only busy (429) and unavailable (5xx) answers get a second try
   private async request(url: URL): Promise<Hourly> {
     for (let attempt = 0; ; attempt++) {
       const signal = AbortSignal.timeout(this.timeoutMs);
       const res = await this.fetchWithin(url, signal);
       if (res.ok) return this.readHourly(res, signal);
+      // An unread body holds the socket until garbage collection
+      await res.body?.cancel().catch(() => undefined);
       if ((res.status !== 429 && res.status < 500) || attempt >= 1)
         throw new Error(`HTTP ${res.status}`);
       await new Promise((r) => setTimeout(r, this.retryDelayMs));
@@ -294,13 +293,27 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
   private failure(err: unknown, signal: AbortSignal): Error {
     if (signal.aborted)
       return new Error(`Open-Meteo timed out after ${this.timeoutMs}ms`);
-    return new Error(
-      `Open-Meteo request failed: ${err instanceof Error ? err.message : String(err)}`,
+    const message = err instanceof Error ? err.message : String(err);
+    // fetch says only "fetch failed": the reason (ENOTFOUND, ECONNREFUSED) is in its cause
+    const reason = causeReason(err);
+    return Object.assign(
+      new Error(
+        `Open-Meteo request failed: ${message}${reason ? ` (${reason})` : ''}`,
+      ),
+      { cause: err },
     );
   }
 
   protected retryDelayMs = 2000;
   protected timeoutMs = 10_000;
+}
+
+function causeReason(err: unknown): string | undefined {
+  const cause = (err as { cause?: unknown } | null)?.cause;
+  if (!cause || typeof cause !== 'object') return undefined;
+  const { code, message } = cause as { code?: unknown; message?: unknown };
+  if (typeof code === 'string') return code;
+  return typeof message === 'string' ? message : undefined;
 }
 
 /** About 2 km: as fine as the finest models Open-Meteo serves in Europe */

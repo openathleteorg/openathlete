@@ -17,10 +17,14 @@ const configWith = (env: Partial<ApiEnvSchemaType> = {}) =>
 const provider = (env?: Partial<ApiEnvSchemaType>) =>
   new InstantRetryProvider(configWith(env));
 
-const answer = (status: number) =>
+const answer = (
+  status: number,
+  cancel = jest.fn().mockResolvedValue(undefined),
+) =>
   ({
     ok: status === 200,
     status,
+    body: { cancel } as unknown as ReadableStream,
     json: async () => ({
       hourly: {
         time: ['2020-01-01T10:00', '2020-01-01T11:00'],
@@ -63,25 +67,29 @@ it('asks once per grid cell and day, however many points fall in it', async () =
 });
 
 it('tries again once when Open-Meteo is unavailable', async () => {
+  const cancel = jest.fn().mockResolvedValue(undefined);
   fetchMock
-    .mockResolvedValueOnce(answer(503))
+    .mockResolvedValueOnce(answer(503, cancel))
     .mockResolvedValueOnce(answer(200));
   const samples = await provider().fetchSamples({
     startDate,
     points: [{ lat: 45, lon: 6, distM: 0, timeSec: 0 }],
   });
   expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(cancel).toHaveBeenCalled();
   expect(samples[0].temperatureC).toBe(10);
 });
 
 it('gives up on a request Open-Meteo refuses', async () => {
-  fetchMock.mockResolvedValue(answer(400));
+  const cancel = jest.fn().mockRejectedValue(new Error('already read'));
+  fetchMock.mockResolvedValue(answer(400, cancel));
   await expect(
     provider().fetchSamples({
       startDate,
       points: [{ lat: 45, lon: 6, distM: 0, timeSec: 0 }],
     }),
   ).rejects.toThrow('HTTP 400');
+  expect(cancel).toHaveBeenCalled();
   expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
@@ -116,10 +124,20 @@ it('treats an answer that is not JSON as a failure, without retrying', async () 
 });
 
 it('gives up without retrying when Open-Meteo cannot be reached', async () => {
-  fetchMock.mockRejectedValue(new TypeError('fetch failed'));
-  await expect(provider().fetchSamples(onePoint)).rejects.toThrow(
-    'Open-Meteo request failed: fetch failed',
+  const cause = Object.assign(
+    new Error('getaddrinfo ENOTFOUND open-meteo.internal'),
+    { code: 'ENOTFOUND' },
   );
+  fetchMock.mockRejectedValue(
+    Object.assign(new TypeError('fetch failed'), { cause }),
+  );
+  const failure = provider().fetchSamples(onePoint);
+  await expect(failure).rejects.toThrow(
+    'Open-Meteo request failed: fetch failed (ENOTFOUND)',
+  );
+  await expect(failure).rejects.toMatchObject({
+    cause: expect.objectContaining({ cause }),
+  });
   expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
