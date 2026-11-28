@@ -23,7 +23,7 @@ Read the whole diff, not only the description. Check:
 - **Self-hosting**: works without optional env vars, nothing hosted-only enabled by default.
 - **Data**: migrations are additive and safe (`prisma-migration` skill), and new foreign keys are covered by account deletion.
 - **Repo conventions** (`CLAUDE.md`):
-  - every string translated in all four locales;
+  - every string translated in all eight locales;
   - tests at the right level;
   - nginx `add_header` repeated in new locations.
 

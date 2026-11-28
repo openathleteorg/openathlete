@@ -21,7 +21,7 @@ The schema is split by domain in `libs/database/prisma/schema/*.prisma`. Migrati
    - Indexes on large tables (`event`, `event_activity`, `record`): consider `CREATE INDEX CONCURRENTLY` in a separate migration.
 4. Apply and regenerate: `pnpm database run db:migrate` then `pnpm database run db:generate`.
 5. **Account deletion**: a new foreign key to `user`, `athlete`, `event`, `event_activity` or `workout` must be handled in `apps/api/src/modules/auth/services/account-deletion.service.ts`. Then:
-   - add it to `HANDLED_RESTRICT_KEYS` in `account-deletion.int-spec.ts`, if its delete rule is `RESTRICT`;
+   - add it to `HANDLED_RESTRICT_KEYS` in `account-deletion.int-spec.ts`, if its delete rule is `RESTRICT` or `NO ACTION` (the keys that block a deletion);
    - seed a row in `account-deletion.fixture.ts`.
 
    Prefer `onDelete: Cascade` for data that has no meaning without its parent.
